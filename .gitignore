@@ -1,3 +1,22 @@
+# Things that aren't useful now, but haven't been deemed trash-worthy
+_arxiv/
+
+# Pixi
+.pixi/
+
+# Talos & K8s
+kubeconfig
+talosconfig
+.decrypted~*.yaml
+.config.env
+*.agekey
+*.pub
+*.key
+
+# Private
+.private
+.bin
+
 # Created by https://www.toptal.com/developers/gitignore/api/terraform
 # Edit at https://www.toptal.com/developers/gitignore?templates=terraform
 
@@ -235,7 +254,8 @@ pyrightconfig.json
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
