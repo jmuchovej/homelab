@@ -1,0 +1,53 @@
+{
+  "name": "Homelab",
+
+  "image": "ghcr.io/jmuchovej/homelab/devcontainer:base",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker": {},
+    "ghcr.io/flexwie/devcontainer-features/op": {},
+    // "ghcr.io/devcontainers-contrib/features/act": {},
+  },
+
+  "mounts": [
+    {"target": "${containerWorkspaceFolder}/.pixi", "type": "volume" },
+  ],
+
+  "postStartCommand": {
+    "git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    "pixi": "sudo chown -R vscode: ${containerWorkspaceFolder}/.pixi && pixi install -a"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mikestead.dotenv",
+        "redhat.vscode-yaml",
+        "signageos.signageos-vscode-sops",
+        "EditorConfig.EditorConfig",
+        "Gruntfuggly.todo-tree",
+        "gamunu.opentofu",
+      ],
+      "settings": {
+        "files.associations": {
+          "*.json5": "jsonc",
+          "./kubernetes/**/*.sops.toml": "plaintext",
+        },
+        "sops.defaults.ageKeyFile": "age.key",
+        "yaml.schemas": {
+          "Kubernetes": "./kubernetes/*.yaml",
+        },
+        "vs-kubernetes": {
+          "vs-kubernetes.kubeconfig": "./kubeconfig",
+          "vs-kubernetes.knownKubeconfigs": [
+            "./kubeconfig",
+          ],
+        },
+      },
+    }
+  }
+}
