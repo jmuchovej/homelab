@@ -23,7 +23,7 @@
   #region Drive Configuration
   boot.zfs = {
     enabled         = true;
-    extraPools      = [ "impulse", "warp", ];
+    extraPools      = [ "impulse" "warp" ];
     allowHiberation = false;
     forceImportAll  = true;
   };
@@ -41,7 +41,7 @@
 
     autoScrub = {
       enable    = true;
-      pools     = [ "impulse", "warp" ];
+      pools     = [ "impulse" "warp" ];
       interval  = "monthly";
     };
 
