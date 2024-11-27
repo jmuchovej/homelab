@@ -6,10 +6,10 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = {
+    overlays = [
       outputs.overlays.additions
       outputs.overlays.stable-packages
-    };
+    ];
   };
 
   # Basic environment
