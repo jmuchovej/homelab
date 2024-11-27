@@ -17,7 +17,7 @@
   boot.loader = {
     systemd-boot.enable       = true;
     efi.canTouchEfiVariables  = true;
-    loader.timeout            = 10;
+    timeout                   = 10;
   };
 
   time.timeZone = "America/New_York";
