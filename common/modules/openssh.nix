@@ -1,13 +1,9 @@
 # SPDX-License-Identifier: MIT
-
-{ lib, config, ... }:
-
-let
+{ lib, config, ... }: let
   inherit (lib) concatMapStringsSep;
 
   cfg = config.services.openssh;
-in
-{
+in {
   options.services.openssh.hardening = lib.mkEnableOption "Enable sshd hardening settings";
 
   config = lib.mkIf cfg.hardening {

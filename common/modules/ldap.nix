@@ -1,5 +1,4 @@
-{ config, lib, pkgs, ... }:
-{
+{ config, lib, pkgs, ... }: {
   environment.systemPackages = [ pkgs.ldap ];
 
   sops.secrets.ldap = {

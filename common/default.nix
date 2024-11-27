@@ -1,5 +1,5 @@
 { config, lib, pkgs, outputs, ... }: {
-  import = [
+  imports = [
     ./users/lab.nix
     ./modules/terminal.nix
   ];

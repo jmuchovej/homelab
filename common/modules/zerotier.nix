@@ -1,5 +1,4 @@
 { config, ... }: {
-
   sops.secrets.zerotierone = {
     sopsFile   = ./zerotier.sops.yaml;
     format     = "yaml";

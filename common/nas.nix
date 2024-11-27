@@ -2,7 +2,7 @@
   domain   = config.sops.secrets.shared.value.domain;
   hostname = config.sops.secrets.host.value.hostname;
 in {
-  import = [
+  imports = [
     ./default.nix
     ./server.nix
   ];
