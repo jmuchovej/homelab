@@ -1,0 +1,15 @@
+---
+keys:
+- &john age1lvcgfp9v4kj24zyr5rkuchzmhkaxhjqhlkyqstscn0m7glkdt4ns7ye6eg
+- &s2-red1 age1kjhqjy76k909949nk5ffwl2u3vjnpxktjssu54pmx2xn334gfels7hz4r7
+
+creation_rules:
+- path_regex: .+\.sops\.yaml$
+  key_groups:
+  - age:
+    - *john
+    - *s2-red1
+
+stores:
+  yaml:
+    indent: 2
