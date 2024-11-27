@@ -14,47 +14,19 @@
   };
 
   # Bootloader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 10;
+  boot.loader = {
+    systemd-boot.enable       = true;
+    efi.canTouchEfiVariables  = true;
+    loader.timeout            = 10;
+  };
 
   time.timeZone = "America/New_York";
 
   #region Drive Configuration
-  boot.zfs = {
-    enabled         = true;
-    extraPools      = [ "impulse" "warp" ];
-    allowHiberation = false;
-    forceImportAll  = true;
-  };
-
-  services.zfs = {
-    autoSnapshot = {
-      flags     = "-k -p";
-      enable    = true;
-      frequent  = 12;
-      daily     = 10;
-      weekly    =  7;
-      hourly    = 48;
-      monthly   = 24;
-    };
-
-    autoScrub = {
-      enable    = true;
-      pools     = [ "impulse" "warp" ];
-      interval  = "monthly";
-    };
-
-    trim = {
-      enable              = true;
-      interval            = "daily";
-      randomizedDelaySec  = "4h";
-    };
-  };
-
-  services.qemuGuest.enable = true;
-
-  services.nfs.exports = [
+  boot.zfs.extraPools           = [ "impulse" "warp" ];
+  services.zfs.autoScrub.pools  = [ "impulse" "warp" ];
+  services.qemuGuest.enable     = true;
+  services.nfs.exports          = [
   ];
   #endregion
 }
