@@ -55,7 +55,7 @@
 
   programs.zsh = {
     enable                = true;
-    enableCompletions     = true;
-    enableBashCompletions = true;
+    enableCompletion      = true;
+    enableBashCompletion  = true;
   };
 }
