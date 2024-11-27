@@ -31,8 +31,8 @@
     extraOptions                = ''experimental-features = nix-command flakes'';
     settings.trusted-users      = [ "root" "@wheel" ];
     optimise.automatic          = true;
-    generateRegistryFromInputs  = true;
-    generateNixPathFromInputs   = true;
+    # generateRegistryFromInputs  = true;
+    # generateNixPathFromInputs   = true;
   };
 
   system.autoUpgrade = {
