@@ -57,5 +57,5 @@
     enable                = true;
     enableCompletions     = true;
     enableBashCompletions = true;
-  }
+  };
 }
