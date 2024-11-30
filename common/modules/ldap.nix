@@ -2,8 +2,8 @@
   environment.systemPackages = [ pkgs.ldap ];
 
   sops.secrets.ldap = {
-    sopsFile   = ./ldap.sops.env;
-    format     = "binary";
+    sopsFile   = ./ldap.sops.yaml;
+    format     = "yaml";
   };
 
   services.nscd.enableNsncd = true;
@@ -33,7 +33,9 @@
   services.ldap = {
     enable = true;
     sshAuthorizedKeysIntegration = true;
-    environmentFile = config.sops.secrets.ldap.path;
+    environmentFile = [
+      config.sops.secrets."ldap".path
+    ];
     config = ''
       [nss]
       filter_groups         = root
