@@ -4,7 +4,7 @@ keys:
 - &s2-red1 age1kjhqjy76k909949nk5ffwl2u3vjnpxktjssu54pmx2xn334gfels7hz4r7
 
 creation_rules:
-- path_regex: .+\.sops\.yaml$
+- path_regex: .+\.sops\.(yaml|env)$
   key_groups:
   - age:
     - *john

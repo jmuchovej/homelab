@@ -2,9 +2,8 @@
   environment.systemPackages = [ pkgs.ldap ];
 
   sops.secrets.ldap = {
-    sopsFile   = ./ldap.sops.yaml;
-    format     = "yaml";
-    parseValue = true;
+    sopsFile   = ./ldap.sops.env;
+    format     = "binary";
   };
 
   services.nscd.enableNsncd = true;
@@ -34,6 +33,7 @@
   services.ldap = {
     enable = true;
     sshAuthorizedKeysIntegration = true;
+    environmentFile = config.sops.secrets.ldap.path;
     config = ''
       [nss]
       filter_groups         = root
@@ -64,12 +64,12 @@
       access_provider           = ldap
       sudo_provider             = ldap
 
-      ldap_uri                  = ${config.sops.secrets.ldap.value.uri}
+      ldap_uri                  = $LDAP_URI
       ldap_schema               = rfc2307bis
-      ldap_search_base          = ${config.sops.secrets.ldap.value.search.base}
-      ldap_user_search_base     = ${config.sops.secrets.ldap.value.search.user}
-      ldap_sudo_search_base     = ${config.sops.secrets.ldap.value.search.sudo}
-      ldap_group_search_base    = ${config.sops.secrets.ldap.value.search.groups}
+      ldap_search_base          = $LDAP_SEARCH_BASE
+      ldap_user_search_base     = $LDAP_SEARCH_USER
+      ldap_sudo_search_base     = $LDAP_SEARCH_SUDO
+      ldap_group_search_base    = $LDAP_SEARCH_GROUPS
 
       ldap_user_object_class    = user
       ldap_user_name            = cn
@@ -82,13 +82,13 @@
       ldap_group_uuid           = uid
 
       ldap_access_order         = filter
-      ldap_access_filter        = ${config.sops.secrets.ldap.value.access.filter}
+      ldap_access_filter        = $LDAP_ACCESS_FILTER
 
-      ldap_default_bind_dn      = ${config.sops.secrets.ldap.value.default.bind-dn}
-      ldap_default_authtok      = ${config.sops.secrets.ldap.value.default.authtok}
+      ldap_default_bind_dn      = $LDAP_DEFAULT_BIND_DN
+      ldap_default_authtok      = $LDAP_DEFAULT_AUTHTOK
       ldap_default_authtok_type = password
 
-      # ldap_tls_cacert           = ${config.sops.secrets.ldap.value.tls.cacert}
+      # ldap_tls_cacert           = $LDAP_TLS_CACERT
       ldap_tls_reqcert          = allow
       ldap_id_use_start_tls     = true
     '';
