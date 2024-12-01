@@ -1,6 +1,6 @@
 { config, lib, pkgs, outputs, ... }: let
-  domain   = config.networking.hostName;
-  hostname = config.networking.domain;
+  hostname = config.networking.hostName;
+  domain   = config.networking.domain;
 in {
   imports = [
     ./default.nix

@@ -72,8 +72,8 @@
       ldap_user_name            = cn
       fallback_homedir          = /home/%u
       ldap_user_home_directory  = /home/%u
-      ldap_user_shell           = ${lib.getBin pkgs.zsh}
-      default_shell             = ${lib.getBin pkgs.zsh}
+      ldap_user_shell           = /run/current-system/sw/bin/zsh
+      default_shell             = /run/current-system/sw/bin/zsh
       ldap_group_object_class   = group
       ldap_group_name           = cn
       ldap_group_uuid           = uid
