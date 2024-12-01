@@ -12,7 +12,7 @@ in {
     server = {
       enable            = true;
       hostName          = "nfs.${hostname}.${domain}";
-      createMountPoints = true;
+      # createMountPoints = true;
     };
   };
 
