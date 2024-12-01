@@ -118,7 +118,7 @@
       # s1-red3 = mkNixos [ ./hosts/s1-red3 ];
 
       # Servers: tlh1
-      red1-s2 = mkNixos [ ./hosts/alderaan-red1 ];
+      alderaan-red1 = mkNixos [ ./hosts/alderaan-red1 ];
     };
 
     # nix-darwin configuration entrypoint
