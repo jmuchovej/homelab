@@ -19,5 +19,5 @@
 
   services.openssh = {
     enable = true;
-  }
+  };
 }
