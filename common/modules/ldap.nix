@@ -1,10 +1,7 @@
 { config, lib, pkgs, ... }: {
-  environment.systemPackages = [ pkgs.ldap ];
+  environment.systemPackages = [ pkgs.sssd ];
 
-  sops.secrets.ldap = {
-    sopsFile   = ./ldap.sops.yaml;
-    format     = "yaml";
-  };
+  sops.secrets.ldap.sopsFile = ./ldap.sops.yaml;
 
   services.nscd.enableNsncd = true;
 
@@ -34,7 +31,7 @@
     enable = true;
     sshAuthorizedKeysIntegration = true;
     environmentFile = [
-      config.sops.secrets."ldap".path
+      config.sops.secrets.ldap.path
     ];
     config = ''
       [nss]

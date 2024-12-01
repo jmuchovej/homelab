@@ -16,4 +16,8 @@
     ./optional/reboot-required.nix
     ./optional/virtualization.nix
   ];
+
+  services.openssh = {
+    enable = true;
+  }
 }

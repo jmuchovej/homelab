@@ -7,10 +7,11 @@
 
   system.stateVersion = "24.05";
 
-  sops.secrets.host = {
-    file        = ./secrets.sops.yaml;
-    format      = "yaml";
-    parseValue  = true;
+  machine = import ./machine.nix;
+
+  networking = {
+    hostName  = "red1-alderaan";
+    domain    = "jmuchovej.com";
   };
 
   # Bootloader
@@ -26,7 +27,7 @@
   boot.zfs.extraPools           = [ "impulse" "warp" ];
   services.zfs.autoScrub.pools  = [ "impulse" "warp" ];
   services.qemuGuest.enable     = true;
-  services.nfs.exports          = [
-  ];
+  # services.nfs.exports          = [
+  # ];
   #endregion
 }

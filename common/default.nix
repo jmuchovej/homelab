@@ -20,6 +20,8 @@
 
   users.mutableUsers  = false;
 
+  sops.defaultSopsFormat = "yaml";
+
   # Nix
   nix = {
     gc = {

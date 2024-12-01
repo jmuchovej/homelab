@@ -1,12 +1,10 @@
 { config, ... }: {
-  sops.secrets.zerotierone = {
-    sopsFile   = ./zerotier.sops.yaml;
-    format     = "yaml";
-    parseValue = true;
-  };
-
+  sops.secrets."/var/lib/zerotier-one/networks.d/${}"
   services.zerotierone = {
     enable        = true;
-    joinNetworks  = config.sops.secrets.zerotierone.networks;
+    joinNetworks  = [
+      "48d6023c4695358b"  # Homelab
+      # "!!ZEROTIER_HOMELAB!!"
+    ]
   };
 }

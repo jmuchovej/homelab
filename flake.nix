@@ -44,7 +44,7 @@
     mkNixos =
       modules:
       nixpkgs.lib.nixosSystem {
-        inherit modules;
+        modules = modules ++ [ sops-nix.nixosModules.sops ];
         specialArgs = {
           inherit inputs outputs secrets;
         };
@@ -118,7 +118,7 @@
       # s1-red3 = mkNixos [ ./hosts/s1-red3 ];
 
       # Servers: tlh1
-      red1-s2 = mkNixos [ ./hosts/red1-s2 ];
+      red1-s2 = mkNixos [ ./hosts/alderaan-red1 ];
     };
 
     # nix-darwin configuration entrypoint

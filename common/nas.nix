@@ -1,6 +1,6 @@
 { config, lib, pkgs, outputs, ... }: let
-  domain   = config.sops.secrets.shared.value.domain;
-  hostname = config.sops.secrets.host.value.hostname;
+  domain   = config.networking.hostName;
+  hostname = config.networking.domain;
 in {
   imports = [
     ./default.nix
@@ -16,12 +16,12 @@ in {
     };
   };
 
-  security.pam = {
-    zfs = {
-      enable    = true;
-      homes     = "impulse/homes";
-      noUnmount = true;
-    };
-  };
+  # security.pam = {
+  #   zfs = {
+  #     enable    = true;
+  #     homes     = "impulse/homes";
+  #     noUnmount = true;
+  #   };
+  # };
   #endregion
 }

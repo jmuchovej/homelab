@@ -5,7 +5,7 @@
   ];
 
   boot.zfs = {
-    enabled           = true;
+    # enabled           = true;
     allowHibernation  = false;
     forceImportAll    = true;
   };

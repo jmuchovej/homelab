@@ -4,8 +4,6 @@
     useDHCP     = lib.mkDefault true;
     useNetworkd = lib.mkDefault true;
 
-    hostName                      = config.sops.secrets.host.value.name;
-    domain                        = config.sops.secrets.shared.value.domain;
     usePredictableInterfaceNames  = true;
 
     networkmanager = {
