@@ -27,12 +27,10 @@
     };
   };
 
-  services.ldap = {
+  services.sssd = {
     enable = true;
     sshAuthorizedKeysIntegration = true;
-    environmentFile = [
-      config.sops.secrets.ldap.path
-    ];
+    environmentFile = config.sops.secrets.ldap.path;
     config = ''
       [nss]
       filter_groups         = root
