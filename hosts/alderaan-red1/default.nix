@@ -7,7 +7,7 @@
 
   system.stateVersion = "24.05";
 
-  machine = import ./machine.nix;
+  # machine = import ./machine.nix;
 
   networking = {
     hostName  = "red1-alderaan";
