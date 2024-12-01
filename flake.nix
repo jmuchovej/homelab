@@ -99,7 +99,7 @@
         let pkgs = nixpkgs.legacyPackages.${system};
         in import ./shell.nix {
           inherit pkgs;
-          inherit (sops-nix.packages.${system}) sops-import-keys-hook ssh-to-pgp sops-init-gpg-key;
+          inherit (sops-nix.packages.${system}) sops-import-keys-hook sops-init-gpg-key;
           inherit (deploy.packages.${system}) deploy-rs;
         }
     );

@@ -2,7 +2,7 @@
 # You can enter it through 'nix develop' or (legacy) 'nix-shell'
 {
   pkgs ? (import ./nixpkgs.nix) { }
-  , sops-import-keys-hook, ssh-to-pgp, sops-init-gpg-key
+  , sops-import-keys-hook, sops-init-gpg-key
   , deploy-rs
   , ...
 }:
@@ -16,7 +16,8 @@
       pkgs.nix pkgs.git pkgs.vim
       pkgs.home-manager
       pkgs.go-task
-      pkgs.sops ssh-to-pgp sops-import-keys-hook sops-init-gpg-key
+      pkgs.sops pkgs.ssh-to-age pkgs.ssh-to-pgp
+      sops-import-keys-hook sops-init-gpg-key
       pkgs.deploy-rs
       pkgs.nixpkgs-fmt
     ];
