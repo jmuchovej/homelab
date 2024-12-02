@@ -17,9 +17,7 @@
       volumes = [
         "/impulse/Games/minecraft/family:/data"
       ];
-      labels = {
-
-      };
-    }
-  }
+      labels = {};
+    };
+  };
 }
