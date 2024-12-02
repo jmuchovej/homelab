@@ -11,6 +11,12 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs?ref=master";
 
+    # Nix Darwin
+    darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Home Manager
     home-manager = {
       url = "github:nix-community/home-manager?ref=release-24.05";
@@ -29,7 +35,7 @@
 
   # outputs = { ... } @ args: import ./flake-outputs.nix args;
   outputs = {
-    self, nixpkgs, home-manager, sops-nix, deploy, ...
+    self, nixpkgs, home-manager, sops-nix, deploy, darwin, ...
   } @ inputs :
   let
     inherit (self) outputs;
