@@ -11,11 +11,11 @@
         MEMORY            = "12G";
         FORCE_REDOWNLOAD  = "true";
         VERSION           = "1.19.2";
-        TYPE              = "FORGE";
+        TYPE              = "AUTO_CURSEFORGE";
         FORGE_VERSION     = "43.4.0";
       };
       volumes = [
-        "/impulse/Games/minecraft/family:/data"
+        "/impulse/Games/minecraft/family:/data:Z"
       ];
       labels = {};
     };
