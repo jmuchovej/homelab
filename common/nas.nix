@@ -7,6 +7,8 @@ in {
     ./server.nix
   ];
 
+  boot.supportedFilesystems = [ "zfs" ];
+
   #region Drive Configuration
   services.nfs = {
     server = {
