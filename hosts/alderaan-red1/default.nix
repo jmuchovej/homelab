@@ -3,6 +3,7 @@
     ./hardware.nix
     ../../common/server.nix
     ../../common/nas.nix
+    ./minecraft.nix
   ];
 
   system.stateVersion = "24.05";

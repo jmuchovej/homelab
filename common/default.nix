@@ -60,4 +60,6 @@
     enableCompletion      = true;
     enableBashCompletion  = true;
   };
+
+  users.groups."games".gid = 60;
 }

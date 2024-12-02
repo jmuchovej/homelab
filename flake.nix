@@ -44,21 +44,34 @@
     mkNixos =
       modules:
       nixpkgs.lib.nixosSystem {
-        modules = modules ++ [ sops-nix.nixosModules.sops ];
+        modules = modules ++ [
+          sops-nix.nixosModules.sops
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+          }
+        ];
         specialArgs = {
           inherit inputs outputs secrets;
         };
       };
 
-    # mkDarwin =
-    #   system: modules:
-    #   darwin.lib.darwinSystem {
-    #     inherit modules;
-    #     system = system;
-    #     specialArgs = {
-    #       inherit inputs outputs secrets;
-    #     };
-    #   };
+    mkDarwin =
+      system: modules:
+      darwin.lib.darwinSystem {
+        modules = modules ++ [
+          sops-nix.nixosModules.sops
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+          }
+        ];
+        specialArgs = {
+          inherit inputs outputs secrets;
+        };
+      };
 
     mkHome =
       pkgs: modules:
