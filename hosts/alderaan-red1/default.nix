@@ -4,6 +4,7 @@
     ../../common/server.nix
     ../../common/nas.nix
     ./minecraft.nix
+    ../../common/optional/nvidia.nix
   ];
 
   system.stateVersion = "24.05";
