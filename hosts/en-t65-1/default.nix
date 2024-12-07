@@ -1,20 +1,17 @@
 { config, pkgs, lib, ...}: {
   imports = [
     ./hardware.nix
+    ./secrets.nix
     ../../common/server.nix
     ../../common/nas.nix
     ./minecraft.nix
     ../../common/optional/nvidia.nix
   ];
 
+  sops.secrets.syncthing-key.sopsFile = ./secrets.sops.yaml;
+  sops.secrets.syncthing-cert.sopsFile = ./secrets.sops.yaml;
+
   system.stateVersion = "24.05";
-
-  # machine = import ./machine.nix;
-
-  networking = {
-    hostName  = "red1-alderaan";
-    domain    = "jmuchovej.com";
-  };
 
   # Bootloader
   boot.loader = {

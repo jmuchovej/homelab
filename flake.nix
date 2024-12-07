@@ -131,13 +131,13 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild switch --flake .#your-hostname'
     nixosConfigurations = {
-      # Servers: hvn1
-      # s1-red1 = mkNixos [ ./hosts/s1-red1 ];
-      # s1-red2 = mkNixos [ ./hosts/s1-red3 ];
-      # s1-red3 = mkNixos [ ./hosts/s1-red3 ];
+      # Servers in `da`
+      # da-vcx-1 = mkNixos [ ./hosts/da-vcx-1 ];
+      # da-vcx-2 = mkNixos [ ./hosts/da-vcx-3 ];
+      # da-vcx-3 = mkNixos [ ./hosts/da-vcx-3 ];
 
-      # Servers: tlh1
-      alderaan-red1 = mkNixos [ ./hosts/alderaan-red1 ];
+      # Servers in `en`
+      en-t65-1 = mkNixos [ ./hosts/en-t65-1 ];
     };
 
     # nix-darwin configuration entrypoint
