@@ -17,8 +17,8 @@ talosconfig
 .private
 .bin
 
-**/*.sync-conflict.*
-**/.*.sync-conflict.*
+*.sync-conflict*
+.*.sync-conflict*
 # **/*.sops.*
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux
