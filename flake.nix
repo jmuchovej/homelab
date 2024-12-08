@@ -133,7 +133,7 @@
     nixosConfigurations = {
       # Servers in `da`
       # da-vcx-1 = mkNixos [ ./hosts/da-vcx-1 ];
-      # da-vcx-2 = mkNixos [ ./hosts/da-vcx-3 ];
+      da-vcx-2 = mkNixos [ ./hosts/da-vcx-2 ];
       # da-vcx-3 = mkNixos [ ./hosts/da-vcx-3 ];
 
       # Servers in `en`
