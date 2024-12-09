@@ -18,6 +18,11 @@
     fsType = "ext4";
   };
 
+  fileSystems."/home" = {
+    device = "/dev/disk/by-label/homes";
+    fsType = "ext4";
+  };
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/BOOT-EFI";
     fsType = "vfat";
