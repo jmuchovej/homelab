@@ -2,6 +2,7 @@
 keys:
 - &john age1lvcgfp9v4kj24zyr5rkuchzmhkaxhjqhlkyqstscn0m7glkdt4ns7ye6eg
 - &en-t65-1 age1ux98gnft3k34lpqrqu6ayjvc3zmdltv5wdf3kxnhnd2y6srjjulqllfecm
+- &da-vcx-1 age1nx3s2skfzrtv7azc2llrylnes5fnnj3q0nxdxyctedrapx8nucdq85ajj5
 - &da-vcx-2 age1h294f87wq8kfwrzkctx6v3qy9nc80jwrvm5v9rsgzkverpuqtppsl258c8
 
 creation_rules:
@@ -10,6 +11,7 @@ creation_rules:
   - age:
     - *john
     - *en-t65-1
+    - *da-vcx-1
     - *da-vcx-2
 
 stores:
