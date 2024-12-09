@@ -8,7 +8,7 @@
           domain = lib.mkOption { type = lib.types.str; };
           qualified-name = lib.mkOption {
             type = lib.types.str;
-            default = config.node.hostname + "-" + config.node.datacenter;
+            default = config.node.datacenter + "-" + config.node.hostname;
           };
         };
       });

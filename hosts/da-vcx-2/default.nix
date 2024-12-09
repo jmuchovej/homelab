@@ -4,6 +4,7 @@
     ./secrets.nix
     ../../common/server.nix
     ../../common/nas.nix
+    ../../common/apps/syncthing
   ];
 
   system.stateVersion = "24.05";
