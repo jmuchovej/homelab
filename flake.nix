@@ -11,147 +11,55 @@
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs?ref=master";
 
+    # Topology
+    topology.url = "github:oddlama/nix-topology";
+
     # Nix Darwin
-    darwin = {
-      url = "github:LnL7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    darwin.url = "github:LnL7/nix-darwin";
+    darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Nix User Repository
+    nur.url = "github:nix-community/NUR";
 
     # Home Manager
-    home-manager = {
-      url = "github:nix-community/home-manager?ref=release-24.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # home-manager.url = "github:nix-community/home-manager?ref=release-24.05";
+    # home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # SOPS
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    sops-nix.url = "github:Mic92/sops-nix";
 
     # Deploy
     deploy.url = "github:serokell/deploy-rs";
+
+    # Snowfall
+    snowfall-lib.url = "github:snowfallorg/lib";
+    snowfall-lib.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # outputs = { ... } @ args: import ./flake-outputs.nix args;
-  outputs = {
-    self, nixpkgs, home-manager, sops-nix, deploy, darwin, ...
-  } @ inputs :
-  let
-    inherit (self) outputs;
-    forAllSystems = nixpkgs.lib.genAttrs [
-      "aarch64-linux"
-      "aarch64-darwin"
-      "x86_64-linux"
-    ];
-
-    secrets = import ./secrets;
-
-    mkNixos =
-      modules:
-      nixpkgs.lib.nixosSystem {
-        modules = modules ++ [
-          sops-nix.nixosModules.sops
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-          }
-        ];
-        specialArgs = {
-          inherit inputs outputs secrets;
-        };
-      };
-
-    mkDarwin =
-      system: modules:
-      darwin.lib.darwinSystem {
-        modules = modules ++ [
-          sops-nix.nixosModules.sops
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-          }
-        ];
-        specialArgs = {
-          inherit inputs outputs secrets;
-        };
-      };
-
-    mkHome =
-      pkgs: modules:
-      home-manager.lib.homeManagerConfiguration {
-        inherit pkgs modules;
-        extraSpecialArgs = {
-          inherit inputs outputs secrets;
-        };
-      };
-  in rec {
-    packages = forAllSystems (
-      system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in rec {
-          customPkgs = import ./custom/pkgs { inherit pkgs; };
-          devcontainer = pkgs.dockerTools.buildImage {
-            name  = "devcontainer";
-            tag   = "latest";
-            contents = import ./devcontainer.nix {
-              inherit pkgs;
-            };
-            config.Cmd = [ "/bin/zsh"];
-          };
-        }
-    );
-
-    # Formatter for your nix files, available through 'nix fmt'
-    # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (
-      system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style
-    );
-
-    # Devshell for bootstrapping
-    # Acessible through 'nix develop' or 'nix-shell' (legacy)
-    devShells = forAllSystems (
-      system:
-        let pkgs = nixpkgs.legacyPackages.${system};
-        in import ./shell.nix {
-          inherit pkgs;
-          inherit (sops-nix.packages.${system}) sops-import-keys-hook sops-init-gpg-key;
-          inherit (deploy.packages.${system}) deploy-rs;
-        }
-    );
-
-    # Overlays
-    overlays = import ./custom/overlays {
+  outputs = inputs:
+    inputs.snowfall-lib.mkLib {
       inherit inputs;
+
+      channels-config = {
+        allowUnfree = true;
+      };
+
+      src = ./.;
+
+      snowfall = {
+        metadata = "rebellion";
+        namespace = "rebellion";
+
+        meta = {
+          name  = "rebellion";
+          title = "The Rebellion";
+        };
+      };
+
+      systems.modules = {
+        darwin  = with inputs; [ sops-nix.nixosModules.sops ];
+        nixos   = with inputs; [ sops-nix.nixosModules.sops ];
+      };
     };
-
-    # NixOS configuration entrypoint
-    # Available through 'nixos-rebuild switch --flake .#your-hostname'
-    nixosConfigurations = {
-      # Servers in `da`
-      da-vcx-1 = mkNixos [ ./hosts/da-vcx-1 ];
-      da-vcx-2 = mkNixos [ ./hosts/da-vcx-2 ];
-      # da-vcx-3 = mkNixos [ ./hosts/da-vcx-3 ];
-
-      # Servers in `en`
-      en-t65-1 = mkNixos [ ./hosts/en-t65-1 ];
-    };
-
-    # nix-darwin configuration entrypoint
-    # Available through 'darwin-rebuild switch --flake .#your-hostname'
-    # darwinConfigurations = {
-    #   "${secrets.hosts.work-mac.hostname}" = mkDarwin "aarch64-darwin" [ ./hosts/darwin ];
-    # };
-
-    # Standalone home-manager configuration entrypoint
-    # Available through 'home-manager switch --flake .#your-username@your-hostname'
-    # homeConfigurations = {
-    #   "${secrets.hosts.work-mac.username}@${secrets.hosts.work-mac.hostname}" =
-    #       mkHome nixpkgs.legacyPackages.aarch64-darwin
-    #         [ ./home-manager/darwin ];
-    # };
-  };
 }
