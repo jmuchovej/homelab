@@ -1,5 +1,6 @@
 # Things that aren't useful now, but haven't been deemed trash-worthy
 _arxiv/
+_research/
 
 # Pixi
 .pixi/
@@ -149,7 +150,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -395,3 +395,12 @@ Temporary Items
 .env
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
