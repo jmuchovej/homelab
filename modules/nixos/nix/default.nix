@@ -1,6 +1,6 @@
 { options, config, pkgs, lib, namespace, ... }:
 let
-  inherit (lib) types mkDefault mkIf mkEnableOption mkPackageOption mkOption;
+  inherit (lib) mkIf;
   inherit (lib.${namespace} get-shared;
 
   cfg = config.${namespace}.nix;
@@ -30,7 +30,6 @@ in {
       };
 
       optimise = {
-        automatic = true;
         dates     = [ "04:00" ];
       };
 
@@ -38,6 +37,6 @@ in {
         experimental-features = [ "cgroups" ];
         use-cgroups           = true;
       };
-    }
+    };
   };
 }
