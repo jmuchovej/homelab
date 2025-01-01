@@ -53,6 +53,7 @@ in {
       syncthing = enabled;
       tailscale = enabled;
     };
+    nix    = enabled;
     system = {
       boot        = {
         enable      = true;
@@ -62,7 +63,6 @@ in {
       };
       locale      = enabled;
       networking  = enabled;
-      nix         = enabled;
     };
     virtualization = {
       containers = enabled;
