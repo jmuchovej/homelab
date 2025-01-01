@@ -25,10 +25,10 @@
     mac-app-util.url = "github:hraban/mac-app-util";
 
     # System images/artifacts builder
-    # nixos-generators = {
-    #   url = "github:nix-community/nixos-generators";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Nix User Repository
     nur.url = "github:nix-community/NUR";
@@ -49,11 +49,8 @@
   };
 
   # outputs = { ... } @ args: import ./flake-outputs.nix args;
-  outputs = {
-    snowfall-lib, nur, sops-nix, home-manager, mac-app-util,
-    ...
-  } @ inputs: let
-    lib = snowfall-lib.mkLib {
+  outputs = inputs: let
+    lib = inputs.snowfall-lib.mkLib {
       inherit inputs;
       src = ./.;
 
@@ -72,8 +69,9 @@
         allowUnfree = true;
       };
 
-      overlays = [
+      overlays = with inputs; [
         nur.overlays.default
+        topology.overlays.default
       ];
 
       homes.modules = with inputs; [
@@ -90,7 +88,19 @@
         nixos   = with inputs; [
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
+          topology.nixosModules.default
         ];
       };
+
+      # topology = with inputs; let
+      #   node-name = builtins.head (builtins.attrNames self.nixosConfigurations);
+      #   host = self.nixosConfigurations.${node-name};
+      # in import topology {
+      #   inherit (host) pkgs;
+      #   modules = [
+      #     (import ./topology { inherit (host) config; })
+      #     { inherit (self) nixosConfigurations; }
+      #   ];
+      # };
     };
 }
