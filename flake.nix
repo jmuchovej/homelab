@@ -10,6 +10,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-git.url = "github:NixOS/nixpkgs";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
