@@ -16,16 +16,14 @@ in
       gnupg
       gnused
       gnutls
-      mas
       terminal-notifier
       trash-cli
-      wtf
     ]);
 
     ${namespace} = {
       home.extraOptions = {
         home.shellAliases = {
-          # Prevent shell log command from overriding macos log
+          # Prevent shell log command from overriding macOS log
           log = ''command log'';
         };
       };
@@ -41,7 +39,7 @@ in
       };
 
       services = {
-        nix-daemon  = enabled;
+        nix-daemon = enabled;
       };
     };
   };

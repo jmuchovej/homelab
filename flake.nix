@@ -38,6 +38,9 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # VSCode Extensions
+    nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+
     # SOPS
     sops-nix.url = "github:Mic92/sops-nix";
 
@@ -73,6 +76,7 @@
       overlays = with inputs; [
         nur.overlays.default
         topology.overlays.default
+        nix-vscode-extensions.overlays.default
       ];
 
       homes.modules = with inputs; [

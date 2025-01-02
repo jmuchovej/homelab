@@ -1,0 +1,36 @@
+{ config, pkgs, lib, namespace, ... }: let
+  inherit (lib) mkEnableOption mkIf;
+  inherit (lib.${namespace}) mkopt-vscode;
+
+  cfg = config.${namespace}.suites.development.julia;
+  default-vscode = config.programs.vscode.profiles.default or {};
+
+  vsc-extensions = (with pkgs.open-vsx; [
+    julialang.language-julia
+  ]);
+  vsc-user-settings = { };
+
+  zed-extensions    = [ "julia" ];
+  zed-user-settings = { };
+in {
+  options.${namespace}.suites.development.julia = {
+    enable = mkEnableOption "julia";
+    vscode = mkopt-vscode vsc-extensions vsc-user-settings;
+  };
+
+  config = mkIf cfg.enable {
+    home.packages = (with pkgs; [
+      julia-bin
+    ]);
+
+    programs.vscode = mkIf config.programs.vscode.enable {
+      extensions    = vsc-extensions;
+      userSettings  = vsc-user-settings;
+    };
+
+    programs.zed-editor = mkIf config.programs.zed-editor.enable {
+      extensions    = zed-extensions;
+      userSettings  = zed-user-settings;
+    };
+  };
+}

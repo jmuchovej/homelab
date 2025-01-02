@@ -44,10 +44,10 @@ in
         mru-spaces              = false;
         orientation             = "bottom";
         show-process-indicators = true;
-        show-recents            = false;
-        showhidden              = false;
+        show-recents            = true;
+        showhidden              = true;
         static-only             = false;
-        tilesize                = 50;
+        tilesize                = 48;
 
         # Hot corners
         # Possible values:
@@ -75,6 +75,7 @@ in
           "/System/Applications/Messages.app"
           # "${pkgs.beeper}/Applications/Beeper.app"
           "${pkgs.spotify}/Applications/Spotify.app"
+          "/Applications/Things3.app"
           # "${pkgs.caprine-bin}/Applications/Caprine.app"
           # "${pkgs.element-desktop}/Applications/Element.app"
           # "/Applications/Microsoft Teams.app"
@@ -91,10 +92,12 @@ in
           "${pkgs.logseq}/Applications/Logseq.app"
           "${pkgs.appflowy}/Applications/Appflowy.app"
           { spacer.small = true; }
+          "${pkgs.zed-editor}/Applications/Zed.app"
           "${pkgs.vscode}/Applications/Visual Studio Code.app"
           "${pkgs.bruno}/Applications/Bruno.app"
           { spacer.small = true; }
           "${pkgs.wezterm}/Applications/WezTerm.app"
+          # "${pkgs.ghostty}/Applications/Ghostty.app"
           "${pkgs.rio}/Applications/Rio.app"
         ];
       };

@@ -16,10 +16,6 @@ in
   imports = [ (get-shared "system/fonts") ];
 
   config = mkIf cfg.enable {
-    fonts = {
-      packages = [ ] ++ cfg.fonts;
-    };
-
     system.defaults = {
       NSGlobalDomain = {
         AppleFontSmoothing = 1;

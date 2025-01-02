@@ -14,7 +14,7 @@ let
 
   default-fonts = (with pkgs; [
     # Desktop Fonts
-    input-fonts
+    # input-fonts
     hack-font
     fira-code
     fira-code-symbols
@@ -63,6 +63,10 @@ in
     environment.variables = {
       # Enable icons in tooling since we have nerdfonts.
       LOG_ICONS = "true";
+    };
+
+    fonts = {
+      packages = cfg.fonts;
     };
   };
 }
