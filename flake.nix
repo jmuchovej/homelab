@@ -20,9 +20,10 @@
     # darwin.url = "github:LnL7/nix-darwin";
     darwin.url = "github:khaneliman/nix-darwin/cherry-picks";
     darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    # Install Mac Apps in a Spotlight-discovery way.
-    mac-app-util.url = "github:hraban/mac-app-util";
+    # Install Mac Apps in a Spotlight-discoverable way.
+    # mac-app-util.url = "github:hraban/mac-app-util";
+    nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
+    nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
 
     # Bookstrapping NixOS
     ## System images/artifacts builder
@@ -96,14 +97,16 @@
       ];
 
       homes.modules = with inputs; [
-        mac-app-util.homeManagerModules.default
+        # mac-app-util.homeManagerModules.default
         sops-nix.homeManagerModules.sops
         catppuccin.homeManagerModules.catppuccin
       ];
 
       systems.modules = {
         darwin = with inputs; [
-          mac-app-util.darwinModules.default
+          # { nix.linux-builder.enable = true; }
+          nix-rosetta-builder.darwinModules.default
+          # mac-app-util.darwinModules.default
           home-manager.darwinModules.home-manager
           sops-nix.darwinModules.sops
         ];
