@@ -1,8 +1,16 @@
-{ config, lib, pkgs, namespace, ... }: let
-  inherit (lib) types mkIf mkEnableOption;
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}:
+let
+  inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.services.ldap;
-in {
+in
+{
   options.${namespace}.services.ldap = {
     enable = mkEnableOption "LDAP";
   };
@@ -10,15 +18,13 @@ in {
   config = mkIf cfg.enable {
     environment.systemPackages = [ pkgs.sssd ];
 
-    sops.secrets."ldap".sopsFile = (
-      lib.snowfall.fs.get-file "secrets/secrets.sops.yaml"
-    );
+    sops.secrets."ldap".sopsFile = lib.snowfall.fs.get-file "secrets/secrets.sops.yaml";
 
     services.nscd.enableNsncd = true;
 
     # Get sudoer data from sssd
     system.nssDatabases = {
-      sudoers = ["sss"];
+      sudoers = [ "sss" ];
     };
 
     # Make sure `sudo` supports SSSD

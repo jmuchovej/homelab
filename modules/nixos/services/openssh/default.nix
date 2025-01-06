@@ -14,7 +14,6 @@ let
     mkDefault
     mkForce
     mkIf
-    foldl
     optionalString
     mkEnableOption
     mkOption
@@ -65,7 +64,7 @@ in
   options.${namespace}.services.openssh = with types; {
     enable = mkEnableOption "OpenSSH";
     authorizedKeys = mkOption {
-      type = (listOf str);
+      type = listOf str;
       default = [ default-key ];
       description = "The public keys to apply.";
     };
@@ -177,6 +176,14 @@ in
 
       startAgent = lib.mkDefault true;
     };
+
+    # environment.persist.files = [
+    #   "/etc/machine-id"
+    #   "/etc/ssh/ssh_host_ed25519_key"
+    #   "/etc/ssh/ssh_host_ed25519_key.pub"
+    #   "/etc/ssh/ssh_host_rsa_key"
+    #   "/etc/ssh/ssh_host_ras_key.pub"
+    # ];
 
     # ${namespace} = {
     #   user.extraOptions.openssh.authorizedKeys.keys = cfg.authorizedKeys;

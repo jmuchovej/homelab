@@ -6,7 +6,12 @@
   ...
 }:
 let
-  inherit (lib) types mkIf mkEnableOption mkOption mkBefore getExe;
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkBefore
+    ;
 
   cfg = config.${namespace}.services.tailscale;
 in
@@ -15,77 +20,84 @@ in
     enable = mkEnableOption "tailscale";
   };
 
-  config = mkIf cfg.enable (let
-    tailscale0 = config.services.tailscale.interfaceName;
-  in {
-    boot.kernel.sysctl = {
-      # Enable IP forwarding
-      # required for Wireguard & Tailscale/Headscale subnet feature
-      # See <https://tailscale.com/kb/1019/subnets/?tab=linux#step-1-install-the-tailscale-client>
-      "net.ipv4.ip_forward" = true;
-      "net.ipv6.conf.all.forwarding" = true;
-    };
-
-    environment.systemPackages = [ pkgs.tailscale ];
-
-    networking = {
-      firewall = {
-        allowedUDPPorts   = [ config.services.tailscale.port ];
-        allowedTCPPorts   = [ 5900 ];
-        trustedInterfaces = [ tailscale0 ];
-        # Strict reverse path filtering breaks Tailscale exit node use and some subnet routing setups.
-        checkReversePath  = "loose";
+  config = mkIf cfg.enable (
+    let
+      tailscale0 = config.services.tailscale.interfaceName;
+    in
+    {
+      boot.kernel.sysctl = {
+        # Enable IP forwarding
+        # required for Wireguard & Tailscale/Headscale subnet feature
+        # See <https://tailscale.com/kb/1019/subnets/?tab=linux#step-1-install-the-tailscale-client>
+        "net.ipv4.ip_forward" = true;
+        "net.ipv6.conf.all.forwarding" = true;
       };
 
-      networkmanager.unmanaged = [ "tailscale0" ];
-    };
+      environment.systemPackages = [ pkgs.tailscale ];
 
-    services.tailscale = {
-      enable = true;
-      permitCertUid = "root";
-      useRoutingFeatures = "both";
-    };
+      networking = {
+        firewall = {
+          allowedUDPPorts = [ config.services.tailscale.port ];
+          allowedTCPPorts = [ 5900 ];
+          trustedInterfaces = [ tailscale0 ];
+          # Strict reverse path filtering breaks Tailscale exit node use and some subnet routing setups.
+          checkReversePath = "loose";
+        };
 
-    systemd.network.wait-online.ignoredInterfaces = [ "${tailscale0}"];
+        networkmanager.unmanaged = [ "tailscale0" ];
+      };
 
-    systemd.services.tailscaled.serviceConfig.Environment = mkBefore [
-      "TS_NO_LOGS_SUPPORT=true"
-    ];
+      services.tailscale = {
+        enable = true;
+        permitCertUid = "root";
+        useRoutingFeatures = "both";
+      };
 
-    sops.secrets."tailscale/key".sopsFile = (
-      lib.snowfall.fs.get-file "secrets/secrets.sops.yaml"
-    );
+      systemd.network.wait-online.ignoredInterfaces = [ "${tailscale0}" ];
 
-    systemd.services.tailscale-autoconnect = {
-      enable = true;
+      systemd.services.tailscaled.serviceConfig.Environment = mkBefore [
+        "TS_NO_LOGS_SUPPORT=true"
+      ];
 
-      description = "Auto-connect to Tailscale";
+      sops.secrets."tailscale/key".sopsFile = lib.snowfall.fs.get-file "secrets/secrets.sops.yaml";
 
-      path = (with pkgs; [ tailscale jq ]);
+      systemd.services.tailscale-autoconnect = {
+        enable = true;
 
-      # lol. make sure tailscale's running before trying to connect
-      after     = [ "network-pre.target" "tailscale.service" ];
-      wants     = [ "network-pre.target" "tailscale.service" ];
-      wantedBy  = [ "multi-user.target" ];
+        description = "Auto-connect to Tailscale";
 
-      serviceConfig.Type = "oneshot";
+        path = with pkgs; [
+          tailscale
+          jq
+        ];
 
-      script = let
-        tailscale = getExe pkgs.tailscale;
-        jq        = getExe pkgs.jq;
-      in ''
-      # Wait for `tailscaled` to settle
-      sleep 2
+        # lol. make sure tailscale's running before trying to connect
+        after = [
+          "network-pre.target"
+          "tailscale.service"
+        ];
+        wants = [
+          "network-pre.target"
+          "tailscale.service"
+        ];
+        wantedBy = [ "multi-user.target" ];
 
-      status="$(tailscale status -json | jq -r .BackendState)"
-      if [ $status = "Running" ]; then  # All good! Exit.
-        exit 0
-      fi
+        serviceConfig.Type = "oneshot";
 
-      # Otherwise, try authenticating
-      tailscale up \
-        --auth-key "file:${config.sops.secrets."tailscale/key".path}"
-      '';
-    };
-  });
+        script = ''
+          # Wait for `tailscaled` to settle
+          sleep 2
+
+          status="$(tailscale status -json | jq -r .BackendState)"
+          if [ $status = "Running" ]; then  # All good! Exit.
+            exit 0
+          fi
+
+          # Otherwise, try authenticating
+          tailscale up \
+            --auth-key "file:${config.sops.secrets."tailscale/key".path}"
+        '';
+      };
+    }
+  );
 }

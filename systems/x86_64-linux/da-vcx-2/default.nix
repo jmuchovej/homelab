@@ -14,28 +14,30 @@ let
   inherit (lib.${namespace}) enabled disabled;
 in
 {
-  imports = [ ./hardware.nix ];
+  imports = [
+    ./disks.nix
+    ./hardware.nix
+  ];
 
   topology.self = {
-    name = "🚀 da-vcx-1";
-    hardware.info = "Intel i7-11700K; 128GB RAM; NVIDIA RTX 3090";
+    name = "🚀 da-vcx-2";
+    hardware.info = "Intel i5-12600H; 32GB RAM";
   };
 
   ${namespace} = {
     hardware = {
       cpu.intel = enabled;
-      gpu.nvidia = enabled;
       storage = enabled // {
         ssd = enabled;
-        zfs = enabled // {
-          auto-snapshot = enabled;
-        };
+        btrfs = enabled;
       };
     };
+
     security = {
+      doas = enabled;
       sops = enabled;
-      sudo = enabled;
     };
+
     services = {
       ldap = enabled;
       openssh = enabled;
@@ -54,6 +56,7 @@ in
       locale = enabled;
       networking = enabled;
     };
+
     virtualization = {
       containers = enabled;
     };

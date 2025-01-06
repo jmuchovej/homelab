@@ -2,42 +2,31 @@
   options,
   config,
   lib,
-  pkgs,
   namespace,
   ...
 }:
-with lib;
-with lib.${namespace};
 let
-  inherit (lib) mkEnableOption mkIf types;
+  inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.suites.common;
 in
 {
-  options.${namespace}.suites.common = with types; {
+  options.${namespace}.suites.common = {
     enable = mkEnableOption "`common` suite";
   };
 
   config = mkIf cfg.enable {
     ${namespace} = {
-      hardware = {
-        networking = enabled;
-      };
+      nix = enabled;
 
-      system = {
-        nix     = enabled;
-        boot    = enabled;
-        locale  = enabled;
-      };
+      system.boot = enabled;
+      system.locale = enabled;
+      system.networking = enabled;
 
-      services = {
-        ssh = enabled;
-      };
+      services.openssh = enabled;
 
-      security = {
-        sops = enabled;
-      };
+      security.sops = enabled;
     };
   };
 }

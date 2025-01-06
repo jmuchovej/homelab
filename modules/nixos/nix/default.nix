@@ -1,10 +1,17 @@
-{ options, config, pkgs, lib, namespace, ... }:
+{
+  options,
+  config,
+  lib,
+  namespace,
+  ...
+}:
 let
-  inherit (lib) mkIf;
-  inherit (lib.${namespace} get-shared;
+  inherit (lib) mkIf mkDefault;
+  inherit (lib.${namespace}) get-shared;
 
   cfg = config.${namespace}.nix;
-in {
+in
+{
   imports = [ (get-shared "nix") ];
 
   config = mkIf cfg.enable {
@@ -12,17 +19,17 @@ in {
       man.generateCaches = mkDefault true;
 
       nixos = {
-        enable  = true;
+        enable = true;
         options = {
           warningsAreErrors = true;
-          splitBuild        = true;
+          splitBuild = true;
         };
       };
     };
 
     nix = {
-      daemonCPUSchedPolicy  = "batch";
-      daemonIOSchedClass    = "idle";
+      daemonCPUSchedPolicy = "batch";
+      daemonIOSchedClass = "idle";
       daemonIOSchedPriority = 7;
 
       gc = {
@@ -30,12 +37,12 @@ in {
       };
 
       optimise = {
-        dates     = [ "04:00" ];
+        dates = [ "04:00" ];
       };
 
       settings = {
         experimental-features = [ "cgroups" ];
-        use-cgroups           = true;
+        use-cgroups = true;
       };
     };
   };

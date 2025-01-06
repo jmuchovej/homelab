@@ -10,26 +10,35 @@ let
   inherit (lib.${namespace}) default-attrs;
 
   cfg = config.${namespace}.system.boot;
-  themeCfg = config.${namespace}.theme;
 in
 {
   options.${namespace}.system.boot = {
-    enable      = mkEnableOption "manage booting";
-    plymouth    = { enable = mkEnableOption "plymouth boot splash"; };
-    secure-boot = { enable = mkEnableOption "secure boot"; };
-    silent-boot = { enable = mkEnableOption "silent boot"; };
+    enable = mkEnableOption "manage booting";
+    plymouth = {
+      enable = mkEnableOption "plymouth boot splash";
+    };
+    secure-boot = {
+      enable = mkEnableOption "secure boot";
+    };
+    silent-boot = {
+      enable = mkEnableOption "silent boot";
+    };
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = (with pkgs;
-      [ efibootmgr efitools efivar ]
-      ++ optionals (cfg.secure-boot.enable) [ sbctl ]
-    );
+    environment.systemPackages =
+      with pkgs;
+      [
+        efibootmgr
+        efitools
+        efivar
+      ]
+      ++ optionals cfg.secure-boot.enable [ sbctl ];
 
     boot = {
       kernelParams =
-        optionals (cfg.plymouth.enable) [ "quiet" ]
-        ++ optionals (cfg.silent-boot.enable) [
+        optionals cfg.plymouth.enable [ "quiet" ]
+        ++ optionals cfg.silent-boot.enable [
           # tell the kernel to not be verbose
           "quiet"
 
@@ -74,7 +83,7 @@ in
       };
 
       plymouth = {
-        enable = cfg.plymouth.enable;
+        inherit (cfg.plymouth) enable;
         # theme = "${themeCfg.selectedTheme.name}-${themeCfg.selectedTheme.variant}";
         # themePackages = [ pkgs.catppuccin-plymouth ];
       };

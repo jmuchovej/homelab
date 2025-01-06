@@ -28,7 +28,10 @@ in
     };
     optimizeTCP = mkEnableOption "optimize TCP connections";
     dns = mkOption {
-      type = (enum [ "dnsmasq" "systemd-resolved" ]);
+      type = enum [
+        "dnsmasq"
+        "systemd-resolved"
+      ];
       default = "systemd-resolved";
       description = "DNS resolver to use";
     };
@@ -38,8 +41,12 @@ in
     boot = {
       extraModprobeConfig = "options bonding max_bonds=0";
 
-      kernelModules = [ "af_packet" ]
-        ++ optionals cfg.optimizeTCP [ "tls" "tcp_bbr" ];
+      kernelModules =
+        [ "af_packet" ]
+        ++ optionals cfg.optimizeTCP [
+          "tls"
+          "tcp_bbr"
+        ];
 
       kernel.sysctl = {
         # TCP hardening
@@ -119,6 +126,8 @@ in
       "wireshark"
     ];
 
+    sops.secrets."machine-id" = { };
+
     networking = {
       hosts = {
         "127.0.0.1" = cfg.hosts."127.0.0.1" or [ ];
@@ -126,7 +135,10 @@ in
 
       firewall = {
         allowedUDPPorts = [ 5353 ];
-        allowedTCPPorts = [ 443 8080 ];
+        allowedTCPPorts = [
+          443
+          8080
+        ];
         checkReversePath = mkDefault false;
         logReversePathDrops = true;
         logRefusedConnections = true;

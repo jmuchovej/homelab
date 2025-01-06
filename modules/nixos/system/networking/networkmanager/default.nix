@@ -12,7 +12,7 @@ let
 in
 {
   config = mkIf cfg.enable {
-    ${namespace}.user.extra.groups= [ "networkmanager" ];
+    ${namespace}.user.extra.groups = [ "networkmanager" ];
 
     networking.networkmanager = {
       enable = true;
@@ -28,10 +28,15 @@ in
         networkmanager-vpnc
       ];
 
-      unmanaged = let
-        tailscale = config.${namespace}.services.tailscale;
-        virt      = config.${namespace}.virtualization;
-      in [ "interface-name:br-*" "interface-name:rndis*" ]
+      unmanaged =
+        let
+          inherit (config.${namespace}.services) tailscale;
+          virt = config.${namespace}.virtualization;
+        in
+        [
+          "interface-name:br-*"
+          "interface-name:rndis*"
+        ]
         ++ optionals tailscale.enable [ "interface-name:tailscale*" ]
         ++ optionals virt.containers.enable [ "interface-name:docker*" ]
         ++ optionals virt.kvm.enable [ "interface-name:virbr*" ];

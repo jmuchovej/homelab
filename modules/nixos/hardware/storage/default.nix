@@ -14,12 +14,15 @@ in
   options.${namespace}.hardware.storage = {
     enable = mkEnableOption "extra storage devices";
     ssd = {
-      enable = mkEnableOption "enable support for SSDs" // { default = true; };
+      enable = mkEnableOption "support for SSDs" // {
+        default = true;
+      };
     };
   };
 
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
+      btrfs-progs
       fuseiso
       nfs-utils
       ntfs3g

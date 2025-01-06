@@ -1,9 +1,13 @@
-{ lib, inputs, namespace, snowfall-inputs, }:
+{
+  lib,
+  inputs,
+}:
 let
   inherit (lib) mapAttrs mkOption types;
 
   JSON = (inputs.nixpkgs.formats.json { }).type;
-in rec {
+in
+rec {
   ## Create a NixOS module option.
   ##
   ## ```nix
@@ -11,8 +15,9 @@ in rec {
   ## ```
   ##
   #@ Type -> Any -> String
-  mkopt = type: default: description:
-    mkOption {inherit type default description;};
+  mkopt =
+    type: default: description:
+    mkOption { inherit type default description; };
 
   ## Create a NixOS module option without a description.
   ##
@@ -83,35 +88,50 @@ in rec {
 
   ## Alias to make loading shared configurations terse.
   get-shared =
-    partial: let
+    partial:
+    let
       inherit (lib.snowfall.fs) get-file;
 
       path = "modules/shared/${partial}/default.nix";
-    in (get-file "${path}");
+    in
+    get-file "${path}";
 
   ## Sugar to make nesting options a smidge quicker.
-  mkNestedOptions = options: let
-    inherit (lib) mkOption mkEnableOption;
-    inherit (lib.types) submodule;
-  in mkOption {
-    type = submodule {
-      inherit options;
+  mkNestedOptions =
+    options:
+    let
+      inherit (lib) mkOption;
+      inherit (lib.types) submodule;
+    in
+    mkOption {
+      type = submodule {
+        inherit options;
+      };
+      default = { };
     };
-    default = { };
-  };
 
   ## Sugar to make nesting `{..}.enable` options quicker.
-  mkNestedEnableOption = feature: let
-    inherit (lib) mkOption mkEnableOption;
-    inherit (lib.types) submodule;
-  in mkNestedOptions {
-    enable = mkEnableOption feature;
-  };
+  mkNestedEnableOption =
+    feature:
+    let
+      inherit (lib) mkEnableOption;
+    in
+    mkNestedOptions {
+      enable = mkEnableOption feature;
+    };
 
-  mkopt-vscode = extension-list: user-settings: let
-    inherit (lib) mkOption;
-    inherit (lib.types) attrsOf submodule listOf package;
-  in mkOption {
+  mkopt-vscode =
+    extension-list: user-settings:
+    let
+      inherit (lib) mkOption;
+      inherit (lib.types)
+        attrsOf
+        submodule
+        listOf
+        package
+        ;
+    in
+    mkOption {
       type = attrsOf (submodule {
         options = {
           extensions = mkOption {

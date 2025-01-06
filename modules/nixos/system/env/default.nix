@@ -43,7 +43,8 @@ in
 
       extraInit = lib.concatStringsSep "\n" (
         lib.mapAttrsToList (
-          n: v: # bash
+          n: v:
+          # bash
           ''
             export ${n}="${v}"
           '') cfg

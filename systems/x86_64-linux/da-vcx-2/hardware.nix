@@ -8,7 +8,7 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  networking.hostId = "1f49a11f";
+  networking.hostId = "4db68ea3";
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
@@ -45,6 +45,31 @@
   swapDevices = [
     { device = "/dev/disk/by-partlabel/swap"; }
   ];
+
+  fileSystems."/home" = {
+    device = "/dev/disk/by-partlabel/impulse";
+    fsType = "btrfs";
+    options = [
+      "rw"
+      "noatime"
+      "compress-force=zstd:1"
+      "ssd"
+      "subvol=/@home"
+    ];
+  };
+
+  fileSystems."/mnt/k8s" = {
+    device = "/dev/disk/by-partlabel/impulse";
+    fsType = "btrfs";
+    options = [
+      "rw"
+      "nodatacow"
+      "noatime"
+      "compress-force=zstd:1"
+      "ssd"
+      "subvol=/@k8s"
+    ];
+  };
 
   hardware.enableRedistributableFirmware = true;
 }
