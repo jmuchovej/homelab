@@ -18,7 +18,7 @@ let
     mkEnableOption
     types
     ;
-  inherit (lib.attrsets) filterAttrs mapAttrs;
+  inherit (lib.attrsets) filterAttrs mapAttrs attrNames;
 
   cfg = config.${namespace}.services.syncthing;
 
@@ -35,7 +35,7 @@ let
     inherit (params) id;
     inherit (params) path;
     type = "sendreceive";
-    devices = target-devices;
+    devices = attrNames target-devices;
     versioning = {
       type = "staggered";
       fsPath = ".stversions";
