@@ -57,8 +57,8 @@ in
 
     networking.firewall.allowedTCPPorts = [ 8384 ];
 
-    sops.secrets."syncthing/key".sopsFile = { };
-    sops.secrets."syncthing/cert".sopsFile = { };
+    sops.secrets."syncthing/key" = { };
+    sops.secrets."syncthing/cert" = { };
 
     services.syncthing = {
       enable = true;
