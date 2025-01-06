@@ -126,8 +126,6 @@ in
       "wireshark"
     ];
 
-    sops.secrets."machine-id" = { };
-
     networking = {
       hosts = {
         "127.0.0.1" = cfg.hosts."127.0.0.1" or [ ];
