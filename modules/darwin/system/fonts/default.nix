@@ -5,15 +5,13 @@
   namespace,
   inputs,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf;
   inherit (lib.${namespace}) get-shared;
 
   cfg = config.${namespace}.system.fonts;
-in
-{
-  imports = [ (get-shared "system/fonts") ];
+in {
+  imports = [(get-shared "system/fonts")];
 
   config = mkIf cfg.enable {
     system.defaults = {

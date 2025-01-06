@@ -4,14 +4,12 @@
   namespace,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkDefault;
   inherit (lib.${namespace}) get-shared enabled;
 
   cfg = config.${namespace}.suites.desktop;
-in
-{
+in {
   imports = [
     (get-shared "suites/desktop")
   ];
@@ -31,9 +29,9 @@ in
 
     ${namespace} = {
       programs = {
-        browsers.arc      = mkDefault enabled;
-        apps.notunes      = mkDefault enabled;
-        apps.onepassword  = mkDefault enabled;
+        browsers.arc = mkDefault enabled;
+        apps.notunes = mkDefault enabled;
+        apps.onepassword = mkDefault enabled;
       };
 
       # desktop = {
@@ -48,7 +46,7 @@ in
     };
 
     homebrew = {
-      brews = [ ];
+      brews = [];
 
       casks = [
         "anytype" # TODO contrib Nix support for macOS
@@ -60,13 +58,13 @@ in
         "firefox@developer-edition"
         "pdf-expert"
         "gpg-suite"
-        "logseq"  # TODO contrib Nix support for macOS
-        "obsidian"  # TODO contrib Nix support for macOS
+        "logseq" # TODO contrib Nix support for macOS
+        "obsidian" # TODO contrib Nix support for macOS
         "hammerspoon"
         "launchcontrol"
         "sf-symbols"
         "xquartz"
-        "bambu-studio"  # TODO contrib Nix support for macOS
+        "bambu-studio" # TODO contrib Nix support for macOS
         "balenaetcher"
       ];
 
@@ -78,14 +76,14 @@ in
 
       masApps = mkIf config.${namespace}.homebrew.mas.enable {
         # "AutoMounter"               = 1160435653;
-        "Amphetamine"               = 937984704;
+        "Amphetamine" = 937984704;
         # "Dark Reader for Safari"    = 1438243180;
-        "Magnet"                    = 441258766;
+        "Magnet" = 441258766;
         # "Microsoft Remote Desktop"  = 1295203466;
-        "reMarkable"                = 1276493162;
-        "TestFlight"                = 899247664;
-        "Velja"                     = 1607635845;
-        "Things 3"                  = 904280696;
+        "reMarkable" = 1276493162;
+        "TestFlight" = 899247664;
+        "Velja" = 1607635845;
+        "Things 3" = 904280696;
       };
     };
   };

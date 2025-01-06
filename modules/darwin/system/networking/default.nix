@@ -3,21 +3,21 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.system.networking;
-in
-{
+in {
   options.${namespace}.system.networking = {
     enable = mkEnableOption "networking support";
   };
 
   config = mkIf cfg.enable {
     networking.dns = [
-      "9.9.9.9" "149.112.112.112" # Quad9
-      "1.1.1.1" "1.0.0.1"         # Cloudflare
+      "9.9.9.9"
+      "149.112.112.112" # Quad9
+      "1.1.1.1"
+      "1.0.0.1" # Cloudflare
     ];
 
     system.defaults = {

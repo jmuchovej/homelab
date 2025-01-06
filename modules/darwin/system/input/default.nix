@@ -3,66 +3,58 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkMerge mkEnableOption;
 
   cfg = config.${namespace}.system.input;
-in
-{
+in {
   options.${namespace}.system.input = {
     enable = mkEnableOption "macOS input customizations";
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    {
-      system = {
-        keyboard = {
-          enableKeyMapping = true;
-          remapCapsLockToEscape = true;
-          # swapLeftCommandAndLeftAlt = true;
-          # https://developer.apple.com/library/content/technotes/tn2450/_index.html
-          userKeyMapping        = [];
-        };
+  config = mkIf cfg.enable {
+    system.keyboard = {
+      enableKeyMapping = true;
+      remapCapsLockToEscape = true;
+      # swapLeftCommandAndLeftAlt = true;
+      # https://developer.apple.com/library/content/technotes/tn2450/_index.html
+      userKeyMapping = [];
+    };
 
-        defaults = {
-          # trackpad settings
-          trackpad = {
-            # silent clicking = 0, default = 1
-            ActuationStrength = 0;
-            # enable tap to click
-            Clicking = true;
-            # Enable tap to drag
-            # Dragging = true;
-            # firmness level, 0 = lightest, 2 = heaviest
-            FirstClickThreshold = 1;
-            # firmness level for force touch
-            SecondClickThreshold = 1;
-            # don't allow positional right click
-            TrackpadRightClick = true;
-            # three finger drag
-            TrackpadThreeFingerDrag = true;
-          };
+    # trackpad settings
+    system.defaults.trackpad = {
+      # silent clicking = 0, default = 1
+      ActuationStrength = 0;
+      # enable tap to click
+      Clicking = true;
+      # Enable tap to drag
+      # Dragging = true;
+      # firmness level, 0 = lightest, 2 = heaviest
+      FirstClickThreshold = 1;
+      # firmness level for force touch
+      SecondClickThreshold = 1;
+      # don't allow positional right click
+      TrackpadRightClick = true;
+      # three finger drag
+      TrackpadThreeFingerDrag = true;
+    };
 
-          ".GlobalPreferences" = {
-            "com.apple.mouse.scaling" = 1.0;
-          };
+    system.defaults.".GlobalPreferences" = {
+      "com.apple.mouse.scaling" = 1.0;
+    };
 
-          NSGlobalDomain = {
-            AppleKeyboardUIMode = 3;
-            ApplePressAndHoldEnabled = false;
+    system.defaults.NSGlobalDomain = {
+      AppleKeyboardUIMode = 3;
+      ApplePressAndHoldEnabled = true;
 
-            KeyRepeat = 1;
-            InitialKeyRepeat = 10;
+      KeyRepeat = 1;
+      InitialKeyRepeat = 10;
 
-            NSAutomaticCapitalizationEnabled = false;
-            NSAutomaticDashSubstitutionEnabled = false;
-            NSAutomaticQuoteSubstitutionEnabled = false;
-            NSAutomaticPeriodSubstitutionEnabled = false;
-            NSAutomaticSpellingCorrectionEnabled = false;
-          };
-        };
-      };
-    }
-  ]);
+      NSAutomaticCapitalizationEnabled = false;
+      NSAutomaticDashSubstitutionEnabled = false;
+      NSAutomaticQuoteSubstitutionEnabled = false;
+      NSAutomaticPeriodSubstitutionEnabled = false;
+      NSAutomaticSpellingCorrectionEnabled = false;
+    };
+  };
 }

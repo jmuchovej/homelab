@@ -3,15 +3,13 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf;
   inherit (lib.${namespace}) get-shared;
 
   cfg = config.${namespace}.security.sops;
-in
-{
-  imports = [ (get-shared "security/sops") ];
+in {
+  imports = [(get-shared "security/sops")];
 
   config = mkIf cfg.enable {
     # sops.secrets = {

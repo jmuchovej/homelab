@@ -1,16 +1,21 @@
-{ config, lib, pkgs, namespace, ...  }: let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkDefault;
   inherit (lib.${namespace}) get-shared enabled;
 
   cfg = config.${namespace}.suites.common;
-in
-{
+in {
   imports = [
     (get-shared "suites/common")
   ];
 
   config = mkIf cfg.enable {
-    environment.systemPackages = (with pkgs; [
+    environment.systemPackages = with pkgs; [
       gawk
       gnugrep
       gnupg
@@ -18,7 +23,7 @@ in
       gnutls
       terminal-notifier
       trash-cli
-    ]);
+    ];
 
     ${namespace} = {
       home.extraOptions = {
@@ -28,14 +33,14 @@ in
         };
       };
 
-      nix       = mkDefault enabled;
-      homebrew  = mkDefault enabled;
+      nix = mkDefault enabled;
+      homebrew = mkDefault enabled;
 
-      system    = {
-        fonts       = mkDefault enabled;
-        input       = mkDefault enabled;
-        interface   = mkDefault enabled;
-        networking  = mkDefault enabled;
+      system = {
+        fonts = mkDefault enabled;
+        input = mkDefault enabled;
+        interface = mkDefault enabled;
+        networking = mkDefault enabled;
       };
 
       services = {

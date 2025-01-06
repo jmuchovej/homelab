@@ -3,14 +3,12 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf;
   inherit (lib.${namespace}) get-shared;
 
   cfg = config.${namespace}.suites.development;
-in
-{
+in {
   imports = [
     (get-shared "suites/development")
   ];
@@ -29,7 +27,7 @@ in
 
       masApps = mkIf config.${namespace}.homebrew.mas.enable {
         # FIXME: keeps trying to reinstall it
-        "Xcode"       = 497799835;
+        "Xcode" = 497799835;
         "Playgrounds" = 1496833156;
       };
     };

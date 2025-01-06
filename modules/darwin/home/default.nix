@@ -4,36 +4,33 @@
   options,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkAliasDefinitions mkOption;
   inherit (lib.types) attrs;
   inherit (lib.${namespace}) mkOpt;
 
-  username  = config.${namespace}.user.name;
-  ns-home   = options.${namespace}.home;
-in
-{
-
+  username = config.${namespace}.user.name;
+  ns-home = options.${namespace}.home;
+in {
   options.${namespace}.home = {
     file = mkOption {
       type = attrs;
-      default = { };
+      default = {};
       description = "A set of files to be managed by home-manager's <option>home.file</option>.";
     };
     configFile = mkOption {
       type = attrs;
-      default = { };
+      default = {};
       description = "A set of files to be managed by home-manager's <option>xdg.configFile</option>.";
     };
     extraOptions = mkOption {
       type = attrs;
-      default = { };
+      default = {};
       description = "Options to pass directly to home-manager.";
     };
     homeConfig = mkOption {
       type = attrs;
-      default = { };
+      default = {};
       description = "Final config for home-manager.";
     };
   };

@@ -3,14 +3,12 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) types mkIf mkEnableOption;
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.services.nix-daemon;
-in
-{
+in {
   options.${namespace}.services.nix-daemon = {
     enable = mkEnableOption "nix-daemon"; # { default = true; };
   };

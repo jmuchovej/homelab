@@ -5,8 +5,7 @@
   inputs,
   system,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkForce;
   inherit (lib.${namespace}) get-shared;
 
@@ -14,9 +13,8 @@ let
   #! https://github.com/LnL7/nix-darwin/issues/852
   #! According to ️^, the using `nix.linux-builder` with `nix*-unstable` doesn't work...
   # linux-builder-package = inputs.nixpkgs-stable.legacyPackages.${system}.darwin.linux-builder;
-in
-{
-  imports = [ (get-shared "nix") ];
+in {
+  imports = [(get-shared "nix")];
 
   config = mkIf cfg.enable {
     nix = {
