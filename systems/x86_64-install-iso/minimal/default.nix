@@ -1,11 +1,12 @@
 {
+  config,
   pkgs,
   lib,
   namespace,
   ...
 }:
 let
-  inherit (lib) mkForce;
+  inherit (lib) mkForce mkDefault;
   inherit (lib.${namespace}) enabled;
 in
 {
@@ -19,8 +20,6 @@ in
       pciutils
       file
     ];
-
-  boot.loader.systemd-boot = enabled;
 
   ${namespace} = {
     nix = enabled;
@@ -45,10 +44,6 @@ in
     system.time = enabled;
     system.networking = enabled;
   };
-
-  users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO lab@home.jm0.io"
-  ];
 
   system.stateVersion = "24.11";
 }
