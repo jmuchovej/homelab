@@ -1,12 +1,5 @@
-{
-  disks ? [
-    "/dev/nvme0n1"
-    "/dev/sda"
-  ],
-  ...
-}:
-let
-  defaultBtrfsOpts = [
+{ ... }: let
+  btrfs-defaults = [
     "defaults"
     "compress=zstd:1"
     "ssd"
@@ -18,7 +11,7 @@ in
   disko.devices = {
     disk = {
       nvme0 = {
-        device = builtins.elemAt disks 0;
+        device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300IBBB23122507026";
         type = "disk";
         content = {
           type = "gpt";
@@ -50,18 +43,18 @@ in
                 type = "btrfs";
                 # Override existing partition
                 extraArgs = [
-                  "f"
-                  "--allow-discards"
+                  "-f"
                 ];
+                mountOptions = [ "defaults" "discard" ];
 
                 subvolumes = {
                   "@" = {
                     mountpoint = "/";
-                    mountOptions = defaultBtrfsOpts;
+                    mountOptions = btrfs-defaults;
                   };
                   "@nix" = {
                     mountpoint = "/nix";
-                    mountOptions = defaultBtrfsOpts;
+                    mountOptions = btrfs-defaults;
                   };
                 };
               };

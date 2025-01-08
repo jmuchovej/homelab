@@ -14,7 +14,7 @@ let
   inherit (lib.${namespace}) enabled disabled;
 in
 {
-  imports = [ ./hardware.nix ];
+  imports = [ ./disks.nix ./hardware.nix ];
 
   topology.self = {
     name = "🚀 da-vcx-1";
@@ -33,7 +33,9 @@ in
       };
     };
     security = {
-      sops = enabled;
+      sops = enabled // {
+        defaultSopsFile = ./secrets.sops.yaml;
+      };
       sudo = enabled;
     };
     services = {
