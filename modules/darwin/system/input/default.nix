@@ -4,7 +4,7 @@
   namespace,
   ...
 }: let
-  inherit (lib) mkIf mkMerge mkEnableOption;
+  inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.system.input;
 in {
@@ -45,16 +45,23 @@ in {
 
     system.defaults.NSGlobalDomain = {
       AppleKeyboardUIMode = 3;
-      ApplePressAndHoldEnabled = true;
+      ApplePressAndHoldEnabled = false;
 
-      KeyRepeat = 1;
-      InitialKeyRepeat = 10;
+      KeyRepeat = 2;
+      InitialKeyRepeat = 68;
 
       NSAutomaticCapitalizationEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticQuoteSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;
       NSAutomaticSpellingCorrectionEnabled = false;
+    };
+
+    system.defaults.CustomSystemPreferences = {
+        # "com.apple.symbolichotkeys" = {
+        #   # Turn off Spotlight shortcut keys
+        #   "com.apple.symbolichotkeys.AppleSymbolicHotKeys.64.enabled" = false;
+        # };
     };
   };
 }
