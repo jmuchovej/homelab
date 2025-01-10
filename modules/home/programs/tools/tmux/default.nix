@@ -4,8 +4,7 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (builtins) concatStringsSep map;
   inherit (lib) mkIf mkEnableOption;
   inherit (lib.strings) fileContents;
@@ -30,11 +29,10 @@ let
         set -g @continuum-restore 'on'
       '';
     }
-    { plugin = tmux-fzf; }
+    {plugin = tmux-fzf;}
     # { plugin = vim-tmux-navigator; }
   ];
-in
-{
+in {
   options.${namespace}.programs.tools.tmux = {
     enable = mkEnableOption "tmux";
   };

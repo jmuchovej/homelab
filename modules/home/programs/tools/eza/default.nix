@@ -4,20 +4,16 @@
   pkgs,
   namespace,
   ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption mkForce getExe;
+}: let
+  inherit (lib) mkIf mkEnableOption mkForce;
 
   cfg = config.${namespace}.programs.tools.eza;
-  # Get the `eza` from `home-manager`
-  eza-bin = getExe config.programs.eza.package;
-in
-{
+in {
   options.${namespace}.programs.tools.eza = {
     enable = mkEnableOption "eza";
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     programs.eza = {
       enable = true;
       package = pkgs.eza;
@@ -31,13 +27,14 @@ in
       ];
 
       # TODO does this work on linux-arm64 yet?
-      git   = true;
-      icons = "auto";
+      git    = true;
+      icons  = "auto";
+      colors = "auto";
     };
 
     home.shellAliases = {
       # home-manager already configures `ls`, `ll`, `la`, `lt`, and `lla`
-      tree = mkForce "eza -T --icons=always";
+      tree = mkForce "lt";
     };
   };
 }

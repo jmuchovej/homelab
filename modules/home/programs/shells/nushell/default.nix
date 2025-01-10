@@ -3,17 +3,14 @@
   lib,
   namespace,
   ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption filterAttrs strings;
+}: let
+  inherit (lib) mkIf mkEnableOption filterAttrs;
   inherit (lib.strings) hasInfix;
-  inherit (lib.${namespace});
 
   cfg = config.${namespace}.programs.shells.nushell;
-in
-{
+in {
   options.${namespace}.programs.shells.nushell = {
-    enable = mkEnableOption "Enable `nushell`?";
+    enable = mkEnableOption "`nushell`";
   };
 
   config = mkIf cfg.enable {

@@ -1,12 +1,16 @@
-{ config, lib, namespace, ...  }: let
+{
+  config,
+  lib,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.editors.micro;
-in
-{
+in {
   options.${namespace}.programs.editors.micro = {
-    enable = mkEnableOption "Whether or not to enable micro.";
-    default = mkEnableOption "Whether to set micro as the session EDITOR";
+    enable = mkEnableOption "micro";
+    default = mkEnableOption "micro as the default $EDITOR";
   };
 
   config = mkIf cfg.enable {
@@ -27,11 +31,9 @@ in
 
     xdg.configFile."micro/colorschemes" = {
       source = lib.cleanSourceWith {
-        filter =
-          name: _type:
-          let
-            baseName = baseNameOf (toString name);
-          in
+        filter = name: _type: let
+          baseName = baseNameOf (toString name);
+        in
           lib.hasSuffix ".micro" baseName;
         src = lib.cleanSource ./.;
       };

@@ -4,20 +4,18 @@
   namespace,
   pkgs,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption optionalString;
 
   cfg = config.${namespace}.programs.tools.onepassword-cli;
-in
-{
+in {
   options.${namespace}.programs.tools.onepassword-cli = {
     enable = mkEnableOption "1password-cli";
     enableSshSocket = mkEnableOption "1password's ssh-agent socket";
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ pkgs._1password-cli ];
+    home.packages = [pkgs._1password-cli];
 
     programs = {
       ssh.extraConfig = optionalString cfg.enableSshSocket ''

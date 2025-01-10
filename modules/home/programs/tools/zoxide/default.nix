@@ -1,9 +1,14 @@
-{ config, lib, pkgs, namespace, ...  }: let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.zoxide;
-in
-{
+in {
   options.${namespace}.programs.tools.zoxide = {
     enable = mkEnableOption "zoxide";
   };
@@ -13,7 +18,7 @@ in
       enable = true;
       package = pkgs.zoxide;
       options = [
-        "--cmd z"  # Replaces `z` and `zi`
+        "--cmd z" # Replaces `z` and `zi`
       ];
     };
   };

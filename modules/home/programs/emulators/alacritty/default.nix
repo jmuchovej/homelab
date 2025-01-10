@@ -6,13 +6,11 @@
   # system,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.emulators.alacritty;
-in
-{
+in {
   options.${namespace}.programs.emulators.alacritty = {
     enable = mkEnableOption "Alacritty";
   };

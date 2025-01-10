@@ -1,12 +1,16 @@
-{ config, lib, pkgs, namespace, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkEnableOption getExe;
 
   cfg = config.${namespace}.programs.tools.fzf;
 
   fd-bin = getExe pkgs.fd;
-in
-{
+in {
   options.${namespace}.programs.tools.fzf = {
     enable = mkEnableOption "fzf.";
   };

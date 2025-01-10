@@ -4,8 +4,7 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
@@ -18,8 +17,7 @@ let
 
     zellij --layout dev  attach --create "$session_name" options --default-cwd "$(pwd)"
   '';
-in
-{
+in {
   options.${namespace}.programs.tools.zellij = {
     enable = mkEnableOption "zellij";
   };
@@ -42,24 +40,23 @@ in
 
         # clipboard provider
         copy_command =
-          if isLinux then
-            "wl-copy"
-          else if isDarwin then
-            "pbcopy"
-          else
-            "";
+          if isLinux
+          then "wl-copy"
+          else if isDarwin
+          then "pbcopy"
+          else "";
 
         auto_layouts = true;
 
-        default_layout  = "system"; # or compact
-        default_mode    = "locked";
+        default_layout = "system"; # or compact
+        default_mode = "locked";
         support_kitty_keyboard_protocol = false;
 
-        on_force_close                = "quit";
-        pane_frames                   = true;
-        pane_viewport_serialization   = true;
+        on_force_close = "quit";
+        pane_frames = true;
+        pane_viewport_serialization = true;
         scrollback_lines_to_serialize = 1000;
-        session_serialization         = true;
+        session_serialization = true;
 
         ui.pane_frames = {
           rounded_corners = true;
@@ -68,10 +65,10 @@ in
 
         # load internal plugins from built-in paths
         plugins = {
-          tab-bar.path      = "tab-bar";
-          status-bar.path   = "status-bar";
-          strider.path      = "strider";
-          compact-bar.path  = "compact-bar";
+          tab-bar.path = "tab-bar";
+          status-bar.path = "status-bar";
+          strider.path = "strider";
+          compact-bar.path = "compact-bar";
         };
 
         theme = "catppuccin-macchiato";
@@ -79,8 +76,8 @@ in
     };
 
     programs.zed-editor = mkIf config.programs.zed-editor.enable {
-      extensions    = [ "kdl" ];
-      userSettings  = { };
+      extensions = ["kdl"];
+      userSettings = {};
     };
   };
 }

@@ -3,17 +3,16 @@
   lib,
   namespace,
   ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption mkOption;
-  inherit (lib.types) attrsOf submodule str literalExample;
+}: let
+  inherit (lib) types mkIf mkEnableOption mkOption;
+  inherit (builtins) concatStringsSep;
 
   cfg = config.${namespace}.programs.tools.ssh;
 in {
-  options.${namespace}.programs.tools.ssh = {
+  options.${namespace}.programs.tools.ssh = with types; {
     enable = mkEnableOption "ssh";
 
-    extraHosts = mkOption {
+    extra-hosts = mkOption {
       type = attrsOf (submodule {
         options = {
           hostname = mkOption {
@@ -37,6 +36,12 @@ in {
         }
       '';
     };
+
+    authorized-keys = mkOption {
+      type = listOf str;
+      default = [];
+      description = "Authorized SSH Keys";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -57,10 +62,13 @@ in {
       # matchBlocks = cfg.extraHosts;
       matchBlocks = {
         git = {
-          host          = "git*";
-          identityFile  = "~/.ssh/1p-%h.pub";
+          host = "git*";
+          identityFile = "~/.ssh/1p-%h.pub";
         };
       };
     };
+
+    home.file.".ssh/authorized_keys".text =
+      concatStringsSep "\n" cfg.authorized-keys;
   };
 }

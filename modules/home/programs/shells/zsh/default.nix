@@ -1,13 +1,16 @@
-{ config, lib, pkgs, namespace, ...  }: let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkEnableOption mkIf;
-  inherit (lib.strings) fileContents;
-  inherit (lib.${namespace});
 
   cfg = config.${namespace}.programs.shells.zsh;
-in
-{
+in {
   options.${namespace}.programs.shells.zsh = {
-    enable = mkEnableOption "Enable `zsh`?";
+    enable = mkEnableOption "`zsh`";
   };
 
   config = mkIf cfg.enable {
@@ -54,9 +57,9 @@ in
       };
 
       antidote = {
-        enable            = true;
-        useFriendlyNames  = true;
-        plugins           = [
+        enable = true;
+        useFriendlyNames = true;
+        plugins = [
           "jeffreytse/zsh-vi-mode"
           "zdharma-continuum/fast-syntax-highlighting"
           "zsh-users/zsh-completions"

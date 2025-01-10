@@ -4,13 +4,11 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.bacon;
-in
-{
+in {
   options.${namespace}.programs.tools.bacon = {
     enable = mkEnableOption "bacon";
   };
@@ -19,7 +17,7 @@ in
     # https://github.com/Canop/bacon/issues/65
     # https://dystroy.org/blog/bacon-everything-roadmap/
     programs.bacon = {
-      enable  = true;
+      enable = true;
       # package = pkgs.bacon;
     };
   };

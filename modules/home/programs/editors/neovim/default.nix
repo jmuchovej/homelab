@@ -7,17 +7,14 @@
   pkgs,
   osConfig,
   ...
-}:
-let
+}: let
   inherit (lib) mkEnableOption mkIf;
-  inherit (lib.${namespace}) mkBoolOpt;
-  # inherit (inputs) khanelivim;
+  inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.programs.editors.neovim;
-in
-{
+in {
   options.${namespace}.programs.editors.neovim = {
-    enable  = mkEnableOption "neovim";
+    enable = mkEnableOption "neovim";
     default = mkEnableOption "Neovim as the default $EDITOR";
   };
 
@@ -28,7 +25,9 @@ in
       EDITOR = mkIf cfg.default "nvim";
     };
 
-    home.packages = (with pkgs; [
+    programs.neovim = enabled;
+
+    home.packages = with pkgs; [
       # (khanelivim.packages.${system}.default.extend {
       #   plugins.lsp.servers.nixd.settings =
       #     let
@@ -43,7 +42,7 @@ in
       #     };
       # })
       nvrh
-    ]);
+    ];
 
     # sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
     #   wakatime = {

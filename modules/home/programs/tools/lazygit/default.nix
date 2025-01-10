@@ -3,13 +3,11 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.lazygit;
-in
-{
+in {
   options.${namespace}.programs.tools.lazygit = {
     enable = mkEnableOption "lazygit";
   };

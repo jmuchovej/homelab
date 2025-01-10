@@ -6,13 +6,11 @@
   # system,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.emulators.rio;
-in
-{
+in {
   options.${namespace}.programs.emulators.rio = {
     enable = mkEnableOption "Rio";
   };

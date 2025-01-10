@@ -3,14 +3,12 @@
   lib,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
   inherit (lib.${namespace});
 
   cfg = config.${namespace}.programs.tools.topgrade;
-in
-{
+in {
   options.${namespace}.programs.tools.topgrade = {
     enable = mkEnableOption "topgrade.";
   };

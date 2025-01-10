@@ -1,4 +1,10 @@
-{ config, pkgs, lib, namespace, ... }: let
+{
+  config,
+  pkgs,
+  lib,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.devenv;
@@ -8,12 +14,12 @@ in {
   };
 
   config = mkIf cfg.enable {
-    home.packages = (with pkgs; [
+    home.packages = with pkgs; [
       devenv
-    ]);
+    ];
 
     programs.direnv = {
-      enable            = true;
+      enable = true;
       nix-direnv.enable = true;
     };
   };

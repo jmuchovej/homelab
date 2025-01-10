@@ -6,16 +6,12 @@
   # system,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkEnableOption mkIf;
-  inherit (lib.${namespace});
-  # inherit (inputs) wezterm;
 
   cfg = config.${namespace}.programs.emulators.wezterm;
   catppuccin = import (lib.snowfall.fs.get-file "modules/home/theme/catppuccin/colors.nix");
-in
-{
+in {
   options.${namespace}.programs.emulators.wezterm = {
     enable = mkEnableOption "WezTerm";
   };
@@ -26,9 +22,9 @@ in
       enableBashIntegration = true;
       enableZshIntegration = true;
       package = pkgs.wezterm;
-      # package = wezterm.packages.${system}.default;
 
-      extraConfig = # lua
+      extraConfig =
+        # lua
         ''
           function scheme_for_appearance(appearance)
             if appearance:find "Dark" then

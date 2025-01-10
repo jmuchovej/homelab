@@ -4,19 +4,17 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.k9s;
-in
-{
+in {
   options.${namespace}.programs.tools.k9s = {
     enable = mkEnableOption "k9s";
   };
 
   config = mkIf cfg.enable {
-    home.packages = (with pkgs; [
+    home.packages = with pkgs; [
       helmfile
       kubecolor
       kubectl
@@ -24,7 +22,7 @@ in
       kubelogin
       kubernetes-helm
       kubeseal
-    ]);
+    ];
 
     programs.k9s = {
       enable = true;
@@ -41,15 +39,15 @@ in
     };
 
     programs.kubecolor = {
-      enable      = true;
+      enable = true;
       enableAlias = true;
     };
 
     home.shellAliases = {
-      k   = "kubecolor";
-      kc  = "kubectx";
-      kn  = "kubens";
-      ks  = "kubeseal";
+      k = "kubecolor";
+      kc = "kubectx";
+      kn = "kubens";
+      ks = "kubeseal";
     };
   };
 }

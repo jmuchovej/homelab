@@ -4,15 +4,13 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.shells.bash;
-in
-{
+in {
   options.${namespace}.programs.shells.bash = {
-    enable = mkEnableOption "Whether to enable bash.";
+    enable = mkEnableOption "`bash`";
   };
 
   config = mkIf cfg.enable {
@@ -20,7 +18,7 @@ in
       enable = true;
       enableCompletion = true;
 
-      historyControl  = [ "ignoredups" ];
+      historyControl = ["ignoredups"];
       historyFileSize = 100000;
 
       shellOptions = [
@@ -34,12 +32,12 @@ in
       ];
     };
 
-    home.sessionVariables = { };
+    home.sessionVariables = {};
 
     home.packages = with pkgs; [
       nix-bash-completions
     ];
 
-    home.file = { };
+    home.file = {};
   };
 }
