@@ -4,9 +4,7 @@
   namespace,
   ...
 }: let
-  inherit (lib) mkIf mkEnableOption mkOption;
-  inherit (lib.types) submodule str;
-  inherit (lib.${namespace}) mkNestedEnableOption;
+  inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.homebrew;
 in {
