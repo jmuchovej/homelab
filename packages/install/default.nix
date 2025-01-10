@@ -13,11 +13,11 @@ writeShellScriptBin  "install" ''
 
   echo
   echo "🔥 kexec into the NixOS installer..."
-  ssh root@$addr \
+  ssh lab@$addr \
     -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
-    'curl -L https://github.com/nix-community/nixos-images/releases/download/nixos-unstable/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz | tar -xzf- -C /root'
-  ssh root@$addr -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '/root/kexec/run'
+    'curl -L https://github.com/nix-community/nixos-images/releases/download/nixos-unstable/nixos-kexec-installer-noninteractive-x86_64-linux.tar.gz | doas tar -xzf- -C /root'
+  ssh lab@$addr -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'doas /root/kexec/run'
 
   echo
   echo "⏰ Waiting for host \`$host\` to come online..."
@@ -25,11 +25,11 @@ writeShellScriptBin  "install" ''
 
   echo
   echo "📥 Grabbing hardware config..."
-  ssh root@$addr -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'nixos-generate-config --show-hardware-config --root /mnt' > systems/x86_64-linux/$host/hardware-configuration.nix
+  ssh lab@$addr -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'doas nixos-generate-config --show-hardware-config --root /mnt' > systems/x86_64-linux/$host/hardware-configuration.nix
 
   echo
   echo "✅ Installing..."
-  nix run github:nix-community/nixos-anywhere -- --flake .#$host --target-host root@$addr --build-on-remote
+  nix run github:nix-community/nixos-anywhere -- --flake .#$host --target-host root@$addr
 
   echo
   echo "🚀 Done! 🚀"
