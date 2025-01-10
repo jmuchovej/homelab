@@ -1,5 +1,5 @@
 {
-  options,
+  pkgs,
   config,
   lib,
   namespace,
@@ -28,5 +28,9 @@ in
 
       security.sops = enabled;
     };
+
+    environment.systemPackages = with pkgs; [
+        git
+    ];
   };
 }
