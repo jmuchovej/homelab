@@ -66,8 +66,8 @@ in
               size = "100%";
               content = {
                 type = "swap";
+                # https://github.com/nix-community/disko/issues/604#issuecomment-2094123287
                 randomEncryption = true;
-                resumeDevice = true; # resume from hiberation from this device
                 # https://github.com/nix-community/disko/issues/515#issuecomment-2063028431
                 # https://github.com/nix-community/disko/issues/515#issuecomment-2381796519
                 extraArgs = [ "-Lswap" ];
