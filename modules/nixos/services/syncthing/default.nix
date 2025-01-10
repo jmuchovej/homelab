@@ -48,7 +48,7 @@ let
 
 in
 {
-  options.${namespace}.services.syncthing = with types; {
+  options.${namespace}.services.syncthing = {
     enable = mkEnableOption "syncthing";
   };
 

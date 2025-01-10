@@ -4,12 +4,19 @@
   lib,
   namespace,
   ...
-}: let
-  inherit (lib) types mkIf mkOption mkEnableOption;
+}:
+let
+  inherit (lib)
+    types
+    mkIf
+    mkOption
+    mkEnableOption
+    ;
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.hardware.storage.zfs;
-in {
+in
+{
   options.${namespace}.hardware.storage.zfs = with types; {
     enable = mkEnableOption "ZFS";
     auto-snapshot = {
@@ -17,15 +24,15 @@ in {
     };
     pools = mkOption {
       type = listOf str;
-      default = [];
+      default = [ ];
       description = "ZFS Pools to manage.";
     };
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = [pkgs.zfs];
+    environment.systemPackages = [ pkgs.zfs ];
 
-    boot.supportedFilesystems = ["zfs"];
+    boot.supportedFilesystems = [ "zfs" ];
 
     boot.zfs = {
       # enabled           = true;
@@ -34,14 +41,17 @@ in {
     };
 
     services.zfs = {
-      autoSnapshot = mkIf cfg.auto-snapshot.enable (enabled // {
-        flags = "-k -p";
-        frequent = 12;
-        daily = 10;
-        weekly = 7;
-        hourly = 48;
-        monthly = 24;
-      });
+      autoSnapshot = mkIf cfg.auto-snapshot.enable (
+        enabled
+        // {
+          flags = "-k -p";
+          frequent = 12;
+          daily = 10;
+          weekly = 7;
+          hourly = 48;
+          monthly = 24;
+        }
+      );
 
       autoScrub = enabled // {
         interval = "monthly";

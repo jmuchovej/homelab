@@ -2,14 +2,14 @@
   lib,
   namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkEnableOption;
-in {
+in
+{
   options.${namespace}.hardware.gpu = {
-    enable =
-      mkEnableOption "gpu"
-      // {
-        description = "No-op for setting up hierarchy.";
-      };
+    enable = mkEnableOption "gpu" // {
+      description = "No-op for setting up hierarchy.";
+    };
   };
 }
