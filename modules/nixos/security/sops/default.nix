@@ -14,7 +14,7 @@ let
     ;
 
   cfg = config.${namespace}.security.sops;
-  default-sops-file = lib.snowfall.fs.get-file "secrets/systems/${host}.yaml";
+  default-sops-file = lib.snowfall.fs.get-file "secrets/systems/${host}.sops.yaml";
 in
 {
   options.${namespace}.security.sops = with types; {
@@ -37,6 +37,7 @@ in
 
       age = {
         inherit (cfg) sshKeyPaths;
+        generateKey = true;
       };
     };
   };
