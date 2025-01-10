@@ -4,8 +4,14 @@
   pkgs,
   namespace,
   ...
-}: let
-  inherit (lib) mkDefault mkIf versionOlder mkEnableOption;
+}:
+let
+  inherit (lib)
+    mkDefault
+    mkIf
+    versionOlder
+    mkEnableOption
+    ;
   cfg = config.${namespace}.hardware.gpu.nvidia;
 
   # use the latest possible nvidia package
@@ -13,16 +19,21 @@
   nvBeta = config.boot.kernelPackages.nvidiaPackages.beta.version;
 
   nvidiaPackage =
-    if (versionOlder nvBeta nvStable)
-    then config.boot.kernelPackages.nvidiaPackages.stable
-    else config.boot.kernelPackages.nvidiaPackages.beta;
-in {
+    if (versionOlder nvBeta nvStable) then
+      config.boot.kernelPackages.nvidiaPackages.stable
+    else
+      config.boot.kernelPackages.nvidiaPackages.beta;
+in
+{
   options.${namespace}.hardware.gpu.nvidia = {
     enable = mkEnableOption "NVIDIA GPUs";
   };
 
   config = mkIf cfg.enable {
-    boot.blacklistedKernelModules = ["nouveau" "nvidiafb"];
+    boot.blacklistedKernelModules = [
+      "nouveau"
+      "nvidiafb"
+    ];
 
     environment = {
       variables = {
@@ -36,7 +47,7 @@ in {
       systemPackages = with pkgs; [
         nvfancontrol
 
-        nvtopPackages.nvidia
+        # nvtopPackages.nvidia
       ];
     };
 
@@ -53,7 +64,7 @@ in {
       ];
     };
 
-    services.xserver.videoDrivers = mkDefault ["nvidia"];
+    services.xserver.videoDrivers = mkDefault [ "nvidia" ];
 
     hardware = {
       graphics.enable = true;

@@ -59,6 +59,10 @@ in
     virtualization = {
       containers = enabled;
     };
+
+    suites = {
+      server = enabled;
+    };
   };
 
   # ======================== DO NOT CHANGE THIS ========================
