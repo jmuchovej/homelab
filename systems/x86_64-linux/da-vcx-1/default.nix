@@ -27,16 +27,17 @@ in
       gpu.nvidia = enabled;
       storage = enabled // {
         ssd = enabled;
+        btrfs = enabled;
         zfs = enabled // {
           auto-snapshot = enabled;
         };
       };
     };
     security = {
+      doas = enabled;
       sops = enabled // {
         defaultSopsFile = ./secrets.sops.yaml;
       };
-      sudo = enabled;
     };
     services = {
       ldap = enabled;
@@ -62,6 +63,9 @@ in
 
     suites = {
       server = enabled;
+      cluster = enabled // {
+        role = "server";
+      };
     };
   };
 
