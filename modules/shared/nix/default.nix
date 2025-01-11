@@ -79,7 +79,7 @@ in
           config.${namespace}.user.name
         ];
       in
-      {
+      enabled // {
         inherit (cfg) package;
 
         settings = {
