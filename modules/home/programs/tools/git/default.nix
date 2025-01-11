@@ -24,27 +24,6 @@
   #     value = {insteadOf = value;};
   #   })
   #   cfg.urlRewrites;
-
-  ov-bin = getExe' pkgs.ov "ov";
-  delta-bin = getExe' pkgs.delta "delta";
-
-  ov-diff = concatStringsSep " " [
-    "${ov-bin}"
-    "-F"
-    "--section-delimiter"
-    "'^(commit|added:|removed:|renamed:|Δ)'"
-    "--section-header"
-    "--pattern"
-    "'•'"
-  ];
-  ov-log = concatStringsSep " " [
-    "${ov-bin}"
-    "-F"
-    "--section-delimiter"
-    "'^commit'"
-    "--section-header-num"
-    "3"
-  ];
 in {
   options.${namespace}.programs.tools.git = with types; {
     enable = mkEnableOption "git";
@@ -90,26 +69,16 @@ in {
 
       extraConfig = {
         gpg.format = "ssh";
-        gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
+        # gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         # TODO migrate to platform-independent and don't do for remote hosts
         gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
         commit.gpgsign = true;
-        # user.signingkey = "~/.ssh/1p-github.pub";
+        tag.gpgsign = true;
+        # user.signingkey = "~/.ssh/1p-github.com.pub";
         user.signingkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPzVs6NgTgGHRUb2AOW3iLsuCpRXLVMleeLeQ3FYF8Kb";
-
-        core = {
-          pager = "${delta-bin} --pager='${ov-bin} -F'";
-        };
 
         color = {
           ui = true;
-        };
-
-        # https://noborus.github.io/ov-bin/delta-bin/index.html
-        pager = {
-          show = "${delta-bin} --pager='${ov-bin} -F -H3'";
-          diff = "${delta-bin} --features ov-diff";
-          log = "${delta-bin} --features ov-log";
         };
 
         # difftastic = {
@@ -126,9 +95,6 @@ in {
             side-by-side = true;
             light = false;
             syntax-theme = "catppuccin";
-            # features      = "ov-diff ov-log";
-            # ov-diff.pager = "${ov-diff}";
-            # ov-log.pager  = "${ov-log}";
           };
         };
 
@@ -142,7 +108,7 @@ in {
         };
 
         init = {
-          defaultBranch = "init";
+          defaultBranch = "main";
         };
 
         filter.lfs = {
