@@ -33,6 +33,7 @@ in
       bruno
       act
       dbeaver-bin
+      snowfall-flake.packages.${system}.flake
     ]);
 
     home.shellAliases = {
