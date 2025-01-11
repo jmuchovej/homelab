@@ -25,7 +25,7 @@ in
       #   mkIf cfg.dns == "dnsmasq" ''
       #     DNSStubListener=false
       #   '';
-      fallbackDns = [ "192.168.30.1" ];
+      fallbackDns = [ "10.0.0.1" ];
     };
   };
 }
