@@ -11,7 +11,6 @@ let
   cfg = config.${namespace}.programs.tools.bat;
 
   bat-bin = getExe config.programs.bat.package;
-  ov-bin  = getExe' pkgs.ov "ov";
 in {
   options.${namespace}.programs.tools.bat = {
     enable = mkEnableOption "Whether or not to enable bat.";
@@ -22,9 +21,6 @@ in {
       enable = true;
 
       config  = {
-        # https://noborus.github.io/ov/bat/index.html
-        pager = "${ov-bin} -F -H3";
-        wrap  = "never";
       };
 
       extraPackages = with pkgs.bat-extras; [
@@ -38,7 +34,7 @@ in {
     };
 
     home.shellAliases = {
-      cat = "${bat-bin}";
+      cat = "bat";
     };
   };
 }
