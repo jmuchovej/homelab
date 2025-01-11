@@ -1,8 +1,6 @@
 {
   config,
   format,
-  host,
-  inputs,
   lib,
   namespace,
   ...
