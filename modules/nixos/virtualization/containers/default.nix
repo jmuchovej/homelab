@@ -17,7 +17,7 @@ let
   cfg = config.${namespace}.virtualization.containers;
 in
 {
-  options.${namespace}.virtualization.containers = with types; {
+  options.${namespace}.virtualization.containers = {
     enable = mkEnableOption "[OCI] Containers";
   };
 

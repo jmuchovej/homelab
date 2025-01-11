@@ -35,7 +35,9 @@ in
 
     security = {
       doas = enabled;
-      sops = enabled;
+      sops = enabled // {
+        defaultSopsFile = ./secrets.sops.yaml;
+      };
     };
 
     services = {
@@ -59,6 +61,10 @@ in
 
     virtualization = {
       containers = enabled;
+    };
+
+    suites = {
+      server = enabled;
     };
   };
 

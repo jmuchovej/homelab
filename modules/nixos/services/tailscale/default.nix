@@ -7,7 +7,6 @@
 }:
 let
   inherit (lib)
-    types
     mkIf
     mkEnableOption
     mkBefore
@@ -16,7 +15,7 @@ let
   cfg = config.${namespace}.services.tailscale;
 in
 {
-  options.${namespace}.services.tailscale = with types; {
+  options.${namespace}.services.tailscale = {
     enable = mkEnableOption "tailscale";
   };
 

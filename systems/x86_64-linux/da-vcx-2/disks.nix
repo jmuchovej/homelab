@@ -1,10 +1,4 @@
-{
-  disks ? [
-    "/dev/nvme0n1"
-    "/dev/sda"
-  ],
-  ...
-}:
+{ ... }:
 let
   defaultBtrfsOpts = [
     "defaults"
@@ -18,7 +12,7 @@ in
   disko.devices = {
     disk = {
       nvme0 = {
-        device = builtins.elemAt disks 0;
+        device = "/dev/disk/by-id/nvme-KINGSTON_OM8PGP4512Q-A0_50026B73830175E0";
         type = "disk";
         content = {
           type = "gpt";
@@ -69,11 +63,11 @@ in
               size = "100%";
               content = {
                 type = "swap";
-                randomEncryption = true;
-                resumeDevice = true; # resume from hiberation from this device
+                # randomEncryption = true;
+                # resumeDevice = true; # resume from hiberation from this device
                 # https://github.com/nix-community/disko/issues/515#issuecomment-2063028431
                 # https://github.com/nix-community/disko/issues/515#issuecomment-2381796519
-                extraArgs = [ "-Lswap" ];
+                # extraArgs = [ "-Lswap" ];
               };
             };
           };
@@ -81,7 +75,7 @@ in
       };
 
       sda = {
-        device = builtins.elemAt disks 1;
+        device = "/dev/disk/by-id/ata-CT2000BX500SSD1_2427E8BA688C";
         type = "disk";
         content = {
           type = "gpt";
