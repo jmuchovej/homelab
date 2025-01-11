@@ -20,6 +20,10 @@ in
     # Disable sudo
     security.sudo.enable = false;
 
+    environment.systemPackages = [
+      pkgs.doas-sudo-shim
+    ];
+
     # Enable and configure `doas`.
     security.doas = {
       enable = true;
