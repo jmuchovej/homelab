@@ -37,7 +37,7 @@ in
 
       age = {
         inherit (cfg) sshKeyPaths;
-        generateKey = true;
+        generateKey = false;  # This is already done with the host key
       };
     };
   };
