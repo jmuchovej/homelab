@@ -34,7 +34,7 @@ in
       };
     };
     security = {
-      doas = enabled;
+      sudo = enabled;
       sops = enabled // {
         defaultSopsFile = ./secrets.sops.yaml;
       };
