@@ -11,6 +11,8 @@ in {
       inherit (config.snowfallorg.user) name;
     };
 
+    nix = enabled;
+
     programs = {
       tools = {
         ssh = enabled // {
