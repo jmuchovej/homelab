@@ -13,13 +13,13 @@ let
   inherit (lib.${namespace}) enabled;
   inherit (lib.snowfall.fs) get-file;
 
-  cfg = config.${namespace}.suites.cluster;
-  datacenter = elemAt 0 (splitString "-" host);
+  cfg = config.${namespace}.services.kubernetes;
+  datacenter = elemAt (splitString "-" host) 0;
   sopsFile = get-file "secrets/${datacenter}.sops.yaml";
 in
 {
-  options.${namespace}.suites.cluster = with types; {
-    enable = mkEnableOption "`cluster` suite";
+  options.${namespace}.services.kubernetes = with types; {
+    enable = mkEnableOption "kubernetes";
     role = mkOption {
       type = enum [
         "agent"
@@ -38,17 +38,19 @@ in
 
   config = mkIf cfg.enable {
     assertions = [{
-      assertion = cfg.isFirst && cfg.leader != null;
+      assertion = (!cfg.isFirst && cfg.leader == null) || (cfg.isFirst && cfg.leader != null);
       message = "Cannot both be `first` **and** need a `leader` to connect to!";
     }];
 
-    sops."k3s/token".sopsFile = sopsFile;
+    sops.secrets."k8s/token" = {
+      inherit sopsFile;
+    };
 
     services.k3s = enabled // {
       inherit (cfg) role;
-      tokenFile = config.sops."k3s/token".path;
+      tokenFile = config.sops.secrets."k8s/token".path;
       clusterInit = cfg.isFirst;
-      serverAddr = optional (!cfg.isFirst) cfg.leader;
+      serverAddr = mkIf (!cfg.isFirst && cfg.leader != null) cfg.leader;
     };
   };
 }
