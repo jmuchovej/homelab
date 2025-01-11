@@ -54,6 +54,7 @@ in {
       programs.home-manager = enabled;
       home.username = mkDefault cfg.name;
       home.homeDirectory = mkDefault cfg.home;
+      home.preferXdgDirectories = mkDefault true;
     }
   ]);
 }
