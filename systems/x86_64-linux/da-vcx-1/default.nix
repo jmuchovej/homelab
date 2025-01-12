@@ -61,11 +61,29 @@ in
       containers = enabled;
     };
 
+    services.kubernetes = enabled // {
+      is-first = true;
+      role = "server";
+      services.kube-proxy = enabled;
+      services.flux       = enabled;
+      services.service-lb = disabled;
+      services.traefik    = disabled;
+      services.local-io   = disabled;
+      services.metrics    = enabled;
+      services.coredns    = enabled;
+      services.flannel    = enabled;
+      helm = enabled // {
+        completed-if = "get CustomResourceDefinition -A | grep -q 'cilium.io'";
+        file = "/etc/k3s/helmfile.yaml";
+      };
+      minio = enabled // {
+        buckets = [ "volsync" "postgres" ];
+        data-dir = [ "/impulse/minio" ];
+      };
+    };
+
     suites = {
       server = enabled;
-      cluster = enabled // {
-        role = "server";
-      };
     };
   };
 
