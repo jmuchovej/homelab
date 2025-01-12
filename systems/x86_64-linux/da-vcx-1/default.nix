@@ -30,6 +30,7 @@ in
         btrfs = enabled;
         zfs = enabled // {
           auto-snapshot = enabled;
+          pools = [ "impulse" "warp" ];
         };
       };
     };

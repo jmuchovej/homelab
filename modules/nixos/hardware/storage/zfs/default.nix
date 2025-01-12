@@ -35,9 +35,8 @@ in
     boot.supportedFilesystems = [ "zfs" ];
 
     boot.zfs = {
-      # enabled           = true;
       allowHibernation = false;
-      forceImportAll = true;
+      extraPools = cfg.pools;
     };
 
     services.zfs = {
