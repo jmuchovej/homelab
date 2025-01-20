@@ -14,6 +14,7 @@ let
     mkPackageOption
     types
     ;
+  inherit (pkgs.stdenv) isLinux;
   inherit (lib.${namespace}) enabled disabled;
 
   cfg = config.${namespace}.nix;
@@ -62,7 +63,7 @@ in
     };
 
     environment.systemPackages = with pkgs; [
-      nil
+      nixd
       nixfmt-rfc-style
       nix-index
       nix-prefetch-git
@@ -78,9 +79,9 @@ in
           "nix-builder"
           config.${namespace}.user.name
         ];
-      in
-      enabled // {
+      in {
         inherit (cfg) package;
+        enable = mkIf (isLinux) true;
 
         settings = {
           trusted-users = users ++ cfg.extra-users;
