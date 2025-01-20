@@ -4,12 +4,14 @@
   namespace,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkDefault;
   inherit (lib.${namespace}) get-shared enabled;
 
   cfg = config.${namespace}.suites.desktop;
-in {
+in
+{
   imports = [
     (get-shared "suites/desktop")
   ];
@@ -46,12 +48,13 @@ in {
     };
 
     homebrew = {
-      brews = [];
+      brews = [ ];
 
       casks = [
         "anytype" # TODO contrib Nix support for macOS
         "setapp"
-        "alfred"
+        "beeper" # TODO contrib Nix support for macOS
+        "amie"
         "notion"
         "notion-calendar"
         "logi-options+"
@@ -63,9 +66,13 @@ in {
         "hammerspoon"
         "launchcontrol"
         "sf-symbols"
-        "xquartz"
+        "xquartz" # TODO migrate back to `modules/home` once refactor is complete?
         "bambu-studio" # TODO contrib Nix support for macOS
-        "balenaetcher"
+        "openscad@snapshot" # TODO contrib Nix support for macOS – there's some Qt6 error when installing
+        "balenaetcher" # TODO contrib Nix support for macOS?
+        "protonvpn" # TODO contrib Nix support for macOS?
+        "zoom" # TODO migrate back to `modules/home` once refactor is complete
+        "pdfelement"
       ];
 
       taps = [
@@ -84,6 +91,7 @@ in {
         "TestFlight" = 899247664;
         "Velja" = 1607635845;
         "Things 3" = 904280696;
+        "Structured - Daily Planner" = 1499198946;
       };
     };
   };
