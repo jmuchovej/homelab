@@ -1,7 +1,13 @@
-{ config, lib, namespace, ...  }: let
-  inherit (lib) mkDefault;
+{
+  config,
+  lib,
+  namespace,
+  ...
+}:
+let
   inherit (lib.${namespace}) enabled disabled;
-in {
+in
+{
   rebellion = {
     user = {
       inherit (config.snowfallorg.user) name;
@@ -9,20 +15,21 @@ in {
     };
 
     suites = {
-      common      = enabled;
+      common = enabled;
       development = {
-        enable      = true;
-        app         = enabled;
-        web         = enabled;
-        go          = enabled;
-        julia       = enabled;
-        nix         = enabled;
-        python      = enabled;
-        R           = disabled;
-        rust        = disabled;
-        typst       = enabled;
+        enable = true;
+        app = enabled;
+        web = enabled;
+        go = enabled;
+        julia = enabled;
+        nix = enabled;
+        python = enabled;
+        R = disabled;
+        rust = disabled;
+        typst = enabled;
       };
-      desktop     = enabled;
+      desktop = enabled;
+      # modeling = enabled;
     };
   };
 
