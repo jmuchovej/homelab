@@ -34,6 +34,7 @@ in {
 
     programs.zed-editor = mkIf config.programs.zed-editor.enable {
       extensions    = zed-extensions;
+      extraPackages = [ pkgs.rust-analyzer ];
       userSettings  = zed-user-settings;
     };
   };

@@ -32,6 +32,7 @@ in {
 
     programs.zed-editor = mkIf config.programs.zed-editor.enable {
       extensions    = zed-extensions;
+      extraPackages = with pkgs; [ typstyle tinymist ];
       userSettings  = zed-user-settings;
     };
   };
