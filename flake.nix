@@ -18,7 +18,7 @@
 
     # Nix Darwin
     # darwin.url = "github:LnL7/nix-darwin";
-    darwin.url = "github:khaneliman/nix-darwin/cherry-picks";
+    darwin.url = "github:jmuchovej/forked-nix-darwin/cherry-picks";
     darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
     # Install Mac Apps in a Spotlight-discoverable way.
     # mac-app-util.url = "github:hraban/mac-app-util";
