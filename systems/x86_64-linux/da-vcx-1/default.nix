@@ -45,6 +45,9 @@ in
       openssh = enabled;
       syncthing = enabled;
       tailscale = enabled;
+      local-llms = enabled // {
+        vllm.model = "Qwen/Qwen2.5-72B-Instruct";
+      };
     };
 
     nix = enabled;
