@@ -80,6 +80,7 @@ in {
 
     home.packages = with pkgs; [
       nix-zsh-completions
+      zsh-history-substring-search
     ];
   };
 }
