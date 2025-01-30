@@ -22,6 +22,9 @@ in {
       kubelogin
       kubernetes-helm
       kubeseal
+      fluxcd
+      cilium-cli
+      minio-client
     ];
 
     programs.k9s = {
