@@ -4,11 +4,13 @@
   namespace,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.system.interface;
-in {
+in
+{
   options.${namespace}.system.interface = {
     enable = mkEnableOption "macOS interface customizations";
   };
@@ -17,6 +19,12 @@ in {
     ${namespace}.home.file = {
       "Pictures/Screenshots/.keep".text = "";
     };
+
+    # Spaces
+    system.defaults.spaces.spans-displays = false;
+    # TODO once trying out `yabai`, look into this
+    # system.defaults.spaces.spans-displays = !config.${namespace}.services.yabai.enable;
+    system.defaults.NSGlobalDomain.AppleSpacesSwitchOnActivate = false;
 
     system.defaults.CustomSystemPreferences = {
       finder = {
@@ -31,17 +39,16 @@ in {
       NSGlobalDomain = {
         AppleAccentColor = 1;
         AppleHighlightColor = "0.65098 0.85490 0.58431";
-        AppleSpacesSwitchOnActivate = false;
         WebKitDeveloperExtras = true;
       };
     };
 
-      # dock settings
+    # dock settings
     system.defaults.dock = {
       autohide = true;
       autohide-delay = 0.0;
       autohide-time-modifier = 1.0;
-      mineffect = "scale";
+      mineffect = "suck";
       minimize-to-application = true;
       mouse-over-hilite-stack = true;
       mru-spaces = false;
@@ -72,40 +79,40 @@ in {
       wvous-br-corner = 1;
 
       persistent-apps = [
-        "/System/Applications/System Settings.app"
-        "/System/Applications/Utilities/Activity Monitor.app"
-        {spacer.small = true;}
-        "/System/Applications/Messages.app"
-        # "${pkgs.beeper}/Applications/Beeper.app"
-        "${pkgs.spotify}/Applications/Spotify.app"
-        "/Applications/Things3.app"
-        # "${pkgs.caprine-bin}/Applications/Caprine.app"
-        # "${pkgs.element-desktop}/Applications/Element.app"
-        # "/Applications/Microsoft Teams.app"
-        # "${pkgs.discord}/Applications/Discord.app"
-        # "/Applications/Thunderbird.app"
-        {spacer.small = true;}
-        "${pkgs.arc-browser}/Applications/Arc.app"
-        "/Applications/Firefox Developer Edition.app"
-        "/Applications/Safari.app"
-        {spacer.small = true;}
-        "/Applications/Setapp/Craft.app"
-        "/Applications/Notion.app"
-        "/Applications/Notion Calendar.app"
-        "${pkgs.logseq}/Applications/Logseq.app"
-        "${pkgs.appflowy}/Applications/Appflowy.app"
-        {spacer.small = true;}
-        "${pkgs.zed-editor}/Applications/Zed.app"
-        "${pkgs.vscode}/Applications/Visual Studio Code.app"
-        "${pkgs.bruno}/Applications/Bruno.app"
-        {spacer.small = true;}
-        "${pkgs.wezterm}/Applications/WezTerm.app"
-        # "${pkgs.ghostty}/Applications/Ghostty.app"
-        "${pkgs.rio}/Applications/Rio.app"
+        { app = "/System/Applications/System Settings.app"; }
+        { app = "/System/Applications/Utilities/Activity Monitor.app"; }
+        { spacer.small = true; }
+        { app = "/System/Applications/Messages.app"; }
+        { app = "/Applications/Beeper.app"; }
+        { app = "${pkgs.spotify}/Applications/Spotify.app"; }
+        { app = "/Applications/Things3.app"; }
+        # { app = "${pkgs.caprine-bin}/Applications/Caprine.app"; }
+        # { app = "${pkgs.element-desktop}/Applications/Element.app"; }
+        # { app = "${pkgs.discord}/Applications/Discord.app"; }
+        # { app = "/Applications/Thunderbird.app"; }
+        { spacer.small = true; }
+        { app = "${pkgs.arc-browser}/Applications/Arc.app"; }
+        { app = "/Applications/Firefox Developer Edition.app"; }
+        { app = "/Applications/Safari.app"; }
+        { spacer.small = true; }
+        { app = "/Applications/Obsidian.app"; }
+        { app = "/Applications/Setapp/Craft.app"; }
+        { app = "/Applications/Notion.app"; }
+        { app = "/Applications/Notion Calendar.app"; }
+        { app = "${pkgs.logseq}/Applications/Logseq.app"; }
+        { app = "${pkgs.appflowy}/Applications/Appflowy.app"; }
+        { spacer.small = true; }
+        { app = "${pkgs.zed-editor}/Applications/Zed.app"; }
+        { app = "${pkgs.vscode}/Applications/Visual Studio Code.app"; }
+        { app = "${pkgs.bruno}/Applications/Bruno.app"; }
+        { app = "/Applications/Setapp/TablePlus.app"; }
+        { spacer.small = true; }
+        { app = "${pkgs.wezterm}/Applications/WezTerm.app"; }
+        # { app = "${pkgs.ghostty}/Applications/Ghostty.app"; }
       ];
     };
 
-      # file viewer settings
+    # file viewer settings
     system.defaults.finder = {
       AppleShowAllExtensions = true;
       AppleShowAllFiles = true;
@@ -119,7 +126,7 @@ in {
       _FXShowPosixPathInTitle = true;
     };
 
-      # login window settings
+    # login window settings
     system.defaults.loginwindow = {
       # disable guest account
       GuestEnabled = false;
@@ -129,7 +136,7 @@ in {
 
     system.defaults.menuExtraClock = {
       FlashDateSeparators = false;
-      IsAnalog = true;
+      IsAnalog = false;
       Show24Hour = true;
       ShowAMPM = false;
       ShowDayOfMonth = true;
@@ -153,10 +160,9 @@ in {
       type = "png";
     };
 
-    system.defaults.spaces.spans-displays = !config.services.yabai.enable;
-
     system.defaults.universalaccess = {
       reduceMotion = false;
+      reduceTransparency = true;
     };
   };
 }
