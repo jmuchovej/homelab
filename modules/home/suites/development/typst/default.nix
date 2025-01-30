@@ -8,7 +8,11 @@
   vsc-extensions = (with pkgs.open-vsx; [
     myriad-dreamin.tinymist
   ]);
-  vsc-user-settings = { };
+  vsc-user-settings = {
+    "[typst]" = {
+      "editor.wordSeparators" = "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?";
+    };
+  };
 
   zed-extensions    = [ "typst" ];
   zed-user-settings = { };
