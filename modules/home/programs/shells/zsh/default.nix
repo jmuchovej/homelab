@@ -32,6 +32,14 @@ in {
         setopt no_global_rcs
       '';
 
+      initExtra = ''
+        bindkey '^[[A' history-substring-search-up # or '\eOA'
+        bindkey '^[[B' history-substring-search-down # or '\eOB'
+        bindkey -M vicmd 'k' history-substring-search-up
+        bindkey -M vicmd 'j' history-substring-search-down
+        HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
+      '';
+
       history = {
         # share history between different zsh sessions
         share = true;
