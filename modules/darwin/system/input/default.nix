@@ -23,20 +23,35 @@ in {
 
     # trackpad settings
     system.defaults.trackpad = {
-      # silent clicking = 0, default = 1
+      ActuateDetents = true;
       ActuationStrength = 0;
-      # enable tap to click
       Clicking = true;
-      # Enable tap to drag
-      # Dragging = true;
-      # firmness level, 0 = lightest, 2 = heaviest
+      DragLock = false;
+      Dragging = false;
       FirstClickThreshold = 1;
-      # firmness level for force touch
+      ForceSuppressed = false;
       SecondClickThreshold = 1;
-      # don't allow positional right click
+      TrackpadCornerSecondaryClick = 0;
+      TrackpadFourFingerHorizSwipeGesture = 2;
+      TrackpadFourFingerPinchGesture = 2;
+      TrackpadFourFingerVertSwipeGesture = 2;
+      TrackpadMomentumScroll = true;
+      TrackpadPinch = true;
       TrackpadRightClick = true;
-      # three finger drag
-      TrackpadThreeFingerDrag = true;
+      TrackpadRotate = true;
+      TrackpadThreeFingerDrag = false;
+      TrackpadThreeFingerHorizSwipeGesture = 2;
+      TrackpadThreeFingerTapGesture = 2;
+      TrackpadThreeFingerVertSwipeGesture = 2;
+      TrackpadTwoFingerDoubleTapGesture = true;
+      TrackpadTwoFingerFromRightEdgeSwipeGesture = 3;
+    };
+
+    system.defaults.dock = {
+      showAppExposeGestureEnabled       = false;
+      showMissionControlGestureEnabled  = true;
+      showLaunchpadGestureEnabled       = false;
+      showDesktopGestureEnabled         = true;
     };
 
     system.defaults.".GlobalPreferences" = {
