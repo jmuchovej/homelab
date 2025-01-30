@@ -4,12 +4,13 @@
   pkgs,
   namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.starship;
-  shells = config.${namespace}.programs.shells;
-in {
+in
+{
   options.${namespace}.programs.tools.starship = {
     enable = mkEnableOption "starship";
   };
@@ -18,7 +19,7 @@ in {
     programs.starship = {
       enable = true;
       package = pkgs.starship;
-      # preset  = "jetpack";
+      preset  = "pure-preset";
     };
   };
 }
