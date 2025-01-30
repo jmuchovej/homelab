@@ -4,38 +4,25 @@
   lib,
   namespace,
   ...
-}: let
-  inherit
-    (lib)
+}:
+let
+  inherit (lib)
     types
     mkIf
     mkEnableOption
     mkOption
-    concatStringsSep
-    getExe'
-    mapAttrs'
     ;
 
   cfg = config.${namespace}.programs.tools.git;
 
-  # rewriteURL =
-  #   mapAttrs' (key: value: {
-  #     name = "url.${key}";
-  #     value = {insteadOf = value;};
-  #   })
-  #   cfg.urlRewrites;
-in {
+in
+{
   options.${namespace}.programs.tools.git = with types; {
     enable = mkEnableOption "git";
     email = mkOption {
       type = nullOr str;
       default = "jmuchovej@users.noreply.github.com";
       description = "The email to use with git.";
-    };
-    urlRewrites = mkOption {
-      type = attrsOf str;
-      default = {};
-      description = "url we need to rewrite i.e. ssh to http";
     };
     allowedSigners = mkOption {
       type = str;
@@ -118,7 +105,6 @@ in {
           process = "git-lfs filter-process -- %f";
         };
       };
-      # // rewriteURL;
     };
   };
 }
