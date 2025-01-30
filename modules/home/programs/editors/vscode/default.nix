@@ -102,6 +102,9 @@ in {
         "vim.replaceWithRegister" = true;
         "vim.sneak" = true;
         "vim.sneakUseIgnorecaseAndSmartcase" = true;
+        "[svg]" = {
+          "editor.defaultFormatter" = "jock.svg";
+        };
       };
     };
   };
