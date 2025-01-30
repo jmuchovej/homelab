@@ -4,7 +4,8 @@ keys:
     - &lab age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
     - &en-t65-1 age1ux98gnft3k34lpqrqu6ayjvc3zmdltv5wdf3kxnhnd2y6srjjulqllfecm
     - &da-vcx-1 age17kz6tccq4sfu07mwuqkmy9sgr4np3g2cdjejj3a3j7qud2nfepdqkyee7y
-    - &da-vcx-2 age1h294f87wq8kfwrzkctx6v3qy9nc80jwrvm5v9rsgzkverpuqtppsl258c8
+    - &da-vcx-2 age1dhsru3z3hdv2f9h9js43k083gqxaas3vtm8uleq3t9gtkchrcgwsz07px5
+    - &da-vcx-3 age139ss56a6gqta3cjrtx49f6x539czvh37l6yjwppdn9lg4chm8ghssuz4zn
     - &install-iso age1fvv4l46j890x8387lly88n2aww4xdxma2jd0ta9zysf97hkvhg6smg6x0r
 
 creation_rules:
