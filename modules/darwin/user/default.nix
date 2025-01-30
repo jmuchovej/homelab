@@ -4,12 +4,14 @@
   pkgs,
   namespace,
   ...
-}: let
-  inherit (lib) types mkIf mkOption;
+}:
+let
+  inherit (lib) mkIf mkOption;
   inherit (lib.types) nullOr str int;
 
   cfg = config.${namespace}.user;
-in {
+in
+{
   options.${namespace}.user = {
     name = mkOption {
       type = str;

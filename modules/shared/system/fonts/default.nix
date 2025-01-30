@@ -5,14 +5,13 @@
   namespace,
   inputs,
   ...
-}:
-let
+}: let
   inherit (lib) types mkIf mkEnableOption mkOption;
   inherit (inputs) nixpkgs;
 
   cfg = config.${namespace}.system.fonts;
 
-  default-fonts = (with pkgs; [
+  default-fonts = with pkgs; [
     # Desktop Fonts
     # input-fonts
     hack-font
@@ -40,9 +39,8 @@ let
     nerd-fonts.symbols-only
     nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
-  ]);
-in
-{
+  ];
+in {
   options.${namespace}.system.fonts = with types; {
     enable = mkEnableOption "fonts";
     fonts = mkOption {

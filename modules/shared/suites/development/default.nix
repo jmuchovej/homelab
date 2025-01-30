@@ -1,13 +1,19 @@
-{ config, lib, pkgs, namespace, ...  }: let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkEnableOption mkIf;
 
   cfg = config.${namespace}.suites.development;
-in
-{
+in {
   options.${namespace}.suites.development = {
     enable = mkEnableOption "`development` configuration";
   };
 
-  config = mkIf cfg.enable {
-  };
+  config =
+    mkIf cfg.enable {
+    };
 }

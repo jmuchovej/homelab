@@ -5,7 +5,6 @@
   ...
 }: let
   inherit (lib) mkIf mkEnableOption;
-  inherit (lib.${namespace});
 
   cfg = config.${namespace}.programs.tools.topgrade;
 in {

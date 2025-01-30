@@ -4,13 +4,11 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
   cfg = config.${namespace}.suites.common;
-in
-{
+in {
   options.${namespace}.suites.common = {
     enable = mkEnableOption "`common` configuration";
   };

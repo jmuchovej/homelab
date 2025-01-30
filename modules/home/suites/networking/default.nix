@@ -4,28 +4,24 @@
   pkgs,
   namespace,
   ...
-}:
-let
+}: let
   inherit (lib) mkIf mkEnableOption;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.${namespace}.suites.networking;
-in
-{
+in {
   options.${namespace}.suites.networking = {
     enable = mkEnableOption "`networking` suite";
   };
 
   config = mkIf cfg.enable {
-
-    home.packages =
-      with pkgs;
+    home.packages = with pkgs;
       [
         nmap
         openssh
         speedtest-cli
         ssh-copy-id
       ]
-      ++ lib.optionals isLinux [ iproute2 ];
+      ++ lib.optionals isLinux [iproute2];
   };
 }

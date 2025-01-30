@@ -6,7 +6,6 @@
   ...
 }: let
   inherit (lib) mkIf mkEnableOption;
-  inherit (pkgs.stdenv) isDarwin;
 
   cfg = config.${namespace}.programs.apps.onepassword;
   brew = config.${namespace}.homebrew;

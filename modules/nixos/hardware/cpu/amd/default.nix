@@ -32,6 +32,5 @@ in
 
       kernelParams = [ "amd_pstate=active" ];
     };
-
   };
 }

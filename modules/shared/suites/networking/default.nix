@@ -1,10 +1,15 @@
-{ config, lib, pkgs, namespace, ...  }: let
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
   inherit (lib) mkIf mkDefault mkEnableOption;
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.suites.networking;
-in
-{
+in {
   options.${namespace}.suites.networking = {
     enable = mkEnableOption "`networking` configuration";
   };
