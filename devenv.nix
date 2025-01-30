@@ -1,14 +1,21 @@
-{ pkgs, lib, config, inputs, ... }:
-
 {
+  pkgs,
+  lib,
+  config,
+  inputs,
+  ...
+}: {
   # https://devenv.sh/basics/
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
   packages = with pkgs; [
-    git sops
+    git
+    sops
     tmux
-    ssh-to-age ssh-to-pgp age
+    ssh-to-age
+    ssh-to-pgp
+    age
   ];
 
   # https://devenv.sh/languages/

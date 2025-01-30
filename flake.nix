@@ -41,7 +41,7 @@
     nur.url = "github:nix-community/NUR";
 
     # Home Manager (follows upstream)
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:jmuchovej/forked-home-manager/cherry-picks";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # VSCode Extensions
