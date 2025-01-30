@@ -1,14 +1,15 @@
 {
   config,
   lib,
-  pkgs,
   namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.${namespace}.programs.tools.ripgrep;
-in {
+in
+{
   options.${namespace}.programs.tools.ripgrep = {
     enable = mkEnableOption "ripgrep";
   };
@@ -18,7 +19,7 @@ in {
       enable = true;
       arguments = [
         # Avoid dumping long lines to shell
-        "--max-columns=80"
+        # "--max-columns=80"
         "--max-columns-preview"
         # Search hidden files
         "--hidden"
