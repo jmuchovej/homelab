@@ -18,7 +18,12 @@ let
       julialang.language-julia
     ]
   );
-  vsc-user-settings = { };
+  vsc-user-settings = {
+    "julia.symbolCacheDownload" = true;
+    "terminal.integrated.commandsToSkipShell" = [
+      "language-julia.interrupt"
+    ];
+  };
 
   zed-extensions = [ "julia" ];
   zed-user-settings = {
