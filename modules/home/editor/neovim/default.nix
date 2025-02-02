@@ -11,9 +11,9 @@
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) enabled;
 
-  cfg = config.${namespace}.programs.editors.neovim;
+  cfg = config.${namespace}.editor.neovim;
 in {
-  options.${namespace}.programs.editors.neovim = {
+  options.${namespace}.editor.neovim = {
     enable = mkEnableOption "neovim";
     default = mkEnableOption "Neovim as the default $EDITOR";
   };

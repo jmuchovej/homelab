@@ -7,11 +7,11 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.programs.editors.helix;
+  cfg = config.${namespace}.editor.helix;
 in {
   imports = lib.snowfall.fs.get-non-default-nix-files ./.;
 
-  options.${namespace}.programs.editors.helix = {
+  options.${namespace}.editor.helix = {
     enable = mkEnableOption "helix";
     default = mkEnableOption "helix as the default $EDITOR";
   };

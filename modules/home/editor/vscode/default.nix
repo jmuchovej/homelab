@@ -8,7 +8,8 @@
   inherit (lib) mkEnableOption mkIf;
   inherit (builtins) concatStringsSep;
 
-  cfg = config.${namespace}.programs.editors.vscode;
+  cfg = config.${namespace}.editor.vscode;
+  desktop = config.${namespace}.desktop;
 
   # desired-fonts = ["MonoLisa" "JetBrainsMono Nerd Font" "JetBrainsMono" "Fira Code" "monospace"];
   # https://github.com/microsoft/vscode/issues/84018#issuecomment-550176878
@@ -25,14 +26,14 @@
   desired-fonts = ["MonaSpiceNe Nerd Font"];
   desired-fonts-str = concatStringsSep ", " desired-fonts;
 in {
-  options.${namespace}.programs.editors.vscode = {
+  options.${namespace}.editor.vscode = {
     enable = mkEnableOption "Visual Studio Code";
     default = mkEnableOption "VSCode as default $EDTIOR";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf (cfg.enable && desktop.enable) {
     programs.vscode = {
-      enable = config.${namespace}.suites.desktop.enable;
+      enable = true;
       package = pkgs.vscode;
       # https://raw.githubusercontent.com/nix-community/nix-vscode-extensions/master/data/cache/open-vsx-latest.json
       extensions =

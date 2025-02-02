@@ -6,9 +6,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.editors.micro;
+  cfg = config.${namespace}.editor.micro;
 in {
-  options.${namespace}.programs.editors.micro = {
+  options.${namespace}.editor.micro = {
     enable = mkEnableOption "micro";
     default = mkEnableOption "micro as the default $EDITOR";
   };

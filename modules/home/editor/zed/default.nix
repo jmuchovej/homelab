@@ -9,7 +9,8 @@ let
   inherit (lib) mkEnableOption mkIf;
   # inherit (builtins) concatStringsSep;
 
-  cfg = config.${namespace}.programs.editors.zed;
+  cfg = config.${namespace}.editor.zed;
+  desktop = config.${namespace}.desktop;
 
   # desired-fonts = ["MonoLisa" "JetBrainsMono Nerd Font" "JetBrainsMono" "Fira Code" "monospace"];
   # https://github.com/microsoft/vscode/issues/84018#issuecomment-550176878
@@ -47,12 +48,12 @@ in
 # desired-fonts = [ "MonaSpiceNe Nerd Font" ];
 # desired-fonts-str = concatStringsSep ", " desired-fonts;
 {
-  options.${namespace}.programs.editors.zed = {
+  options.${namespace}.editor.zed = {
     enable = mkEnableOption "Zed";
     default = mkEnableOption "Zed as the default $EDTIOR";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf (cfg.enable && desktop.enable) {
     home.sessionVariables = {
       EDITOR = mkIf cfg.default "zed --wait";
     };
@@ -62,7 +63,7 @@ in
     };
 
     programs.zed-editor = {
-      enable = config.${namespace}.suites.desktop.enable;
+      enable = true;
       package = pkgs.zed-editor;
       #! This is just to ensure we have the formatters!
       extraPackages = with pkgs; [
