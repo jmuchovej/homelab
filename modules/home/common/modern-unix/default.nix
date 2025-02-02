@@ -3,6 +3,7 @@
   lib,
   pkgs,
   namespace,
+  inputs,
   ...
 }:
 let
@@ -25,37 +26,6 @@ in
   # Since there _isn't_ a machine I use where the CLI isn't also configured,
   #   these are "sane defaults" I expect on any of my machines.
   options.${namespace}.modern-unix = with types; {
-    ssh = {
-      extra-hosts = mkOption {
-        type = attrsOf (submodule {
-          options = {
-            hostname = mkOption {
-              type = str;
-              description = "The hostname or IP address of the SSH host.";
-            };
-            identityFile = mkOption {
-              type = str;
-              description = "The path to the identity file for the SSH host.";
-            };
-          };
-        });
-        default = {};
-        description = "A set of extra SSH hosts.";
-        example = literalExample ''
-          {
-            "gitlab-personal" = {
-              hostname = "gitlab.com";
-              identityFile = "~/.ssh/id_ed25519_personal";
-            };
-          }
-        '';
-      };
-      authorized-keys = mkOption {
-        type = listOf str;
-        default = [];
-        description = "Authorized SSH Keys.";
-      };
-    };
   };
 
   config = {
@@ -401,22 +371,6 @@ in
         };
       };
     };
-    # endregion ##############################################################
-
-    # region SSH #############################################################
-    programs.ssh = {
-      enable = true;
-      forwardAgent = true;
-      addKeysToAgent = "yes";
-      extraConfig = ''
-        IdentitiesOnly  yes
-        IdentityAgent   ~/.1password/agent.sock
-      '';
-      matchBlocks = cfg.ssh.extra-hosts;
-    };
-
-    home.file.".ssh/authorized_keys".text =
-      concatStringsSep "\n" cfg.ssh.authorized-keys;
     # endregion ##############################################################
   };
 }

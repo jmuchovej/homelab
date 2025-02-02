@@ -13,7 +13,7 @@ in
   rebellion = {
     user = {
       inherit (config.snowfallorg.user) name;
-      enable = true;
+      real-name = "John Muchovej";
     };
 
     editor = {
@@ -49,7 +49,7 @@ in
     modern-unix = {
       ssh = {
         extra-hosts = {
-          git = { hostname = "git*"; identityFile = "~/.ssh/1p-%h.pub"; };
+          git = { host = "git*"; identitiesOnly = true; identityFile = "~/.ssh/1p-%h.pub"; };
         };
         authorized-keys = [];
       };
