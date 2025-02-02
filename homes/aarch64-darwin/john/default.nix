@@ -5,6 +5,8 @@
   ...
 }:
 let
+  inherit (lib) mkDefault;
+
   inherit (lib.${namespace}) enabled disabled;
 in
 {
