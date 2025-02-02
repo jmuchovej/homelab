@@ -3,7 +3,7 @@
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.suites.development.R;
-  default-vscode = config.programs.vscode.profiles.default or {};
+  default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
 
   default-packages = (with pkgs.rPackages; [
     # Tidyverse and friends
@@ -36,12 +36,12 @@ in {
   config = mkIf cfg.enable {
     home.packages = [ R ];
 
-    programs.vscode = mkIf config.programs.vscode.enable {
+    programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
       extensions    = vsc-extensions;
       userSettings  = vsc-user-settings;
     };
 
-    programs.zed-editor = mkIf config.programs.zed-editor.enable {
+    programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
       extensions    = zed-extensions;
       userSettings  = zed-user-settings;
     };

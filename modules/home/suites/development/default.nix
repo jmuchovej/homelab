@@ -17,7 +17,7 @@ let
   inherit (inputs) snowfall-flake;
 
   cfg = config.${namespace}.suites.development;
-  # desktop = config.${namespace}.suites.desktop;
+  # desktop = config.${namespace}.desktop;
 
   nr-bin = getExe pkgs.nixpkgs-review;
 in
@@ -54,31 +54,6 @@ in
       nrmp = ''${nr-bin} pr $1 --systems "x86_64-darwin aarch64-darwin aarch64-linux" --num-parallel-evals 3 --post-result'';
       nup = ''nix-shell maintainers/scripts/update.nix --argstr package $1'';
       num = ''nix-shell maintainers/scripts/update.nix --argstr maintainer $1'';
-    };
-
-    ${namespace} = {
-      programs = {
-        editors = {
-          vscode = {
-            enable = mkDefault config.${namespace}.suites.desktop.enable;
-          };
-          zed = {
-            enable = mkDefault config.${namespace}.suites.desktop.enable;
-          };
-          helix = enabled;
-          neovim = {
-            enable = mkDefault true;
-            default = mkDefault true;
-          };
-          micro = enabled;
-        };
-
-        tools = {
-          k9s = enabled;
-          gh = enabled;
-          lazygit = mkDefault enabled;
-        };
-      };
     };
   };
 }

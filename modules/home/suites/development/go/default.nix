@@ -10,7 +10,7 @@ let
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.suites.development.go;
-  default-vscode = config.programs.vscode.profiles.default or { };
+  default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   vsc-extensions = (
     with pkgs.open-vsx;
@@ -50,12 +50,12 @@ in
       ]
     );
 
-    programs.vscode = mkIf config.programs.vscode.enable {
+    programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
       extensions = vsc-extensions;
       userSettings = vsc-user-settings;
     };
 
-    programs.zed-editor = mkIf config.programs.zed-editor.enable {
+    programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
       extensions = zed-extensions;
       extraPackages = with pkgs; [
         gopls

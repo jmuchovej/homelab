@@ -3,7 +3,7 @@
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.suites.development.typst;
-  default-vscode = config.programs.vscode.profiles.default or {};
+  default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
 
   vsc-extensions = (with pkgs.open-vsx; [
     myriad-dreamin.tinymist
@@ -29,12 +29,12 @@ in {
       tinymist
     ]);
 
-    programs.vscode = mkIf config.programs.vscode.enable {
+    programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
       extensions    = vsc-extensions;
       userSettings  = vsc-user-settings;
     };
 
-    programs.zed-editor = mkIf config.programs.zed-editor.enable {
+    programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
       extensions    = zed-extensions;
       extraPackages = with pkgs; [ typstyle tinymist ];
       userSettings  = zed-user-settings;
