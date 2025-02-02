@@ -9,10 +9,14 @@ let
   inherit (lib)
     mkIf
     mkEnableOption
+    mkOption
     mkForce
     mkDefault
     types
     ;
+  inherit (builtins) concatStringsSep;
+  inherit (lib.${namespace}) enabled;
+
   cfg = config.${namespace}.modern-unix;
 in
 {
@@ -49,7 +53,7 @@ in
         default = [];
         description = "Authorized SSH Keys.";
       };
-    }
+    };
   };
 
   config = {
