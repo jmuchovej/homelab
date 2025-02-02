@@ -30,7 +30,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = {
     home.file.".ssh/allowed_signers".text = "* ${cfg.allowed-signers}";
 
     xdg.configFile."git/ignore" = {
