@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.shells.bash;
+  cfg = config.${namespace}.shell.bash;
 in {
-  options.${namespace}.programs.shells.bash = {
+  options.${namespace}.shell.bash = {
     enable = mkEnableOption "`bash`";
   };
 

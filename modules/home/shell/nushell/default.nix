@@ -7,9 +7,9 @@
   inherit (lib) mkIf mkEnableOption filterAttrs;
   inherit (lib.strings) hasInfix;
 
-  cfg = config.${namespace}.programs.shells.nushell;
+  cfg = config.${namespace}.shell.nushell;
 in {
-  options.${namespace}.programs.shells.nushell = {
+  options.${namespace}.shell.nushell = {
     enable = mkEnableOption "`nushell`";
   };
 
