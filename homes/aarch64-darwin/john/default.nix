@@ -19,22 +19,20 @@ in
     editor = {
       neovim = mkDefault enabled;
       vscode = mkDefault enabled;
-      zed = mkDefault enabled;
+      zed = mkDefault enabled // { default = true; };
     };
-    desktop = {
+    desktop = enabled // {
       wezterm = mkDefault enabled;
-      ghostty = mkDefault enabled;
+      # ghostty = mkDefault enabled;
       # arc     = enabled;
       appflowy  = enabled;
     };
 
-    shells = {
+    shell = {
       bash = mkDefault enabled;
       nushell = mkDefault enabled;
       zsh = mkDefault enabled;
     };
-
-    tools.zoxide = mkDefault enabled;
 
     suites.development = enabled // {
       app = enabled;
@@ -49,9 +47,9 @@ in
     };
 
     modern-unix = {
-        ssh = {
+      ssh = {
         extra-hosts = {
-          git = { host = "git*"; identityFile = "~/.ssh/1p-%h.pub"; };
+          git = { hostname = "git*"; identityFile = "~/.ssh/1p-%h.pub"; };
         };
         authorized-keys = [];
       };
