@@ -16,7 +16,7 @@ in
       enable = true;
     };
 
-    editors = {
+    editor = {
       neovim = mkDefault enabled;
       vscode = mkDefault enabled;
       zed = mkDefault enabled;
