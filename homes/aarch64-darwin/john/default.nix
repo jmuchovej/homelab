@@ -34,7 +34,7 @@ in
       zsh = mkDefault enabled;
     };
 
-    suites.development = enabled // {
+    development = enabled // {
       app = enabled;
       web = enabled;
       go = enabled;

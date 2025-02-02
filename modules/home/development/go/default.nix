@@ -9,7 +9,7 @@ let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.go;
+  cfg = config.${namespace}.development.go;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   vsc-extensions = (
@@ -32,7 +32,7 @@ let
 
 in
 {
-  options.${namespace}.suites.development.go = {
+  options.${namespace}.development.go = {
     enable = mkEnableOption "go";
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
   };

@@ -9,7 +9,7 @@ let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.nix;
+  cfg = config.${namespace}.development.nix;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   vsc-extensions = with pkgs.open-vsx; [
@@ -39,7 +39,7 @@ let
   };
 in
 {
-  options.${namespace}.suites.development.nix = {
+  options.${namespace}.development.nix = {
     enable = mkEnableOption "nix";
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
   };

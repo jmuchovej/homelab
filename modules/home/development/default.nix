@@ -16,13 +16,13 @@ let
   inherit (lib.${namespace}) enabled;
   inherit (inputs) snowfall-flake;
 
-  cfg = config.${namespace}.suites.development;
+  cfg = config.${namespace}.development;
   # desktop = config.${namespace}.desktop;
 
   nr-bin = getExe pkgs.nixpkgs-review;
 in
 {
-  options.${namespace}.suites.development = {
+  options.${namespace}.development = {
     enable = mkEnableOption "`development` configuration";
   };
 

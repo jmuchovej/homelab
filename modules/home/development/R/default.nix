@@ -2,7 +2,7 @@
   inherit (lib) mkEnableOption mkPackageOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.R;
+  cfg = config.${namespace}.development.R;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
 
   default-packages = (with pkgs.rPackages; [
@@ -26,7 +26,7 @@
   zed-user-settings = { };
 in {
   # FIXME: R appears to be broken due to some issues with `r-curl`???
-  options.${namespace}.suites.development.R = {
+  options.${namespace}.development.R = {
     enable  = mkEnableOption "R";
     package = mkPackageOption pkgs "rWrapper" { };
     rstudio = { package = mkPackageOption pkgs "rstudioWrapper" { }; };

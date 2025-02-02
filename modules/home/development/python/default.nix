@@ -9,7 +9,7 @@ let
   inherit (lib) mkEnableOption mkPackageOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.python;
+  cfg = config.${namespace}.development.python;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   python = cfg.package;
@@ -84,7 +84,7 @@ let
   };
 in
 {
-  options.${namespace}.suites.development.python = {
+  options.${namespace}.development.python = {
     enable = mkEnableOption "python";
     package = mkPackageOption pkgs "python3" { };
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;

@@ -1,32 +1,30 @@
 { config, pkgs, lib, namespace, ...}: let
-  inherit (lib) mkEnableOption mkIf;
+  inherit (lib) mkEnableOption mkPackageOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.typst;
+  cfg = config.${namespace}.development.rust;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
 
   vsc-extensions = (with pkgs.open-vsx; [
-    myriad-dreamin.tinymist
+    rust-lang.rust-analyzer
+    vadimcn.vscode-lldb
   ]);
-  vsc-user-settings = {
-    "[typst]" = {
-      "editor.wordSeparators" = "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?";
-    };
-  };
+  vsc-user-settings = { };
 
-  zed-extensions    = [ "typst" ];
+  zed-extensions    = [ ];
   zed-user-settings = { };
 in {
-  options.${namespace}.suites.development.typst = {
-    enable = mkEnableOption "typst";
+  options.${namespace}.development.rust = {
+    enable = mkEnableOption "rust";
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
   };
 
   config = mkIf cfg.enable {
     home.packages = (with pkgs; [
-      typst
-      typstyle
-      tinymist
+      cargo
+      rustc
+      cargo-binstall
+      cargo-xtask
     ]);
 
     programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
@@ -36,7 +34,7 @@ in {
 
     programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
       extensions    = zed-extensions;
-      extraPackages = with pkgs; [ typstyle tinymist ];
+      extraPackages = [ pkgs.rust-analyzer ];
       userSettings  = zed-user-settings;
     };
   };

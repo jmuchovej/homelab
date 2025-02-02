@@ -9,7 +9,7 @@ let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.web;
+  cfg = config.${namespace}.development.web;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   vsc-extensions = with pkgs.open-vsx; [
@@ -66,7 +66,7 @@ let
   };
 in
 {
-  options.${namespace}.suites.development.web = {
+  options.${namespace}.development.web = {
     enable = mkEnableOption "javascript";
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
   };

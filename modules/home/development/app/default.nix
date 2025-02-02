@@ -5,36 +5,35 @@
   namespace,
   ...
 }:
+
 let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.${namespace}) mkopt-vscode;
 
-  cfg = config.${namespace}.suites.development.julia;
+  cfg = config.${namespace}.development.app;
   default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
 
   vsc-extensions = (
     with pkgs.open-vsx;
     [
-      julialang.language-julia
+      dart-code.dart-code
+      dart-code.flutter
+      zxh404.vscode-proto3
+      sswg.swift-lang
     ]
   );
-  vsc-user-settings = {
-    "julia.symbolCacheDownload" = true;
-    "terminal.integrated.commandsToSkipShell" = [
-      "language-julia.interrupt"
-    ];
-  };
+  vsc-user-settings = { };
 
-  zed-extensions = [ "julia" ];
-  zed-user-settings = {
-    Julia = {
-      tab_size = 4;
-    };
-  };
+  zed-extensions = [
+    "dart"
+    "proto"
+    "swift"
+  ];
+  zed-user-settings = { };
 in
 {
-  options.${namespace}.suites.development.julia = {
-    enable = mkEnableOption "julia";
+  options.${namespace}.development.app = {
+    enable = mkEnableOption "apps";
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
   };
 
@@ -42,7 +41,9 @@ in
     home.packages = (
       with pkgs;
       [
-        julia-bin
+        flutter
+        kotlin
+        protobuf
       ]
     );
 
@@ -53,7 +54,13 @@ in
 
     programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
       extensions = zed-extensions;
-      extraPackages = [ pkgs.julia-bin ];
+      extraPackages = with pkgs; [
+        flutter
+        protobuf
+        kotlin-language-server
+        swiftlint
+        swift-format
+      ];
       userSettings = zed-user-settings;
     };
   };
