@@ -9,15 +9,16 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.emulators.alacritty;
+  cfg = config.${namespace}.desktop.alacritty;
+  desktop = config.${namespace}.suites.desktop;
 in {
-  options.${namespace}.programs.emulators.alacritty = {
+  options.${namespace}.desktop.alacritty = {
     enable = mkEnableOption "Alacritty";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf cfg.enable && desktop.enable {
     programs.alacritty = {
-      enable = config.${namespace}.suites.desktop.enable;
+      enable = true;
       package = pkgs.alacritty;
     };
   };

@@ -9,15 +9,16 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.emulators.rio;
+  cfg = config.${namespace}.desktop.rio;
+  desktop = config.${namespace}.suites.desktop;
 in {
-  options.${namespace}.programs.emulators.rio = {
+  options.${namespace}.desktop.rio = {
     enable = mkEnableOption "Rio";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf cfg.enable && desktop.enable {
     programs.rio = {
-      enable = config.${namespace}.suites.desktop.enable;
+      enable = true;
       package = pkgs.rio;
     };
   };

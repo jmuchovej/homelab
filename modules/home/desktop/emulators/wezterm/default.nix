@@ -9,16 +9,17 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.programs.emulators.wezterm;
+  cfg = config.${namespace}.desktop.wezterm;
+  desktop = config.${namespace}.suites.desktop;
   catppuccin = import (lib.snowfall.fs.get-file "modules/home/theme/catppuccin/colors.nix");
 in {
-  options.${namespace}.programs.emulators.wezterm = {
+  options.${namespace}.desktop.wezterm = {
     enable = mkEnableOption "WezTerm";
   };
 
-  config = mkIf cfg.enable {
+  config = mkIf cfg.enable && desktop.enable {
     programs.wezterm = {
-      enable = config.${namespace}.suites.desktop.enable;
+      enable = true;
       enableBashIntegration = true;
       enableZshIntegration = true;
       package = pkgs.wezterm;
