@@ -13,9 +13,11 @@ let
     mkForce
     mkDefault
     types
+    optionals
     ;
-  inherit (builtins) concatStringsSep;
   inherit (lib.${namespace}) enabled;
+  inherit (builtins) concatStringsSep;
+  inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.${namespace}.modern-unix;
 in
@@ -60,6 +62,8 @@ in
     home.shellAliases = {
       nixcfg = "$EDITOR ~/Syncthing/${namespace}/flake.nix";
     };
+
+    home.sessionVariables.EDITOR = "nvim";
 
     home.packages = with pkgs; [
       # Useful packages that aren't tied to specific workflows
@@ -108,7 +112,7 @@ in
       speedtest-cli
     ]
       ++ optionals isLinux [iproute2]
-      ++ optionals isDarwin [darwin.iproute2]
+      ++ optionals isDarwin [iproute2mac]
     ;
 
     programs.nix-index = enabled;

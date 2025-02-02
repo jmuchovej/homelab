@@ -6,7 +6,7 @@
   ...
 }:
 let
-  inherit (lib) mkEnableOption mkIf;
+  inherit (lib) mkEnableOption mkIf mkForce;
   # inherit (builtins) concatStringsSep;
 
   cfg = config.${namespace}.editor.zed;
@@ -54,9 +54,7 @@ in
   };
 
   config = mkIf (cfg.enable && desktop.enable) {
-    home.sessionVariables = {
-      EDITOR = mkIf cfg.default "zed --wait";
-    };
+    home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "zed --wait");
 
     home.shellAliases = {
       "zed" = "zeditor";

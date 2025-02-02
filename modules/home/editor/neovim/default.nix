@@ -8,7 +8,7 @@
   osConfig,
   ...
 }: let
-  inherit (lib) mkEnableOption mkIf;
+  inherit (lib) mkEnableOption mkIf mkForce;
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.editor.neovim;
@@ -21,9 +21,7 @@ in {
   config = mkIf cfg.enable {
     # home.file = mkIf pkgs.stdenv.isDarwin { "Library/Preferences/glow/glow.yml".text = config; };
 
-    home.sessionVariables = {
-      EDITOR = mkIf cfg.default "nvim";
-    };
+    home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "nvim");
 
     programs.neovim = enabled;
 

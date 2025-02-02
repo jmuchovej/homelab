@@ -5,7 +5,7 @@
   namespace,
   ...
 }: let
-  inherit (lib) mkEnableOption mkIf;
+  inherit (lib) mkEnableOption mkIf mkForce;
   inherit (builtins) concatStringsSep;
 
   cfg = config.${namespace}.editor.vscode;
@@ -32,6 +32,8 @@ in {
   };
 
   config = mkIf (cfg.enable && desktop.enable) {
+    home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "vscode --wait");
+
     programs.vscode = {
       enable = true;
       package = pkgs.vscode;
