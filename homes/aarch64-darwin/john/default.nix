@@ -14,22 +14,45 @@ in
       enable = true;
     };
 
-    suites = {
-      common = enabled;
-      development = {
-        enable = true;
-        app = enabled;
-        web = enabled;
-        go = enabled;
-        julia = enabled;
-        nix = enabled;
-        python = enabled;
-        R = disabled;
-        rust = disabled;
-        typst = enabled;
+    editors = {
+      neovim = mkDefault enabled;
+      vscode = mkDefault enabled;
+      zed = mkDefault enabled;
+    };
+    desktop = {
+      wezterm = mkDefault enabled;
+      ghostty = mkDefault enabled;
+      # arc     = enabled;
+      appflowy  = enabled;
+    };
+
+    shells = {
+      bash = mkDefault enabled;
+      nushell = mkDefault enabled;
+      zsh = mkDefault enabled;
+    };
+
+    tools.zoxide = mkDefault enabled;
+
+    suites.development = enabled // {
+      app = enabled;
+      web = enabled;
+      go = enabled;
+      julia = enabled;
+      nix = enabled;
+      python = enabled;
+      R = disabled;
+      rust = disabled;
+      typst = enabled;
+    };
+
+    modern-unix = {
+        ssh = {
+        extra-hosts = {
+          git = { host = "git*"; identityFile = "~/.ssh/1p-%h.pub"; };
+        };
+        authorized-keys = [];
       };
-      desktop = enabled;
-      # modeling = enabled;
     };
   };
 

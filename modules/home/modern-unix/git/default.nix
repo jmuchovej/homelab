@@ -13,18 +13,17 @@ let
     mkOption
     ;
 
-  cfg = config.${namespace}.programs.tools.git;
+  cfg = config.${namespace}.git;
 
 in
 {
-  options.${namespace}.programs.tools.git = with types; {
-    enable = mkEnableOption "git";
+  options.${namespace}.git = with types; {
     email = mkOption {
       type = nullOr str;
       default = "jmuchovej@users.noreply.github.com";
       description = "The email to use with git.";
     };
-    allowedSigners = mkOption {
+    allowed-signers = mkOption {
       type = str;
       default = "";
       description = "The public key used for signing commits";
@@ -32,7 +31,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.file.".ssh/allowed_signers".text = "* ${cfg.allowedSigners}";
+    home.file.".ssh/allowed_signers".text = "* ${cfg.allowed-signers}";
 
     xdg.configFile."git/ignore" = {
       enable = true;
