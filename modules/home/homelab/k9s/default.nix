@@ -7,13 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.tools.k9s;
+  homelab = config.${namespace}.homelab;
 in {
-  options.${namespace}.programs.tools.k9s = {
-    enable = mkEnableOption "k9s";
-  };
-
-  config = mkIf cfg.enable {
+  config = mkIf homelab.enable {
     home.packages = with pkgs; [
       helmfile
       kubecolor

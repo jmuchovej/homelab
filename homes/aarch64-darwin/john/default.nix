@@ -46,14 +46,14 @@ in
       typst = enabled;
     };
 
-    modern-unix = {
-      ssh = {
-        extra-hosts = {
-          git = { host = "git*"; identitiesOnly = true; identityFile = "~/.ssh/1p-%h.pub"; };
-        };
-        authorized-keys = [];
+    ssh = {
+      extra-hosts = {
+        git = { host = "git*"; identitiesOnly = true; identityFile = "~/.ssh/1p-%h.pub"; };
       };
+      authorized-keys = [];
     };
+
+    homelab = enabled;
   };
 
   # ======================== DO NOT CHANGE THIS ========================
