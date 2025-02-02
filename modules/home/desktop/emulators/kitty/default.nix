@@ -16,7 +16,7 @@ in {
     enable = mkEnableOption "Kitty";
   };
 
-  config = mkIf cfg.enable && desktop.enable {
+  config = mkIf (cfg.enable && desktop.enable) {
     programs.kitty = {
       enable = true;
       package = pkgs.kitty;

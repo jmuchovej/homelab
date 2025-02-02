@@ -10,14 +10,14 @@
   inherit (lib) mkEnableOption mkIf;
 
   cfg = config.${namespace}.desktop.wezterm;
-  desktop = config.${namespace}.suites.desktop;
+  desktop = config.${namespace}.desktop;
   catppuccin = import (lib.snowfall.fs.get-file "modules/home/theme/catppuccin/colors.nix");
 in {
   options.${namespace}.desktop.wezterm = {
     enable = mkEnableOption "WezTerm";
   };
 
-  config = mkIf cfg.enable && desktop.enable {
+  config = mkIf (cfg.enable && desktop.enable) {
     programs.wezterm = {
       enable = true;
       enableBashIntegration = true;

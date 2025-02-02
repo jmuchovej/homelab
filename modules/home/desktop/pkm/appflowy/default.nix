@@ -9,7 +9,7 @@
   inherit (lib.${namespace}) enabled;
 
   cfg = config.${namespace}.desktop.appflowy;
-  desktop = config.${namespace}.suites.desktop;
+  desktop = config.${namespace}.desktop;
 in {
   options.${namespace}.desktop.appflowy = {
     enable = mkEnableOption "AppFlowy";
