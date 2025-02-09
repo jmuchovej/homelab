@@ -20,7 +20,7 @@ let
   inherit (builtins) concatStringsSep;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
-  cfg = config.${namespace}.modern-unix;
+  cfg = config.${namespace}.ssh;
 in
 {
   # Since there _isn't_ a machine I use where the CLI isn't also configured,
@@ -48,11 +48,11 @@ in
         IdentitiesOnly  yes
         IdentityAgent   ~/.1password/agent.sock
       '';
-      matchBlocks = cfg.ssh.extra-hosts;
+      matchBlocks = cfg.extra-hosts;
     };
 
     home.file.".ssh/authorized_keys".text =
-      concatStringsSep "\n" cfg.ssh.authorized-keys;
+      concatStringsSep "\n" cfg.authorized-keys;
     # endregion ##############################################################
   };
 }

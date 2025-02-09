@@ -12,6 +12,9 @@
     "[typst]" = {
       "editor.wordSeparators" = "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?";
     };
+    "[typst-code]" = {
+      "editor.wordSeparators" = "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?";
+    };
   };
 
   zed-extensions    = [ "typst" ];

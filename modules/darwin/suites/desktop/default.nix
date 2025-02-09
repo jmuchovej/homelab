@@ -68,7 +68,7 @@ in
         "sf-symbols"
         "xquartz" # TODO migrate back to `modules/home` once refactor is complete?
         "bambu-studio" # TODO contrib Nix support for macOS
-        "orca-slicer" # TODO contrib Nix support for macOS
+        "orcaslicer" # TODO contrib Nix support for macOS
         "openscad@snapshot" # TODO contrib Nix support for macOS – there's some Qt6 error when installing
         "balenaetcher" # TODO contrib Nix support for macOS?
         "protonvpn" # TODO contrib Nix support for macOS?
