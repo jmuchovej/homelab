@@ -30,7 +30,9 @@ in
     };
 
     environment.systemPackages = with pkgs; [
-        git
+      git
+      pciutils
+      usbutils
     ];
   };
 }
