@@ -20,12 +20,12 @@ in
       # this is necessary to get tailscale picking up your headscale instance
       # and allows you to ping connected hosts by hostname
       domains = [ "~." ];
-      dnsovertls = "true";
+      dnsovertls = "opportunistic";
       # extraConfig =
       #   mkIf cfg.dns == "dnsmasq" ''
       #     DNSStubListener=false
       #   '';
-      fallbackDns = [ "10.0.0.1" ];
+      fallbackDns = [ "10.69.0.1" ];
     };
   };
 }
