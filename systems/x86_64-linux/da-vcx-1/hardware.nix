@@ -11,7 +11,10 @@
   networking.hostId = "1f49a11f";
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    # TODO ZFS 2.3 only supports up to 6.13!
+    # kernelPackages = pkgs.linuxPackages_latest;
+    # Latest LTS from https://kernel.org
+    kernelPackages = pkgs.linuxPackages_6_12;
     initrd.availableKernelModules = [
       "xhci_pci"
       "mpt3sas"
