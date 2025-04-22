@@ -42,11 +42,11 @@ in
     # region ssh #############################################################
     programs.ssh = {
       enable = true;
-      forwardAgent = true;
-      addKeysToAgent = "yes";
-      extraConfig = ''
-        IdentitiesOnly  yes
-        IdentityAgent   ~/.1password/agent.sock
+      forwardAgent = isDarwin;
+      addKeysToAgent = "no";
+      extraConfig = mkIf isDarwin ''
+        IdentitiesOnly yes
+        IdentityAgent ~/.1password/agent.sock
       '';
       matchBlocks = cfg.extra-hosts;
     };
@@ -56,3 +56,4 @@ in
     # endregion ##############################################################
   };
 }
+
