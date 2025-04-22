@@ -2,6 +2,7 @@
   options,
   config,
   lib,
+  system,
   namespace,
   ...
 }:
@@ -45,5 +46,7 @@ in
         use-cgroups = true;
       };
     };
+
+    nixpkgs.hostPlatform = mkDefault system;
   };
 }
