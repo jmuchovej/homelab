@@ -64,6 +64,14 @@ in
           warn-dirty = false;
         };
       };
+
+      ${namespace} = {
+        shell.zsh = enabled;
+        editor.neovim = enabled // {
+          default = true;
+        };
+      };    
     }
   ]);
 }
+
