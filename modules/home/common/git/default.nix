@@ -11,7 +11,9 @@ let
     mkIf
     mkEnableOption
     mkOption
+    optionals
     ;
+  inherit (pkgs.stdenv) isDarwin;
 
   cfg = config.${namespace}.git;
 
@@ -57,7 +59,7 @@ in
         gpg.format = "ssh";
         # gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         # TODO migrate to platform-independent and don't do for remote hosts
-        gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+        gpg.ssh.program = optionals (isDarwin) "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
         commit.gpgsign = true;
         tag.gpgsign = true;
         # user.signingkey = "~/.ssh/1p-github.com.pub";

@@ -26,7 +26,7 @@ let
     else if isDarwin then
       "/Users/${cfg.user.name}"
     else
-      "/home/${cfg.name}";
+      "/home/${cfg.user.name}";
 in
 {
   options.${namespace} = with types; {
