@@ -10,7 +10,7 @@
 let
   inherit (lib) mkEnableOption mkOption mkIf types optionals;
   inherit (lib.lists) forEach;
-  inherit (builtins) elemAt;
+  inherit (builtins) elemAt readFile;
   inherit (lib.strings) splitString;
   inherit (lib.${namespace}) enabled;
   inherit (lib.snowfall.fs) get-file;
@@ -80,6 +80,12 @@ in
     };
   };
 
+  imports = [
+    (get-file "modules/nixos/services/kubernetes/bootstrap-flux.nix")
+    (get-file "modules/nixos/services/kubernetes/bootstrap-helm.nix")
+    (get-file "modules/nixos/services/kubernetes/bootstrap-minio.nix")
+  ];
+
   config = let
     k3sAdmissionPlugins = [
       "DefaultStorageClass"
@@ -137,23 +143,23 @@ in
       kubelogin
       kubernetes-helm
       kubeseal
+
+      (writeShellScriptBin "nuke-k3s" (readFile ./nuke-k3s))
     ]);
 
-    environment.etc = {
-      "rancher/k3s/kubelet.config" = {
-        mode = "0750";
-        text = ''
-          apiVersion: kubelet.config.k8s.io/v1beta1
-          kind: KubeletConfiguration
-          maxPods: 250
-        '';
-      };
-      "rancher/k3s/k3s.service.env" = {
-        mode = "0750";
-        text = ''
-          K3S_KUBECONFIG_MODE="644"
-        '';
-      };
+    environment.etc."rancher/k3s/kubelet.config" = {
+      mode = "0750";
+      text = ''
+        apiVersion: kubelet.config.k8s.io/v1beta1
+        kind: KubeletConfiguration
+        maxPods: 250
+      '';
+    };
+    environment.etc."rancher/k3s/k3s.service.env" = {
+      mode = "0750";
+      text = ''
+        K3S_KUBECONFIG_MODE="644"
+      '';
     };
 
     environment.shellAliases = {
@@ -206,101 +212,5 @@ in
 
     services.prometheus.exporters.node = enabled;
 
-    sops.secrets."minio/credentials" = {
-      inherit sopsFile;
-      owner = "minio";
-      group = "minio";
-      mode  = "0770";
-    };
-
-    services.minio = mkIf cfg.minio.enable (enabled // {
-      region = datacenter;
-      dataDir = cfg.minio.data-dir;
-      rootCredentialsFile = config.sops.secrets."minio/credentials".path;
-    });
-
-    systemd.services.minio-init = mkIf cfg.minio.enable (enabled // {
-        path = [ pkgs.minion pkgs.minio-client ];
-        requiredBy = [ "multi-user.target" ];
-        after = [ "minion.service" ];
-        serviceConfig = {
-          Type = "simple";
-          User = "minio";
-          Group = "minio";
-          RuntimeDirectory = "minio-config";
-        };
-        script = ''
-          set -e
-          sleep 5
-          source ${config.services.minio.rootCredentialsFile}
-          mc --config-dir "$RUNTIME_DIRECTORY" alias set minio http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-          ${toString (forEach cfg.minio.buckets (b: "mc --config-dir $RUNTIME_DIRECTORY mb --ignore-existing minio/${b};"))}
-        '';
-    });
-
-    systemd.timers."k3s-bootstrap-helm" = mkIf cfg.helm.enable {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "3m";
-        OnUnitActiveSec = "3m";
-        Unit = "k3s-bootstrap-helm.service";
-      };
-    };
-
-    systemd.services."k3s-bootstrap-helm" = mkIf cfg.helm.enable {
-      script = ''
-        export PATH="$PATH:${pkgs.git}/bin:${pkgs.kubernetes-helm}/bin"
-        if ${pkgs.kubectl}/bin/kubectl ${cfg.helm.completed-if} ; then
-          exit 0
-        fi
-        sleep 30
-        if ${pkgs.kubectl}/bin/kubectl ${cfg.helm.completed-if} ; then
-          exit 0
-        fi
-        ${pkgs.helmfile}/bin/helmfile \
-            --quiet \
-            --file ${cfg.helm.file} \
-            apply --skip-diff-on-install --suppress-diff
-      '';
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        RestartSec = "3m";
-      };
-    };
-
-    systemd.timers."k3s-bootstrap-flux" = mkIf cfg.services.flux.enable {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "3m";
-        OnUnitActiveSec = "3m";
-        Unit = "k3s-bootstrap-flux.service";
-      };
-    };
-
-    systemd.services."k3s-bootstrap-flux" = let
-      kustomization = builtins.readFile ./flux-kustomization.yaml;
-    in mkIf cfg.services.flux.enable {
-      script = ''
-        export PATH="$PATH:${pkgs.git}/bin"
-        if ${pkgs.kubectl}/bin/kubectl get CustomResourceDefinition -A | grep -q "toolkit.fluxcd.io"; then
-          exit 0
-        fi
-        sleep 30
-        if ${pkgs.kubectl}/bin/kubectl get CustomResourceDefinition -A | grep -q "toolkit.fluxcd.io"; then
-          exit 0
-        fi
-        mkdir -p /tmp/k3s-bootstrap-flux
-        cat > /tmp/k3s-bootstrap-flux <<EOF
-          ${kustomization}
-        EOF
-        ${pkgs.kubectl}/bin/kubctl apply --kustomize /tmp/k3s-bootstrap-flux
-      '';
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        RestartSec = "3m";
-      };
-    };
   };
 }
