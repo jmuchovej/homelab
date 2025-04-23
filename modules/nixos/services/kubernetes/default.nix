@@ -82,7 +82,7 @@ in
 
   imports = [
     (get-file "modules/nixos/services/kubernetes/bootstrap-flux.nix")
-    (get-file "modules/nixos/services/kubernetes/bootstrap-helm.nix")
+    (get-file "modules/nixos/services/kubernetes/bootstrap-apps.nix")
     (get-file "modules/nixos/services/kubernetes/bootstrap-minio.nix")
   ];
 
@@ -109,8 +109,8 @@ in
       ++ optionals (!cfg.services.metrics.enable) [ "metrics-server" ]
       ++ optionals (!cfg.services.traefik.enable) [ "traefik" ]
     ;
-    k3sDesiredFlags = [
-      "--kubelet-arg=config=/etc/rancher/k3s/kubelet.config"
+    k3sDesiredFlags = ([
+    "--kubelet-arg=config=/etc/rancher/k3s/kubelet.config"
       "--node-label \"k3s-upgrade=false\""
       "--kube-apiserver-arg anonymous-auth=true"
       "--kube-controller-manager-arg bind-address=0.0.0.0"
@@ -119,10 +119,15 @@ in
       "--secrets-encryption"
       "--write-kubeconfig-mode 0644"
       "--kube-apiserver-arg='enable-admission-plugins=${lib.concatStringsSep "," k3sAdmissionPlugins}'"
+    ]) ++ (optionals (!cfg.services.flannel.enable) [
       "--flannel-backend=none"
       "--disable-network-policy"
-      "--kubelet-arg=register-with-taints=node.cilium.io/agent-not-ready:NoExecute"
-    ];
+    ]) ++ (optionals (!cfg.services.kube-proxy.enable) [
+      "--disable-kube-proxy"
+      "--disable-cloud-controller"
+    ]);
+    # NOTE this creates a chicken-and-egg problem with deploying Cilium. Lol.
+    # "--kubelet-arg=register-with-taints=node.cilium.io/agent-not-ready:NoExecute"
     k3sDisabledFlags = builtins.map (service: "--disable ${service}") k3sDisabledServices;
     k3sExtraFlags = lib.concatLists [k3sDisabledFlags k3sDesiredFlags];
   in mkIf cfg.enable {
@@ -133,7 +138,7 @@ in
 
     environment.systemPackages = (with pkgs; [
       cilium-cli
-      age fluxcd
+      age fluxcd sops
       minio-client
       k9s krelay
       helmfile
@@ -141,7 +146,14 @@ in
       kubectl
       kubectx
       kubelogin
-      kubernetes-helm
+      (wrapHelm kubernetes-helm {
+        plugins = with pkgs.kubernetes-helmPlugins; [
+          helm-diff
+          helm-secrets
+          helm-git
+          helm-s3
+        ];
+      })
       kubeseal
 
       (writeShellScriptBin "nuke-k3s" (readFile ./nuke-k3s))
@@ -211,6 +223,5 @@ in
     };
 
     services.prometheus.exporters.node = enabled;
-
   };
 }
