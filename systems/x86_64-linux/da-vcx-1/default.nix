@@ -72,14 +72,15 @@ in
       };
       is-first = true;
       role = "server";
+      # Opt for Cilium
       services.kube-proxy = disabled;
+      services.flannel    = disabled;
       services.flux       = enabled;
       services.service-lb = disabled;
       services.traefik    = disabled;
       services.local-io   = disabled;
       services.metrics    = disabled;
       services.coredns    = disabled;
-      services.flannel    = enabled;
       helm = enabled // {
         completed-if = "get CustomResourceDefinition -A | grep -q 'cilium.io'";
       };

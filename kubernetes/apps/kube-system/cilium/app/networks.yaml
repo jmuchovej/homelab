@@ -28,7 +28,7 @@ spec:
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPAdvertisement
 metadata:
-  name: bgp-advertisement-config
+  name: l3-bgp-advertisement
   labels:
     advertise: bgp
 spec:
@@ -45,7 +45,7 @@ spec:
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeerConfig
 metadata:
-  name: bgp-peer-config-v4
+  name: l3-bgp-peer
 spec:
   families:
     - afi: ipv4
@@ -64,10 +64,10 @@ spec:
     matchLabels:
       kubernetes.io/os: linux
   bgpInstances:
-    - name: instance-64512
+    - name: cilium
       localASN: 64512
       peers:
-        - name: peer-64512-v4
+        - name: mikrotik
           peerASN: 64512
           peerAddress: 10.42.1.1
           peerConfigRef:
