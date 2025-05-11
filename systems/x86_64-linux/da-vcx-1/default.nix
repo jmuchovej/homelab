@@ -66,6 +66,10 @@ in
     };
 
     services.kubernetes = enabled // {
+      cidr = {
+        cluster = "10.69.0.0/16";
+        service = "10.70.0.1/16";
+      };
       is-first = true;
       role = "server";
       services.kube-proxy = disabled;

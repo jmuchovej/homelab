@@ -36,6 +36,10 @@ in
       default = null;
       description = "Hostname of the lead server in a multi-node setup.";
     };
+    cidr = {
+      cluster = mkOption { type = str; description = "CIDR for Pods."; };
+      service = mkOption { type = str; description = "CIDR for Servicees."; };
+    };
     services = {
       coredns = { enable = mkEnableOption "coredns"; };
       kube-proxy = { enable = mkEnableOption "kube-proxy"; };
@@ -119,6 +123,8 @@ in
       "--secrets-encryption"
       "--write-kubeconfig-mode 0644"
       "--kube-apiserver-arg='enable-admission-plugins=${lib.concatStringsSep "," k3sAdmissionPlugins}'"
+      "--cluster-cidr=${cfg.cidr.cluster}"
+      "--service-cidr=${cfg.cidr.service}"
     ]) ++ (optionals (!cfg.services.flannel.enable) [
       "--flannel-backend=none"
       "--disable-network-policy"

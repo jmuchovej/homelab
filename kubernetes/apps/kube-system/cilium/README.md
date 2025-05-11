@@ -24,14 +24,24 @@ exit
 ## MikroTik BGP
 
 ```sh
+# Add filter for incoming routes to be used on the `k8s` template
+/routing filter add chain=k8s-loadbalancer-ips disbled=no if="if (dst in 10.42.1.53/29) { accept } else { reject }"
 # Configure BGP instance
 /routing bgp connection
 add name=k8s as=64513 remote.address=10.42.0.1
 
 # Configure the template for the k8s peer group
 # https://medium.com/@valentin.hristev/kubernetes-loadbalance-service-using-cilium-bgp-control-plane-8a5ad416546a
-/routing bgp template
-add name=k8s as=64512 address-families=ip local.role=ibgp output.default-originate=always routing-table=main disabled=no output.next-hop=self
+/routing bgp template add
+  name=k8s
+  as=64512
+  address-families=ip
+  local.role=ibgp
+  output.default-originate=always
+  routing-table=main
+  disabled=no
+  output.next-hop=self
+  input.filter=k8s-loadbalancer-ips
 
 # Configure neighbors using the template
 /routing bgp connection
@@ -41,4 +51,5 @@ add name=da-vcx-3 remote.address=10.42.1.13 template=k8s
 
 # Disable EBGP policy requirement
 /routing bgp instance set default check-gateway-reachability=no
+
 ```
