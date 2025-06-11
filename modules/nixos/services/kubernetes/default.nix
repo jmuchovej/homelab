@@ -85,7 +85,6 @@ in
   };
 
   imports = [
-    (get-file "modules/nixos/services/kubernetes/bootstrap-flux.nix")
     (get-file "modules/nixos/services/kubernetes/bootstrap-apps.nix")
     (get-file "modules/nixos/services/kubernetes/bootstrap-minio.nix")
   ];
@@ -168,15 +167,18 @@ in
     environment.etc."rancher/k3s/kubelet.config" = {
       mode = "0750";
       text = ''
-        apiVersion: kubelet.config.k8s.io/v1beta1
-        kind: KubeletConfiguration
-        maxPods: 250
-      '';
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+maxPods: 250
+clusterDNS:
+  - 10.70.0.53
+clusterDomain: cluster.local
+'';
     };
     environment.etc."rancher/k3s/k3s.service.env" = {
       mode = "0750";
       text = ''
-        K3S_KUBECONFIG_MODE="644"
+K3S_KUBECONFIG_MODE="644"
       '';
     };
 
