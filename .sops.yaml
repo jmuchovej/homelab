@@ -1,56 +1,57 @@
 ---
 keys:
-    - &john age1lvcgfp9v4kj24zyr5rkuchzmhkaxhjqhlkyqstscn0m7glkdt4ns7ye6eg
-    - &lab age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
-    - &en-t65-1 age1ux98gnft3k34lpqrqu6ayjvc3zmdltv5wdf3kxnhnd2y6srjjulqllfecm
-    - &da-vcx-1 age17kz6tccq4sfu07mwuqkmy9sgr4np3g2cdjejj3a3j7qud2nfepdqkyee7y
-    - &da-vcx-2 age1dhsru3z3hdv2f9h9js43k083gqxaas3vtm8uleq3t9gtkchrcgwsz07px5
-    - &da-vcx-3 age139ss56a6gqta3cjrtx49f6x539czvh37l6yjwppdn9lg4chm8ghssuz4zn
-    - &install-iso age1fvv4l46j890x8387lly88n2aww4xdxma2jd0ta9zysf97hkvhg6smg6x0r
+  - &john age1lvcgfp9v4kj24zyr5rkuchzmhkaxhjqhlkyqstscn0m7glkdt4ns7ye6eg
+  - &lab age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
+  - &en-t65-1 age1ux98gnft3k34lpqrqu6ayjvc3zmdltv5wdf3kxnhnd2y6srjjulqllfecm
+  - &da-vcx-1 age17kz6tccq4sfu07mwuqkmy9sgr4np3g2cdjejj3a3j7qud2nfepdqkyee7y
+  - &da-vcx-2 age1dhsru3z3hdv2f9h9js43k083gqxaas3vtm8uleq3t9gtkchrcgwsz07px5
+  - &da-vcx-3 age139ss56a6gqta3cjrtx49f6x539czvh37l6yjwppdn9lg4chm8ghssuz4zn
+  - &da-k8s age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
+  - &install-iso age1fvv4l46j890x8387lly88n2aww4xdxma2jd0ta9zysf97hkvhg6smg6x0r
 
 creation_rules:
-    - path_regex: secrets/secrets\.sops\.yaml$
-      key_groups:
-          - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2]
+  - path_regex: secrets/secrets\.sops\.yaml$
+    key_groups:
+      - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2]
 
-    - path_regex: kubernetes/.*\.sops\.yaml$
-      encrypted_regex: "^(data|stringData)$"
-      mac_only_encrypted: true
-      key_groups:
-          - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2]
+  - path_regex: kubernetes/.*\.sops\.yaml$
+    encrypted_regex: "^(data|stringData)$"
+    mac_only_encrypted: true
+    key_groups:
+      - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-k8s]
 
-    - path_regex: secrets/da\.sops\.yaml$
-      key_groups:
-          - age: [*john, *da-vcx-1, *da-vcx-2]
+  - path_regex: secrets/da\.sops\.yaml$
+    key_groups:
+      - age: [*john, *da-vcx-1, *da-vcx-2]
 
-    - path_regex: systems/aarch64-darwin/da-n1x/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john]
+  - path_regex: systems/aarch64-darwin/da-n1x/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john]
 
-    - path_regex: systems/x86_64-linux/da-vcx-1/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john, *da-vcx-1]
+  - path_regex: systems/x86_64-linux/da-vcx-1/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john, *da-vcx-1]
 
-    - path_regex: systems/x86_64-linux/da-vcx-2/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john, *da-vcx-2]
+  - path_regex: systems/x86_64-linux/da-vcx-2/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john, *da-vcx-2]
 
-    - path_regex: secrets/en\.sops\.yaml$
-      key_groups:
-          - age: [*john, *en-t65-1]
+  - path_regex: secrets/en\.sops\.yaml$
+    key_groups:
+      - age: [*john, *en-t65-1]
 
-    - path_regex: systems/x86_64-linux/en-t65-1/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john, *en-t65-1]
+  - path_regex: systems/x86_64-linux/en-t65-1/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john, *en-t65-1]
 
-    - path_regex: systems/x86_64-install-iso/minimal/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john, *install-iso]
+  - path_regex: systems/x86_64-install-iso/minimal/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john, *install-iso]
 
-    - path_regex: homes/[^/]+/john/[^/]+\.sops\.(yaml|json|env|ini)$
-      key_groups:
-          - age: [*john]
+  - path_regex: homes/[^/]+/john/[^/]+\.sops\.(yaml|json|env|ini)$
+    key_groups:
+      - age: [*john]
 
 stores:
-    yaml:
-        indent: 2
+  yaml:
+    indent: 2
