@@ -24,10 +24,8 @@ let
   # NOTE: for some reason, this _has to be_ an absolute path? ergo `get-file` prefixes the Nix path
   k3s-namespaces = get-directories (get-file "kubernetes/apps");
 
-  k3s-secrets = [
-    (get-file "secrets/github-deploy-keys.sops.yaml")
-    (get-file "kubernetes/components/common/cluster-secrets.sops.yaml")
-    (get-file "kubernetes/components/common/sops-age.sops.yaml")
+  k3s-resources = [
+    (get-file "kubernetes/bootstrap.sops.yaml")
   ];
 
   k3s-crds = [
@@ -76,13 +74,37 @@ let
         needs = ["kube-system/coredns"];
       }
       {
+        name = "external-secrets";
+        namespace = "external-secrets";
+        chart = "oci://ghcr.io/external-secrets/charts/external-secrets";
+        version = "0.16.2";
+        values = [ (get-k8s "external-secrets/external-secrets") ];
+        hooks = [
+          { # Apply cluster secret store
+            events = ["postsync"];
+            command = "kubectl";
+            args = [
+              "apply"
+              "--namespace=external-secrets"
+              "--server-side"
+              "--field-manager=kustomize-controller"
+              "--filename"
+              "../kubernetes/apps/external-secrets/external-secrets/app/clustersecretstore.yaml"
+              "--wait=true"
+            ];
+            showlogs = true;
+          }
+        ];
+        needs = ["cert-manager/cert-manager"];
+      }
+      {
         name = "flux-operator";
         namespace = "flux-system";
         atomic = true;
         chart = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         version = "0.19.0";
         values = [ (get-k8s "flux-system/flux-operator") ];
-        needs = ["cert-manager/cert-manager"];
+        needs = ["external-secrets/external-secrets"];
       }
       {
         name = "flux-instance";
@@ -141,23 +163,23 @@ in {
         fi
       }
 
-      function apply_secret() {
-        local SECRET="''${1}"
-        local secret="$(basename ''${SECRET})"
+      function apply_resource() {
+        local RESOURCE="''${1}"
+        local resource="$(basename ''${RESOURCE})"
 
-        if [ ! -f "''${SECRET}" ]; then
-          echo "File does not exist! (''${secret})"
+        if [ ! -f "''${RESOURCE}" ]; then
+          echo "File does not exist! (''${resource})"
           return
         fi
-        if sops exec-file "''${SECRET}" "kubectl --namespace flux-system diff --filename {}" &>/dev/null; then
-          echo "SECRET is up-to-date! (''${secret})"
+        if sops exec-file "''${RESOURCE}" "kubectl diff -f {}" &>/dev/null; then
+          echo "RESOURCE is up-to-date! (''${resource})"
           return
         fi
 
-        if sops exec-file "''${SECRET}" "kubectl --namespace flux-system apply --server-side --filename {}" &>/dev/null; then
-          echo "Successfully applied SECRET! (''${secret})"
+        if sops exec-file "''${RESOURCE}" "kubectl apply --server-side -f {}" &>/dev/null; then
+          echo "Successfully applied RESOURCE! (''${resource})"
         else
-          echo "Failed to apply SECRET... (''${secret})"
+          echo "Failed to apply RESOURCE... (''${resource})"
         fi
       }
 
@@ -180,7 +202,7 @@ in {
       ${k3s-apply "apply_namespace" k3s-namespaces}
 
       # Apply SECRETS
-      ${k3s-apply "apply_secret" k3s-secrets}
+      ${k3s-apply "apply_resource" k3s-resources}
 
       # Apply CRDs
       ${k3s-apply "apply_crd" k3s-crds}
