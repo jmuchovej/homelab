@@ -10,7 +10,7 @@ spec:
     provider: sops
     secretRef:
       name: sops-age
-  interval: 1h
+  interval: 1m
   path: ./kubernetes/flux/meta
   prune: true
   retryInterval: 2m
@@ -36,7 +36,7 @@ spec:
   dependsOn:
     - name: cluster-meta
       namespace: flux-system
-  interval: 1h
+  interval: 1m
   path: ./kubernetes/apps
   prune: true
   retryInterval: 2m
