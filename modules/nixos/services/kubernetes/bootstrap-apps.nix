@@ -18,7 +18,7 @@ let
   cfg = config.${namespace}.services.kubernetes.helm;
   yaml-format = (pkgs.formats.yaml { });
 
-  get-k8s = subpath: get-file ("kubernetes/apps/" + subpath + "/app/helm/values.yaml");
+  get-k8s = { app, file ? "helm/values.yaml" }: get-file ("kubernetes/apps/" + app + "/app/" + file);
   k3s-apply = fn: array: (concatStringsSep "\n" (map (e: "${fn} \"${e}\"") array));
 
   # NOTE: for some reason, this _has to be_ an absolute path? ergo `get-file` prefixes the Nix path
@@ -53,7 +53,7 @@ let
         # renovate: repository=https://helm.cilium.io
         chart = "cilium/cilium";
         version = "1.17.3";
-        values = [ (get-k8s "kube-system/cilium") ];
+        values = [ (get-k8s { app = "kube-system/cilium"; }) ];
       }
       {
         name = "coredns";
@@ -61,7 +61,7 @@ let
         # renovate: repository=https://coredns.github.io/helm
         chart = "oci://ghcr.io/coredns/charts/coredns";
         version = "1.39.2";
-        values = [ (get-k8s "kube-system/coredns") ];
+        values = [ (get-k8s { app = "kube-system/coredns"; }) ];
         needs = ["kube-system/cilium"];
       }
       {
@@ -70,7 +70,7 @@ let
         atomic = true;
         chart = "oci://quay.io/jetstack/charts/cert-manager";
         version = "v1.17.1";
-        values = [ (get-k8s "cert-manager/cert-manager") ];
+        values = [ (get-k8s { app = "cert-manager/cert-manager"; }) ];
         needs = ["kube-system/coredns"];
       }
       {
@@ -78,7 +78,7 @@ let
         namespace = "external-secrets";
         chart = "oci://ghcr.io/external-secrets/charts/external-secrets";
         version = "0.16.2";
-        values = [ (get-k8s "external-secrets/external-secrets") ];
+        values = [ (get-k8s { app = "external-secrets/external-secrets"; }) ];
         hooks = [
           { # Apply cluster secret store
             events = ["postsync"];
@@ -89,7 +89,7 @@ let
               "--server-side"
               "--field-manager=kustomize-controller"
               "--filename"
-              "../kubernetes/apps/external-secrets/external-secrets/app/clustersecretstore.yaml"
+              (get-k8s { app = "external-secrets/external-secrets"; file = "clustersecretstore.yaml"; })
               "--wait=true"
             ];
             showlogs = true;
@@ -103,7 +103,7 @@ let
         atomic = true;
         chart = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         version = "0.19.0";
-        values = [ (get-k8s "flux-system/flux-operator") ];
+        values = [ (get-k8s { app = "flux-system/flux-operator"; }) ];
         needs = ["external-secrets/external-secrets"];
       }
       {
@@ -112,7 +112,7 @@ let
         atomic = true;
         chart = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-instance";
         version = "0.19.0";
-        values = [ (get-k8s "flux-system/flux-instance") ];
+        values = [ (get-k8s { app = "flux-system/flux-instance"; }) ];
         needs = ["flux-system/flux-operator"];
       }
     ];
