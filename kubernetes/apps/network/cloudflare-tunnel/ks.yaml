@@ -14,7 +14,7 @@ spec:
   postBuild:
     substituteFrom:
       - kind: Secret
-        name: cloudflare-tunnel-id
+        name: network-ns
   prune: true
   retryInterval: 2m
   sourceRef:
