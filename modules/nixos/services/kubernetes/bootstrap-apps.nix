@@ -133,6 +133,12 @@ in {
       source = yaml-format.generate "helmfile.yaml" k3s-helmfile;
     };
 
+    systemd.paths."k3s-bootstrap-apps" = {
+      wantedBy = [ "multi-user.target" ];
+      pathConfig = {
+        PathModified = (get-file "kubernetes/bootstrap.sops.yaml");
+      };
+    };
     systemd.services."k3s-bootstrap-apps" = {
       path = with pkgs; [
         git gawk coreutils
