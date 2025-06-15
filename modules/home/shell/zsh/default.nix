@@ -29,7 +29,7 @@ in {
       # in order avoid issues with incorrect precedence to our own zshrc.
       # See `/etc/zshrc` for more info.
       envExtra = mkIf pkgs.stdenv.isLinux ''
-        setopt no_global_rcs
+        # setopt no_global_rcs
       '';
 
       initExtra = ''
