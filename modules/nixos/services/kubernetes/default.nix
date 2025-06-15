@@ -141,7 +141,20 @@ in
       message = "Cannot both be `first` **and** need a `leader` to connect to!";
     }];
 
+    users.groups.k3s = {};
+
+    systemd.tmpfiles.rules = [
+      "f /etc/rancher/k3s/k3s.yaml 0640 root k3s"
+    ];
+
+    environment.extraInit = ''
+      if groups | grep -q k3s; then
+        export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+      fi
+    '';
+
     environment.systemPackages = (with pkgs; [
+      jq
       cilium-cli
       age fluxcd sops
       minio-client
