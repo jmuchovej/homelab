@@ -11,12 +11,19 @@ cni:
   exclusive: false
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
 devices: enp+ !tailscale+
+dashboards:
+  enabled: true
 endpointRoutes:
   enabled: true
 envoy:
-  enabled: false
-dashboards:
+  rollOutPods: true
+  prometheus:
+    serviceMonitor:
+      enabled: true
+gatewayAPI:
   enabled: true
+  enableAlpn: true
+  xffNumTrustedHops: 1
 hubble:
   enabled: false
 ipv4NativeRoutingCIDR: "10.69.0.0/16"
@@ -33,7 +40,7 @@ operator:
     enabled: true
     serviceMonitor:
       enabled: true
-  replicas: 1
+  replicas: 2
   rollOutPods: true
 prometheus:
   enabled: true
