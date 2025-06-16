@@ -71,4 +71,4 @@ spec:
           peerASN: 64512
           peerAddress: 10.42.1.1
           peerConfigRef:
-            name: bgp-peer-config-v4
+            name: l3-bgp-peer
