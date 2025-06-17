@@ -40,7 +40,8 @@ operator:
     enabled: true
     serviceMonitor:
       enabled: true
-  replicas: 2
+  # TODO scale up once more nodes are present!
+  replicas: 1
   rollOutPods: true
 prometheus:
   enabled: true
