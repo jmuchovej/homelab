@@ -45,16 +45,14 @@ let
     };
 
     repositories = [
-      { name = "cilium"; url = "https://helm.cilium.io"; }
     ];
 
     releases = [
       {
         name = "cilium";
         namespace = "kube-system";
-        # renovate: repository=https://helm.cilium.io
-        chart = "cilium/cilium";
-        version = "1.17.3";
+        chart = "oci://ghcr.io/home-operations/charts-mirror/cilium";
+        version = "1.17.4";
         values = [ (get-k8s { app = "kube-system/cilium"; }) ];
       }
       {
