@@ -16,8 +16,9 @@ spec:
   path: ./kubernetes/apps/flux-system/flux-instance/app
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:

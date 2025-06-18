@@ -18,8 +18,9 @@ spec:
   path: ./kubernetes/apps/cert-manager/cert-manager/app
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:
@@ -52,8 +53,9 @@ spec:
   path: ./kubernetes/apps/cert-manager/cert-manager/tls
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:

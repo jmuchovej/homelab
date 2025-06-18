@@ -16,8 +16,9 @@ spec:
   path: ./kubernetes/apps/network/internal/ingress-nginx
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:
@@ -42,8 +43,9 @@ spec:
   path: ./kubernetes/apps/network/internal/k8s-gateway
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:

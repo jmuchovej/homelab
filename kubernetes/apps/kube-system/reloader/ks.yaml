@@ -13,8 +13,9 @@ spec:
   path: ./kubernetes/apps/kube-system/reloader/app
   postBuild:
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
+        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:
