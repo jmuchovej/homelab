@@ -15,6 +15,8 @@ spec:
     substituteFrom:
       - kind: Secret
         name: network-ns
+      - kind: Secret
+        name: cluster-secrets
   prune: true
   retryInterval: 2m
   sourceRef:
