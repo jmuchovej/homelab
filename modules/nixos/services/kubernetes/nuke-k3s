@@ -14,8 +14,6 @@ esac
 
 systemctl stop k3s-bootstrap-apps.timer || true
 systemctl stop k3s-bootstrap-apps.service || true
-systemctl stop k3s-bootstrap-flux.timer || true
-systemctl stop k3s-bootstrap-flux.service || true
 
 flux uninstall -s || true
 
