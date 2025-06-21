@@ -15,7 +15,6 @@ spec:
     substituteFrom:
       - kind: Secret
         name: cluster-secrets
-        namespace: flux-system
   prune: true
   retryInterval: 2m
   sourceRef:
@@ -43,7 +42,6 @@ spec:
     substituteFrom:
       - kind: Secret
         name: cluster-secrets
-        namespace: flux-system
   interval: 1h
   path: ./kubernetes/apps/kube-system/cilium/gateway
   prune: true
