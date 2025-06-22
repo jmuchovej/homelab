@@ -2,15 +2,14 @@
 autoDirectNodeRoutes: true
 bpf:
   masquerade: true
-  # Ref: https://github.com/siderolabs/talos/issues/10002
-  hostLegacyRouting: true
+  datapathMode: netkit
 bgpControlPlane:
   enabled: true
 cni:
   # Required for pairing with Multus CNI
   exclusive: false
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
-devices: enp+ !tailscale+
+devices: enp+ !tailscale
 dashboards:
   enabled: true
 endpointRoutes:
@@ -72,6 +71,7 @@ securityContext:
       - SETGID
       - SETUID
       - BPF
+      - PERFMON
     cleanCiliumState:
       - NET_ADMIN
       - SYS_ADMIN
@@ -83,10 +83,11 @@ cgroup:
 k8sServiceHost: 127.0.0.1
 # NOTE Can't use `7445` b/c this isn't running on Talos with KubePrism
 k8sServicePort: 6443
-# https://github.com/cilium/cilium/issues/21603#issuecomment-1450692874
-hostServices:
-  hostNamespaceOnly: true
-socketLB:
-  hostNamespaceOnly: true
+# Enable bandwidth manager for better performance
+bandwidthManager:
+  enabled: true
+  bbr: true
+enableIPv4BIGTCP: true
+bpfClockProbe: true
 tolerations:
   - operator: Exists
