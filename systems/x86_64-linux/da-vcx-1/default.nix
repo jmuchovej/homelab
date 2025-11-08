@@ -65,6 +65,8 @@ in
       containers = enabled;
     };
 
+    homelab.home-assistant = enabled;
+
     services.kubernetes = enabled // {
       cidr = {
         cluster = "10.69.0.0/16";
