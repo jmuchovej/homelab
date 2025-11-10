@@ -3,7 +3,7 @@
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.development.R;
-  default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
+  default-vscode = config.${namespace}.editor.vscode or { };
 
   default-packages = (with pkgs.rPackages; [
     # Tidyverse and friends

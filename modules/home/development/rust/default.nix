@@ -3,7 +3,7 @@
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.development.rust;
-  default-vscode = config.${namespace}.editor.vscode.profiles.default or {};
+  default-vscode = config.${namespace}.editor.vscode or { };
 
   vsc-extensions = (with pkgs.open-vsx; [
     rust-lang.rust-analyzer

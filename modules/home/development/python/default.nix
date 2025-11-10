@@ -10,7 +10,7 @@ let
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.development.python;
-  default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
+  default-vscode = config.${namespace}.editor.vscode or { };
 
   python = cfg.package;
   default-packages = python.withPackages (

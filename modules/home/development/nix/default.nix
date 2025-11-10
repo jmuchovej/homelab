@@ -10,7 +10,7 @@ let
   inherit (lib.${namespace}) mkopt-vscode;
 
   cfg = config.${namespace}.development.nix;
-  default-vscode = config.${namespace}.editor.vscode.profiles.default or { };
+  default-vscode = config.${namespace}.editor.vscode or { };
 
   vsc-extensions = with pkgs.open-vsx; [
     jnoortheen.nix-ide
