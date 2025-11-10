@@ -65,7 +65,11 @@ in
       containers = enabled;
     };
 
-    homelab.home-assistant = enabled;
+    homelab = {
+      cloudflared = enabled;
+      traefik = enabled;
+      home-assistant = enabled;
+    };
 
     services.kubernetes = enabled // {
       cidr = {
