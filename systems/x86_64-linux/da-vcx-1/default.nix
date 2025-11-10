@@ -66,6 +66,7 @@ in
     };
 
     homelab = {
+      authentik = enabled;
       cloudflared = enabled;
       traefik = enabled;
       home-assistant = enabled;

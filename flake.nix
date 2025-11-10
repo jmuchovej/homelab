@@ -64,6 +64,9 @@
 
     # git-hooks
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
+
+    # authentik
+    authentik-nix.url = "github:nix-community/authentik-nix";
   };
 
   # outputs = { ... } @ args: import ./flake-outputs.nix args;
@@ -117,6 +120,7 @@
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
           topology.nixosModules.default
+          authentik-nix.nixosModules.default
         ];
 
         outputs-builder = channels: {
