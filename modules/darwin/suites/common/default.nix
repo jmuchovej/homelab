@@ -43,9 +43,9 @@ in {
         networking = mkDefault enabled;
       };
 
-      services = {
-        nix-daemon = enabled;
-      };
+      # services = {
+      #   nix-daemon = enabled;
+      # };
     };
   };
 }

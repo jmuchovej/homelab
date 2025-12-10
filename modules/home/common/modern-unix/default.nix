@@ -3,21 +3,16 @@
   lib,
   pkgs,
   namespace,
-  inputs,
   ...
 }:
 let
   inherit (lib)
-    mkIf
-    mkEnableOption
-    mkOption
     mkForce
     mkDefault
     types
     optionals
     ;
   inherit (lib.${namespace}) enabled;
-  inherit (builtins) concatStringsSep;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.${namespace}.modern-unix;
@@ -35,55 +30,56 @@ in
 
     home.sessionVariables.EDITOR = "nvim";
 
-    home.packages = with pkgs; [
-      # Useful packages that aren't tied to specific workflows
-      optinix # search nix options!
-      gnupg # GPG
-      age # A more modern encryption tool
-      httpie # ez HTTP querying
-      hyperfine # benchmarking
-      erdtree # `ls`, but with directory sizes
-      rust-motd # Fancy MOTD
+    home.packages =
+      with pkgs;
+      [
+        # Useful packages that aren't tied to specific workflows
+        optinix # search nix options!
+        gnupg # GPG
+        age # A more modern encryption tool
+        httpie # ez HTTP querying
+        hyperfine # benchmarking
+        erdtree # `ls`, but with directory sizes
+        rust-motd # Fancy MOTD
 
-      # Interact with JSON, YAML, and TOML data structures
-      jaq
-      yq-go # JQ (rust), YQ (go), and TQ (go, from YQ)
-      jqp
-      jnv # Do jq things, interactively
+        # Interact with JSON, YAML, and TOML data structures
+        jaq
+        yq-go # JQ (rust), YQ (go), and TQ (go, from YQ)
+        jqp
+        jnv # Do jq things, interactively
 
-      # Generic Linux tool replacements
-      parallel
-      # rust-parallel   # replaces: parallel
-      # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/by-name/tr/trashy/package.nix#L39
-      #! TODO not supported on macOS ;(
-      # broot           # replaces: ls??, tree
-      choose # replaces: cut, awk
-      curlie # replaces: curl
-      doggo # replaces: dig
-      duf # replaces: df
-      dust # replaces: du
-      dua # replaces: du
-      gping # replaces: `ping`
-      fd # replaces: find
-      procs # replaces: ps
-      # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/by-name/tr/trashy/package.nix#L39
-      #! TODO not supported on macOS ;(
-      # trashy          # replaces: rm
-      ov # replaces: less, tail, more, tail
-      sd # replaces: sed
-      # xcp             # replaces: cp
-      viddy # replaces: watch
-      just # replaces: make
-      ouch # replaces: unzip, tar, zip, etc.
+        # Generic Linux tool replacements
+        parallel
+        # rust-parallel   # replaces: parallel
+        # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/by-name/tr/trashy/package.nix#L39
+        #! TODO not supported on macOS ;(
+        # broot           # replaces: ls??, tree
+        choose # replaces: cut, awk
+        curlie # replaces: curl
+        doggo # replaces: dig
+        duf # replaces: df
+        dust # replaces: du
+        dua # replaces: du
+        gping # replaces: `ping`
+        fd # replaces: find
+        procs # replaces: ps
+        # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/pkgs/by-name/tr/trashy/package.nix#L39
+        #! TODO not supported on macOS ;(
+        # trashy          # replaces: rm
+        ov # replaces: less, tail, more, tail
+        sd # replaces: sed
+        # xcp             # replaces: cp
+        viddy # replaces: watch
+        just # replaces: make
+        ouch # replaces: unzip, tar, zip, etc.
 
-      devenv
+        devenv
 
-      nmap
-      speedtest-cli
-    ]
-      ++ optionals isLinux [iproute2]
-      ++ optionals isDarwin [iproute2mac]
-    ;
+        nmap
+        speedtest-cli
+      ]
+      ++ optionals isLinux [ iproute2 ]
+      ++ optionals isDarwin [ iproute2mac ];
 
     programs.nix-index = enabled;
     programs.nix-your-shell = enabled;
@@ -156,7 +152,8 @@ in
     programs.starship = {
       enable = true;
       package = pkgs.starship;
-      preset  = "pure-preset";
+      # Note: The preset option was removed. Use `starship preset pure-preset` to generate
+      # a config and add it to programs.starship.settings if needed.
     };
     # endregion ##############################################################
 
@@ -260,9 +257,9 @@ in
           {
             ratio = 3;
             child = [
-              {type = "cpu";}
-              {type = "mem";}
-              {type = "net";}
+              { type = "cpu"; }
+              { type = "mem"; }
+              { type = "net"; }
             ];
           }
           {

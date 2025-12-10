@@ -54,6 +54,7 @@ in
     };
 
     homelab = enabled;
+    nix = disabled;
   };
 
   # ======================== DO NOT CHANGE THIS ========================

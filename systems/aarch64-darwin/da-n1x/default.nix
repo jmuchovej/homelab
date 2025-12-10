@@ -4,10 +4,10 @@
   config,
   ...
 }: let
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.${namespace}) enabled disabled;
 in {
   ${namespace} = {
-    nix = enabled;
+    nix = disabled;
     suites = {
       common = enabled;
       desktop = enabled;
@@ -19,7 +19,11 @@ in {
     homebrew.mas = enabled;
   };
 
+  nix.enable = false;
+
   environment.systemPath = ["/opt/homebrew/bin"];
+
+  system.primaryUser = config.${namespace}.user.name;
 
   networking = {
     computerName = "John's Macbook Pro";
@@ -35,12 +39,12 @@ in {
     ];
   };
 
-  nix.settings = {
-    cores = 10;
-    max-jobs = 4;
-  };
+  # nix.settings = {
+  #   cores = 10;
+  #   max-jobs = 4;
+  # };
 
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth =  true;
   system.startup.chime = false;
 
   # ======================== DO NOT CHANGE THIS ========================

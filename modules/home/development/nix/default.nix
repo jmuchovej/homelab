@@ -60,8 +60,8 @@ in
     ];
 
     programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
-      extensions = vsc-extensions;
-      userSettings = vsc-user-settings;
+      profiles.default.extensions   = vsc-extensions;
+      profiles.default.userSettings = vsc-user-settings;
     };
 
     programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {

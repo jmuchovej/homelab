@@ -65,7 +65,7 @@ in
       package = pkgs.zed-editor;
       #! This is just to ensure we have the formatters!
       extraPackages = with pkgs; [
-        treefmt2 # Format the whole tree
+        treefmt # Format the whole tree
         biome # Most web-tools
         yamlfmt # YAML
         jsonfmt # JSON

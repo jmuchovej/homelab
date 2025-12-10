@@ -38,7 +38,7 @@ in {
       enable = true;
       package = pkgs.vscode;
       # https://raw.githubusercontent.com/nix-community/nix-vscode-extensions/master/data/cache/open-vsx-latest.json
-      extensions =
+      profiles.default.extensions =
         (with pkgs.open-vsx; [
           streetsidesoftware.code-spell-checker
           vscodevim.vim
@@ -60,7 +60,7 @@ in {
         ++ (with pkgs.vscode-marketplace; [
           amodio.toggle-excluded-files
         ]);
-      userSettings = {
+      profiles.default.userSettings = {
         # Editor settings
         "explorer.excludeGitIgnore" = true;
 

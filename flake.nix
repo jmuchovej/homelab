@@ -8,17 +8,21 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     # Nix & NixOS
-    nix.url = "github:NixOS/nix/2.25-maintenance";
+    nix.url = "github:NixOS/nix/2.27-maintenance";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-git.url = "github:NixOS/nixpkgs";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.11";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # nh
+    nh.url = "github:nix-community/nh";
+    nh.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nix Darwin
-    # darwin.url = "github:LnL7/nix-darwin";
-    darwin.url = "github:jmuchovej/forked-nix-darwin/cherry-picks";
+    darwin.url = "github:nix-darwin/nix-darwin";
+    # darwin.url = "github:jmuchovej/forked-nix-darwin/cherry-picks";
     darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
     # Install Mac Apps in a Spotlight-discoverable way.
     # mac-app-util.url = "github:hraban/mac-app-util";
@@ -41,7 +45,8 @@
     nur.url = "github:nix-community/NUR";
 
     # Home Manager (follows upstream)
-    home-manager.url = "github:jmuchovej/forked-home-manager/cherry-picks";
+    # home-manager.url = "github:jmuchovej/forked-home-manager/cherry-picks";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # VSCode Extensions
@@ -64,9 +69,31 @@
 
     # git-hooks
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
+    git-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     # authentik
     authentik-nix.url = "github:nix-community/authentik-nix";
+
+    # homebrew
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
+    # Optional: Declarative tap management
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
+    };
+    homebrew-services = {
+      url = "github:homebrew/homebrew-services";
+      flake = false;
+    };
   };
 
   # outputs = { ... } @ args: import ./flake-outputs.nix args;
@@ -102,16 +129,17 @@
       homes.modules = with inputs; [
         # mac-app-util.homeManagerModules.default
         sops-nix.homeManagerModules.sops
-        catppuccin.homeManagerModules.catppuccin
+        catppuccin.homeModules.catppuccin
       ];
 
       systems.modules = {
         darwin = with inputs; [
           # { nix.linux-builder.enable = true; }
-          nix-rosetta-builder.darwinModules.default
+          # nix-rosetta-builder.darwinModules.default
           # mac-app-util.darwinModules.default
           home-manager.darwinModules.home-manager
           sops-nix.darwinModules.sops
+          nix-homebrew.darwinModules.nix-homebrew
         ];
         nixos = with inputs; [
           disko.nixosModules.disko

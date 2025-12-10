@@ -58,7 +58,8 @@ in
       home.preferXdgDirectories = mkDefault true;
     }
     {
-      nix = enabled // {
+      nix = {
+        enable = mkDefault cfg.nix.enable;
         settings = {
           use-xdg-base-directories = true;
           warn-dirty = false;
@@ -70,8 +71,7 @@ in
         editor.neovim = enabled // {
           default = true;
         };
-      };    
+      };
     }
   ]);
 }
-

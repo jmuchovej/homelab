@@ -31,7 +31,7 @@ in
       with pkgs;
       [
         tokei # Code statistics
-        treefmt2 # Multi-language formatter
+        treefmt # Multi-language formatter
         onefetch
         postman
         bruno

@@ -84,14 +84,14 @@ in
         { spacer.small = true; }
         { app = "/System/Applications/Messages.app"; }
         { app = "/Applications/Beeper.app"; }
-        { app = "${pkgs.spotify}/Applications/Spotify.app"; }
+        # { app = "${pkgs.spotify}/Applications/Spotify.app"; }
         { app = "/Applications/Things3.app"; }
         # { app = "${pkgs.caprine-bin}/Applications/Caprine.app"; }
         # { app = "${pkgs.element-desktop}/Applications/Element.app"; }
         # { app = "${pkgs.discord}/Applications/Discord.app"; }
         # { app = "/Applications/Thunderbird.app"; }
         { spacer.small = true; }
-        { app = "${pkgs.arc-browser}/Applications/Arc.app"; }
+        # { app = "${pkgs.arc-browser}/Applications/Arc.app"; }
         { app = "/Applications/Firefox Developer Edition.app"; }
         { app = "/Applications/Safari.app"; }
         { spacer.small = true; }

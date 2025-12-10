@@ -25,8 +25,8 @@ in {
         keep-going = true
       '';
 
-      gc.user = config.${namespace}.user.name;
-      optimise.user = config.${namespace}.user.name;
+      # gc.user = config.${namespace}.user.name;
+      # optimise.user = config.${namespace}.user.name;
     };
   };
 }

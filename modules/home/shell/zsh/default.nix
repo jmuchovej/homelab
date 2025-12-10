@@ -23,7 +23,7 @@ in {
       historySubstringSearch.enable = true;
       enableCompletion = true;
 
-      dotDir = ".config/zsh";
+      dotDir = "${config.home.homeDirectory}/.config/zsh";
 
       # Disable /etc/{zshrc,zprofile} that contains the "sane-default" setup out of the box
       # in order avoid issues with incorrect precedence to our own zshrc.
@@ -32,7 +32,7 @@ in {
         # setopt no_global_rcs
       '';
 
-      initExtra = ''
+      initContent = ''
         bindkey '^[[A' history-substring-search-up # or '\eOA'
         bindkey '^[[B' history-substring-search-down # or '\eOB'
         bindkey -M vicmd 'k' history-substring-search-up

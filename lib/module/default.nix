@@ -1,9 +1,10 @@
-{
-  lib,
-  inputs,
-}:
+{ lib, inputs, ... }:
 let
-  inherit (lib) mapAttrs mkOption types;
+  inherit (inputs.nixpkgs.lib)
+    mapAttrs
+    mkOption
+    types
+    ;
 
   JSON = (inputs.nixpkgs.formats.json { }).type;
 in
@@ -11,7 +12,7 @@ rec {
   ## Create a NixOS module option.
   ##
   ## ```nix
-  ## lib.mkOpt nixpkgs.lib.types.str "My default" "Description of my option."
+  ## lib.mkopt nixpkgs.lib.types.str "My default" "Description of my option."
   ## ```
   ##
   #@ Type -> Any -> String
@@ -22,7 +23,7 @@ rec {
   ## Create a NixOS module option without a description.
   ##
   ## ```nix
-  ## lib.mkOpt' nixpkgs.lib.types.str "My default"
+  ## lib.mkopt' nixpkgs.lib.types.str "My default"
   ## ```
   ##
   #@ Type -> Any -> String
@@ -31,7 +32,7 @@ rec {
   ## Create a boolean NixOS module option.
   ##
   ## ```nix
-  ## lib.mkBoolOpt true "Description of my option."
+  ## lib.mkopt-bool true "Description of my option."
   ## ```
   ##
   #@ Type -> Any -> String
@@ -40,7 +41,7 @@ rec {
   ## Create a boolean NixOS module option without a description.
   ##
   ## ```nix
-  ## lib.mkBoolOpt true
+  ## lib.mkopt-bool' true
   ## ```
   ##
   #@ Type -> Any -> String
@@ -49,7 +50,7 @@ rec {
   ## Create a package NixOS module option.
   ##
   ## ```nix
-  ## lib.mkPackageOpt pkgs.rofi-wayland "Description of my option."
+  ## lib.mkopt-package pkgs.rofi-wayland "Description of my option."
   ## ```
   ##
   #@ Type -> Any -> String
@@ -97,7 +98,7 @@ rec {
     get-file "${path}";
 
   ## Sugar to make nesting options a smidge quicker.
-  mkNestedOptions =
+  mk-nested-options =
     options:
     let
       inherit (lib) mkOption;
@@ -111,12 +112,12 @@ rec {
     };
 
   ## Sugar to make nesting `{..}.enable` options quicker.
-  mkNestedEnableOption =
+  mk-nested-enable-option =
     feature:
     let
       inherit (lib) mkEnableOption;
     in
-    mkNestedOptions {
+    mk-nested-options {
       enable = mkEnableOption feature;
     };
 

@@ -15,12 +15,21 @@ let
     mkDefault
     types
     optionals
+    mapAttrs
     ;
   inherit (lib.${namespace}) enabled;
   inherit (builtins) concatStringsSep;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.${namespace}.ssh;
+
+  # Apply default values to extra-hosts if not already set
+  applyHostDefaults = hostConfig: {
+    forwardAgent = mkDefault (hostConfig.forwardAgent or isDarwin);
+    addKeysToAgent = mkDefault (hostConfig.addKeysToAgent or "no");
+  } // hostConfig;
+
+  extra-hosts = mapAttrs (_name: applyHostDefaults) cfg.extra-hosts;
 in
 {
   # Since there _isn't_ a machine I use where the CLI isn't also configured,
@@ -42,13 +51,25 @@ in
     # region ssh #############################################################
     programs.ssh = {
       enable = true;
-      forwardAgent = isDarwin;
-      addKeysToAgent = "no";
+      enableDefaultConfig = false;
       extraConfig = mkIf isDarwin ''
-        IdentitiesOnly yes
-        IdentityAgent ~/.1password/agent.sock
       '';
-      matchBlocks = cfg.extra-hosts;
+      matchBlocks = {
+        "*" = {
+          forwardAgent = isDarwin;
+          addKeysToAgent = "no";
+          compression = false;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          hashKnownHosts = false;
+          userKnownHostsFile = "~/.ssh/known_hosts";
+          controlMaster = "no";
+          controlPath = "~/.ssh/master-%r@%n:%p";
+          controlPersist = "no";
+          identitiesOnly = isDarwin;
+          identityAgent = if isDarwin then "~/.1password/agent.sock" else null;
+        };
+      } // extra-hosts;
     };
 
     home.file.".ssh/authorized_keys".text =
@@ -56,4 +77,3 @@ in
     # endregion ##############################################################
   };
 }
-

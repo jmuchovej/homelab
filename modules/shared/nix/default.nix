@@ -15,7 +15,7 @@ let
     types
     ;
   inherit (pkgs.stdenv) isLinux;
-  inherit (lib.${namespace}) enabled disabled;
+  inherit (lib.${namespace}) mkopt enabled disabled;
 
   cfg = config.${namespace}.nix;
 in
@@ -41,12 +41,7 @@ in
     enable = mkEnableOption "manage nix configuration" // {
       default = true;
     };
-    package = mkPackageOption pkgs "nixVersions" {
-      default = [
-        "nixVersions"
-        "latest"
-      ];
-    };
+    package = mkopt package pkgs.nixVersions.latest "Which nix package to use.";
     extra-users = mkOption {
       type = listOf str;
       default = [ ];
@@ -81,7 +76,7 @@ in
         ];
       in {
         inherit (cfg) package;
-        enable = mkIf (isLinux) true;
+        enable = isLinux;
 
         settings = {
           trusted-users = users ++ cfg.extra-users;
@@ -99,10 +94,10 @@ in
           ];
         };
 
-        optimise.automatic = mkDefault true;
+        optimise.automatic = config.nix.enable;
 
         gc = {
-          automatic = true;
+          automatic = config.nix.enable;
           options = "--delete-older-than 7d";
         };
 

@@ -52,10 +52,11 @@ in
     };
     programs.git = {
       enable = true;
-      userName = "John Muchovej";
-      userEmail = cfg.email;
 
-      extraConfig = {
+      settings = {
+        user.name = "John Muchovej";
+        user.email = cfg.email;
+
         gpg.format = "ssh";
         # gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signers";
         # TODO migrate to platform-independent and don't do for remote hosts
@@ -76,15 +77,15 @@ in
         #   display     = "side-by-side";
         # };
 
-        delta = {
-          enable = true;
-          options = {
-            navigate = true;
-            side-by-side = true;
-            light = false;
-            syntax-theme = "catppuccin";
-          };
-        };
+        # delta = {
+        #   enable = true;
+        #   options = {
+        #     navigate = true;
+        #     side-by-side = true;
+        #     light = false;
+        #     syntax-theme = "catppuccin";
+        #   };
+        # };
 
         pull = {
           ff = "only";

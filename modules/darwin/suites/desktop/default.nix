@@ -26,12 +26,13 @@ in
       raycast
       switchaudio-osx
       stats
-      xquartz
+      # TODO `xquartz` is broken on macOS 26.1+
+      # xquartz
     ];
 
     ${namespace} = {
       programs = {
-        browsers.arc = mkDefault enabled;
+        # browsers.arc = mkDefault enabled;
         apps.notunes = mkDefault enabled;
         apps.onepassword = mkDefault enabled;
       };
@@ -78,9 +79,9 @@ in
       ];
 
       taps = [
-        "beeftornado/rmtree"
-        "felixkratz/homebrew-formulae"
-        "khanhas/tap"
+        # "beeftornado/rmtree"
+        # "felixkratz/homebrew-formulae"
+        # "khanhas/tap"
       ];
 
       masApps = mkIf config.${namespace}.homebrew.mas.enable {

@@ -20,14 +20,11 @@ in {
       "1.0.0.1" # Cloudflare
     ];
 
-    system.defaults = {
-      # firewall settings
-      alf = {
-        # 0 = disabled 1 = enabled 2 = blocks all connections except for essential services
-        globalstate = 1;
-        loggingenabled = 0;
-        stealthenabled = 0;
-      };
+    # firewall settings
+    networking.applicationFirewall = {
+      enable = true;
+      blockAllIncoming = false;
+      enableStealthMode = false;
     };
 
     system.activationScripts.postActivation.text = ''
