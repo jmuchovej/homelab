@@ -5,25 +5,25 @@
     catppuccin.url = "github:catppuccin/nix";
 
     # Flake Utils
-    flake-utils.url = "github:numtide/flake-utils";
+    # flake-utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
     # Nix & NixOS
     nix.url = "github:NixOS/nix/2.27-maintenance";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-git.url = "github:NixOS/nixpkgs";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/release-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
-    # nh
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     nh.url = "github:nix-community/nh";
     nh.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix Darwin
-    darwin.url = "github:nix-darwin/nix-darwin";
-    # darwin.url = "github:jmuchovej/forked-nix-darwin/cherry-picks";
-    darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
     # Install Mac Apps in a Spotlight-discoverable way.
     # mac-app-util.url = "github:hraban/mac-app-util";
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
@@ -58,12 +58,6 @@
     # Deploy
     deploy.url = "github:serokell/deploy-rs";
 
-    # Snowfall
-    snowfall-lib.url = "github:snowfallorg/lib";
-    snowfall-lib.inputs.nixpkgs.follows = "nixpkgs";
-    snowfall-flake.url = "github:snowfallorg/flake";
-    snowfall-flake.inputs.nixpkgs.follows = "nixpkgs";
-
     # treefmt
     treefmt-nix.url = "github:numtide/treefmt-nix";
 
@@ -76,8 +70,6 @@
 
     # homebrew
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-
-    # Optional: Declarative tap management
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
       flake = false;
@@ -96,63 +88,51 @@
     };
   };
 
-  # outputs = { ... } @ args: import ./flake-outputs.nix args;
   outputs =
     inputs:
-    let
-      lib = inputs.snowfall-lib.mkLib {
-        inherit inputs;
-        src = ./.;
-
-        snowfall = {
-          # metadata = "rebellion";
-          namespace = "rebellion";
-
-          meta = {
-            name = "rebellion";
-            title = "The Rebellion";
-          };
-        };
-      };
-    in
-    lib.mkFlake {
-      channels-config = {
-        allowUnfree = true;
-      };
-
-      overlays = with inputs; [
-        nur.overlays.default
-        topology.overlays.default
-        nix-vscode-extensions.overlays.default
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
       ];
 
-      homes.modules = with inputs; [
-        # mac-app-util.homeManagerModules.default
-        sops-nix.homeManagerModules.sops
-        catppuccin.homeModules.catppuccin
+      imports = [
+        ./flake
       ];
 
-      systems.modules = {
-        darwin = with inputs; [
-          # { nix.linux-builder.enable = true; }
-          # nix-rosetta-builder.darwinModules.default
-          # mac-app-util.darwinModules.default
-          home-manager.darwinModules.home-manager
-          sops-nix.darwinModules.sops
-          nix-homebrew.darwinModules.nix-homebrew
+      rebellion = {
+        overlays = with inputs; [
+          nur.overlays.default
+          topology.overlays.default
+          nix-vscode-extensions.overlays.default
         ];
-        nixos = with inputs; [
-          disko.nixosModules.disko
-          # This is needed for `impermanence` to work.
-          # { fileSystems."/persist".neededForBoot = true; }
-          home-manager.nixosModules.home-manager
-          sops-nix.nixosModules.sops
-          topology.nixosModules.default
-          authentik-nix.nixosModules.default
-        ];
-
-        outputs-builder = channels: {
-          formatter = inputs.treefmt-nix.lib.mkWrapper channels.nixpkgs ./treefmt.nix;
+        modules = {
+          homes = with inputs; [
+            nix-index-database.homeModules.nix-index
+            catppuccin.homeModules.catppuccin
+            sops-nix.homeModules.sops
+          ];
+          macos = with inputs; [
+            # { nix.linux-builder.enable = true; }
+            # nix-rosetta-builder.darwinModules.default
+            # mac-app-util.darwinModules.default
+            home-manager.darwinModules.home-manager
+            sops-nix.darwinModules.sops
+            nix-homebrew.darwinModules.nix-homebrew
+          ];
+          nixos = with inputs; [
+            # This is needed for `impermanence` to work.
+            # { fileSystems."/persist".neededForBoot = true; }
+            home-manager.nixosModules.home-manager
+            # lanzaboote.nixosModules.lanzaboote
+            sops-nix.nixosModules.sops
+            disko.nixosModules.disko
+            topology.nixosModules.default
+            catppuccin.nixosModules.catppuccin
+            nix-index-database.nixosModules.nix-index
+            authentik-nix.nixosModules.default
+          ];
         };
       };
 

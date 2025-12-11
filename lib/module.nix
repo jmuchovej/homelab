@@ -1,9 +1,16 @@
-{ lib, inputs, ... }:
+{ inputs }:
 let
-  inherit (inputs.nixpkgs.lib)
+  inherit (inputs.nixpkgs) lib;
+  inherit (lib)
     mapAttrs
     mkOption
     types
+    mkDefault
+    mkForce
+    attrsOf
+    submodule
+    listOf
+    package
     ;
 
   JSON = (inputs.nixpkgs.formats.json { }).type;
@@ -47,6 +54,15 @@ rec {
   #@ Type -> Any -> String
   mkopt-bool' = mkopt' types.bool;
 
+  ## Create an enablement optionn. There's no need to provide "Enable ...", just the description. "Enable" is a fixed prefix.
+  ##
+  ## ```nix
+  ## lib.mkopt-enable "Enable {description}"
+  ## ```
+  ##
+  #@ String
+  mkopt-enable = description: mkopt-bool false "Enable `${description}`.";
+
   ## Create a package NixOS module option.
   ##
   ## ```nix
@@ -59,11 +75,20 @@ rec {
   ## Create a package NixOS module option without a description.
   ##
   ## ```nix
-  ## lib.mkPackageOpt' pkgs.rofi-wayland
+  ## lib.mkopt-package' pkgs.rofi-wayland
   ## ```
   ##
   #@ Type -> Any -> String
   mkopt-package' = mkopt types.package;
+
+  # Original flake-parts module utilities
+  # Enable a module with optional configuration
+  enable =
+    module: config:
+    {
+      imports = [ module ];
+    }
+    // config;
 
   enabled = {
     ## Quickly enable an option.
@@ -80,78 +105,82 @@ rec {
     ## Quickly disable an option.
     ##
     ## ```nix
-    ## services.nginx = enabled;
+    ## services.nginx = disabled;
     ## ```
     ##
     #@ false
     enable = false;
   };
 
+  # Conditionally enable modules based on system
+  enable-for-system =
+    system: modules:
+    builtins.filter (
+      mod: mod.systems or [ ] == [ ] || builtins.elem system (mod.systems or [ ])
+    ) modules;
+
+  # Create a module with common options
+  mk-module =
+    {
+      name,
+      description ? "",
+      options ? { },
+      config ? { },
+    }:
+    { lib, ... }:
+    {
+      options.rebellion.${name} = mkopt' submodule {
+        options = {
+          enable = mkopt-enable description;
+        }
+        // options;
+      } { };
+
+      config = lib.mkIf config.rebellion.${name}.enable config;
+    };
+
   ## Alias to make loading shared configurations terse.
   get-shared =
     partial:
     let
-      inherit (lib.snowfall.fs) get-file;
-
-      path = "modules/shared/${partial}/default.nix";
+      inherit (lib.rebellion) get-file;
     in
-    get-file "${path}";
+    get-file "modules/shared/${partial}/default.nix";
 
   ## Sugar to make nesting options a smidge quicker.
-  mk-nested-options =
+  mkopt-nested =
     options:
-    let
-      inherit (lib) mkOption;
-      inherit (lib.types) submodule;
-    in
-    mkOption {
-      type = submodule {
-        inherit options;
-      };
-      default = { };
+    mkopt' types.submodule {
+      inherit options;
     };
 
   ## Sugar to make nesting `{..}.enable` options quicker.
-  mk-nested-enable-option =
+  mkopt-nested-enable =
     feature:
-    let
-      inherit (lib) mkEnableOption;
-    in
-    mk-nested-options {
-      enable = mkEnableOption feature;
+    mkopt-nested {
+      enable = mkopt-enable feature;
     };
 
   mkopt-vscode =
     extension-list: user-settings:
-    let
-      inherit (lib) mkOption;
-      inherit (lib.types)
-        attrsOf
-        submodule
-        listOf
-        package
-        ;
-    in
-    mkOption {
-      type = attrsOf (submodule {
-        options = {
-          extensions = mkOption {
-            type = listOf package;
-            default = extension-list;
-            description = "Extensions to add to VSCode";
-          };
-          userSettings = mkOption {
-            type = JSON;
-            default = user-settings;
-            description = "User Settings to add to VSCode";
-          };
+    mkopt' attrsOf (submodule {
+      options = {
+        extensions = mkOption {
+          type = listOf package;
+          default = extension-list;
+          description = "Extensions to add to VSCode";
         };
-      });
-    };
+        userSettings = mkOption {
+          type = JSON;
+          default = user-settings;
+          description = "User Settings to add to VSCode";
+        };
+      };
+    }) { };
 
-  default-attrs = mapAttrs (_key: lib.mkDefault);
+  default-attrs = mapAttrs (_key: mkDefault);
 
-  force-attrs = mapAttrs (_key: lib.mkForce);
+  force-attrs = mapAttrs (_key: mkForce);
 
   nested-default-attrs = mapAttrs (_key: default-attrs);
 
