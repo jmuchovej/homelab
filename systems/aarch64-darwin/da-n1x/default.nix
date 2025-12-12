@@ -1,12 +1,15 @@
 {
   lib,
-  namespace,
+  pkgs,
+  inputs,
   config,
   ...
-}: let
-  inherit (lib.${namespace}) enabled disabled;
-in {
-  ${namespace} = {
+}:
+let
+  inherit (lib.rebellion) enabled disabled;
+in
+{
+  rebellion = {
     nix = disabled;
     suites = {
       common = enabled;
@@ -21,9 +24,9 @@ in {
 
   nix.enable = false;
 
-  environment.systemPath = ["/opt/homebrew/bin"];
+  environment.systemPath = [ "/opt/homebrew/bin" ];
 
-  system.primaryUser = config.${namespace}.user.name;
+  system.primaryUser = config.rebellion.user.name;
 
   networking = {
     computerName = "John's Macbook Pro";
@@ -44,7 +47,7 @@ in {
   #   max-jobs = 4;
   # };
 
-  security.pam.services.sudo_local.touchIdAuth =  true;
+  security.pam.services.sudo_local.touchIdAuth = true;
   system.startup.chime = false;
 
   # ======================== DO NOT CHANGE THIS ========================

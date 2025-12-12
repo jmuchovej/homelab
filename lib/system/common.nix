@@ -29,9 +29,9 @@ in
 
       # Match the sytem architecture
       system-configs = filterAttrs (_name: config: config.system == system) all-homes;
-      # Filters for matching username (with `null` host)
+      # Find "base" config (if it exists -- `null` host)
       base-configs = filterAttrs (_name: config: config.hostname == null) system-configs;
-      # Filters for matching hostname
+      # Find a host-specific config
       host-configs = filterAttrs (_name: config: config.hostname == hostname) system-configs;
 
       merge-configs =
@@ -45,7 +45,14 @@ in
           modules = base-module ++ [ host-config.path ];
         };
     in
-    mapAttrs merge-configs host-configs;
+    # No host-specific configs. Just use the base configs directly.
+    if host-configs == { } then
+    	mapAttrs (_name: base-config: base-config // {
+    		modules = [ base-config.path ];
+     	}) base-configs
+    else
+    	# Merge host configs with their corresponding base (if exists).
+    	mapAttrs merge-configs host-configs;
 
   mk-hm-config =
     {
@@ -73,7 +80,7 @@ in
             { _module.args.lib = ext-lib; }
           ]
           ++ flake.rebellion.modules.homes
-          ++ (ext-lib.import-modules-recursive ../../modules/home);
+          ++ (ext-lib.import-modules-recursive ../../modules/home { });
 
           users = mapAttrs' (_name: config: {
             name = config.username;
@@ -81,9 +88,12 @@ in
               imports = config.modules;
               home = {
                 inherit (config) username;
-                homeDirectory = inputs.nixpkgs.lib.mkDefault (
-                  if isNixOS then "/home/${config.username}" else "/Users/${config.username}"
-                );
+                homeDirectory = let
+                	username = builtins.trace "DEBUG[lib/system/common.nix]: username=${toString config.username}" config.username;
+                 	home-directory =  if isNixOS then "/home/${username}" else "/Users/${username}";
+                  hd = builtins.trace "DEBUG[lib/system/common.nix]: home-directory=${toString home-directory}" home-directory;
+                in
+                  /. + hd;
               };
             }
             // (if isNixOS then { _module.args.username = config.username; } else { });

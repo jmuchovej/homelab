@@ -154,18 +154,18 @@ in {
 
       function apply_namespace() {
         local NAMESPACE="''${1}"
-        local namespace="$(basename ''rebellion)"
+        local namespace="rebellion"
 
-        if kubectl get namespace "''rebellion" &>/dev/null; then
-          echo "NAMESPACE already exists! (''rebellion)"
+        if kubectl get namespace "rebellion" &>/dev/null; then
+          echo "NAMESPACE already exists! (rebellion)"
           return
         fi
 
-        if kubectl create namespace "''rebellion" --dry-run=client --output=yaml \
+        if kubectl create namespace "rebellion" --dry-run=client --output=yaml \
             | kubectl apply --server-side --filename - &>/dev/null; then
-          echo "Created NAMESPACE! (''rebellion)"
+          echo "Created NAMESPACE! (rebellion)"
         else
-          echo "Failed to create NAMESPACE! (''rebellion)"
+          echo "Failed to create NAMESPACE! (rebellion)"
         fi
       }
 

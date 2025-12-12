@@ -34,7 +34,7 @@ in
 inputs.nixpkgs.lib.nixosSystem {
   inherit system;
 
-  special-args = common.mk-special-args {
+  specialArgs = common.mk-special-args {
     inherit
       inputs
       hostname

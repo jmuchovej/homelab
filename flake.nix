@@ -111,7 +111,7 @@
           homes = with inputs; [
             nix-index-database.homeModules.nix-index
             catppuccin.homeModules.catppuccin
-            sops-nix.homeModules.sops
+            sops-nix.homeManagerModules.sops
           ];
           macos = with inputs; [
             # { nix.linux-builder.enable = true; }

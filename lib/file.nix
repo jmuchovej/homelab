@@ -193,7 +193,7 @@ in
           parse-user-dir =
             user-dir:
             let
-              has-host = builtins.match ".*@.*" user-dir != null;
+              has-host = builtins.match "[^@]+@[^@]+" user-dir != null;
               parts =
                 if has-host then
                   builtins.split "@" user-dir

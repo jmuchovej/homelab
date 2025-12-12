@@ -163,7 +163,7 @@ rec {
 
   mkopt-vscode =
     extension-list: user-settings:
-    mkopt' attrsOf (submodule {
+    mkopt' (attrsOf (submodule {
       options = {
         extensions = mkOption {
           type = listOf package;
@@ -176,7 +176,7 @@ rec {
           description = "User Settings to add to VSCode";
         };
       };
-    }) { };
+    })) { };
 
   default-attrs = mapAttrs (_key: mkDefault);
 

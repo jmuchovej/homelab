@@ -4,7 +4,7 @@
   namespace,
   ...
 }: let
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 in {
   rebellion = {
     user = {
@@ -19,11 +19,11 @@ in {
       ];
     };
 
-    development = enabled;
+    # development = enabled;
   };
+
 
   # ======================== DO NOT CHANGE THIS ========================
   home.stateVersion = "24.11";
   # ======================== DO NOT CHANGE THIS ========================
 }
-

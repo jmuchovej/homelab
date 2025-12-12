@@ -20,6 +20,12 @@ creation_rules:
     key_groups:
       - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-k8s]
 
+  - path_regex: modules/.*\.sops\.yaml$
+    mac_only_encrypted: true
+    key_groups:
+      - age: [*john, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-k8s]
+
+
   - path_regex: secrets/da\.sops\.yaml$
     key_groups:
       - age: [*john, *da-vcx-1, *da-vcx-2]

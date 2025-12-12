@@ -1,4 +1,5 @@
 {
+	self,
   inputs,
   lib,
   ...
@@ -15,6 +16,7 @@ let
     attrNames
     readDir
     ;
+  inherit (self.lib.file) get-nix-files;
 
   overlays-path = ../overlays;
   dynamic-overlays-set =
@@ -22,7 +24,7 @@ let
       { }
     else
       let
-        overlay-dirs = attrNames (readDir overlays-path);
+        overlay-dirs = get-nix-files overlays-path;
       in
       genAttrs overlay-dirs (
         name:
