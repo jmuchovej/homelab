@@ -1,0 +1,19 @@
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
+}: let
+  inherit (lib) mkIf mkEnableOption;
+
+  cfg = config.rebellion.programs.browsers.arc;
+in {
+  options.rebellion.programs.browsers.arc = {
+    enable = mkEnableOption "Arc Browser";
+  };
+
+  config = mkIf cfg.enable {
+    # environment.systemPackages = [pkgs.arc-browser];
+  };
+}
