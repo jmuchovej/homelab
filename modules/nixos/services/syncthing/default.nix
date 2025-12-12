@@ -20,7 +20,7 @@ let
     ;
   inherit (lib.attrsets) filterAttrs mapAttrs attrNames;
 
-  cfg = config.${namespace}.services.syncthing;
+  cfg = config.rebellion.services.syncthing;
 
   syncthing-network = import ./network.nix;
 
@@ -48,7 +48,7 @@ let
 
 in
 {
-  options.${namespace}.services.syncthing = {
+  options.rebellion.services.syncthing = {
     enable = mkEnableOption "syncthing";
   };
 

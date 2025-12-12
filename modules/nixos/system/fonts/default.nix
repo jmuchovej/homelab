@@ -15,10 +15,10 @@ let
     types
     ;
 
-  cfg = config.${namespace}.system.fonts;
+  cfg = config.rebellion.system.fonts;
 in
 {
-  options.${namespace}.system.fonts = with types; {
+  options.rebellion.system.fonts = with types; {
     enable = mkEnableOption "manage fonts";
     fonts = mkOption {
       type = listOf package;

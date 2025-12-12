@@ -7,12 +7,12 @@
 }:
 let
   inherit (lib) mkIf mkEnableOption optionals;
-  inherit (lib.${namespace}) default-attrs;
+  inherit (lib.rebellion) default-attrs;
 
-  cfg = config.${namespace}.system.boot;
+  cfg = config.rebellion.system.boot;
 in
 {
-  options.${namespace}.system.boot = {
+  options.rebellion.system.boot = {
     enable = mkEnableOption "manage booting";
     plymouth = {
       enable = mkEnableOption "plymouth boot splash";

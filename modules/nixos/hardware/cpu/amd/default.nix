@@ -8,10 +8,10 @@
 let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.hardware.cpu.amd;
+  cfg = config.rebellion.hardware.cpu.amd;
 in
 {
-  options.${namespace}.hardware.cpu.amd = {
+  options.rebellion.hardware.cpu.amd = {
     enable = mkEnableOption "AMD CPUs";
   };
 

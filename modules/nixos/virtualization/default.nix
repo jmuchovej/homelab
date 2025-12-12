@@ -7,7 +7,7 @@ let
   inherit (lib) mkEnableOption;
 in
 {
-  options.${namespace}.virtualization = {
+  options.rebellion.virtualization = {
     enable = mkEnableOption "virtualization" // {
       description = "No-op for setting up hierarchy.";
     };

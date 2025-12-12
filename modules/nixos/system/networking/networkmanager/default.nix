@@ -8,11 +8,11 @@
 let
   inherit (lib) mkIf optionals mkForce;
 
-  cfg = config.${namespace}.system.networking;
+  cfg = config.rebellion.system.networking;
 in
 {
   config = mkIf cfg.enable {
-    ${namespace}.user.extra.groups = [ "networkmanager" ];
+    rebellion.user.extra.groups = [ "networkmanager" ];
 
     networking.networkmanager = {
       enable = true;
@@ -30,8 +30,8 @@ in
 
       unmanaged =
         let
-          inherit (config.${namespace}.services) tailscale;
-          virt = config.${namespace}.virtualization;
+          inherit (config.rebellion.services) tailscale;
+          virt = config.rebellion.virtualization;
         in
         [
           "interface-name:br-*"

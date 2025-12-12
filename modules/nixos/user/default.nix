@@ -8,10 +8,10 @@
 let
   inherit (lib) types mkOption;
 
-  cfg = config.${namespace}.user;
+  cfg = config.rebellion.user;
 in
 {
-  options.${namespace}.user = with types; {
+  options.rebellion.user = with types; {
     name = mkOption {
       type = str;
       default = "lab";

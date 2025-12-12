@@ -5,11 +5,11 @@
   ...
 }: let
   inherit (lib) mkEnableOption mkIf;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.programs.editors.neovim;
+  cfg = config.rebellion.programs.editors.neovim;
 in {
-  options.${namespace}.programs.editors.neovim = {
+  options.rebellion.programs.editors.neovim = {
     enable = mkEnableOption "neovim";
     default = mkEnableOption "Neovim as the default $EDITOR";
   };

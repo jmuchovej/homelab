@@ -12,12 +12,12 @@ let
     mkOption
     mkEnableOption
     ;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.hardware.storage.zfs;
+  cfg = config.rebellion.hardware.storage.zfs;
 in
 {
-  options.${namespace}.hardware.storage.zfs = with types; {
+  options.rebellion.hardware.storage.zfs = with types; {
     enable = mkEnableOption "ZFS";
     auto-snapshot = {
       enable = mkEnableOption "ZFS auto-snapshotting";

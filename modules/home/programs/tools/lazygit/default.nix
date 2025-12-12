@@ -6,9 +6,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.tools.lazygit;
+  cfg = config.rebellion.programs.tools.lazygit;
 in {
-  options.${namespace}.programs.tools.lazygit = {
+  options.rebellion.programs.tools.lazygit = {
     enable = mkEnableOption "lazygit";
   };
 
@@ -19,7 +19,7 @@ in {
       settings = {
         gui = {
           authorColors = {
-            "${config.${namespace}.user.fullName}" = "#c6a0f6";
+            "${config.rebellion.user.fullName}" = "#c6a0f6";
             "dependabot[bot]" = "#eed49f";
           };
           branchColors = {

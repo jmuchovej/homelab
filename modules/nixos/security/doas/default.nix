@@ -6,13 +6,13 @@
   ...
 }:
 with lib;
-with lib.${namespace};
+with lib.rebellion;
 let
   inherit (lib) mkEnableOption;
-  cfg = config.${namespace}.security.doas;
+  cfg = config.rebellion.security.doas;
 in
 {
-  options.${namespace}.security.doas = {
+  options.rebellion.security.doas = {
     enable = mkEnableOption "`doas` (`sudo` replacement)";
   };
 
@@ -29,7 +29,7 @@ in
       enable = true;
       extraRules = [
         {
-          users = [ config.${namespace}.user.name ];
+          users = [ config.rebellion.user.name ];
           noPass = true;
           keepEnv = true;
         }

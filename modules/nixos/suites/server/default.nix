@@ -8,18 +8,18 @@
 }:
 let
   inherit (lib) mkIf mkEnableOption mkForce;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (lib.snowfall.fs) get-file;
 
-  cfg = config.${namespace}.suites.server;
+  cfg = config.rebellion.suites.server;
 in
 {
-  options.${namespace}.suites.server = {
+  options.rebellion.suites.server = {
     enable = mkEnableOption "`server` suite";
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {
+    rebellion = {
       suites = {
         common      = enabled;
         development = enabled;

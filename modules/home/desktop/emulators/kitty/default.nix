@@ -1,4 +1,4 @@
-{
+R
   config,
   # inputs,
   lib,
@@ -9,10 +9,10 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.desktop.kitty;
-  desktop = config.${namespace}.desktop.kitty;
+  cfg = config.rebellion.desktop.kitty;
+  desktop = config.rebellion.desktop.kitty;
 in {
-  options.${namespace}.desktop.kitty = {
+  options.rebellion.desktop.kitty = {
     enable = mkEnableOption "Kitty";
   };
 

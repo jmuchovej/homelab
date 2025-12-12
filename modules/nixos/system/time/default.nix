@@ -7,12 +7,12 @@
 }:
 let
   inherit (lib) mkIf mkEnableOption;
-  inherit (lib.${namespace}) mkBoolOpt;
+  inherit (lib.rebellion) mkBoolOpt;
 
-  cfg = config.${namespace}.system.time;
+  cfg = config.rebellion.system.time;
 in
 {
-  options.${namespace}.system.time = {
+  options.rebellion.system.time = {
     enable = mkEnableOption "configuring time-related settings.";
   };
 

@@ -16,7 +16,7 @@ let
     ;
   inherit (cfg) dedupe-filesystems;
 
-  cfg = config.${namespace}.hardware.storage.btrfs;
+  cfg = config.rebellion.hardware.storage.btrfs;
 
   dedupe-fs-attrset = genAttrs dedupe-filesystems (name: {
     spec = "LABEL=${name}";
@@ -32,7 +32,7 @@ let
   });
 in
 {
-  options.${namespace}.hardware.storage.btrfs = with types; {
+  options.rebellion.hardware.storage.btrfs = with types; {
     enable = mkEnableOption "le support for btrfs devices";
     auto-scrub = mkEnableOption "btrfs autoScrub";
     dedupe = mkEnableOption "btrfs deduplication";

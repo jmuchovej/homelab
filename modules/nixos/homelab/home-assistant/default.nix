@@ -8,11 +8,11 @@
 let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
-  cfg = config.${namespace}.homelab.home-assistant;
-  containers = config.${namespace}.virtualization.containers;
+  cfg = config.rebellion.homelab.home-assistant;
+  containers = config.rebellion.virtualization.containers;
 in
 {
-  options.${namespace}.homelab.home-assistant = {
+  options.rebellion.homelab.home-assistant = {
     enable = mkEnableOption "home-assistant";
   };
 
@@ -29,6 +29,7 @@ in
       configWritable = true;
       lovelaceConfigWritable = true;
       config = {
+        default_config = {};
         http = {
           server_port = 8123;
           server_host = [ "0.0.0.0" "::" ];
@@ -43,8 +44,8 @@ in
       customComponents = with pkgs.home-assistant-custom-components; [
         auth_oidc
         adaptive_lighting
-      ] ++ [
-        pkgs.${namespace}.hacs
+      ] ++ with pkgs.rebellion.home-assistant; [
+        components.hacs
       ];
       customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [];
       extraPackages = python3Packages: with python3Packages; [ psycopg2 ];

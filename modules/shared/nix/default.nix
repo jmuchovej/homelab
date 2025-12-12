@@ -15,9 +15,9 @@ let
     types
     ;
   inherit (pkgs.stdenv) isLinux;
-  inherit (lib.${namespace}) mkopt enabled disabled;
+  inherit (lib.rebellion) mkopt enabled disabled;
 
-  cfg = config.${namespace}.nix;
+  cfg = config.rebellion.nix;
 in
 # region Nix Registry
 # linux-pkgs  = inputs.nixpkgs;
@@ -37,7 +37,7 @@ in
 # endregion
 # TODO figure out remote building
 {
-  options.${namespace}.nix = with types; {
+  options.rebellion.nix = with types; {
     enable = mkEnableOption "manage nix configuration" // {
       default = true;
     };
@@ -72,9 +72,10 @@ in
           "root"
           "@wheel"
           "nix-builder"
-          config.${namespace}.user.name
+          config.rebellion.user.name
         ];
-      in {
+      in
+      {
         inherit (cfg) package;
         enable = isLinux;
 
@@ -108,8 +109,8 @@ in
         # https://github.com/LnL7/nix-darwin/pull/732
         # https://github.com/LnL7/nix-darwin/issues/1082
         # generateRegistryFromInputs  = true;
-        generateNixPathFromInputs = true;
-        linkInputs = true;
+        # generateNixPathFromInputs = true;
+        # linkInputs = true;
       };
   };
 }

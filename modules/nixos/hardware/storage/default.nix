@@ -8,10 +8,10 @@
 let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
-  cfg = config.${namespace}.hardware.storage;
+  cfg = config.rebellion.hardware.storage;
 in
 {
-  options.${namespace}.hardware.storage = {
+  options.rebellion.hardware.storage = {
     enable = mkEnableOption "extra storage devices";
     ssd = {
       enable = mkEnableOption "support for SSDs" // {

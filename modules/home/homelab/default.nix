@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.homelab;
+  cfg = config.rebellion.homelab;
 in {
-  options.${namespace}.homelab = {
+  options.rebellion.homelab = {
     enable = mkEnableOption "`homelab` suite";
   };
 

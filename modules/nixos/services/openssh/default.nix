@@ -14,12 +14,12 @@ let
     mkOption
     ;
 
-  cfg = config.${namespace}.services.openssh;
+  cfg = config.rebellion.services.openssh;
 
   default-key =  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO lab@home.jm0.io";
 in
 {
-  options.${namespace}.services.openssh = with types; {
+  options.rebellion.services.openssh = with types; {
     enable = mkEnableOption "OpenSSH";
     authorized-keys = mkOption {
       type = listOf str;
@@ -105,7 +105,7 @@ in
     #   "/etc/ssh/ssh_host_ras_key.pub"
     # ];
 
-    ${namespace} = {
+    rebellion = {
       user.extra.options.openssh.authorizedKeys.keys = cfg.authorized-keys;
 
     #   home.extraOptions = {

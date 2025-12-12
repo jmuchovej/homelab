@@ -7,7 +7,7 @@
 let
   inherit (lib) mkIf mkForce;
 
-  cfg = config.${namespace}.system.networking;
+  cfg = config.rebellion.system.networking;
 in
 {
   config = mkIf cfg.enable {
@@ -34,7 +34,7 @@ in
         };
 
         # let me configure tailscale manually
-        "20-tailscale-ignore" = mkIf config.${namespace}.services.tailscale.enable {
+        "20-tailscale-ignore" = mkIf config.rebellion.services.tailscale.enable {
           matchConfig.Name = "tailscale*";
           linkConfig = {
             Unmanaged = "yes";

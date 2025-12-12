@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.tools.starship;
+  cfg = config.rebellion.programs.tools.starship;
 in {
-  options.${namespace}.programs.tools.starship = {
+  options.rebellion.programs.tools.starship = {
     enable = mkEnableOption "starship";
   };
 

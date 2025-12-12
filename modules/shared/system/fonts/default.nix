@@ -9,7 +9,7 @@
   inherit (lib) types mkIf mkEnableOption mkOption;
   inherit (inputs) nixpkgs;
 
-  cfg = config.${namespace}.system.fonts;
+  cfg = config.rebellion.system.fonts;
 
   default-fonts = with pkgs; [
     # Desktop Fonts
@@ -41,7 +41,7 @@
     nerd-fonts.jetbrains-mono
   ];
 in {
-  options.${namespace}.system.fonts = with types; {
+  options.rebellion.system.fonts = with types; {
     enable = mkEnableOption "fonts";
     fonts = mkOption {
       type = listOf package;

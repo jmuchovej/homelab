@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption mkForce getExe;
 
-  cfg = config.${namespace}.programs.tools.eza;
+  cfg = config.rebellion.programs.tools.eza;
 in {
-  options.${namespace}.programs.tools.eza = {
+  options.rebellion.programs.tools.eza = {
     enable = mkEnableOption "eza";
   };
 

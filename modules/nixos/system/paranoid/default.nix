@@ -8,10 +8,10 @@
 let
   inherit (lib) mkEnableOption mkIf mkForce;
 
-  cfg = config.${namespace}.system.security.lockdown;
+  cfg = config.rebellion.system.security.lockdown;
 in
 {
-  options.${namespace}.system.security.lockdown = {
+  options.rebellion.system.security.lockdown = {
     enable = mkEnableOption "lockdown the system for maximum security";
   };
 

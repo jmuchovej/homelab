@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.suites.development;
+  cfg = config.rebellion.suites.development;
 in {
-  options.${namespace}.suites.development = {
+  options.rebellion.suites.development = {
     enable = mkEnableOption "`development` configuration";
   };
 

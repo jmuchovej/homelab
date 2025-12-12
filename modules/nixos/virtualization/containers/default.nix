@@ -14,10 +14,10 @@
 let
   inherit (lib) types mkEnableOption mkIf;
 
-  cfg = config.${namespace}.virtualization.containers;
+  cfg = config.rebellion.virtualization.containers;
 in
 {
-  options.${namespace}.virtualization.containers = {
+  options.rebellion.virtualization.containers = {
     enable = mkEnableOption "[OCI] Containers";
   };
 
@@ -42,7 +42,7 @@ in
     ];
 
     hardware.nvidia-container-toolkit = {
-      inherit (config.${namespace}.hardware.gpu.nvidia) enable;
+      inherit (config.rebellion.hardware.gpu.nvidia) enable;
     };
   };
 }

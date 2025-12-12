@@ -8,7 +8,7 @@
 let
   inherit (lib) mkIf mkForce;
 
-  cfg = config.${namespace}.system.networking;
+  cfg = config.rebellion.system.networking;
 in
 {
   config = mkIf (cfg.enable && cfg.dns == "systemd-resolved") {

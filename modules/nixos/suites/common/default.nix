@@ -7,17 +7,17 @@
 }:
 let
   inherit (lib) mkEnableOption mkIf;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.suites.common;
+  cfg = config.rebellion.suites.common;
 in
 {
-  options.${namespace}.suites.common = {
+  options.rebellion.suites.common = {
     enable = mkEnableOption "`common` suite";
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {
+    rebellion = {
       nix = enabled;
 
       system.boot = enabled;

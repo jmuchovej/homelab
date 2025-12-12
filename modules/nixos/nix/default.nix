@@ -8,12 +8,12 @@
 }:
 let
   inherit (lib) mkIf mkDefault;
-  inherit (lib.${namespace}) get-shared;
+  inherit (lib.rebellion) get-file;
 
-  cfg = config.${namespace}.nix;
+  cfg = config.rebellion.nix;
 in
 {
-  imports = [ (get-shared "nix") ];
+  imports = [ (get-file "modules/shared/nix/default.nix") ];
 
   config = mkIf cfg.enable {
     documentation = {

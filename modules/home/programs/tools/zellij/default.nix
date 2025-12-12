@@ -8,7 +8,7 @@
   inherit (lib) mkIf mkEnableOption;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
-  cfg = config.${namespace}.programs.tools.zellij;
+  cfg = config.rebellion.programs.tools.zellij;
 
   zns = "zellij -s $(basename $(pwd)) -l dev options --default-cwd $(pwd)";
   zas = "zellij a $(basename $(pwd))";
@@ -18,7 +18,7 @@
     zellij --layout dev  attach --create "$session_name" options --default-cwd "$(pwd)"
   '';
 in {
-  options.${namespace}.programs.tools.zellij = {
+  options.rebellion.programs.tools.zellij = {
     enable = mkEnableOption "zellij";
   };
 

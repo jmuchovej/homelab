@@ -7,10 +7,10 @@
 let
   inherit (lib) mkIf mkForce mkEnableOption;
 
-  cfg = config.${namespace}.system.locale;
+  cfg = config.rebellion.system.locale;
 in
 {
-  options.${namespace}.system.locale = {
+  options.rebellion.system.locale = {
     enable = mkEnableOption "manage locale settings";
   };
 

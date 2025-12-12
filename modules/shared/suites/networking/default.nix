@@ -6,16 +6,16 @@
   ...
 }: let
   inherit (lib) mkIf mkDefault mkEnableOption;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.suites.networking;
+  cfg = config.rebellion.suites.networking;
 in {
-  options.${namespace}.suites.networking = {
+  options.rebellion.suites.networking = {
     enable = mkEnableOption "`networking` configuration";
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {
+    rebellion = {
       services = {
         tailscale = mkDefault enabled;
       };

@@ -8,10 +8,10 @@
 let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.hardware.cpu.intel;
+  cfg = config.rebellion.hardware.cpu.intel;
 in
 {
-  options.${namespace}.hardware.cpu.intel = {
+  options.rebellion.hardware.cpu.intel = {
     enable = mkEnableOption "Intel CPUs";
   };
 

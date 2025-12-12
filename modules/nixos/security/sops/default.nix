@@ -13,11 +13,11 @@ let
     mkOption
     ;
 
-  cfg = config.${namespace}.security.sops;
+  cfg = config.rebellion.security.sops;
   default-sops-file = lib.snowfall.fs.get-file "secrets/systems/${host}.sops.yaml";
 in
 {
-  options.${namespace}.security.sops = with types; {
+  options.rebellion.security.sops = with types; {
     enable = mkEnableOption "sops";
     defaultSopsFile = mkOption {
       type = path;

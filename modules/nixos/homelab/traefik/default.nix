@@ -7,9 +7,9 @@
 let
   inherit (lib) mkIf mkDefault mkEnableOption mkForce;
 
-  cfg = config.${namespace}.homelab.traefik;
+  cfg = config.rebellion.homelab.traefik;
 in {
-  options.${namespace}.homelab.traefik = {
+  options.rebellion.homelab.traefik = {
     enable = mkEnableOption "traefik";
   };
 

@@ -9,10 +9,10 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.desktop.alacritty;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.desktop.alacritty;
+  desktop = config.rebellion.desktop;
 in {
-  options.${namespace}.desktop.alacritty = {
+  options.rebellion.desktop.alacritty = {
     enable = mkEnableOption "Alacritty";
   };
 

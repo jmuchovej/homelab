@@ -12,10 +12,10 @@ let
   inherit (lib.lists) forEach;
   inherit (builtins) elemAt;
   inherit (lib.strings) splitString;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (lib.snowfall.fs) get-file;
 
-  cfg = config.${namespace}.services.kubernetes.minio;
+  cfg = config.rebellion.services.kubernetes.minio;
   datacenter = elemAt (splitString "-" host) 0;
   sopsFile = get-file "secrets/${datacenter}.sops.yaml";
 in

@@ -12,10 +12,10 @@ let
     mkBefore
     ;
 
-  cfg = config.${namespace}.services.tailscale;
+  cfg = config.rebellion.services.tailscale;
 in
 {
-  options.${namespace}.services.tailscale = {
+  options.rebellion.services.tailscale = {
     enable = mkEnableOption "tailscale";
   };
 

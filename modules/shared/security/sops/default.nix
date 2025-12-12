@@ -7,9 +7,9 @@
 }: let
   inherit (lib) types mkIf mkEnableOption mkOption;
 
-  cfg = config.${namespace}.security.sops;
+  cfg = config.rebellion.security.sops;
 in {
-  options.${namespace}.security.sops = with types; {
+  options.rebellion.security.sops = with types; {
     enable = mkEnableOption "sops";
     defaultSopsFile = mkOption {
       type = path;

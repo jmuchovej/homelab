@@ -9,10 +9,10 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.desktop.rio;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.desktop.rio;
+  desktop = config.rebellion.desktop;
 in {
-  options.${namespace}.desktop.rio = {
+  options.rebellion.desktop.rio = {
     enable = mkEnableOption "Rio";
   };
 

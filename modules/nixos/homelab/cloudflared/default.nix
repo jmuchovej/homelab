@@ -7,9 +7,9 @@
 let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.homelab.cloudflared;
+  cfg = config.rebellion.homelab.cloudflared;
 in {
-  options.${namespace}.homelab.cloudflared = {
+  options.rebellion.homelab.cloudflared = {
     enable = mkEnableOption "cloudflared";
   };
 

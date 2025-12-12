@@ -16,10 +16,10 @@ let
     mkOption
     ;
 
-  cfg = config.${namespace}.system.networking;
+  cfg = config.rebellion.system.networking;
 in
 {
-  options.${namespace}.system.networking = with types; {
+  options.rebellion.system.networking = with types; {
     enable = mkEnableOption "networking support";
     hosts = mkOption {
       type = attrs;
@@ -121,7 +121,7 @@ in
       traceroute
     ];
 
-    ${namespace}.user.extra.groups = [
+    rebellion.user.extra.groups = [
       "network"
       "wireshark"
     ];

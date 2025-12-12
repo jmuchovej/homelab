@@ -4,11 +4,13 @@
   pkgs,
   namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
-  homelab = config.${namespace}.homelab;
-in {
+  homelab = config.rebellion.homelab;
+in
+{
   config = mkIf homelab.enable {
     home.packages = with pkgs; [
       helmfile

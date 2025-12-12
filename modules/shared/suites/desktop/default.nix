@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.suites.desktop;
+  cfg = config.rebellion.suites.desktop;
 in {
-  options.${namespace}.suites.desktop = {
+  options.rebellion.suites.desktop = {
     enable = mkEnableOption "`desktop` configuration";
   };
 

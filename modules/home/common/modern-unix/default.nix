@@ -12,20 +12,20 @@ let
     types
     optionals
     ;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
-  cfg = config.${namespace}.modern-unix;
+  cfg = config.rebellion.modern-unix;
 in
 {
   # Since there _isn't_ a machine I use where the CLI isn't also configured,
   #   these are "sane defaults" I expect on any of my machines.
-  options.${namespace}.modern-unix = with types; {
+  options.rebellion.modern-unix = with types; {
   };
 
   config = {
     home.shellAliases = {
-      nixcfg = "$EDITOR ~/Syncthing/${namespace}/flake.nix";
+      nixcfg = "$EDITOR ~/Syncthing/rebellion/flake.nix";
     };
 
     home.sessionVariables.EDITOR = "nvim";

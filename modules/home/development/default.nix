@@ -13,16 +13,16 @@ let
     mkEnableOption
     getExe
     ;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (inputs) snowfall-flake;
 
-  cfg = config.${namespace}.development;
-  # desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.development;
+  # desktop = config.rebellion.desktop;
 
   nr-bin = getExe pkgs.nixpkgs-review;
 in
 {
-  options.${namespace}.development = {
+  options.rebellion.development = {
     enable = mkEnableOption "`development` configuration";
   };
 

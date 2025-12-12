@@ -6,12 +6,12 @@
   ...
 }: let
   inherit (lib) mkIf optionals mkEnableOption;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.desktop.appflowy;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.desktop.appflowy;
+  desktop = config.rebellion.desktop;
 in {
-  options.${namespace}.desktop.appflowy = {
+  options.rebellion.desktop.appflowy = {
     enable = mkEnableOption "AppFlowy";
   };
 

@@ -9,11 +9,11 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.desktop.wezterm;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.desktop.wezterm;
+  desktop = config.rebellion.desktop;
   catppuccin = import (lib.snowfall.fs.get-file "modules/home/theme/catppuccin/colors.nix");
 in {
-  options.${namespace}.desktop.wezterm = {
+  options.rebellion.desktop.wezterm = {
     enable = mkEnableOption "WezTerm";
   };
 

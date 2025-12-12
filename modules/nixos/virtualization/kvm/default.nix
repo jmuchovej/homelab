@@ -13,10 +13,10 @@
 let
   inherit (lib) types mkEnableOption mkIf;
 
-  cfg = config.${namespace}.virtualization.kvm;
+  cfg = config.rebellion.virtualization.kvm;
 in
 {
-  options.${namespace}.virtualization.kvm = with types; {
+  options.rebellion.virtualization.kvm = with types; {
     enable = mkEnableOption "KVM";
   };
 

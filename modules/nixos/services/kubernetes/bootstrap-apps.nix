@@ -12,10 +12,10 @@ let
   inherit (lib.lists) forEach;
   inherit (builtins) elemAt concatStringsSep;
   inherit (lib.strings) splitString;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (lib.snowfall.fs) get-directories get-file;
 
-  cfg = config.${namespace}.services.kubernetes.helm;
+  cfg = config.rebellion.services.kubernetes.helm;
   yaml-format = (pkgs.formats.yaml { });
 
   get-k8s = { app, file ? "helm/values.yaml" }: get-file ("kubernetes/apps/" + app + "/app/" + file);
@@ -154,18 +154,18 @@ in {
 
       function apply_namespace() {
         local NAMESPACE="''${1}"
-        local namespace="$(basename ''${NAMESPACE})"
+        local namespace="$(basename ''rebellion)"
 
-        if kubectl get namespace "''${namespace}" &>/dev/null; then
-          echo "NAMESPACE already exists! (''${namespace})"
+        if kubectl get namespace "''rebellion" &>/dev/null; then
+          echo "NAMESPACE already exists! (''rebellion)"
           return
         fi
 
-        if kubectl create namespace "''${namespace}" --dry-run=client --output=yaml \
+        if kubectl create namespace "''rebellion" --dry-run=client --output=yaml \
             | kubectl apply --server-side --filename - &>/dev/null; then
-          echo "Created NAMESPACE! (''${namespace})"
+          echo "Created NAMESPACE! (''rebellion)"
         else
-          echo "Failed to create NAMESPACE! (''${namespace})"
+          echo "Failed to create NAMESPACE! (''rebellion)"
         fi
       }
 

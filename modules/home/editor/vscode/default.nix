@@ -8,8 +8,8 @@
   inherit (lib) mkEnableOption mkIf mkForce;
   inherit (builtins) concatStringsSep;
 
-  cfg = config.${namespace}.editor.vscode;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.editor.vscode;
+  desktop = config.rebellion.desktop;
 
   # desired-fonts = ["MonoLisa" "JetBrainsMono Nerd Font" "JetBrainsMono" "Fira Code" "monospace"];
   # https://github.com/microsoft/vscode/issues/84018#issuecomment-550176878
@@ -26,7 +26,7 @@
   desired-fonts = ["MonaSpiceNe Nerd Font"];
   desired-fonts-str = concatStringsSep ", " desired-fonts;
 in {
-  options.${namespace}.editor.vscode = {
+  options.rebellion.editor.vscode = {
     enable = mkEnableOption "Visual Studio Code";
     default = mkEnableOption "VSCode as default $EDTIOR";
   };

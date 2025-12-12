@@ -21,9 +21,9 @@
 }:
 let
   inherit (lib) mkOption mkEnableOption mkIf types;
-  cfg = config.${namespace}.services.local-llms;
+  cfg = config.rebellion.services.local-llms;
 in {
-  options.${namespace}.services.local-llms = with types; {
+  options.rebellion.services.local-llms = with types; {
     enable = mkEnableOption "Local LLMs";
     vllm = {
       model = mkOption {

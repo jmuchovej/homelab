@@ -12,7 +12,7 @@ let
     versionOlder
     mkEnableOption
     ;
-  cfg = config.${namespace}.hardware.gpu.nvidia;
+  cfg = config.rebellion.hardware.gpu.nvidia;
 
   # use the latest possible nvidia package
   nvStable = config.boot.kernelPackages.nvidiaPackages.stable.version;
@@ -25,7 +25,7 @@ let
       config.boot.kernelPackages.nvidiaPackages.beta;
 in
 {
-  options.${namespace}.hardware.gpu.nvidia = {
+  options.rebellion.hardware.gpu.nvidia = {
     enable = mkEnableOption "NVIDIA GPUs";
   };
 

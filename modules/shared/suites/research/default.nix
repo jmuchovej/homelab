@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.suites.research;
+  cfg = config.rebellion.suites.research;
 in {
-  options.${namespace}.suites.research = {
+  options.rebellion.suites.research = {
     enable = mkEnableOption "`research` configuration";
   };
 

@@ -13,10 +13,10 @@ let
     mkDefault
     ;
 
-  cfg = config.${namespace}.security.sudo;
+  cfg = config.rebellion.security.sudo;
 in
 {
-  options.${namespace}.security.sudo = {
+  options.rebellion.security.sudo = {
     enable = mkEnableOption "sudo";
   };
   config = mkIf cfg.enable {

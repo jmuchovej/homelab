@@ -7,7 +7,7 @@ let
   inherit (lib) mkEnableOption;
 in
 {
-  options.${namespace}.hardware.gpu = {
+  options.rebellion.hardware.gpu = {
     enable = mkEnableOption "gpu" // {
       description = "No-op for setting up hierarchy.";
     };

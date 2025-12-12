@@ -15,11 +15,11 @@ let
     ;
   inherit (pkgs.stdenv) isDarwin;
 
-  cfg = config.${namespace}.git;
+  cfg = config.rebellion.git;
 
 in
 {
-  options.${namespace}.git = with types; {
+  options.rebellion.git = with types; {
     email = mkOption {
       type = nullOr str;
       default = "jmuchovej@users.noreply.github.com";

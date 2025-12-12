@@ -17,11 +17,11 @@ let
     optionals
     mapAttrs
     ;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
   inherit (builtins) concatStringsSep;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
-  cfg = config.${namespace}.ssh;
+  cfg = config.rebellion.ssh;
 
   # Apply default values to extra-hosts if not already set
   applyHostDefaults = hostConfig: {
@@ -34,7 +34,7 @@ in
 {
   # Since there _isn't_ a machine I use where the CLI isn't also configured,
   #   these are "sane defaults" I expect on any of my machines.
-  options.${namespace}.ssh = with types; {
+  options.rebellion.ssh = with types; {
     extra-hosts = mkOption {
       type = attrs;
       default = {};

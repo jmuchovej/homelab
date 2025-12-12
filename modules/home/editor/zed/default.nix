@@ -9,8 +9,8 @@ let
   inherit (lib) mkEnableOption mkIf mkForce;
   # inherit (builtins) concatStringsSep;
 
-  cfg = config.${namespace}.editor.zed;
-  desktop = config.${namespace}.desktop;
+  cfg = config.rebellion.editor.zed;
+  desktop = config.rebellion.desktop;
 
   # desired-fonts = ["MonoLisa" "JetBrainsMono Nerd Font" "JetBrainsMono" "Fira Code" "monospace"];
   # https://github.com/microsoft/vscode/issues/84018#issuecomment-550176878
@@ -48,7 +48,7 @@ in
 # desired-fonts = [ "MonaSpiceNe Nerd Font" ];
 # desired-fonts-str = concatStringsSep ", " desired-fonts;
 {
-  options.${namespace}.editor.zed = {
+  options.rebellion.editor.zed = {
     enable = mkEnableOption "Zed";
     default = mkEnableOption "Zed as the default $EDTIOR";
   };

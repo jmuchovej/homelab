@@ -6,9 +6,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.editor.micro;
+  cfg = config.rebellion.editor.micro;
 in {
-  options.${namespace}.editor.micro = {
+  options.rebellion.editor.micro = {
     enable = mkEnableOption "micro";
     default = mkEnableOption "micro as the default $EDITOR";
   };

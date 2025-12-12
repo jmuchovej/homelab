@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkEnableOption mkIf;
 
-  cfg = config.${namespace}.shell.zsh;
+  cfg = config.rebellion.shell.zsh;
 in {
-  options.${namespace}.shell.zsh = {
+  options.rebellion.shell.zsh = {
     enable = mkEnableOption "`zsh`";
   };
 

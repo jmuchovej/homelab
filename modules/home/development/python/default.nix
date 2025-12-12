@@ -7,10 +7,10 @@
 }:
 let
   inherit (lib) mkEnableOption mkPackageOption mkIf;
-  inherit (lib.${namespace}) mkopt-vscode;
+  inherit (lib.rebellion) mkopt-vscode;
 
-  cfg = config.${namespace}.development.python;
-  default-vscode = config.${namespace}.editor.vscode or { };
+  cfg = config.rebellion.development.python;
+  default-vscode = config.rebellion.editor.vscode or { };
 
   python = cfg.package;
   default-packages = python.withPackages (
@@ -84,7 +84,7 @@ let
   };
 in
 {
-  options.${namespace}.development.python = {
+  options.rebellion.development.python = {
     enable = mkEnableOption "python";
     package = mkPackageOption pkgs "python3" { };
     vscode = mkopt-vscode vsc-extensions vsc-user-settings;
@@ -93,12 +93,12 @@ in
   config = mkIf cfg.enable {
     home.packages = [ default-packages ];
 
-    programs.vscode = mkIf config.${namespace}.editor.vscode.enable {
+    programs.vscode = mkIf config.rebellion.editor.vscode.enable {
       profiles.default.extensions   = vsc-extensions;
       profiles.default.userSettings = vsc-user-settings;
     };
 
-    programs.zed-editor = mkIf config.${namespace}.editor.zed.enable {
+    programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
       extensions = zed-extensions;
       extraPackages = [ pkgs.ruff ];
       userSettings = zed-user-settings;

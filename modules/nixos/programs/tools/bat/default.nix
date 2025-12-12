@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.programs.tools.bat;
+  cfg = config.rebellion.programs.tools.bat;
 in {
-  options.${namespace}.programs.tools.bat = {
+  options.rebellion.programs.tools.bat = {
     enable = mkEnableOption "bat";
   };
 

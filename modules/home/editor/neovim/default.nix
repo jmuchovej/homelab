@@ -9,11 +9,11 @@
   ...
 }: let
   inherit (lib) mkEnableOption mkIf mkForce;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.editor.neovim;
+  cfg = config.rebellion.editor.neovim;
 in {
-  options.${namespace}.editor.neovim = {
+  options.rebellion.editor.neovim = {
     enable = mkEnableOption "neovim";
     default = mkEnableOption "Neovim as the default $EDITOR";
   };
@@ -42,7 +42,7 @@ in {
       nvrh
     ];
 
-    # sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    # sops.secrets = lib.mkIf osConfig.rebellion.security.sops.enable {
     #   wakatime = {
     #     sopsFile = lib.snowfall.fs.get-file "secrets/khaneliman/default.yaml";
     #     path = "${config.home.homeDirectory}/.wakatime.cfg";

@@ -8,10 +8,10 @@
 let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
-  cfg = config.${namespace}.homelab.authentik;
+  cfg = config.rebellion.homelab.authentik;
 in
 {
-  options.${namespace}.homelab.authentik= {
+  options.rebellion.homelab.authentik = {
     enable = mkEnableOption "authentik";
   };
 
@@ -76,7 +76,7 @@ in
       ];
 
       routers.auth = {
-        entryPoints = ["websecure"];
+        entryPoints = [ "websecure" ];
         rule = "Host(`id.jm0.io`) || HostRegexp(`{subdomain:[a-z0-9]+}.lab.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`)";
         service = "auth";
         tls.certResolver = "letsencrypt";

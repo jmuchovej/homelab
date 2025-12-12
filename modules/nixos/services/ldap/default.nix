@@ -8,10 +8,10 @@
 let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.services.ldap;
+  cfg = config.rebellion.services.ldap;
 in
 {
-  options.${namespace}.services.ldap = {
+  options.rebellion.services.ldap = {
     enable = mkEnableOption "LDAP";
   };
 

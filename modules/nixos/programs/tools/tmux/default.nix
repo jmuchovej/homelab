@@ -9,10 +9,10 @@
   inherit (lib) mkIf mkEnableOption;
   inherit (lib.strings) fileContents;
 
-  cfg = config.${namespace}.programs.tools.tmux;
+  cfg = config.rebellion.programs.tools.tmux;
   configFiles = lib.snowfall.fs.get-files ./config;
 in {
-  options.${namespace}.programs.tools.tmux = {
+  options.rebellion.programs.tools.tmux = {
     enable = mkEnableOption "tmux";
   };
 

@@ -6,15 +6,15 @@
   ...
 }:
 with lib;
-with lib.${namespace};
+with lib.rebellion;
 let
   inherit (lib) mkEnableOption mkIf types;
-  inherit (lib.${namespace}) enabled;
+  inherit (lib.rebellion) enabled;
 
-  cfg = config.${namespace}.suites.cluster;
+  cfg = config.rebellion.suites.cluster;
 in
 {
-  options.${namespace}.suites.cluster = with types; {
+  options.rebellion.suites.cluster = with types; {
     enable = mkEnableOption "`cluster` suite";
     role = mkOption {
       type = enum [
@@ -27,7 +27,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    ${namespace} = {
+    rebellion = {
       suites = {
         server = enabled;
       };

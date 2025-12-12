@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
-  cfg = config.${namespace}.suites.common;
+  cfg = config.rebellion.suites.common;
 in {
-  options.${namespace}.suites.common = {
+  options.rebellion.suites.common = {
     enable = mkEnableOption "`common` configuration";
   };
 

@@ -7,9 +7,9 @@
 }: let
   inherit (lib) mkIf mkEnableOption;
 
-  cfg = config.${namespace}.shell.bash;
+  cfg = config.rebellion.shell.bash;
 in {
-  options.${namespace}.shell.bash = {
+  options.rebellion.shell.bash = {
     enable = mkEnableOption "`bash`";
   };
 
