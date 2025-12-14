@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
@@ -29,10 +28,13 @@ in
       configWritable = true;
       lovelaceConfigWritable = true;
       config = {
-        default_config = {};
+        default_config = { };
         http = {
           server_port = 8123;
-          server_host = [ "0.0.0.0" "::" ];
+          server_host = [
+            "0.0.0.0"
+            "::"
+          ];
         };
         homeassistant = {
           name = "Home";
@@ -41,22 +43,38 @@ in
           temperature_unit = "F";
         };
       };
-      customComponents = with pkgs.home-assistant-custom-components; [
-        auth_oidc
-        adaptive_lighting
-      ] ++ with pkgs.rebellion.home-assistant; [
-        components.hacs
-      ];
-      customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [];
+      customComponents =
+        with pkgs.home-assistant-custom-components;
+        [
+          auth_oidc
+          adaptive_lighting
+        ]
+        ++ [
+          pkgs.rebellion.home-assistant.components.hacs
+        ];
+      customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [ ];
       extraPackages = python3Packages: with python3Packages; [ psycopg2 ];
       extraComponents = [
-        "default_config" "met" "esphome"
-        "apple_tv" "androidtv_remote"
-        "plex" "tts" "group" "script" "scene" "automation" "recorder" "zone"
-        "trend" "proximity" "otp" "bayesian"
+        "default_config"
+        "met"
+        "esphome"
+        "apple_tv"
+        "androidtv_remote"
+        "plex"
+        "tts"
+        "group"
+        "script"
+        "scene"
+        "automation"
+        "recorder"
+        "zone"
+        "trend"
+        "proximity"
+        "otp"
+        "bayesian"
         "mobile_app"
       ];
-      extraArgs = [];
+      extraArgs = [ ];
     };
   };
 }

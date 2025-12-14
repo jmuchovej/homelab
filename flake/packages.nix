@@ -10,8 +10,12 @@
       inherit (lib)
         fix
         mapAttrs
+        mapAttrsRecursive
         filterAttrs
         meta
+        isFunction
+        isPath
+        isString
         ;
       inherit (lib.meta) availableOn;
       inherit (lib.filesystem) packagesFromDirectoryRecursive;
@@ -25,17 +29,20 @@
 
       built-packages = fix (
         self:
-        mapAttrs (
-          _name: package-data:
+        mapAttrsRecursive (
+          path: package-data:
           let
             package-fn = package-data.default or package-data;
           in
-          callPackage package-fn (
-            self
-            // {
-              inherit inputs;
-            }
-          )
+          if isFunction package-fn || isPath package-fn || isString package-fn then
+            callPackage package-fn (
+              self
+              // {
+                inherit inputs;
+              }
+            )
+          else
+            package-data
         ) package-fns
       );
 
