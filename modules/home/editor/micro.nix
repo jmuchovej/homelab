@@ -1,13 +1,14 @@
 {
   config,
   lib,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.editor.micro;
-in {
+in
+{
   options.rebellion.editor.micro = {
     enable = mkEnableOption "micro";
     default = mkEnableOption "micro as the default $EDITOR";
@@ -31,9 +32,11 @@ in {
 
     xdg.configFile."micro/colorschemes" = {
       source = lib.cleanSourceWith {
-        filter = name: _type: let
-          baseName = baseNameOf (toString name);
-        in
+        filter =
+          name: _type:
+          let
+            baseName = baseNameOf (toString name);
+          in
           lib.hasSuffix ".micro" baseName;
         src = lib.cleanSource ./.;
       };

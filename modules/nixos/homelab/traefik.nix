@@ -5,23 +5,32 @@
   ...
 }:
 let
-  inherit (lib) mkIf mkDefault mkEnableOption mkForce;
+  inherit (lib)
+    mkIf
+    mkDefault
+    mkEnableOption
+    mkForce
+    ;
 
   cfg = config.rebellion.homelab.traefik;
-in {
+in
+{
   options.rebellion.homelab.traefik = {
     enable = mkEnableOption "traefik";
   };
 
   config = mkIf cfg.enable {
-    networking.firewall.allowedTCPPorts = [80 443];
+    networking.firewall.allowedTCPPorts = [
+      80
+      443
+    ];
 
     systemd.services.traefik = {
       environment = {
         CF_API_EMAIL = "hello@jm0.io";
       };
       serviceConfig = {
-        EnvironmentFile = [config.sops.secrets."cloudflare/api-key".path];
+        EnvironmentFile = [ config.sops.secrets."cloudflare/api-key".path ];
       };
     };
 
@@ -35,20 +44,20 @@ in {
       staticConfigOptions = {
         log = {
           level = "INFO";
-          filePath = "/var/log/traefik.log";
+          filePath = "${config.services.traefik.dataDir}/traefik.log";
           format = "json";
           noColor = false;
           maxSize = 100;
           compress = true;
         };
 
-        metrics.prometheus = {};
+        metrics.prometheus = { };
 
-        tracing = {};
+        tracing = { };
 
         accessLog = {
           addInternals = true;
-          filePath = "/var/log/traefik-access.log";
+          filePath = "${config.services.traefik.dataDir}/traefik-access.log";
           bufferingSize = 100;
           fields = {
             names = {
@@ -66,11 +75,11 @@ in {
         api.dashboard = true;
 
         certificatesResolvers = {
-          tailscale.tailscale = {};
+          tailscale.tailscale = { };
           letsencrypt = {
             acme = {
               email = "hello@jm0.io";
-              storage = "/var/lib/traefik/cert.json";
+              storage = "${config.services.traefik.dataDir}/acme.json";
               dnsChallenge = {
                 provider = "cloudflare";
               };
@@ -101,8 +110,14 @@ in {
             http.tls = {
               certResolver = "letsencrypt";
               domains = [
-                { main = "lab.jm0.io"; sans = ["*.lab.jm0.io"]; }
-                { main = "jm0.io"; sans = ["*.jm0.io"]; }
+                {
+                  main = "lab.jm0.io";
+                  sans = [ "*.lab.jm0.io" ];
+                }
+                {
+                  main = "jm0.io";
+                  sans = [ "*.jm0.io" ];
+                }
               ];
             };
           };

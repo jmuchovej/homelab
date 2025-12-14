@@ -2,15 +2,16 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkEnableOption mkIf;
 
   cfg = config.rebellion.editor.helix;
-in {
+in
+{
   imports = [
-    ./helix/languages.nix
+    ./helix-languages.part.nix
   ];
 
   options.rebellion.editor.helix = {
@@ -22,9 +23,9 @@ in {
     programs.helix = {
       enable = true;
       package = pkgs.helix.overrideAttrs (self: {
-        makeWrapperArgs = with pkgs;
-          self.makeWrapperArgs
-          or []
+        makeWrapperArgs =
+          with pkgs;
+          self.makeWrapperArgs or [ ]
           ++ [
             "--suffix"
             "PATH"
@@ -80,7 +81,7 @@ in {
           };
 
           mouse = true;
-          rulers = [80];
+          rulers = [ 80 ];
           scrolloff = 5;
 
           statusline = {
@@ -92,7 +93,7 @@ in {
               "file-name"
               "total-line-numbers"
             ];
-            center = [];
+            center = [ ];
             right = [
               "diagnostics"
               "file-encoding"
