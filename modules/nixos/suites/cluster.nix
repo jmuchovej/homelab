@@ -1,8 +1,6 @@
 {
-  options,
   config,
   lib,
-  namespace,
   ...
 }:
 with lib;

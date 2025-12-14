@@ -2,18 +2,17 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
   inherit (lib) mkIf mkDefault;
-  inherit (lib.rebellion) get-file enabled;
+  inherit (lib.rebellion) get-file enabled disabled;
 
   cfg = config.rebellion.suites.common;
 in
 {
   imports = [
-    (get-file "modules/shared/suites/common.nix")
+    (get-file "modules/common/suites/common.nix")
   ];
 
   config = mkIf cfg.enable {
@@ -35,19 +34,15 @@ in
         };
       };
 
-      nix = mkDefault enabled;
       homebrew = mkDefault enabled;
 
       system = {
+        nix = mkDefault disabled;
         fonts = mkDefault enabled;
         input = mkDefault enabled;
         interface = mkDefault enabled;
         networking = mkDefault enabled;
       };
-
-      # services = {
-      #   nix-daemon = enabled;
-      # };
     };
   };
 }

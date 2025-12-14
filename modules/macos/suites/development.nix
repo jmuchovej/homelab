@@ -1,14 +1,10 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (lib) mkIf;
   inherit (lib.rebellion) get-file;
 
   cfg = config.rebellion.suites.development;
+  brew = config.rebellion.homebrew;
 in
 {
   imports = [
@@ -16,20 +12,19 @@ in
   ];
 
   config = mkIf cfg.enable {
-    homebrew = {
+    homebrew = mkIf brew.enable {
       brews = [
         "cocoapods"
         "xcodegen"
         "xcodes"
       ];
+
       casks = [
         "flutter"
         "powershell"
       ];
 
-      masApps = mkIf config.rebellion.homebrew.mas.enable {
-        # FIXME: keeps trying to reinstall it
-        "Xcode" = 497799835;
+      masApps = mkIf brew.mas.enable {
         "Playgrounds" = 1496833156;
       };
     };

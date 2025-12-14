@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
@@ -68,18 +67,6 @@ in
         cleanup = "uninstall";
         upgrade = true;
       };
-    };
-
-    nix = {
-      # Options that aren't supported through nix-darwin
-      extraOptions = ''
-        # bail early on missing cache hits
-        connect-timeout = 10
-        keep-going = true
-      '';
-
-      # gc.user = config.rebellion.user.name;
-      # optimise.user = config.rebellion.user.name;
     };
 
     # home.extraOptions = {

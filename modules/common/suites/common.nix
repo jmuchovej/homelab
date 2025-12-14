@@ -2,15 +2,19 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkDefault mkEnableOption;
 
   cfg = config.rebellion.suites.common;
-in {
+in
+{
+  # This is mostly sugar. `common` is the base configuration _always_ present on any OS I control.
   options.rebellion.suites.common = {
-    enable = mkEnableOption "`common` configuration";
+    enable = mkEnableOption "`common` configuration" // {
+      default = true;
+    };
   };
 
   config = mkIf cfg.enable {
@@ -21,6 +25,7 @@ in {
       curl
       fd
       file
+      git
       findutils
       lsof
       pciutils

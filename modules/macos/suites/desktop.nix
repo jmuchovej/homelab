@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  namespace,
   pkgs,
   ...
 }:
@@ -10,10 +9,11 @@ let
   inherit (lib.rebellion) get-file enabled;
 
   cfg = config.rebellion.suites.desktop;
+  brew = config.rebellion.homebrew;
 in
 {
   imports = [
-    (get-file "modules/shared/suites/desktop.nix")
+    (get-file "modules/common/suites/desktop.nix")
   ];
 
   config = mkIf cfg.enable {
@@ -31,13 +31,11 @@ in
     ];
 
     rebellion = {
-      programs = {
+      desktop = enabled // {
         # browsers.arc = mkDefault enabled;
-        apps.notunes = mkDefault enabled;
-        apps.onepassword = mkDefault enabled;
+        onepassword = mkDefault enabled;
       };
 
-      # desktop = {
       #   statusbars = {
       #     sketchybar = mkDefault enabled;
       #   };
@@ -45,12 +43,9 @@ in
       #   wms = {
       #     yabai = mkDefault enabled;
       #   };
-      # };
     };
 
-    homebrew = {
-      brews = [ ];
-
+    homebrew = mkIf brew.enable {
       casks = [
         "anytype" # TODO contrib Nix support for macOS
         "setapp"
@@ -78,13 +73,7 @@ in
         "sketch"
       ];
 
-      taps = [
-        # "beeftornado/rmtree"
-        # "felixkratz/homebrew-formulae"
-        # "khanhas/tap"
-      ];
-
-      masApps = mkIf config.rebellion.homebrew.mas.enable {
+      masApps = mkIf brew.mas.enable {
         # "AutoMounter"               = 1160435653;
         "Amphetamine" = 937984704;
         # "Dark Reader for Safari"    = 1438243180;

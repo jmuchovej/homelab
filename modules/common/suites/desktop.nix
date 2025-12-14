@@ -1,19 +1,18 @@
 {
   config,
   lib,
-  pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkEnableOption mkIf;
 
   cfg = config.rebellion.suites.desktop;
-in {
+in
+{
   options.rebellion.suites.desktop = {
     enable = mkEnableOption "`desktop` configuration";
   };
 
-  config =
-    mkIf cfg.enable {
-    };
+  config = mkIf cfg.enable {
+  };
 }

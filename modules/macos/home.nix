@@ -2,16 +2,12 @@
   config,
   lib,
   options,
-  namespace,
   ...
 }:
 let
   inherit (lib) mkAliasDefinitions mkOption;
   inherit (lib.types) attrs;
-  inherit (lib.rebellion) mkOpt;
-
   username = config.rebellion.user.name;
-  ns-home = options.rebellion.home;
 in
 {
   options.rebellion.home = {

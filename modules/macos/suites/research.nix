@@ -1,12 +1,7 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}:
+{ config, lib, ... }:
 let
-  inherit (lib) mkIf mkDefault;
-  inherit (lib.rebellion) get-file enabled;
+  inherit (lib) mkIf;
+  inherit (lib.rebellion) get-file;
 
   cfg = config.rebellion.suites.research;
 in

@@ -1,23 +1,20 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}: let
+{ config, lib, ... }:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.system.networking;
-in {
+in
+{
   options.rebellion.system.networking = {
     enable = mkEnableOption "networking support";
   };
 
   config = mkIf cfg.enable {
     networking.dns = [
-      "9.9.9.9"
-      "149.112.112.112" # Quad9
-      "1.1.1.1"
-      "1.0.0.1" # Cloudflare
+      # "9.9.9.9"
+      # "149.112.112.112" # Quad9
+      # "1.1.1.1"
+      # "1.0.0.1" # Cloudflare
     ];
 
     # firewall settings

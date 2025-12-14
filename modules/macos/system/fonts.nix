@@ -1,11 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  namespace,
-  inputs,
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (lib) mkIf;
   inherit (lib.rebellion) get-file;

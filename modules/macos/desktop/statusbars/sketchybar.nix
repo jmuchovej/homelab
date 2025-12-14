@@ -1,15 +1,15 @@
 {
   config,
   lib,
-  pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption mkOption;
   inherit (lib.types) str;
 
   cfg = config.rebellion.desktop.statusbars.sketchybar;
-in {
+in
+{
   options.rebellion.desktop.statusbars.sketchybar = {
     enable = mkEnableOption "sketchybar";
     logFile = mkOption {

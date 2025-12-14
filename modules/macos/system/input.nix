@@ -1,13 +1,10 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}: let
+{ config, lib, ... }:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.system.input;
-in {
+in
+{
   options.rebellion.system.input = {
     enable = mkEnableOption "macOS input customizations";
   };
@@ -18,7 +15,7 @@ in {
       remapCapsLockToEscape = true;
       # swapLeftCommandAndLeftAlt = true;
       # https://developer.apple.com/library/content/technotes/tn2450/_index.html
-      userKeyMapping = [];
+      userKeyMapping = [ ];
     };
 
     # trackpad settings
@@ -48,10 +45,10 @@ in {
     };
 
     system.defaults.dock = {
-      showAppExposeGestureEnabled       = false;
-      showMissionControlGestureEnabled  = true;
-      showLaunchpadGestureEnabled       = false;
-      showDesktopGestureEnabled         = true;
+      showAppExposeGestureEnabled = false;
+      showMissionControlGestureEnabled = true;
+      showLaunchpadGestureEnabled = false;
+      showDesktopGestureEnabled = true;
     };
 
     system.defaults.".GlobalPreferences" = {
@@ -73,10 +70,10 @@ in {
     };
 
     system.defaults.CustomSystemPreferences = {
-        # "com.apple.symbolichotkeys" = {
-        #   # Turn off Spotlight shortcut keys
-        #   "com.apple.symbolichotkeys.AppleSymbolicHotKeys.64.enabled" = false;
-        # };
+      # "com.apple.symbolichotkeys" = {
+      #   # Turn off Spotlight shortcut keys
+      #   "com.apple.symbolichotkeys.AppleSymbolicHotKeys.64.enabled" = false;
+      # };
     };
   };
 }

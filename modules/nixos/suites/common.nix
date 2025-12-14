@@ -2,35 +2,34 @@
   pkgs,
   config,
   lib,
-  namespace,
   ...
 }:
 let
-  inherit (lib) mkEnableOption mkIf;
-  inherit (lib.rebellion) enabled;
+  inherit (lib) mkIf;
+  inherit (lib.rebellion) get-file enabled;
 
   cfg = config.rebellion.suites.common;
 in
 {
-  options.rebellion.suites.common = {
-    enable = mkEnableOption "`common` suite";
-  };
+  imports = [
+    (get-file "modules/common/suites/common.nix")
+  ];
 
   config = mkIf cfg.enable {
     rebellion = {
       nix = enabled;
 
-      system.boot = enabled;
-      system.locale = enabled;
-      system.networking = enabled;
+      system = {
+        boot = enabled;
+        locale = enabled;
+        networking = enabled;
+      };
 
       services.openssh = enabled;
-
-      security.sops = enabled;
+      services.sops = enabled;
     };
 
     environment.systemPackages = with pkgs; [
-      git
       pciutils
       usbutils
     ];

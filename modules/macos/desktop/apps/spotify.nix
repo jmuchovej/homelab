@@ -2,25 +2,31 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
   inherit (lib) mkIf mkEnableOption;
-  inherit (lib.rebellion) enabled;
+  inherit (pkgs) spotify;
 
   cfg = config.rebellion.desktop.spotify;
+  desktop = config.rebellion.desktop;
+  notunes = config.rebellion.desktop.notunes;
+  brew = config.rebellion.homebrew;
 in
 {
   options.rebellion.desktop.spotify = {
     enable = mkEnableOption "Spotify";
   };
 
-  config = mkIf (cfg.enable && config.rebellion.desktop.enable) {
-    environment.systemPackages = [ pkgs.spotify ];
+  config = mkIf (cfg.enable && desktop.enable) {
+    # environment.systemPackages = [ spotify ];
+    homebrew = mkIf (brew.enable) {
+      casks = [ "spotify" ];
+    };
 
-    system.defaults.CustomUserPreferences = mkIf (config.rebellion.desktop.notunes.enable) {
-      twisted.noTunes.replacement = "${pkgs.spotify}/Applications/Spotify.app";
+    system.defaults.CustomUserPreferences = mkIf (notunes.enable) {
+      twisted.noTunes.replacement =
+        if brew.enable then "/Applications/Spotify.app" else "${spotify}/Applications/Spotify.app";
     };
   };
 }

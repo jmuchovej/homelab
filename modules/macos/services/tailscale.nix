@@ -1,14 +1,15 @@
 {
   config,
   lib,
-  namespace,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.services.tailscale;
-in {
+in
+{
   options.rebellion.services.tailscale = {
     enable = mkEnableOption "tailscale"; # { default = true; };
   };
