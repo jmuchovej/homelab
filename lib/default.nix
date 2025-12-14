@@ -17,6 +17,7 @@
       # Common utilities used by system builders
       common = import ./system/common.nix { inherit inputs; };
     };
+    traefik = import ./traefik.nix { inherit inputs; };
     # keep-sorted end
   };
 

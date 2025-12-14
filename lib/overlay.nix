@@ -11,6 +11,7 @@ in
     inherit (rebellion-lib.flake.lib)
       file
       system
+      traefik
       ;
 
     inherit (rebellion-lib.flake.lib.file)
