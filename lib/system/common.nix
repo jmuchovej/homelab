@@ -47,12 +47,16 @@ in
     in
     # No host-specific configs. Just use the base configs directly.
     if host-configs == { } then
-    	mapAttrs (_name: base-config: base-config // {
-    		modules = [ base-config.path ];
-     	}) base-configs
+      mapAttrs (
+        _name: base-config:
+        base-config
+        // {
+          modules = [ base-config.path ];
+        }
+      ) base-configs
     else
-    	# Merge host configs with their corresponding base (if exists).
-    	mapAttrs merge-configs host-configs;
+      # Merge host configs with their corresponding base (if exists).
+      mapAttrs merge-configs host-configs;
 
   mk-hm-config =
     {
@@ -88,11 +92,14 @@ in
               imports = config.modules;
               home = {
                 inherit (config) username;
-                homeDirectory = let
-                	username = builtins.trace "DEBUG[lib/system/common.nix]: username=${toString config.username}" config.username;
-                 	home-directory =  if isNixOS then "/home/${username}" else "/Users/${username}";
-                  hd = builtins.trace "DEBUG[lib/system/common.nix]: home-directory=${toString home-directory}" home-directory;
-                in
+                homeDirectory =
+                  let
+                    # username = builtins.trace "DEBUG[lib/system/common.nix]: username=${toString config.username}" config.username;
+                    username = config.username;
+                    home-directory = if isNixOS then "/home/${username}" else "/Users/${username}";
+                    # hd = builtins.trace "DEBUG[lib/system/common.nix]: home-directory=${toString home-directory}" home-directory;
+                    hd = home-directory;
+                  in
                   /. + hd;
               };
             }
