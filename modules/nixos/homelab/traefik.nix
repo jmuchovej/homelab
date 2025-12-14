@@ -1,25 +1,14 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}:
+{ config, lib, ... }:
 let
-  inherit (lib)
-    mkIf
-    mkDefault
-    mkEnableOption
-    mkForce
-    ;
+  inherit (lib) mkForce;
+  inherit (lib.rebellion) mk-module get-file;
 
-  cfg = config.rebellion.homelab.traefik;
+  # cfg = config.rebellion.homelab.traefik;
 in
-{
-  options.rebellion.homelab.traefik = {
-    enable = mkEnableOption "traefik";
-  };
+mk-module {
+  name = "homelab.traefik";
 
-  config = mkIf cfg.enable {
+  config = {
     networking.firewall.allowedTCPPorts = [
       80
       443
@@ -27,14 +16,22 @@ in
 
     systemd.services.traefik = {
       environment = {
-        CF_API_EMAIL = "hello@jm0.io";
+        CF_API_EMAIL = "homelab@jm0.io";
       };
       serviceConfig = {
-        EnvironmentFile = [ config.sops.secrets."cloudflare/api-key".path ];
+        EnvironmentFile = [
+          config.sops.secrets."cloudflare/api-key".path
+        ];
       };
+      after = [
+        "tailscaled.service"
+      ];
+      wants = [
+        "tailscaled.service"
+      ];
     };
 
-    sops.secrets."cloudflare/api-key".sopsFile = lib.snowfall.fs.get-file "secrets/secrets.sops.yaml";
+    sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
 
     services.tailscale.permitCertUid = mkForce "traefik";
 
@@ -78,7 +75,7 @@ in
           tailscale.tailscale = { };
           letsencrypt = {
             acme = {
-              email = "hello@jm0.io";
+              email = "homelab@jm0.io";
               storage = "${config.services.traefik.dataDir}/acme.json";
               dnsChallenge = {
                 provider = "cloudflare";
