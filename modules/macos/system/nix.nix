@@ -1,22 +1,21 @@
 {
   config,
   lib,
-  namespace,
   inputs,
   system,
   ...
 }:
 let
-  inherit (lib) mkIf mkForce;
+  inherit (lib) mkIf;
   inherit (lib.rebellion) get-file;
 
-  cfg = config.rebellion.nix;
+  cfg = config.rebellion.system.nix;
   #! https://github.com/LnL7/nix-darwin/issues/852
   #! According to ️^, the using `nix.linux-builder` with `nix*-unstable` doesn't work...
   # linux-builder-package = inputs.nixpkgs-stable.legacyPackages.${system}.darwin.linux-builder;
 in
 {
-  imports = [ (get-file "modules/shared/nix.nix") ];
+  imports = [ (get-file "modules/common/system/nix.nix") ];
 
   config = mkIf cfg.enable {
     nix = {

@@ -41,9 +41,8 @@ in
       tailscale = enabled;
     };
 
-    nix = enabled;
-
     system = {
+      nix = enabled;
       boot = enabled // {
         plymouth = enabled;
         secure-boot = disabled;

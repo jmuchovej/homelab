@@ -3,11 +3,15 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   inherit (lib.rebellion) enabled disabled;
 in
 {
-  imports = [ ./disks.nix ./hardware.nix ];
+  imports = [
+    ./disks.nix
+    ./hardware.nix
+  ];
 
   topology.self = {
     name = "🚀 da-vcx-1";
@@ -23,7 +27,10 @@ in
         btrfs = enabled;
         zfs = enabled // {
           auto-snapshot = enabled;
-          pools = [ "impulse" "warp" ];
+          pools = [
+            "impulse"
+            "warp"
+          ];
         };
       };
     };
@@ -43,9 +50,8 @@ in
       };
     };
 
-    nix = enabled;
-
     system = {
+      nix = enabled;
       boot = enabled // {
         plymouth = enabled;
         secure-boot = disabled;
@@ -74,18 +80,21 @@ in
       role = "server";
       # Opt for Cilium
       services.kube-proxy = disabled;
-      services.flannel    = disabled;
-      services.flux       = enabled;
+      services.flannel = disabled;
+      services.flux = enabled;
       services.service-lb = disabled;
-      services.traefik    = disabled;
-      services.local-io   = disabled;
-      services.metrics    = disabled;
-      services.coredns    = disabled;
+      services.traefik = disabled;
+      services.local-io = disabled;
+      services.metrics = disabled;
+      services.coredns = disabled;
       helm = enabled // {
         completed-if = "get CustomResourceDefinition -A | grep -q 'cilium.io'";
       };
       minio = enabled // {
-        buckets = [ "volsync" "postgres" ];
+        buckets = [
+          "volsync"
+          "postgres"
+        ];
         data-dir = [ "/impulse/minio" ];
       };
     };

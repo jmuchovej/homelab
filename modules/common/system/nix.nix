@@ -2,7 +2,7 @@
   config,
   lib,
   pkgs,
-  namespace,
+  system,
   ...
 }:
 let
@@ -37,7 +37,7 @@ in
 # endregion
 # TODO figure out remote building
 {
-  options.rebellion.nix = with types; {
+  options.rebellion.system.nix = with types; {
     enable = mkEnableOption "manage nix configuration" // {
       default = true;
     };
@@ -77,7 +77,7 @@ in
       in
       {
         inherit (cfg) package;
-        enable = isLinux;
+        enable = cfg.enable;
 
         settings = {
           trusted-users = users ++ cfg.extra-users;
@@ -99,6 +99,7 @@ in
 
         gc = {
           automatic = config.nix.enable;
+          dates = "weekly";
           options = "--delete-older-than 7d";
         };
 
@@ -113,4 +114,6 @@ in
         # linkInputs = true;
       };
   };
+
+  nixpkgs.hostPlatform = mkDefault system;
 }

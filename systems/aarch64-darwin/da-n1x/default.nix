@@ -1,16 +1,10 @@
-{
-  lib,
-  pkgs,
-  inputs,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   inherit (lib.rebellion) enabled disabled;
 in
 {
   rebellion = {
-    nix = disabled;
+    system.nix = disabled;
     suites = {
       common = enabled;
       desktop = enabled;
@@ -20,6 +14,10 @@ in
     };
 
     homebrew.mas = enabled;
+    desktop = {
+      notunes = enabled;
+      spotify = enabled;
+    };
   };
 
   nix.enable = false;
