@@ -19,11 +19,6 @@ let
       ;
   };
 
-  # Debug: check what we found
-  d1 = builtins.trace "DEBUG mk-macos: system=${system}, hostname=${hostname}" null;
-  d2 = builtins.trace "DEBUG mk-macos: matching-homes keys = ${builtins.toJSON (builtins.attrNames matching-homes)}" null;
-  d3 = builtins.trace "DEBUG mk-macos: matching-homes = ${builtins.toJSON matching-homes}" null;
-
   hm-config = common.mk-hm-config {
     inherit
       flake

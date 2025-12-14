@@ -2,12 +2,15 @@
   config,
   lib,
   pkgs,
-  namespace,
-  inputs,
   ...
-}: let
-  inherit (lib) types mkIf mkEnableOption mkOption;
-  inherit (inputs) nixpkgs;
+}:
+let
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkOption
+    ;
 
   cfg = config.rebellion.system.fonts;
 
@@ -40,7 +43,8 @@
     nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
   ];
-in {
+in
+{
   options.rebellion.system.fonts = with types; {
     enable = mkEnableOption "fonts";
     fonts = mkOption {
