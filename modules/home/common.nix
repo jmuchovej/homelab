@@ -11,27 +11,24 @@ let
     mkDefault
     mkIf
     mkEnableOption
-    mkMerge
     ;
   inherit (pkgs.stdenv) isDarwin;
-  inherit (lib.rebellion) mkopt enabled;
+  inherit (lib.rebellion) enabled;
 
   cfg = config.rebellion;
 
   home-directory =
-  	let
-    	name = builtins.trace "DEBUG[common.nix]: cfg.user.name=${toString cfg.user.name}" cfg.user.name;
-    	isMacOS = builtins.trace "DEBUG[common.nix]: isDarwin=${toString isDarwin}" isDarwin;
-    	computed = if name == null then
-      	null
-    	else if isMacOS then
-      	/Users + "/${cfg.user.name}"
-    	else
-      	/home + "/${cfg.user.name}";
-    	result = builtins.trace "DEBUG[common.nix]: home-directory=${toString computed}" computed;
+    let
+      computed =
+        if cfg.user.name == null then
+          null
+        else if isDarwin then
+          /Users + "/${cfg.user.name}"
+        else
+          /home + "/${cfg.user.name}";
+      result = computed;
     in
-    	result;
-    # home-directory = "/Users/john";
+    result;
 in
 {
   options.rebellion = with types; {
@@ -80,7 +77,7 @@ in
     rebellion = {
       shell.zsh = enabled;
       editor.neovim = enabled // {
-        default = true;
+        default = mkDefault true;
       };
     };
   };
