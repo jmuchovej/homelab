@@ -12,6 +12,7 @@ in
       file
       system
       traefik
+      zed
       ;
 
     inherit (rebellion-lib.flake.lib.file)
