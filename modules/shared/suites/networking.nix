@@ -2,14 +2,15 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkDefault mkEnableOption;
   inherit (lib.rebellion) enabled;
 
   cfg = config.rebellion.suites.networking;
-in {
+in
+{
   options.rebellion.suites.networking = {
     enable = mkEnableOption "`networking` configuration";
   };

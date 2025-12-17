@@ -1,4 +1,4 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
-  name = "suites.desktop";
+  name = "suites.research";
 }

@@ -6,7 +6,7 @@
 }:
 let
   inherit (lib) mkIf mkDefault;
-  inherit (lib.rebellion) get-file enabled disabled;
+  inherit (lib.rebellion) get-file enabled;
 
   cfg = config.rebellion.suites.common;
 in
@@ -37,7 +37,7 @@ in
       homebrew = mkDefault enabled;
 
       system = {
-        nix = mkDefault disabled;
+        nix = mkDefault enabled;
         fonts = mkDefault enabled;
         input = mkDefault enabled;
         interface = mkDefault enabled;

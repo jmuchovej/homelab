@@ -7,7 +7,7 @@ let
 in
 {
   imports = [
-    (get-file "modules/shared/suites/research.nix")
+    (get-file "modules/common/suites/research.nix")
   ];
 
   config = mkIf cfg.enable {
