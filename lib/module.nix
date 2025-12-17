@@ -120,23 +120,34 @@ rec {
     ) modules;
 
   # Create a module with common options
+  # Usage: mk-module moduleArgs { name = "mymodule"; config = args: { ... }; }
   mk-module =
+    module-args:
     {
       name,
-      description ? "",
+      imports ? [ ],
+      description ? name,
       options ? { },
       config ? { },
     }:
-    { lib, ... }:
-    {
-      options.rebellion.${name} = mkopt' submodule {
-        options = {
-          enable = mkopt-enable description;
-        }
-        // options;
-      } { };
+    let
+      inherit (module-args) lib;
+      inherit (lib) setAttrByPath getAttrFromPath splitString;
 
-      config = lib.mkIf config.rebellion.${name}.enable config;
+      name-parts = splitString "." name;
+      cfg = getAttrFromPath ([ "rebellion" ] ++ name-parts) module-args.config;
+
+      # Always evaluate config as a function with full module args
+      evaluated-config = if builtins.isFunction config then config module-args else config;
+    in
+    {
+      inherit imports;
+
+      options = setAttrByPath ([ "rebellion" ] ++ name-parts) (
+        { enable = mkopt-enable description; } // options
+      );
+
+      config = lib.mkIf cfg.enable evaluated-config;
     };
 
   ## Alias to make loading shared configurations terse.
