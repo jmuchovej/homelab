@@ -2,25 +2,24 @@
   config,
   pkgs,
   lib,
-  namespace,
   ...
 }:
 let
   inherit (lib) mkEnableOption mkPackageOption mkIf;
   inherit (lib.rebellion) mkopt-vscode;
+  inherit (lib.rebellion.zed) mkzed-settings;
 
   cfg = config.rebellion.development.python;
   default-vscode = config.rebellion.editor.vscode or { };
 
   python = cfg.package;
-  default-packages = python.withPackages (
+  default-python-packages = python.withPackages (
     ps: with ps; [
       # Dev Dependencies
       jupyter
       ipython
       python-lsp-server
       mypy
-      ruff
       jedi
       ipdb
 
@@ -57,7 +56,7 @@ let
     [
       # Regular-ole Python
       ms-python.python
-      charliermarsh.ruff
+      # charliermarsh.ruff
 
       # Jupyter
       ms-toolsai.jupyter
@@ -71,15 +70,30 @@ let
     "python.locator" = "js";
   };
 
-  zed-extensions = [
-    "ruff"
-    "pylsp"
-    "python-refactoring"
-  ];
-  zed-user-settings = {
-    languages.Python = {
-      tab_size = 4;
-      formatter = "ruff";
+  # https://zed.dev/docs/languages/python
+  zed = mkzed-settings {
+    extensions = [ ];
+    packages = with pkgs; [
+      ruff
+      ty
+      basedpyright
+    ];
+    settings = {
+      languages.Python = {
+        tab_size = 4;
+        formatter = "auto";
+        language_servers = [
+          "basedpyright"
+          "ty"
+        ];
+      };
+      lsp.basedpyright = {
+        enable = true;
+      };
+      # TODO switch to `ty` once https://github.com/astral-sh/ty/issues/1889 closes
+      lsp.ty = {
+        enable = true;
+      };
     };
   };
 in
@@ -91,17 +105,19 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages = [ default-packages ];
+    home.packages = with pkgs; [
+      uv
+      ruff
+      default-python-packages
+    ];
 
     programs.vscode = mkIf config.rebellion.editor.vscode.enable {
-      profiles.default.extensions   = vsc-extensions;
+      profiles.default.extensions = vsc-extensions;
       profiles.default.userSettings = vsc-user-settings;
     };
 
     programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
-      extensions = zed-extensions;
-      extraPackages = [ pkgs.ruff ];
-      userSettings = zed-user-settings;
+      inherit (zed) extensions extraPackages userSettings;
     };
   };
 }

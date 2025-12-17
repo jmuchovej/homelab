@@ -2,13 +2,13 @@
   config,
   pkgs,
   lib,
-  namespace,
   ...
 }:
 
 let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.rebellion) mkopt-vscode;
+  inherit (lib.rebellion.zed) mkzed-settings;
 
   cfg = config.rebellion.development.app;
   default-vscode = config.rebellion.editor.vscode or { };
@@ -24,12 +24,45 @@ let
   );
   vsc-user-settings = { };
 
-  zed-extensions = [
-    "dart"
-    "proto"
-    "swift"
-  ];
-  zed-user-settings = { };
+  # https://zed.dev/docs/languages/dart
+  # https://zed.dev/docs/languages/kotlin
+  # https://zed.dev/docs/languages/swift
+  zed = mkzed-settings {
+    extensions = [
+      # https://github.com/zed-extensions/dart
+      "dart"
+      # https://github.com/zed-extensions/swift
+      "swift"
+      # https://github.com/zed-extensions/kotlin
+      "kotlin"
+    ];
+    packages = with pkgs; [
+      flutter
+      # TODO: migrate to `kotlin-lsp` once on nixpkgs
+      kotlin-language-server
+      swiftlint
+      swift-format
+    ];
+    settings = {
+      languages.Dart = {
+        tab_size = 2;
+        formatter = "auto";
+      };
+      lsp.dart = {
+        binary = {
+          arguments = [
+            "language-server"
+            "--protocol=lsp"
+          ];
+        };
+        settings = {
+          lineLength = 120;
+        };
+      };
+      lsp.kotlin-language-server = { };
+      lsp.sourcekit-lsp = { };
+    };
+  };
 in
 {
   options.rebellion.development.app = {
@@ -43,7 +76,7 @@ in
       [
         flutter
         kotlin
-        protobuf
+        swift
       ]
     );
 
@@ -53,15 +86,7 @@ in
     };
 
     programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
-      extensions = zed-extensions;
-      extraPackages = with pkgs; [
-        flutter
-        protobuf
-        kotlin-language-server
-        swiftlint
-        swift-format
-      ];
-      userSettings = zed-user-settings;
+      inherit (zed) extensions extraPackages userSettings;
     };
   };
 }

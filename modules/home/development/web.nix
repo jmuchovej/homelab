@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  namespace,
   ...
 }:
 let
@@ -13,7 +12,7 @@ let
   default-vscode = config.rebellion.editor.vscode or { };
 
   vsc-extensions = with pkgs.open-vsx; [
-    astro-build.astro-vscode
+    # astro-build.astro-vscode
     oven.bun-vscode
     unifiedjs.vscode-mdx
     davidanson.vscode-markdownlint
@@ -21,47 +20,70 @@ let
     stylelint.vscode-stylelint
     esbenp.prettier-vscode
     vue.volar
-    antfu.slidev
+    # antfu.slidev
     dbaeumer.vscode-eslint
   ];
   vsc-user-settings = {
     # "[astro]"
   };
 
-  zed-extensions = [
-    "astro"
-    "biome"
-    "vue"
-    "marksman"
-  ];
-  zed-user-settings = {
-    languages.JavaScript = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages.TypeScript = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages.HTML = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages.Astro = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages."Vue.js" = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages.TSX = {
-      tab_size = 2;
-      formatter = "biome";
-    };
-    languages.CSS = {
-      tab_size = 2;
-      formatter = "biome";
+  inherit (lib.rebellion.zed) mkzed-settings;
+  zed = mkzed-settings {
+    extensions = [
+      # https://github.com/zed-extensions/astro
+      "astro"
+      # https://github.com/biomejs/biome-zed/
+      "biome"
+      # https://github.com/zed-extensions/vue
+      "vue"
+    ];
+    packages = with pkgs; [ biome ];
+    settings = {
+      languages.JavaScript = {
+        tab_size = 2;
+        formatter = "auto";
+        prettier.allowed = false;
+        code_actions_on_format = {
+          "source.fixAll.biome" = true;
+          "source.organizeImports.biome" = true;
+        };
+      };
+      languages.TypeScript = {
+        tab_size = 2;
+        formatter = "auto";
+        prettier.allowed = false;
+        code_actions_on_format = {
+          "source.fixAll.biome" = true;
+          "source.organizeImports.biome" = true;
+        };
+      };
+      languages.HTML = {
+        tab_size = 2;
+        formatter = "auto";
+      };
+      languages.Astro = {
+        tab_size = 2;
+        formatter = "auto";
+      };
+      languages."Vue.js" = {
+        tab_size = 2;
+        formatter = "auto";
+      };
+      languages.TSX = {
+        tab_size = 2;
+        formatter = "auto";
+        code_actions_on_format = {
+          "source.fixAll.biome" = true;
+          "source.organizeImports.biome" = true;
+        };
+      };
+      languages.CSS = {
+        tab_size = 2;
+        formatter = "auto";
+      };
+      lsp.biome = {
+        settings = { };
+      };
     };
   };
 in
@@ -79,21 +101,16 @@ in
 
     home.packages = with pkgs; [
       biome
-      prettierd
+      deno
     ];
 
     programs.vscode = mkIf config.rebellion.editor.vscode.enable {
-      profiles.default.extensions   = vsc-extensions;
+      profiles.default.extensions = vsc-extensions;
       profiles.default.userSettings = vsc-user-settings;
     };
 
     programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
-      extensions = zed-extensions;
-      extraPackages = with pkgs; [
-        biome
-        prettierd
-      ];
-      userSettings = zed-user-settings;
+      inherit (zed) extensions extraPackages userSettings;
     };
   };
 }

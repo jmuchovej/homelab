@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  namespace,
   ...
 }:
 let
@@ -20,13 +19,34 @@ let
   );
   vsc-user-settings = { };
 
-  zed-extensions = [
-    "gosum"
-    "golangci-lint"
-  ];
-  zed-user-settings = {
-    Go = {
-      tab_size = 2;
+  inherit (lib.rebellion.zed) mkzed-settings;
+  # https://zed.dev/docs/languages/go
+  zed = mkzed-settings {
+    extensions = [ ];
+    packages = with pkgs; [
+      gopls
+      golangci-lint
+      gotestsum
+      gotools
+    ];
+    settings = {
+      lsp.gopls = {
+        initialization_options = {
+          hints = {
+            assignVariableTypes = true;
+            compositeLiteralFields = true;
+            compositeLiteralTypes = true;
+            constantValues = true;
+            functionTypeParameters = true;
+            parameterNames = true;
+            rangeVariableTypes = true;
+          };
+        };
+      };
+      languages.Go = {
+        tab_size = 2;
+        language_servers = [ "gopls" ];
+      };
     };
   };
 
@@ -51,19 +71,12 @@ in
     );
 
     programs.vscode = mkIf config.rebellion.editor.vscode.enable {
-      profiles.default.extensions   = vsc-extensions;
+      profiles.default.extensions = vsc-extensions;
       profiles.default.userSettings = vsc-user-settings;
     };
 
     programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
-      extensions = zed-extensions;
-      extraPackages = with pkgs; [
-        gopls
-        golangci-lint
-        gotestsum
-        gotools
-      ];
-      userSettings = zed-user-settings;
+      inherit (zed) extensions extraPackages userSettings;
     };
   };
 }

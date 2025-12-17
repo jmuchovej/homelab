@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  namespace,
   ...
 }:
 let
@@ -37,8 +36,32 @@ let
   );
   vsc-user-settings = { };
 
-  zed-extensions = [ "r" ];
-  zed-user-settings = { };
+  # https://zed.dev/docs/languages/r
+  inherit (lib.rebellion.zed) mkzed-settings;
+  zed = mkzed-settings {
+    extensions = [
+      "r"
+      "air"
+    ];
+    packages = [
+      pkgs.air-formatter
+      (cfg.package.override {
+        packages = with pkgs.rPackages; [
+          air
+          languageserver
+          lintr
+        ];
+      })
+    ];
+    settings = {
+      lsp.air = {
+      };
+      languages.R = {
+        tab_size = 2;
+        language_servers = [ "air" ];
+      };
+    };
+  };
 in
 {
   # FIXME: R appears to be broken due to some issues with `r-curl`???
@@ -60,8 +83,7 @@ in
     };
 
     programs.zed-editor = mkIf config.rebellion.editor.zed.enable {
-      extensions = zed-extensions;
-      userSettings = zed-user-settings;
+      inherit (zed) extensions extraPackages userSettings;
     };
   };
 }
