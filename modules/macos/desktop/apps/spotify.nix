@@ -6,7 +6,6 @@
 }:
 let
   inherit (lib) mkIf mkEnableOption;
-  inherit (pkgs) spotify;
 
   cfg = config.rebellion.desktop.spotify;
   desktop = config.rebellion.desktop;
@@ -19,14 +18,14 @@ in
   };
 
   config = mkIf (cfg.enable && desktop.enable) {
-    # environment.systemPackages = [ spotify ];
+    # environment.systemPackages = [ pkgs.spotify ];
     homebrew = mkIf (brew.enable) {
       casks = [ "spotify" ];
     };
 
     system.defaults.CustomUserPreferences = mkIf (notunes.enable) {
       twisted.noTunes.replacement =
-        if brew.enable then "/Applications/Spotify.app" else "${spotify}/Applications/Spotify.app";
+        if brew.enable then "/Applications/Spotify.app" else "${pkgs.spotify}/Applications/Spotify.app";
     };
   };
 }
