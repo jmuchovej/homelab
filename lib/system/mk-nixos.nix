@@ -40,6 +40,7 @@ inputs.nixpkgs.lib.nixosSystem {
       hostname
       username
       ext-lib
+      system
       ;
   };
 
@@ -47,10 +48,7 @@ inputs.nixpkgs.lib.nixosSystem {
     { _module.args.lib = ext-lib; }
     # Configure nixpkgs with overlays
     {
-      nixpkgs = {
-        inherit system;
-      }
-      // nixpkgs-config;
+      nixpkgs = nixpkgs-config;
     }
   ]
   ++ flake.rebellion.modules.nixos

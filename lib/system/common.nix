@@ -114,9 +114,15 @@ in
       hostname,
       username,
       ext-lib,
+      system,
     }:
     {
-      inherit inputs hostname username;
+      inherit
+        inputs
+        hostname
+        username
+        system
+        ;
       inherit (inputs) self;
       lib = ext-lib;
       flake-parts-lib = inputs.flake-parts.lib;

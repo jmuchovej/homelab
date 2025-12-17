@@ -41,6 +41,7 @@ inputs.nix-darwin.lib.darwinSystem {
       hostname
       username
       ext-lib
+      system
       ;
   };
 
@@ -49,10 +50,7 @@ inputs.nix-darwin.lib.darwinSystem {
 
     # Configure nixpkgs with overlays
     {
-      nixpkgs = {
-        inherit system;
-      }
-      // nixpkgs-config;
+      nixpkgs = nixpkgs-config;
     }
   ]
   ++ flake.rebellion.modules.macos
