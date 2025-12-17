@@ -75,6 +75,10 @@ in
     };
 
     rebellion = {
+      modern-unix = enabled;
+      ssh = enabled;
+      git = enabled;
+
       shell.zsh = enabled;
       editor.neovim = enabled // {
         default = mkDefault true;
