@@ -119,6 +119,13 @@ rec {
       mod: mod.systems or [ ] == [ ] || builtins.elem system (mod.systems or [ ])
     ) modules;
 
+  eval-if-func =
+    maybe-fn: args:
+    let
+      inherit (builtins) isFunction;
+    in
+    if isFunction maybe-fn then (maybe-fn args) else maybe-fn;
+
   # Create a module with common options
   # Usage: mk-module moduleArgs { name = "mymodule"; config = args: { ... }; }
   mk-module =
@@ -129,25 +136,61 @@ rec {
       description ? name,
       options ? { },
       config ? { },
+      conditions ? _: true,
     }:
     let
       inherit (module-args) lib;
       inherit (lib) setAttrByPath getAttrFromPath splitString;
 
-      name-parts = splitString "." name;
-      cfg = getAttrFromPath ([ "rebellion" ] ++ name-parts) module-args.config;
+      name-parts = [ "rebellion" ] ++ (if name == null then [ ] else (splitString "." name));
+      cfg = getAttrFromPath name-parts module-args.config;
 
+      evaluation-args = module-args // {
+        inherit cfg;
+      };
       # Always evaluate config as a function with full module args
-      evaluated-config = if builtins.isFunction config then config module-args else config;
+      evald-config = eval-if-func config evaluation-args;
+      evald-conditions = eval-if-func conditions evaluation-args;
+      evald-options = eval-if-func options evaluation-args;
+
+      base-optionset = if (name != null) then { enable = mkopt-enable description; } else { };
+      should-enable = (name == null) || cfg.enable;
     in
     {
       inherit imports;
+      options = setAttrByPath name-parts (base-optionset // evald-options);
+      config = lib.mkIf (should-enable && evald-conditions) evald-config;
+    };
 
-      options = setAttrByPath ([ "rebellion" ] ++ name-parts) (
-        { enable = mkopt-enable description; } // options
-      );
+  mk-desktop-module =
+    module-args:
+    {
+      name,
+      imports ? [ ],
+      description ? name,
+      options ? { },
+      config ? { },
+      conditions ? _: true,
+    }:
+    let
+      inherit (builtins) isFunction;
+      desktop = module-args.config.rebellion.desktop;
 
-      config = lib.mkIf cfg.enable evaluated-config;
+      evald-conditions =
+        if isFunction conditions then
+          (args: desktop.enable && conditions args)
+        else
+          desktop.enable && conditions;
+    in
+    mk-module module-args {
+      inherit
+        name
+        imports
+        description
+        options
+        config
+        ;
+      conditions = evald-conditions;
     };
 
   ## Alias to make loading shared configurations terse.
