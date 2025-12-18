@@ -1,12 +1,9 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-desktop-module args {
-  name = "desktop.rio";
+  name = "desktop.logseq";
   config =
     { pkgs, ... }:
     {
-      programs.rio = {
-        enable = true;
-        package = pkgs.rio;
-      };
+      home.packages = [ pkgs.logseq ];
     };
 }

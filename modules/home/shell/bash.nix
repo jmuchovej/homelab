@@ -1,43 +1,33 @@
-{
-  config,
-  lib,
-  pkgs,
-  namespace,
-  ...
-}: let
-  inherit (lib) mkIf mkEnableOption;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "shell.bash";
+  config =
+    { pkgs, ... }:
+    {
+      programs.bash = {
+        enable = true;
+        enableCompletion = true;
 
-  cfg = config.rebellion.shell.bash;
-in {
-  options.rebellion.shell.bash = {
-    enable = mkEnableOption "`bash`";
-  };
+        historyControl = [ "ignoredups" ];
+        historyFileSize = 100000;
 
-  config = mkIf cfg.enable {
-    programs.bash = {
-      enable = true;
-      enableCompletion = true;
+        shellOptions = [
+          "autocd"
+          "histappend"
+          "direxpand"
+          "checkwinsize"
+          "extglob"
+          "globstar"
+          "checkjobs"
+        ];
+      };
 
-      historyControl = ["ignoredups"];
-      historyFileSize = 100000;
+      home.sessionVariables = { };
 
-      shellOptions = [
-        "autocd"
-        "histappend"
-        "direxpand"
-        "checkwinsize"
-        "extglob"
-        "globstar"
-        "checkjobs"
+      home.packages = with pkgs; [
+        nix-bash-completions
       ];
+
+      home.file = { };
     };
-
-    home.sessionVariables = {};
-
-    home.packages = with pkgs; [
-      nix-bash-completions
-    ];
-
-    home.file = {};
-  };
 }

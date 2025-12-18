@@ -19,6 +19,7 @@ lib.rebellion.mk-module args {
     };
   config =
     {
+      cfg,
       config,
       pkgs,
       lib,
@@ -27,8 +28,6 @@ lib.rebellion.mk-module args {
     let
       inherit (lib) optionals;
       inherit (pkgs.stdenv) isDarwin;
-
-      cfg = config.rebellion.git;
     in
     {
       home.file.".ssh/allowed_signers".text = "* ${cfg.allowed-signers}";

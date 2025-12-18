@@ -1,23 +1,22 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}: let
-  inherit (lib) mkIf mkEnableOption filterAttrs;
-  inherit (lib.strings) hasInfix;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "shell.nushell";
+  config =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
+      inherit (lib) filterAttrs;
+      inherit (lib.strings) hasInfix;
+    in
+    {
+      programs.nushell = {
+        enable = true;
 
-  cfg = config.rebellion.shell.nushell;
-in {
-  options.rebellion.shell.nushell = {
-    enable = mkEnableOption "`nushell`";
-  };
-
-  config = mkIf cfg.enable {
-    programs.nushell = {
-      enable = true;
-
-      shellAliases = filterAttrs (_k: v: !hasInfix " && " v) config.home.shellAliases;
+        shellAliases = filterAttrs (_k: v: !hasInfix " && " v) config.home.shellAliases;
+      };
     };
-  };
 }

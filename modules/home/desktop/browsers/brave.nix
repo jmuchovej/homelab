@@ -1,35 +1,22 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}:
-let
-  inherit (lib) mkEnableOption mkIf;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-desktop-module args {
+  name = "desktop.brave";
+  config =
+    {
+      cfg,
+      config,
+      pkgs,
+      ...
+    }:
+    {
+      programs.brave = {
+        enable = true;
 
-  cfg = config.rebellion.desktop.brave;
-in
-{
-  options.rebellion.desktop.brave = {
-    enable = mkEnableOption "Brave";
-  };
-
-  config = mkIf cfg.enable {
-    programs.brave = {
-      enable = true;
-
-      # extensions = with pkgs.chromium-extensions; [
-      #   catppuccin.catppuccin-vsc
-      #   eamodio.gitlens
-      #   formulahendry.auto-close-tag
-      #   formulahendry.auto-rename-tag
-      #   github.chromium-github-actions
-      #   github.chromium-pull-request-github
-      #   gruntfuggly.todo-tree
-      #   mkhl.direnv
-      #   chromium-icons-team.vscode-icons
-      #   wakatime.chromium-wakatime
-      # ];
+        # https://discourse.nixos.org/t/home-manager-ungoogled-chromium-with-extensions/15214
+        # https://github.com/nix-community/home-manager/issues/2216#issuecomment-917507881
+        # https://github.com/NixOS/nixpkgs/pull/98014
+        # extensions = with pkgs.chromium-extensions; [
+        # ];
+      };
     };
-  };
 }

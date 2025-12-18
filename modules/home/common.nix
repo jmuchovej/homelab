@@ -1,88 +1,64 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib)
-    types
-    mkOption
-    mkDefault
-    mkIf
-    mkEnableOption
-    ;
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (lib.rebellion) enabled;
-
-  cfg = config.rebellion;
-
-  home-directory =
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = null;
+  options =
+    { cfg, pkgs, ... }:
+    with lib.types;
     let
-      computed =
+      inherit (pkgs.stdenv) isDarwin;
+      inherit (lib.rebellion) mkopt mkopt-enable;
+
+      home-directory =
         if cfg.user.name == null then
           null
         else if isDarwin then
           /Users + "/${cfg.user.name}"
         else
           /home + "/${cfg.user.name}";
-      result = computed;
     in
-    result;
-in
-{
-  options.rebellion = with types; {
-    # host = {
-    #   name = mkOption {
-    #     type = nullOr str;
-    #     default = host;
-    #     description = "The hostname.";
-    #   };
-    # };
+    {
+      # host = {
+      #   name = mkopt (nullOr str) host "The hostname";
+      # };
 
-    user = {
-      name = mkOption {
-        type = nullOr str;
-        description = "Username";
+      user = {
+        name = mkopt (nullOr str) null "Username";
+        home = mkopt (nullOr path) home-directory "Home directory";
+        real-name = mkopt (nullOr str) null "Your real name";
       };
-      home = mkOption {
-        type = nullOr path;
-        default = home-directory;
-        description = "Home Directory";
-      };
-      real-name = mkOption {
-        type = nullOr str;
-        description = "Your real name.";
+
+      nix = {
+        enable = mkopt-enable "configuring nix";
       };
     };
+  config =
+    { cfg, ... }:
+    let
+      inherit (lib) mkDefault mkIf;
+      inherit (lib.rebellion) enabled;
+    in
+    {
+      programs.home-manager = enabled;
+      home.homeDirectory = mkIf (cfg.user.home != null) (mkDefault cfg.user.home);
+      home.preferXdgDirectories = mkDefault true;
 
-    nix = {
-      enable = mkEnableOption "configuring nix";
-    };
-  };
+      nix = {
+        enable = mkDefault cfg.nix.enable;
+        settings = {
+          use-xdg-base-directories = true;
+          warn-dirty = false;
+        };
+      };
 
-  config = {
-    programs.home-manager = enabled;
-    home.homeDirectory = mkIf (cfg.user.home != null) (mkDefault cfg.user.home);
-    home.preferXdgDirectories = mkDefault true;
+      rebellion = {
+        modern-unix = enabled;
+        ssh = enabled;
+        git = enabled;
 
-    nix = {
-      enable = mkDefault cfg.nix.enable;
-      settings = {
-        use-xdg-base-directories = true;
-        warn-dirty = false;
+        shell.zsh = enabled;
+        editor.neovim = enabled // {
+          default = mkDefault true;
+        };
       };
     };
-
-    rebellion = {
-      modern-unix = enabled;
-      ssh = enabled;
-      git = enabled;
-
-      shell.zsh = enabled;
-      editor.neovim = enabled // {
-        default = mkDefault true;
-      };
-    };
-  };
 }

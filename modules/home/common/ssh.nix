@@ -17,6 +17,7 @@ lib.rebellion.mk-module args {
   };
   config =
     {
+      cfg,
       config,
       lib,
       pkgs,
@@ -27,8 +28,6 @@ lib.rebellion.mk-module args {
       inherit (lib.rebellion) enabled;
       inherit (builtins) concatStringsSep;
       inherit (pkgs.stdenv) isLinux isDarwin;
-
-      cfg = config.rebellion.ssh;
 
       # Apply default values to extra-hosts if not already set
       applyHostDefaults =
