@@ -58,7 +58,7 @@ in
     map (name: import (path + "/${name}") args) nixFiles;
 
   # Import all .nix files from a directory and merge them into a single attribute set
-  # Convenience function combining importFiles and mergeAttrs
+  # Convenience function combining import-files and merge-attrs
   # Usage: import-dir ./hooks { inherit pkgs; }
   import-dir =
     path: args:
@@ -73,7 +73,10 @@ in
   # Usage: import-dir-plain ./skills
   # Usage: import-dir-plain ./skills [ "default.nix" ]  # exclude specific files
   import-dir-plain =
-    path: exclude:
+    {
+      path,
+      exclude ? [ ],
+    }:
     let
       exclude-list = if builtins.isList exclude then exclude else [ ];
       nix-files = filter (name: !(builtins.elem name exclude-list)) (get-nix-files' path);

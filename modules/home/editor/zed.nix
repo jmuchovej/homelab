@@ -29,7 +29,16 @@ lib.rebellion.mk-desktop-module args {
 
       programs.zed-editor =
         let
-          languages-lsps = import ./zed/languages-lsps.part.nix { inherit lib pkgs; };
+          inherit (lib.rebellion) import-dir merge-attrs;
+          languages-lsps = import-dir ./zed/languages-lsps { inherit lib pkgs; };
+          zed = import-dir ./zed { inherit lib; };
+          settings = merge-attrs [
+            zed.settings
+            languages-lsps.settings
+          ];
+          keybinds = [ ];
+          # userKeybinds = settings-keybinds.keybinds // languages-lsps.keybinds;
+          # languages-lsps = import ./zed/languages-lsps.part.nix { inherit lib pkgs; };
         in
         {
           enable = true;
@@ -51,18 +60,8 @@ lib.rebellion.mk-desktop-module args {
             "comment"
           ]
           ++ languages-lsps.extensions;
-          userSettings = mkMerge (
-            [ ]
-            ++ (import ./zed/base.part.nix)
-            ++ (import ./zed/editor.part.nix)
-            ++ (import ./zed/files.part.nix)
-            ++ (import ./zed/fonts.part.nix)
-            ++ (import ./zed/panels.part.nix)
-            ++ (import ./zed/themes.part.nix)
-            ++ (import ./zed/vim.part.nix)
-            ++ (import ./zed/workspace.part.nix)
-            ++ languages-lsps.settings
-          );
+          userSettings = settings;
+          userKeymaps = keybinds;
         };
     };
 }
