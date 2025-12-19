@@ -64,6 +64,7 @@ lib.rebellion.mk-module args {
               ];
             };
           };
+
           api.dashboard = true;
 
           certificatesResolvers = {
@@ -85,7 +86,7 @@ lib.rebellion.mk-module args {
             };
 
             postgres = {
-              address = "0.0.0.0:5432";
+              address = "0.0.0.0:5433";
             };
 
             web = {
@@ -111,6 +112,13 @@ lib.rebellion.mk-module args {
                     sans = [ "*.jm0.io" ];
                   }
                 ];
+              };
+              transport = {
+                respondingTimeouts = {
+                  readTimeout = "10m";
+                  writeTimeout = "10m";
+                  idleTimeout = "10m";
+                };
               };
             };
           };
