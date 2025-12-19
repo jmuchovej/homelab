@@ -2,12 +2,7 @@
 lib.rebellion.mk-module args {
   name = "homelab.home-assistant";
   config =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
+    { lib, pkgs, ... }:
     let
       inherit (lib) mkMerge;
       inherit (lib.rebellion.traefik) mk-service;
@@ -42,14 +37,15 @@ lib.rebellion.mk-module args {
               temperature_unit = "F";
             };
           };
-          customComponents =
+          customComponents = (
             with pkgs.home-assistant-custom-components;
             with pkgs.rebellion.home-assistant.components;
             [
               auth_oidc
               adaptive_lighting
               hacs
-            ];
+            ]
+          );
           # customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [ ];
           extraPackages =
             python3Packages: with python3Packages; [

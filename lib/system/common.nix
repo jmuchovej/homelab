@@ -98,9 +98,9 @@ in
                     username = config.username;
                     home-directory = if isNixOS then "/home/${username}" else "/Users/${username}";
                     # hd = builtins.trace "DEBUG[lib/system/common.nix]: home-directory=${toString home-directory}" home-directory;
-                    hd = home-directory;
+                    hd = inputs.lib.mkDefault home-directory;
                   in
-                  /. + hd;
+                  inputs.nixpkgs.lib.mkDefault (/. + hd);
               };
             }
             // (if isNixOS then { _module.args.username = config.username; } else { });

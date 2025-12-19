@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  namespace,
   host,
   ...
 }:
@@ -14,7 +13,7 @@ let
     ;
 
   cfg = config.rebellion.security.sops;
-  default-sops-file = lib.snowfall.fs.get-file "secrets/systems/${host}.sops.yaml";
+  default-sops-file = lib.rebellion.file.get-file "secrets/systems/${host}.sops.yaml";
 in
 {
   options.rebellion.security.sops = with types; {
@@ -37,7 +36,7 @@ in
 
       age = {
         inherit (cfg) sshKeyPaths;
-        generateKey = false;  # This is already done with the host key
+        generateKey = false; # This is already done with the host key
       };
     };
   };

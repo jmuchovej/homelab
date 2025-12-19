@@ -9,10 +9,8 @@
     let
       inherit (lib)
         fix
-        mapAttrs
         mapAttrsRecursive
         filterAttrs
-        meta
         isFunction
         isPath
         isString

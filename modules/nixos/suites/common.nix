@@ -17,16 +17,15 @@ in
 
   config = mkIf cfg.enable {
     rebellion = {
-      nix = enabled;
-
       system = {
+        nix = enabled;
         boot = enabled;
         locale = enabled;
         networking = enabled;
       };
 
       services.openssh = enabled;
-      services.sops = enabled;
+      security.sops = enabled;
     };
 
     environment.systemPackages = with pkgs; [

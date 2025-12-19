@@ -77,7 +77,7 @@ lib.rebellion.mk-module args {
           port = 9000;
           subdomain = "id";
           domain = "jm0.io";
-          extraRouterConfig = {
+          extra-router-config = {
             rule = "Host(`id.jm0.io`) || HostRegexp(`{subdomain:[a-z0-9]+}.lab.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`)";
           };
         };

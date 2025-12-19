@@ -144,21 +144,21 @@ in
             # "pipe-operators"
           ];
           # Automatically detect and use binary caches
-          fallback = true;
+          fallback = mkDefault true;
           # Continue building other derivations if one fails
-          keep-going = true;
-          keep-derivations = true;
-          keep-outputs = true;
-          warn-dirty = false;
-          sandbox = true;
-          preallocate-contents = true;
-          log-lines = 50;
-          http-connections = 0;
+          keep-going = mkDefault true;
+          keep-derivations = mkDefault true;
+          keep-outputs = mkDefault true;
+          warn-dirty = mkDefault false;
+          sandbox = mkDefault true;
+          preallocate-contents = mkDefault true;
+          log-lines = mkDefault 50;
+          http-connections = mkDefault 0;
           flake-registry = "/etc/nix/registry.json";
-          builders-use-substitutes = true;
+          builders-use-substitutes = mkDefault true;
           # download-buffer-size = 500000000;
 
-          auto-optimise-store = isLinux;
+          auto-optimise-store = mkDefault isLinux;
 
           system-features = [
             "kvm"
@@ -175,7 +175,6 @@ in
 
         gc = {
           automatic = mkDefault config.nix.enable;
-          interval = mkDefault "weekly";
           options = mkDefault "--delete-older-than 7d";
         };
       };

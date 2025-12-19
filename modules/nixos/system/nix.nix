@@ -26,6 +26,7 @@ in
       daemonIOSchedClass = "idle";
       daemonIOSchedPriority = 7;
 
+      gc.dates = [ "weekly" ];
       optimise.dates = [ "04:00" ];
 
       settings = {

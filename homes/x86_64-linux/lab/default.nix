@@ -1,17 +1,13 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}: let
+{ lib, ... }:
+let
   inherit (lib.rebellion) enabled;
-in {
+in
+{
   rebellion = {
     user = {
-      inherit (config.snowfallorg.user) name;
+      name = "lab";
+      real-name = "Homelab";
     };
-
-    nix = enabled;
 
     ssh = {
       authorized-keys = [
@@ -21,7 +17,6 @@ in {
 
     # development = enabled;
   };
-
 
   # ======================== DO NOT CHANGE THIS ========================
   home.stateVersion = "24.11";

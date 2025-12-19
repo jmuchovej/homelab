@@ -25,8 +25,6 @@ in
     # '';
 
     environment.systemPackages = with pkgs; [
-      licensor
-
       # Nix Utils
       nix-index
       nix-init

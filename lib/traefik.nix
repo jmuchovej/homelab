@@ -1,6 +1,6 @@
 { inputs }:
 let
-  inherit (inputs.lib) mkDefault mkMerge concatMapStringsSep;
+  inherit (inputs.nixpkgs.lib) mkDefault mkMerge concatMapStringsSep;
 in
 rec {
   # Create a standardized Traefik service configuration

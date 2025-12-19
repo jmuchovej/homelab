@@ -1,14 +1,12 @@
 {
   pkgs,
-  options,
   config,
   lib,
   host,
-  namespace,
   ...
 }:
 let
-	inherit (builtins) elemAt readFile;
+  inherit (builtins) elemAt readFile;
   inherit (lib)
     mkEnableOption
     mkOption
@@ -115,8 +113,8 @@ in
   };
 
   imports = [
-  	./kubernetes/bootstrap-apps.nix
-  	./kubernetes/bootstrap-minio.nix
+    ./kubernetes/bootstrap-apps.nix
+    ./kubernetes/bootstrap-minio.nix
   ];
 
   config =

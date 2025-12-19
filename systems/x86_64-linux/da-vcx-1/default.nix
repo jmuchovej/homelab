@@ -1,9 +1,4 @@
-{
-  lib,
-  pkgs,
-  inputs,
-  ...
-}:
+{ lib, ... }:
 let
   inherit (lib.rebellion) enabled disabled;
 in
@@ -71,7 +66,7 @@ in
       home-assistant = enabled;
     };
 
-    services.kubernetes = enabled // {
+    services.kubernetes = disabled // {
       cidr = {
         cluster = "10.69.0.0/16";
         service = "10.70.0.1/16";

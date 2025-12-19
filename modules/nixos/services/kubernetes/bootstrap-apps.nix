@@ -8,21 +8,33 @@
   ...
 }@args:
 let
-  inherit (lib) mkEnableOption mkOption mkIf types optionals;
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    mkIf
+    types
+    optionals
+    ;
   inherit (lib.lists) forEach;
   inherit (builtins) elemAt concatStringsSep;
   inherit (lib.strings) splitString;
   inherit (lib.rebellion) enabled;
-  inherit (lib.snowfall.fs) get-directories get-file;
+  inherit (lib.rebellion.file) scan-dir get-file;
 
+  k8s = config.rebellion.services.kubernetes;
   cfg = config.rebellion.services.kubernetes.helm;
   yaml-format = (pkgs.formats.yaml { });
 
-  get-k8s = { app, file ? "helm/values.yaml" }: get-file ("kubernetes/apps/" + app + "/app/" + file);
+  get-k8s =
+    {
+      app,
+      file ? "helm/values.yaml",
+    }:
+    get-file ("kubernetes/apps/" + app + "/app/" + file);
   k3s-apply = fn: array: (concatStringsSep "\n" (map (e: "${fn} \"${e}\"") array));
 
   # NOTE: for some reason, this _has to be_ an absolute path? ergo `get-file` prefixes the Nix path
-  k3s-namespaces = get-directories (get-file "kubernetes/apps");
+  k3s-namespaces = scan-dir (get-file "kubernetes/apps");
 
   k3s-resources = [
     (get-file "kubernetes/bootstrap.sops.yaml")
@@ -62,7 +74,7 @@ let
         chart = "oci://ghcr.io/coredns/charts/coredns";
         version = "1.39.2";
         values = [ (get-k8s { app = "kube-system/coredns"; }) ];
-        needs = ["kube-system/cilium"];
+        needs = [ "kube-system/cilium" ];
       }
       {
         name = "cert-manager";
@@ -71,7 +83,7 @@ let
         chart = "oci://quay.io/jetstack/charts/cert-manager";
         version = "v1.17.1";
         values = [ (get-k8s { app = "cert-manager/cert-manager"; }) ];
-        needs = ["kube-system/coredns"];
+        needs = [ "kube-system/coredns" ];
       }
       {
         name = "external-secrets";
@@ -80,8 +92,9 @@ let
         version = "0.16.2";
         values = [ (get-k8s { app = "external-secrets/external-secrets"; }) ];
         hooks = [
-          { # Apply cluster secret store
-            events = ["postsync"];
+          {
+            # Apply cluster secret store
+            events = [ "postsync" ];
             command = "kubectl";
             args = [
               "apply"
@@ -89,13 +102,16 @@ let
               "--server-side"
               "--field-manager=kustomize-controller"
               "--filename"
-              (get-k8s { app = "external-secrets/external-secrets"; file = "clustersecretstore.yaml"; })
+              (get-k8s {
+                app = "external-secrets/external-secrets";
+                file = "clustersecretstore.yaml";
+              })
               "--wait=true"
             ];
             showlogs = true;
           }
         ];
-        needs = ["cert-manager/cert-manager"];
+        needs = [ "cert-manager/cert-manager" ];
       }
       {
         name = "flux-operator";
@@ -104,7 +120,7 @@ let
         chart = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         version = "0.19.0";
         values = [ (get-k8s { app = "flux-system/flux-operator"; }) ];
-        needs = ["external-secrets/external-secrets"];
+        needs = [ "external-secrets/external-secrets" ];
       }
       {
         name = "flux-instance";
@@ -113,12 +129,13 @@ let
         chart = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-instance";
         version = "0.19.0";
         values = [ (get-k8s { app = "flux-system/flux-instance"; }) ];
-        needs = ["flux-system/flux-operator"];
+        needs = [ "flux-system/flux-operator" ];
       }
     ];
   };
-in {
-  config = mkIf cfg.enable {
+in
+{
+  config = mkIf (k8s.enable && cfg.enable) {
     systemd.timers."k3s-bootstrap-apps" = {
       wantedBy = [ "timers.target" ];
       timerConfig = {
@@ -141,9 +158,15 @@ in {
     };
     systemd.services."k3s-bootstrap-apps" = {
       path = with pkgs; [
-        git gawk coreutils
-        kubectl helmfile kubernetes-helm
-        sops age ssh-to-age
+        git
+        gawk
+        coreutils
+        kubectl
+        helmfile
+        kubernetes-helm
+        sops
+        age
+        ssh-to-age
       ];
       environment = {
         KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
@@ -152,71 +175,71 @@ in {
       };
       script = ''
 
-      function apply_namespace() {
-        local NAMESPACE="''${1}"
-        local namespace="rebellion"
+        function apply_namespace() {
+          local NAMESPACE="''${1}"
+          local namespace="rebellion"
 
-        if kubectl get namespace "rebellion" &>/dev/null; then
-          echo "NAMESPACE already exists! (rebellion)"
-          return
-        fi
+          if kubectl get namespace "rebellion" &>/dev/null; then
+            echo "NAMESPACE already exists! (rebellion)"
+            return
+          fi
 
-        if kubectl create namespace "rebellion" --dry-run=client --output=yaml \
-            | kubectl apply --server-side --filename - &>/dev/null; then
-          echo "Created NAMESPACE! (rebellion)"
-        else
-          echo "Failed to create NAMESPACE! (rebellion)"
-        fi
-      }
+          if kubectl create namespace "rebellion" --dry-run=client --output=yaml \
+              | kubectl apply --server-side --filename - &>/dev/null; then
+            echo "Created NAMESPACE! (rebellion)"
+          else
+            echo "Failed to create NAMESPACE! (rebellion)"
+          fi
+        }
 
-      function apply_resource() {
-        local RESOURCE="''${1}"
-        local resource="$(basename ''${RESOURCE})"
+        function apply_resource() {
+          local RESOURCE="''${1}"
+          local resource="$(basename ''${RESOURCE})"
 
-        if [ ! -f "''${RESOURCE}" ]; then
-          echo "File does not exist! (''${resource})"
-          return
-        fi
-        if sops exec-file "''${RESOURCE}" "kubectl diff -f {}" &>/dev/null; then
-          echo "RESOURCE is up-to-date! (''${resource})"
-          return
-        fi
+          if [ ! -f "''${RESOURCE}" ]; then
+            echo "File does not exist! (''${resource})"
+            return
+          fi
+          if sops exec-file "''${RESOURCE}" "kubectl diff -f {}" &>/dev/null; then
+            echo "RESOURCE is up-to-date! (''${resource})"
+            return
+          fi
 
-        if sops exec-file "''${RESOURCE}" "kubectl apply --server-side -f {}" &>/dev/null; then
-          echo "Successfully applied RESOURCE! (''${resource})"
-        else
-          echo "Failed to apply RESOURCE... (''${resource})"
-        fi
-      }
+          if sops exec-file "''${RESOURCE}" "kubectl apply --server-side -f {}" &>/dev/null; then
+            echo "Successfully applied RESOURCE! (''${resource})"
+          else
+            echo "Failed to apply RESOURCE... (''${resource})"
+          fi
+        }
 
-      function apply_crd() {
-        local CRD="''${1}"
-        local crd="$(echo "''${CRD}" | awk -F/ '{print $4"/"$5}')"
+        function apply_crd() {
+          local CRD="''${1}"
+          local crd="$(echo "''${CRD}" | awk -F/ '{print $4"/"$5}')"
 
-        if kubectl diff --filename "''${CRD}" &>/dev/null; then
-          echo "CRD is up-to-date! (''${crd})"
-          return
-        fi
-        if kubectl apply --server-side --filename "''${CRD}" &>/dev/null; then
-          echo "Applied CRD! (''${crd})"
-        else
-          echo "Failed to apply CRD! (''${crd})"
-        fi
-      }
+          if kubectl diff --filename "''${CRD}" &>/dev/null; then
+            echo "CRD is up-to-date! (''${crd})"
+            return
+          fi
+          if kubectl apply --server-side --filename "''${CRD}" &>/dev/null; then
+            echo "Applied CRD! (''${crd})"
+          else
+            echo "Failed to apply CRD! (''${crd})"
+          fi
+        }
 
-      # Apply NAMESPACES
-      ${k3s-apply "apply_namespace" k3s-namespaces}
+        # Apply NAMESPACES
+        ${k3s-apply "apply_namespace" k3s-namespaces}
 
-      # Apply SECRETS
-      ${k3s-apply "apply_resource" k3s-resources}
+        # Apply SECRETS
+        ${k3s-apply "apply_resource" k3s-resources}
 
-      # Apply CRDs
-      ${k3s-apply "apply_crd" k3s-crds}
+        # Apply CRDs
+        ${k3s-apply "apply_crd" k3s-crds}
 
-      # Apply Helm Releases
-      helmfile apply \
-        --file /etc/${config.environment.etc."k3s/helmfile.yaml".target} \
-        --hide-notes --skip-diff-on-install --suppress-diff --suppress-secrets
+        # Apply Helm Releases
+        helmfile apply \
+          --file /etc/${config.environment.etc."k3s/helmfile.yaml".target} \
+          --hide-notes --skip-diff-on-install --suppress-diff --suppress-secrets
       '';
       serviceConfig = {
         Type = "oneshot";

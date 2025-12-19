@@ -1,26 +1,15 @@
-{
-  config,
-  lib,
-  namespace,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib)
-    mkIf
-    mkEnableOption
-    mkBefore
-    ;
-
-  cfg = config.rebellion.services.tailscale;
-in
-{
-  options.rebellion.services.tailscale = {
-    enable = mkEnableOption "tailscale";
-  };
-
-  config = mkIf cfg.enable (
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "services.tailscale";
+  config =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
+      inherit (lib) mkBefore;
       tailscale0 = config.services.tailscale.interfaceName;
     in
     {
@@ -58,7 +47,7 @@ in
         "TS_NO_LOGS_SUPPORT=true"
       ];
 
-      sops.secrets."tailscale/key".sopsFile = lib.snowfall.fs.get-file "secrets/secrets.sops.yaml";
+      sops.secrets."tailscale/key".sopsFile = lib.rebellion.file.get-file "secrets/secrets.sops.yaml";
 
       systemd.services.tailscale-autoconnect = {
         enable = true;
@@ -97,6 +86,5 @@ in
             --auth-key "file:${config.sops.secrets."tailscale/key".path}"
         '';
       };
-    }
-  );
+    };
 }

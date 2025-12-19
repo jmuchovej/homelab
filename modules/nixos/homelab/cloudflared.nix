@@ -1,26 +1,17 @@
-{
-  config,
-  lib,
-  namespace,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "homelab.cloudflared";
+  config =
+    { config, lib, ... }:
+    let
+      inherit (lib.rebellion.file) get-file;
+    in
+    {
+      sops.secrets."cloudflared" = {
+        sopsFile = get-file "secrets/secrets.sops.yaml";
+      };
 
-  cfg = config.rebellion.homelab.cloudflared;
-in {
-  options.rebellion.homelab.cloudflared = {
-    enable = mkEnableOption "cloudflared";
-  };
-
-  config = mkIf cfg.enable {
-    sops.secrets."cloudflared" = {
-      sopsFile = lib.snowfall.fs.get-file "secrets/secrets.sops.yaml";
-      owner = "cloudflared";
-    };
-
-    services = {
-      cloudflared = {
+      services.cloudflared = {
         enable = true;
         tunnels = {
           "3326fa87-32b9-4693-9c86-3cbe4e735195" = {
@@ -30,5 +21,4 @@ in {
         };
       };
     };
-  };
 }

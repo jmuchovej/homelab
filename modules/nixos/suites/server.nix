@@ -6,7 +6,7 @@
 let
   inherit (lib) mkIf mkEnableOption mkForce;
   inherit (lib.rebellion) enabled;
-  inherit (lib.snowfall.fs) get-file;
+  inherit (lib.rebellion.file) get-file;
 
   cfg = config.rebellion.suites.server;
 in

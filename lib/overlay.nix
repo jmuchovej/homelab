@@ -32,6 +32,7 @@ in
     get-nix-files
     import-files
     import-dir
+    scan-dir
     import-dir-plain
     import-subdirs
     import-modules-recursive

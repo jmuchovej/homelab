@@ -5,7 +5,7 @@ lib.rebellion.mk-module args {
     { config, lib, ... }:
     let
       inherit (lib) mkForce;
-      inherit (lib.rebellion) get-file;
+      inherit (lib.rebellion.file) get-file;
     in
     {
       networking.firewall.allowedTCPPorts = [

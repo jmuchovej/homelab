@@ -29,7 +29,15 @@ in
   path-exists = path: builtins.pathExists path;
 
   # Import a nix file with error handling
-  safe-import = path: default: if builtins.pathExists path then import path else default;
+  # If path is a directory, will look for default.nix within it
+  safe-import =
+    path: default:
+    let
+      pathType = builtins.readFileType path;
+      # If it's a directory, check for default.nix inside it
+      actualPath = if pathType == "directory" then path + "/default.nix" else path;
+    in
+    if builtins.pathExists actualPath then import path else default;
 
   # Scan a directory and return directory names
   scan-dir = path: builtins.attrNames (builtins.readDir path);

@@ -50,6 +50,15 @@ in
       histFile = "$XDG_CACHE_HOME/zsh.history";
     };
 
+    home-manager = {
+      backupFileExtension = "hm.bak";
+
+      useUserPackages = true;
+      useGlobalPkgs = true;
+
+      verbose = true;
+    };
+
     users.users.${cfg.name} = {
       inherit (cfg) name;
 
@@ -61,11 +70,13 @@ in
         "audio"
         "video"
         "nix"
-      ] ++ cfg.extra.groups;
+      ]
+      ++ cfg.extra.groups;
 
       group = "users";
       home = "/home/${cfg.name}";
       isNormalUser = true;
-    } // cfg.extra.options;
+    }
+    // cfg.extra.options;
   };
 }
