@@ -14,14 +14,9 @@ lib.rebellion.mk-module args {
       ];
 
       systemd.services.traefik = {
-        environment = {
-          CF_API_EMAIL = "homelab@jm0.io";
-        };
-        serviceConfig = {
-          EnvironmentFile = [
-            config.sops.secrets."cloudflare/api-key".path
-          ];
-        };
+        serviceConfig.EnvironmentFile = [
+          config.sops.secrets."cloudflare/api-key".path
+        ];
         after = [ "tailscaled.service" ];
         wants = [ "tailscaled.service" ];
       };
@@ -56,13 +51,11 @@ lib.rebellion.mk-module args {
                 StartUTC = "drop";
               };
             };
-            filters = {
-              statusCodes = [
-                "204-299"
-                "400-499"
-                "500-599"
-              ];
-            };
+            filters.statusCodes = [
+              "204-299"
+              "400-499"
+              "500-599"
+            ];
           };
 
           api.dashboard = true;
@@ -73,9 +66,7 @@ lib.rebellion.mk-module args {
               acme = {
                 email = "homelab@jm0.io";
                 storage = "${config.services.traefik.dataDir}/acme.json";
-                dnsChallenge = {
-                  provider = "cloudflare";
-                };
+                dnsChallenge.provider = "cloudflare";
               };
             };
           };
