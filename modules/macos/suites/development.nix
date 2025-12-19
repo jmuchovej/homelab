@@ -29,6 +29,7 @@ in
       casks = [
         "flutter"
         "powershell"
+        "beekeeper-studio"
       ];
 
       masApps = mkIf brew.mas.enable {
