@@ -19,18 +19,18 @@ rec {
       extra-service-config ? { },
     }:
     let
-      rules =
+      rule =
         if builtins.isList subdomain then
-          concatMapStringsSep " || " (sub: "`${sub}.${domain}`") subdomain
+          "Host(" + (concatMapStringsSep " || " (sub: "`${sub}.${domain}`") subdomain) + ")"
         else if builtins.isString subdomain then
-          "${subdomain}.${domain}"
+          "Host(`${subdomain}.${domain}`)"
         else
-          domain;
+          "Host(`${domain}`)";
     in
     {
       routers.${name} = mkMerge [
         {
-          rule = mkDefault "Host(`${rules}`)";
+          rule = mkDefault rule;
           service = name;
           entryPoints = entry-points;
           tls.certResolver = cert-resolver;
