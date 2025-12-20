@@ -15,6 +15,12 @@ in
       ];
     };
 
+    editor.neovim = enabled // {
+      default = true;
+    };
+    shell.zsh = enabled;
+    services.sops = enabled;
+
     # development = enabled;
   };
 
