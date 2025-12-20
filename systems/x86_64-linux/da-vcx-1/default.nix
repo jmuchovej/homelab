@@ -64,6 +64,7 @@ in
       cloudflared = enabled;
       traefik = enabled;
       home-assistant = enabled;
+      media = enabled;
     };
 
     services.kubernetes = disabled // {
