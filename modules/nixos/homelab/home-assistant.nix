@@ -24,11 +24,11 @@ lib.rebellion.mk-module args {
             default_config = { };
             http = {
               server_port = 8123;
-              use_x_forwarded_for = true;
-              server_host = [
-                "0.0.0.0"
-                "::"
-              ];
+              # use_x_forwarded_for = true;
+              # Deprecated, but it seems people are angry. (:
+              #   https://github.com/home-assistant/core/issues/157961
+              # server_host = [ "0.0.0.0" "::" ];
+              proxy = { };
             };
             homeassistant = {
               name = "Home";
@@ -56,6 +56,8 @@ lib.rebellion.mk-module args {
             ];
           extraComponents = [
             "default_config"
+            "network"
+            "zeroconf"
             "met"
             "esphome"
             "apple_tv"
