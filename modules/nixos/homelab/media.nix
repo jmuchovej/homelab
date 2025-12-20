@@ -33,24 +33,22 @@ lib.rebellion.mk-module args {
       };
 
       services.traefik.dynamicConfigOptions.http = mkMerge [
-        mk-service
-        {
+        (mk-service {
           name = "plex";
           port = 32400;
           subdomain = [
             "plex"
             "play"
           ];
-        }
-        mk-service
-        {
+        })
+        (mk-service {
           name = "seerr";
           port = 5055;
           subdomain = [
             "seerr"
             "request"
           ];
-        }
+        })
       ];
     };
 }
