@@ -8,28 +8,22 @@ lib.rebellion.mk-module args {
       inherit (lib.rebellion.traefik) mk-service;
     in
     {
-      users.groups.media = {
-        name = "media";
-        gid = 911;
-      };
+      users.users.lab.extraGroups = [ "plex" ];
 
       services.plex = {
         enable = true;
         accelerationDevices = [ "*" ];
         openFirewall = true;
-        dataDir = "/warp/apps/plex";
       };
 
       services.tautulli = {
         enable = true;
         openFirewall = true;
-        dataDir = "/warp/apps/tautulli";
       };
 
       services.jellyseerr = {
         enable = true;
         openFirewall = true;
-        configDir = "/warp/apps/seerr";
       };
 
       services.traefik.dynamicConfigOptions.http = mkMerge [
