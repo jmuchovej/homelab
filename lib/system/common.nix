@@ -116,6 +116,27 @@ in
       ext-lib,
       system,
     }:
+    let
+      inherit (inputs.nixpkgs.lib) splitString concatStringsSep;
+      inherit (builtins) head tail length;
+
+      # Parse hostname into datacenter and nodename
+      # Example: "da-vcx-1" -> { datacenter = "da"; nodename = "vcx-1"; }
+      parsed =
+        let
+          parts = splitString "-" hostname;
+        in
+        if length parts >= 2 then
+          {
+            datacenter = head parts;
+            nodename = concatStringsSep "-" (tail parts);
+          }
+        else
+          {
+            datacenter = null;
+            nodename = hostname;
+          };
+    in
     {
       inherit
         inputs
@@ -124,6 +145,7 @@ in
         system
         ;
       inherit (inputs) self;
+      inherit (parsed) datacenter nodename;
       lib = ext-lib;
       flake-parts-lib = inputs.flake-parts.lib;
       format = "system";
