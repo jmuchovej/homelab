@@ -16,7 +16,6 @@ lib.rebellion.mk-module args {
 
         services.home-assistant = {
           enable = true;
-          configDir = "/warp/apps/home-assistant";
           openFirewall = true;
           configWritable = true;
           lovelaceConfigWritable = true;
@@ -24,11 +23,18 @@ lib.rebellion.mk-module args {
             default_config = { };
             http = {
               server_port = 8123;
-              # use_x_forwarded_for = true;
               # Deprecated, but it seems people are angry. (:
               #   https://github.com/home-assistant/core/issues/157961
               # server_host = [ "0.0.0.0" "::" ];
-              proxy = { };
+              # NOTE: disabled authentik is configured correctly
+              # use_x_forwarded_for = true;
+              # trusted_proxies = [
+              #   "10.42.0.0/16"
+              #   "10.69.0.0/16"
+              #   "10.94.0.0/16"
+              #   "10.99.0.0/16"
+              #   "192.168.1.0/24"
+              # ];
             };
             homeassistant = {
               name = "Home";
@@ -58,6 +64,7 @@ lib.rebellion.mk-module args {
             "default_config"
             "network"
             "zeroconf"
+            "isal"
             "met"
             "esphome"
             "apple_tv"
