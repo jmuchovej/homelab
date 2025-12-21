@@ -1,13 +1,24 @@
-{ lib, ... }@args:
+{ lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "homelab.traefik";
   config =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib) mkForce;
+      inherit (lib.generators) toYAML;
+      inherit (lib.rebellion) enabled;
       inherit (lib.rebellion.file) get-file;
+
+      data-dir = config.services.traefik.dataDir;
     in
     {
+      rebellion.security.certificates = enabled;
+
       networking.firewall.allowedTCPPorts = [
         80
         443
@@ -28,10 +39,20 @@ lib.rebellion.mk-module args {
       services.traefik = {
         enable = true;
 
+        dynamicConfigOptions = {
+          # TLS certificates for local .lab domains
+          tls.certificates = [
+            {
+              certFile = config.sops.secrets."certs/lab.crt".path;
+              keyFile = config.sops.secrets."certs/lab.key".path;
+            }
+          ];
+        };
+
         staticConfigOptions = {
           log = {
             level = "INFO";
-            filePath = "${config.services.traefik.dataDir}/traefik.log";
+            filePath = "${data-dir}/traefik.log";
             format = "json";
             noColor = false;
             maxSize = 100;
@@ -44,7 +65,7 @@ lib.rebellion.mk-module args {
 
           accessLog = {
             addInternals = true;
-            filePath = "${config.services.traefik.dataDir}/traefik-access.log";
+            filePath = "${data-dir}/traefik-access.log";
             bufferingSize = 100;
             fields = {
               names = {
@@ -65,21 +86,15 @@ lib.rebellion.mk-module args {
             letsencrypt = {
               acme = {
                 email = "homelab@jm0.io";
-                storage = "${config.services.traefik.dataDir}/acme.json";
+                storage = "${data-dir}/acme.json";
                 dnsChallenge.provider = "cloudflare";
               };
             };
           };
 
           entryPoints = {
-            redis = {
-              address = "0.0.0.0:6381";
-            };
-
-            postgres = {
-              address = "0.0.0.0:5433";
-            };
-
+            redis.address = "0.0.0.0:6381";
+            postgres.address = "0.0.0.0:5433";
             web = {
               address = "0.0.0.0:80";
               http.redirections.entryPoint = {
