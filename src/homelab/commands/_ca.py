@@ -43,7 +43,7 @@ def generate(
     ca_validity: Annotated[int, Option(help="CA certificate validity in days")] = 365 * 10,
     cert_validity: Annotated[int, Option(help="Wildcard certificate validity in days")] = 825,
     force: Annotated[bool, Option("-f", "--force", help="Overwrite existing certificates without prompting")] = False,
-    output_dir: Annotated[Path | None, Option("-o", "--output-dir", help="Output directory (default: secrets/ca/<datacenter>)")] = None,
+    output_dir: Annotated[Path | None, Option("-o", "--output-dir", help="Output directory (default: secrets/certificates/<datacenter>)")] = None,
 ) -> None:
     """
     Generate self-signed CA and wildcard certificates for homelab domains.
@@ -123,11 +123,11 @@ def generate(
             wildcard_key,
             ca_cert,
             ca_key,
-            f"*.{datacenter}-*.{domain_suffix}",
             datacenter,
-            domain_suffix,
-            t1,
-            cert_validity,
+            name=f"*.{datacenter}-*.{domain_suffix}",
+            suffix=domain_suffix,
+            t1=t1,
+            duration=cert_validity,
         )
 
         save_priv_key(wildcard_key, ca_dir / "wildcard.key")

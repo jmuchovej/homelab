@@ -60,7 +60,8 @@ def _attrs(name: str) -> list[NameAttribute]:
 def _builder(
     subject: Name,
     issuer: Name,
-    priv_key: RSAPrivateKey,
+    subject_key: RSAPrivateKey,
+    signing_key: RSAPrivateKey,
     t1: datetime,
     dt: int,
     extensions: list[tuple[ExtensionType, bool]]
@@ -77,8 +78,10 @@ def _builder(
         X.509 subject name for the certificate.
     issuer : Name
         X.509 issuer name (same as subject for self-signed CA).
-    priv_key : RSAPrivateKey
-        Private key used to sign the certificate.
+    subject_key : RSAPrivateKey
+        Private key whose public key will be embedded in the certificate.
+    signing_key : RSAPrivateKey
+        Private key used to sign the certificate (CA key for child certs).
     t1 : datetime
         Certificate validity start date.
     dt : int
@@ -95,16 +98,16 @@ def _builder(
         CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
-        .public_key(priv_key.public_key())
+        .public_key(subject_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(t1)
         .not_valid_after(t1 + timedelta(days=dt))
     )
 
     for (extension, critical) in extensions:
-        builder.add_extension(extension, critical=critical)
+        builder = builder.add_extension(extension, critical=critical)
 
-    return builder.sign(priv_key, hashes.SHA256())
+    return builder.sign(signing_key, hashes.SHA256())
 
 def gen_cert_auth(
     priv_key: RSAPrivateKey,
@@ -148,7 +151,7 @@ def gen_cert_auth(
         decipher_only=False,
     )
     ext3 = x509.SubjectKeyIdentifier.from_public_key(priv_key.public_key())
-    return _builder(subject, issuer, priv_key, t1, duration, [
+    return _builder(subject, issuer, priv_key, priv_key, t1, duration, [
         (ext1, True),
         (ext2, True),
         (ext3, False)
@@ -221,7 +224,7 @@ def gen_cert_child(
     )
     ext4 = x509.SubjectKeyIdentifier.from_public_key(priv_key.public_key())
     ext5 = x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key())
-    return _builder(subject, ca_cert.subject, priv_key, t1, duration, [
+    return _builder(subject, ca_cert.subject, priv_key, ca_key, t1, duration, [
         (ext1, False),
         (ext2, True),
         (ext3, True),
