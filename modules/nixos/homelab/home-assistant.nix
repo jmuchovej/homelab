@@ -2,7 +2,12 @@
 lib.rebellion.mk-module args {
   name = "homelab.home-assistant";
   config =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      hostname,
+      ...
+    }:
     let
       inherit (lib) mkMerge;
       inherit (lib.rebellion.traefik) mk-service;
@@ -95,6 +100,7 @@ lib.rebellion.mk-module args {
       }
       {
         services.traefik.dynamicConfigOptions.http = mk-service {
+          inherit hostname;
           name = "hass";
           port = 8123;
           subdomain = "home-assistant";

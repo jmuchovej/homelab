@@ -6,6 +6,7 @@ lib.rebellion.mk-module args {
       config,
       pkgs,
       lib,
+      hostname,
       ...
     }:
     let
@@ -73,6 +74,7 @@ lib.rebellion.mk-module args {
 
       {
         services.traefik.dynamicConfigOptions.http = mk-service {
+          inherit hostname;
           name = "auth";
           port = 9000;
           subdomain = "id";

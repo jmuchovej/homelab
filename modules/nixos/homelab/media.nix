@@ -2,7 +2,7 @@
 lib.rebellion.mk-module args {
   name = "homelab.media";
   config =
-    { lib, ... }:
+    { lib, hostname, ... }:
     let
       inherit (lib) mkMerge;
       inherit (lib.rebellion.traefik) mk-service;
@@ -28,6 +28,7 @@ lib.rebellion.mk-module args {
 
       services.traefik.dynamicConfigOptions.http = mkMerge [
         (mk-service {
+          inherit hostname;
           name = "plex";
           port = 32400;
           subdomain = [
@@ -36,6 +37,7 @@ lib.rebellion.mk-module args {
           ];
         })
         (mk-service {
+          inherit hostname;
           name = "seerr";
           port = 5055;
           subdomain = [
