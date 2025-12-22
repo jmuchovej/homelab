@@ -1,89 +1,91 @@
 {
-  config,
+  inputs,
   lib,
   pkgs,
   ...
-}:
-let
-  inherit (lib) mkIf mkOption mkEnableOption;
-  inherit (lib.types) nullOr str int;
-
-  cfg = {
-    user = config.rebellion.user;
-    homebrew = config.rebellion.homebrew;
-  };
-
-  #! https://github.com/LnL7/nix-darwin/issues/852
-  #! According to ️^, the using `nix.linux-builder` with `nix*-unstable` doesn't work...
-  # linux-builder-package = inputs.nixpkgs-stable.legacyPackages.${system}.darwin.linux-builder;
-in
-{
-  options.rebellion.user = {
-    name = mkOption {
-      type = str;
-      default = "john";
-      description = "The user account.";
-    };
-    email = mkOption {
-      type = str;
-      default = "jmuchovej@pm.me";
-      description = "The user's email.";
-    };
-    fullName = mkOption {
-      type = str;
-      default = "John Muchovej";
-      description = "The user's full name";
-    };
-    uid = mkOption {
-      type = nullOr int;
-      default = 501; # 'cause apple's weird >.>
-      description = "The user's account UID.";
-    };
-  };
-
-  options.rebellion.homebrew = {
-    enable = mkEnableOption "homebrew";
-    mas = {
-      enable = mkEnableOption "Mac App Store downloads";
-    };
-  };
-
-  config = {
-    users.users.${cfg.user.name} = {
-      uid = mkIf (cfg.user.uid != null) cfg.user.uid;
-      shell = pkgs.zsh;
-    };
-
-    homebrew = mkIf cfg.homebrew.enable {
-      enable = true;
-
-      global = {
-        brewfile = true;
-        autoUpdate = true;
+}@args:
+lib.rebellion.mk-module args {
+  name = null;
+  options =
+    let
+      inherit (lib.types) str nullOr int;
+      inherit (lib.rebellion) mkopt mkopt-enable;
+    in
+    {
+      user = {
+        name = mkopt str "john" "The user's account";
+        email = mkopt str "john@jm0.io" "The user's email";
+        full-name = mkopt str "John Muchovej" "The user's full name.";
+        uid = mkopt (nullOr int) 501 "The user's account UID";
       };
-
-      onActivation = {
-        autoUpdate = true;
-        cleanup = "uninstall";
-        upgrade = true;
+      homebrew = {
+        enable = mkopt-enable "homebrew";
+        mas.enable = mkopt-enable "Mac App Store downloads";
       };
     };
+  config =
+    {
+      cfg,
+      lib,
+      pkgs,
+      inputs,
+      ...
+    }:
+    let
+      #! https://github.com/LnL7/nix-darwin/issues/852
+      #! According to ️^, the using `nix.linux-builder` with `nix*-unstable` doesn't work...
+      # linux-builder-package = inputs.nixpkgs-stable.legacyPackages.${system}.darwin.linux-builder;
+    in
+    {
+      users.users.${cfg.user.name} = {
+        uid = lib.mkIf (cfg.user.uid != null) cfg.user.uid;
+        shell = pkgs.zsh;
+      };
 
-    # home.extraOptions = {
-    #   home.shellAliases = {
-    #     # Prevent shell log command from overriding macOS log
-    #     log = ''command log'';
-    #   };
-    # };
+      homebrew = lib.mkIf (cfg.homebrew.enable) {
+        enable = true;
 
-    environment.systemPackages = with pkgs; [
-      gawk
-      gnugrep
-      gnupg
-      gnused
-      gnutls
-      terminal-notifier
-      trash-cli
-    ];
-  };
+        global = {
+          brewfile = true;
+          autoUpdate = true;
+        };
+
+        onActivation = {
+          autoUpdate = true;
+          cleanup = "uninstall";
+          upgrade = true;
+        };
+
+        brews = [ ];
+      };
+
+      nix-homebrew = lib.mkIf (cfg.homebrew.enable) {
+        enable = true;
+        user = cfg.user.name;
+
+        taps = {
+          "homebrew/core" = inputs.homebrew-core;
+          "homebrew/cask" = inputs.homebrew-cask;
+          "homebrew/bundle" = inputs.homebrew-bundle;
+          "homebrew/services" = inputs.homebrew-services;
+        };
+      };
+
+      # home.extraOptions = {
+      #   home.shellAliases = {
+      #     # Prevent shell log command from overriding macOS log
+      #     log = ''command log'';
+      #   };
+      # };
+
+      environment.systemPackages = with pkgs; [
+        gawk
+        gnugrep
+        gnupg
+        gnused
+        gnutls
+        terminal-notifier
+        trash-cli
+      ];
+    };
 }
