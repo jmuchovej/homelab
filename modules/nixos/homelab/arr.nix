@@ -17,7 +17,10 @@ lib.rebellion.mk-module args {
         {
           sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
 
-          services.postgresql.ensureDatabases = [ name ];
+          services.postgresql.ensureDatabases = [
+            name
+            "${name}-log"
+          ];
           services.postgresql.ensureUsers = [
             {
               inherit name;
