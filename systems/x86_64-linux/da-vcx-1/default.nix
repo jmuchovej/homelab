@@ -65,6 +65,7 @@ in
       traefik = enabled;
       home-assistant = enabled;
       media = enabled;
+      postgres = enabled;
     };
 
     services.kubernetes = disabled // {
