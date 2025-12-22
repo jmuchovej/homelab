@@ -40,14 +40,8 @@ lib.rebellion.mk-module args {
           };
         };
 
-        services.cloudflared = {
-          tunnels = {
-            "3326fa87-32b9-4693-9c86-3cbe4e735195" = {
-              ingress = {
-                "id.jm0.io" = "http://localhost:9000";
-              };
-            };
-          };
+        services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
+          "id.jm0.io" = "http://localhost:9000";
         };
 
         services.traefik.dynamicConfigOptions.http.middlewares = {
@@ -80,7 +74,7 @@ lib.rebellion.mk-module args {
           subdomain = "id";
           domain = "jm0.io";
           extra-router-config = {
-            rule = "Host(`id.jm0.io`) || HostRegexp(`{subdomain:[a-z0-9]+}.lab.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`)";
+            rule = "Host(`id.jm0.io`) || HostRegexp(`[a-z0-9]+\.lab\.jm0\.io`) && PathPrefix(`/outpost.goauthentik.io/`)";
           };
         };
       }
