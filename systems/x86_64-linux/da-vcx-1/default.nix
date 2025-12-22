@@ -66,6 +66,7 @@ in
       home-assistant = enabled;
       media = enabled;
       postgres = enabled;
+      arr = enabled;
     };
 
     services.kubernetes = disabled // {
