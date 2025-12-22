@@ -3,11 +3,11 @@ lib.rebellion.mk-module args {
   name = "homelab.postgres";
   options =
     let
-      inherit (lib.rebellion) mkopt';
+      inherit (lib.rebellion) mkopt;
       inherit (lib.types) nullOr path;
     in
     {
-      init-script = mkopt' (nullOr path) "Initial script to run on PostgreSQL startup";
+      init-script = mkopt (nullOr path) null "Initial script to run on PostgreSQL startup";
     };
   config =
     {
@@ -18,7 +18,7 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebelleion.file) get-file;
+      inherit (lib.rebellion.file) get-file;
     in
     {
       sops.secrets."postgres/terraform".sopsFile = (get-file "secrets/secrets.sops.yaml");
