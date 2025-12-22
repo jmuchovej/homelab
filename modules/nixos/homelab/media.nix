@@ -26,6 +26,12 @@ lib.rebellion.mk-module args {
         openFirewall = true;
       };
 
+      services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
+        "seerr.jm0.io" = "http://localhost:5055";
+        "request.jm0.io" = "http://localhost:5055";
+        "requests.jm0.io" = "http://localhost:5055";
+      };
+
       services.traefik.dynamicConfigOptions.http = mkMerge [
         (mk-service {
           inherit hostname;
@@ -43,6 +49,7 @@ lib.rebellion.mk-module args {
           subdomain = [
             "seerr"
             "request"
+            "requests"
           ];
         })
       ];
