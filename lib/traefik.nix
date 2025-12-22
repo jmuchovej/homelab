@@ -3,7 +3,7 @@ let
   inherit (inputs.nixpkgs.lib)
     mkDefault
     mkMerge
-    concatMapStringsSep
+    concatStringsSep
     ;
 in
 rec {
@@ -37,7 +37,7 @@ rec {
       # Build rule for public domain
       pub-rule =
         if builtins.isList subdomain then
-          "Host(" + (concatMapStringsSep " || " (sub: "`${sub}.${domain}`") subdomain) + ")"
+          "HostRegexp(`(" + (concatStringsSep "|" subdomain) + ")\.${domain}$`)"
         else if builtins.isString subdomain then
           "Host(`${subdomain}.${domain}`)"
         else
@@ -46,7 +46,7 @@ rec {
       # Build rule for local .lab domain
       lab-rule =
         if builtins.isList subdomain then
-          "Host(" + (concatMapStringsSep " || " (sub: "`${sub}.${hostname}.lab`") subdomain) + ")"
+          "HostRegexp(`(" + (concatStringsSep "\|" subdomain) + ")\.${hostname}.lab$`)"
         else if builtins.isString subdomain then
           "Host(`${subdomain}.${hostname}.lab`)"
         else
@@ -74,7 +74,6 @@ rec {
           tls = { }; # Certificate provided via file provider in traefik.nix
           middlewares = middlewares;
         }
-        extra-router-config
       ];
 
       # Backend service (shared by both routers)
