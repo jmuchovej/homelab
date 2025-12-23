@@ -9,8 +9,31 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion) get-file;
       inherit (lib.rebellion.traefik) mk-authd-service;
+
+      arrs = [
+        {
+          port = 7878;
+          name = "radarr";
+        }
+        {
+          port = 8989;
+          name = "sonarr";
+        }
+        {
+          port = 8686;
+          name = "lidarr";
+        }
+        # { port = 6767; name = "bazarr"; }
+        {
+          port = 8787;
+          name = "readarr";
+        }
+        {
+          port = 9696;
+          name = "prowlarr";
+        }
+      ];
 
       mkarr =
         { name, port }:
@@ -40,26 +63,17 @@ lib.rebellion.mk-module args {
         };
     in
     lib.mkMerge [
-      (mkarr {
-        port = 7878;
-        name = "radarr";
-      })
-      (mkarr {
-        port = 8989;
-        name = "sonarr";
-      })
-      (mkarr {
-        port = 8686;
-        name = "lidarr";
-      })
-      # (mkarr { port = 6767; name = "bazarr"; })
-      (mkarr {
-        port = 8787;
-        name = "readarr";
-      })
-      (mkarr {
-        port = 9696;
-        name = "prowlarr";
-      })
+      # PostgreSQL permissions for all *arr apps
+      {
+        systemd.services.postgresql.postStart = lib.mkAfter (
+          lib.concatMapStringsSep "\n" (app: ''
+            psql -tAc 'GRANT ALL ON SCHEMA public TO "${app.name}"' -d ${app.name}
+            psql -tAc 'GRANT ALL ON SCHEMA public TO "${app.name}"' -d ${app.name}-log
+          '') arrs
+        );
+      }
+
+      # Individual *arr service configurations
+      (lib.mkMerge (map mkarr arrs))
     ];
 }
