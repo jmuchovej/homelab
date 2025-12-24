@@ -2,10 +2,58 @@
 lib.rebellion.mk-module args {
   name = "homelab.media";
   config =
-    { lib, hostname, ... }:
+    {
+      lib,
+      hostname,
+      config,
+      ...
+    }:
     let
-      inherit (lib) mkMerge;
+      inherit (lib) mkMerge mkIf;
       inherit (lib.rebellion.traefik) mk-service;
+
+      # Check if mesh (Consul) is enabled
+      consul-enabled = config.services.mesh.enable or false;
+
+      # Helper to register a service in Consul
+      mk-consul-service =
+        {
+          name,
+          port,
+          subdomains ? [ ],
+          checks ? [ ],
+        }:
+        {
+          service = {
+            id = "${name}-${hostname}";
+            inherit name port;
+            address = config.networking.hostName;
+
+            tags = [
+              "traefik.enable=true"
+            ]
+            ++ (map (sub: "traefik.http.routers.${name}.rule=Host(`${sub}.lab`)") subdomains)
+            ++ [
+              "traefik.http.services.${name}.loadbalancer.server.port=${toString port}"
+            ];
+
+            checks =
+              if checks == [ ] then
+                [
+                  {
+                    http = "http://localhost:${toString port}";
+                    interval = "10s";
+                    timeout = "2s";
+                  }
+                ]
+              else
+                checks;
+
+            meta = {
+              node = hostname;
+            };
+          };
+        };
     in
     {
       users.users.lab.extraGroups = [ "plex" ];
@@ -32,6 +80,7 @@ lib.rebellion.mk-module args {
         "requests.jm0.io" = "http://localhost:5055";
       };
 
+      # Traefik configuration (existing)
       services.traefik.dynamicConfigOptions.http = mkMerge [
         (mk-service {
           inherit hostname;
@@ -53,5 +102,54 @@ lib.rebellion.mk-module args {
           ];
         })
       ];
+
+      # Consul service registration (when mesh is enabled)
+      environment.etc = mkIf consul-enabled {
+        "consul.d/plex.json".text = builtins.toJSON (mk-consul-service {
+          name = "plex";
+          port = 32400;
+          subdomains = [
+            "plex"
+            "play"
+          ];
+          checks = [
+            {
+              http = "http://localhost:32400/web/index.html";
+              interval = "10s";
+              timeout = "2s";
+            }
+          ];
+        });
+
+        "consul.d/tautulli.json".text = builtins.toJSON (mk-consul-service {
+          name = "tautulli";
+          port = 8181;
+          subdomains = [ "tautulli" ];
+          checks = [
+            {
+              http = "http://localhost:8181/status";
+              interval = "10s";
+              timeout = "2s";
+            }
+          ];
+        });
+
+        "consul.d/jellyseerr.json".text = builtins.toJSON (mk-consul-service {
+          name = "jellyseerr";
+          port = 5055;
+          subdomains = [
+            "seerr"
+            "request"
+            "requests"
+          ];
+          checks = [
+            {
+              http = "http://localhost:5055/api/v1/status";
+              interval = "10s";
+              timeout = "2s";
+            }
+          ];
+        });
+      };
     };
 }

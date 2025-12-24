@@ -45,6 +45,14 @@ in
       };
     };
 
+    services.mesh = enabled // {
+      consul = {
+        server = true;
+        bootstrap-expect = 1;
+      };
+      vip.priority = 100;
+    };
+
     system = {
       nix = enabled;
       boot = enabled // {

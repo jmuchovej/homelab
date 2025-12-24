@@ -1,16 +1,25 @@
-{ lib, pkgs, ... }@args:
+{ lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "homelab.traefik";
+
+  options =
+    { lib, ... }:
+    let
+      inherit (lib.rebellion) mkopt-bool;
+    in
+    {
+      consul-integration = mkopt-bool false "Enable Consul Catalog integration for service discovery";
+    };
+
   config =
     {
+      cfg,
       config,
       lib,
-      pkgs,
       ...
     }:
     let
-      inherit (lib) mkForce;
-      inherit (lib.generators) toYAML;
+      inherit (lib) mkForce mkIf;
       inherit (lib.rebellion) enabled;
       inherit (lib.rebellion.file) get-file;
 
@@ -28,8 +37,9 @@ lib.rebellion.mk-module args {
         serviceConfig.EnvironmentFile = [
           config.sops.secrets."cloudflare/api-key".path
         ];
-        after = [ "tailscaled.service" ];
-        wants = [ "tailscaled.service" ];
+        # When consul integration is enabled, ensure consul is running
+        after = [ "tailscaled.service" ] ++ lib.options cfg.consul-integration [ "consul.service" ];
+        wants = [ "tailscaled.service" ] ++ lib.options cfg.consul-integration [ "consul.service" ];
       };
 
       sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
@@ -128,7 +138,37 @@ lib.rebellion.mk-module args {
               };
             };
           };
+
+          # Consul Catalog provider for service discovery
+          providers = mkIf cfg.consul-integration {
+            consulCatalog = {
+              endpoint = {
+                address = "127.0.0.1:8500";
+                scheme = "http";
+              };
+
+              # Use Consul Connect for service mesh
+              connectAware = true;
+              connectByDefault = false;
+
+              # Service name prefix for routing
+              prefix = "traefik";
+
+              # Refresh interval
+              refreshInterval = "15s";
+
+              # Expose services by default
+              exposedByDefault = false;
+
+              # Default rule template (uses service name)
+              defaultRule = "Host(`{{ normalize .Name }}.lab`)";
+
+              # Health check configuration
+              constraints = "tag==`traefik.enable=true`";
+            };
+          };
         };
       };
+
     };
 }

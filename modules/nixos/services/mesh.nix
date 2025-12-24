@@ -1,0 +1,197 @@
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "services.mesh";
+  description = "Service mesh with Consul, Traefik load balancing, and VIP failover";
+
+  options =
+    { cfg, lib, ... }:
+    with lib.types;
+    let
+      inherit (lib.rebellion) mkopt mkopt-bool;
+    in
+    {
+      # Consul cluster configuration (extends nixos services.consul)
+      consul = {
+        server = mkopt-bool false "Run as Consul server (vs client)";
+        bootstrap-expect = mkopt int 3 "Number of servers to wait for before bootstrapping cluster";
+        acl-enabled = mkopt-bool false "Enable ACLs";
+      };
+
+      # VIP failover configuration (extends nixos services.keepalived)
+      vip = {
+        address = mkopt str "10.69.0.1" "Virtual IP address for ingress";
+        prefix = mkopt int 16 "Network prefix length (e.g., 16 for /16)";
+        interface = mkopt str "enp1s0" "Network interface to bind VIP to";
+        router-id = mkopt int 51 "VRRP router ID (must be same across all nodes)";
+        priority = mkopt int 100 "VRRP priority (higher = preferred master)";
+        preempt = mkopt-bool false "Whether higher priority node should reclaim VIP";
+      };
+    };
+
+  config =
+    {
+      cfg,
+      config,
+      lib,
+      pkgs,
+      datacenter,
+      hostname,
+      nodename,
+      peers,
+      ...
+    }:
+    let
+      inherit (lib) mkIf;
+
+      # Auto-detect bind address from hostname
+      nodeIPs = {
+        "da-vcx-1" = "10.42.1.11";
+        "da-vcx-2" = "10.42.1.12";
+        "da-vcx-3" = "10.42.1.13";
+      };
+      bindAddr = nodeIPs.${hostname} or "127.0.0.1";
+
+      # Generate retry-join list from datacenter peers
+      # Append .${datacenter} domain suffix to each peer
+      retryJoinPeers = map (peer: "${peer}.${datacenter}") peers;
+
+    in
+    {
+      services.consul = {
+        enable = true;
+        webUi = true;
+
+        extraConfig = {
+          # Datacenter and node configuration
+          datacenter = datacenter;
+          node_name = hostname;
+
+          # Networking
+          bind_addr = bindAddr;
+          advertise_addr = bindAddr;
+
+          # Server/Client configuration
+          server = cfg.consul.server;
+        }
+        // (lib.optionalAttrs cfg.consul.server {
+          bootstrap_expect = cfg.consul.bootstrap-expect;
+        })
+        // (lib.optionalAttrs (retryJoinPeers != [ ]) {
+          retry_join = retryJoinPeers;
+          retry_interval = "15s";
+          retry_max = 0;
+        })
+        // {
+          # Service Mesh (Consul Connect)
+          connect = {
+            enabled = true;
+            ca_config = {
+              rotation_period = "2160h"; # 90 days
+            };
+          };
+
+          # Performance tuning
+          performance = {
+            raft_multiplier = 1;
+            leave_drain_time = "5s";
+          };
+
+          # ACL configuration
+          acl = {
+            enabled = cfg.consul.acl-enabled;
+            default_policy = if cfg.consul.acl-enabled then "deny" else "allow";
+            enable_token_persistence = true;
+          };
+
+          # Service defaults
+          enable_central_service_config = true;
+        };
+      };
+
+      # DNS integration - forward .consul queries to Consul
+      services.resolved.extraConfig = ''
+        DNS=${bindAddr}:8600
+        Domains=~consul
+      '';
+
+      rebellion.homelab.traefik = {
+        enable = true;
+        consul-integration = true;
+      };
+
+      services.keepalived =
+        let
+          inherit (lib) getExe getExe';
+          curl = getExe pkgs.curl;
+          bash = getExe pkgs.bash;
+          systemd-cat = getExe' pkgs.systemd "systemd-cat";
+        in
+        {
+          enable = true;
+          openFirewall = true;
+          enableScriptSecurity = true;
+
+          vrrpScripts = {
+            check_consul = {
+              script = "${curl} -sf http://127.0.0.1:8500/v1/status/leader";
+              interval = 2;
+              timeout = 2;
+              weight = 2;
+              fall = 3;
+              rise = 2;
+            };
+
+            check_traefik = {
+              script = "${curl} -sf http://127.0.0.1:8080/ping";
+              interval = 2;
+              timeout = 2;
+              weight = 2;
+              fall = 3;
+              rise = 2;
+            };
+          };
+
+          vrrpInstances.mesh_ingress = {
+            state = "BACKUP";
+            interface = cfg.vip.interface;
+            virtualRouterId = cfg.vip.router-id;
+            priority = cfg.vip.priority;
+            noPreempt = !cfg.vip.preempt;
+
+            virtualIps = [
+              {
+                addr = "${cfg.vip.address}/${toString cfg.vip.prefix}";
+                dev = cfg.vip.interface;
+              }
+            ];
+
+            trackScripts = [
+              "check_consul"
+              "check_traefik"
+            ];
+
+            extraConfig = ''
+              advert_int 1
+
+              # Notify scripts for logging
+              notify_master "${bash} -c 'echo \"[$(date)] ${hostname} became MASTER for VIP ${cfg.vip.address}\" | ${systemd-cat} -t keepalived -p info'"
+              notify_backup "${bash} -c 'echo \"[$(date)] ${hostname} became BACKUP for VIP ${cfg.vip.address}\" | ${systemd-cat} -t keepalived -p info'"
+              notify_fault  "${bash} -c 'echo \"[$(date)] ${hostname} entered FAULT state for VIP ${cfg.vip.address}\" | ${systemd-cat} -t keepalived -p err'"
+            '';
+          };
+
+          extraGlobalDefs = ''
+            router_id ${hostname}
+            vrrp_version 3
+            vrrp_garp_master_delay 1
+            vrrp_garp_master_refresh 60
+          '';
+        };
+
+      # Ensure keepalived starts after Traefik
+      systemd.services.keepalived = {
+        after = [ "traefik.service" ];
+        wants = [ "traefik.service" ];
+      };
+    };
+}
