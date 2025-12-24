@@ -117,8 +117,18 @@ in
       system,
     }:
     let
-      inherit (inputs.nixpkgs.lib) splitString concatStringsSep;
-      inherit (builtins) head tail length;
+      inherit (inputs.nixpkgs.lib)
+        splitString
+        concatStringsSep
+        filter
+        hasPrefix
+        ;
+      inherit (builtins)
+        head
+        tail
+        length
+        attrNames
+        ;
 
       # Parse hostname into datacenter and nodename
       # Example: "da-vcx-1" -> { datacenter = "da"; nodename = "vcx-1"; }
@@ -136,6 +146,16 @@ in
             datacenter = null;
             nodename = hostname;
           };
+
+      # Gather all systems in the same datacenter
+      # Returns list of hostnames like ["da-vcx-1", "da-vcx-2", "da-vcx-3"]
+      peers =
+        let
+          flake = inputs.self;
+          allSystems = if flake ? nixosConfigurations then attrNames flake.nixosConfigurations else [ ];
+          dcPrefix = "${parsed.datacenter}-";
+        in
+        if parsed.datacenter != null then filter (h: hasPrefix dcPrefix h) allSystems else [ ];
     in
     {
       inherit
@@ -143,6 +163,7 @@ in
         hostname
         username
         system
+        peers
         ;
       inherit (inputs) self;
       inherit (parsed) datacenter nodename;
