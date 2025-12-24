@@ -38,8 +38,8 @@ lib.rebellion.mk-module args {
           config.sops.secrets."cloudflare/api-key".path
         ];
         # When consul integration is enabled, ensure consul is running
-        after = [ "tailscaled.service" ] ++ lib.options cfg.consul-integration [ "consul.service" ];
-        wants = [ "tailscaled.service" ] ++ lib.options cfg.consul-integration [ "consul.service" ];
+        after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
+        wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
       };
 
       sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
