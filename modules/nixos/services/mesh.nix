@@ -15,13 +15,13 @@ lib.rebellion.mk-module args {
         server = mkopt-bool false "Run as Consul server (vs client)";
         bootstrap-expect = mkopt int 3 "Number of servers to wait for before bootstrapping cluster";
         acl-enabled = mkopt-bool false "Enable ACLs";
+        interface = mkopt str "enp1s0" "Network interface to bind VIP to";
       };
 
       # VIP failover configuration (extends nixos services.keepalived)
       vip = {
         address = mkopt str "10.69.0.1" "Virtual IP address for ingress";
         prefix = mkopt int 16 "Network prefix length (e.g., 16 for /16)";
-        interface = mkopt str "enp1s0" "Network interface to bind VIP to";
         router-id = mkopt int 51 "VRRP router ID (must be same across all nodes)";
         priority = mkopt int 100 "VRRP priority (higher = preferred master)";
         preempt = mkopt-bool false "Whether higher priority node should reclaim VIP";
@@ -41,15 +41,6 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib) mkIf;
-
-      # Auto-detect bind address from hostname
-      nodeIPs = {
-        "da-vcx-1" = "10.42.1.11";
-        "da-vcx-2" = "10.42.1.12";
-        "da-vcx-3" = "10.42.1.13";
-      };
-      bindAddr = nodeIPs.${hostname} or "127.0.0.1";
 
       # Generate retry-join list from datacenter peers
       # Append .${datacenter} domain suffix to each peer
@@ -61,14 +52,20 @@ lib.rebellion.mk-module args {
         enable = true;
         webUi = true;
 
+        # Use interface-based address detection
+        # Consul will auto-detect IP from the specified interface
+        interface = {
+          bind = cfg.consul.interface; # Primary network interface
+          advertise = cfg.consul.interface;
+        };
+
+        # Force IPv4 (since we're using 10.69.0.0/16)
+        forceAddrFamily = "ipv4";
+
         extraConfig = {
           # Datacenter and node configuration
           datacenter = datacenter;
           node_name = hostname;
-
-          # Networking
-          bind_addr = bindAddr;
-          advertise_addr = bindAddr;
 
           # Server/Client configuration
           server = cfg.consul.server;
@@ -110,7 +107,7 @@ lib.rebellion.mk-module args {
 
       # DNS integration - forward .consul queries to Consul
       services.resolved.extraConfig = ''
-        DNS=${bindAddr}:8600
+        DNS=127.0.0.1:8600
         Domains=~consul
       '';
 
@@ -153,7 +150,7 @@ lib.rebellion.mk-module args {
 
           vrrpInstances.mesh_ingress = {
             state = "BACKUP";
-            interface = cfg.vip.interface;
+            interface = cfg.consul.interface;
             virtualRouterId = cfg.vip.router-id;
             priority = cfg.vip.priority;
             noPreempt = !cfg.vip.preempt;
@@ -161,7 +158,7 @@ lib.rebellion.mk-module args {
             virtualIps = [
               {
                 addr = "${cfg.vip.address}/${toString cfg.vip.prefix}";
-                dev = cfg.vip.interface;
+                dev = cfg.consul.interface;
               }
             ];
 

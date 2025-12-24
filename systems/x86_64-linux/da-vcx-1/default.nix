@@ -49,6 +49,7 @@ in
       consul = {
         server = true;
         bootstrap-expect = 1;
+        interface = "enp12s0";
       };
       vip.priority = 100;
     };
