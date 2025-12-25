@@ -10,15 +10,18 @@ rec {
   # Create a standardized Traefik service configuration
   # Returns router and service config that should be assigned to dynamicConfigOptions.http
   #
-  # Automatically creates TWO routers for each service:
-  # 1. Public router: <subdomain>.<domain> (e.g., plex.da.jm0.io)
-  # 2. Local router: <subdomain>.<hostname>.lab (e.g., plex.da-vcx-1.lab)
+  # Creates routers based on the 'public' parameter:
+  # - public = true (default): Creates BOTH public and local routers
+  #   - Public router: <subdomain>.<domain> (e.g., plex.da.jm0.io) with Let's Encrypt
+  #   - Local router: <subdomain>.<hostname>.lab (e.g., plex.da-vcx-1.lab) with self-signed cert
+  # - public = false: Creates ONLY local router (e.g., radarr.da-vcx-1.lab)
   #
-  # Both routers point to the same backend service.
+  # Both routers (when present) point to the same backend service.
   #
   # Usage: services.traefik.dynamicConfigOptions.http = lib.rebellion.traefik.mk-service {
   #   name = "plex";
   #   port = 32400;
+  #   public = true;  # Optional, defaults to true
   # };
   mk-service =
     {
@@ -27,6 +30,7 @@ rec {
       hostname,
       subdomain ? name,
       domain ? "jm0.io",
+      public ? true,
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
@@ -52,42 +56,53 @@ rec {
         else
           "Host(`${hostname}.lab`)";
     in
-    {
-      # Public router (uses Let's Encrypt)
-      routers.${name} = mkMerge [
-        {
-          rule = mkDefault pub-rule;
-          service = name;
-          entryPoints = entry-points;
-          tls.certResolver = cert-resolver;
-          middlewares = middlewares;
-        }
-        extra-router-config
-      ];
+    mkMerge [
+      # Public router (uses Let's Encrypt) - only created if public = true
+      (
+        if public then
+          {
+            routers.${name} = mkMerge [
+              {
+                rule = mkDefault pub-rule;
+                service = name;
+                entryPoints = entry-points;
+                tls.certResolver = cert-resolver;
+                middlewares = middlewares;
+              }
+              extra-router-config
+            ];
+          }
+        else
+          { }
+      )
 
-      # Local router (uses file-based self-signed cert)
-      routers."${name}-local" = mkMerge [
-        {
-          rule = mkDefault lab-rule;
-          service = name; # Points to same backend service
-          entryPoints = entry-points;
-          tls = { }; # Certificate provided via file provider in traefik.nix
-          middlewares = middlewares;
-        }
-      ];
+      # Local router (uses file-based self-signed cert) - always created
+      {
+        routers."${name}-local" = mkMerge [
+          {
+            rule = mkDefault lab-rule;
+            service = name; # Points to same backend service
+            entryPoints = entry-points;
+            tls = { }; # Certificate provided via file provider in traefik.nix
+            middlewares = middlewares;
+          }
+        ];
+      }
 
-      # Backend service (shared by both routers)
-      services.${name} = mkMerge [
-        {
-          loadBalancer.servers = mkDefault [
-            {
-              url = "http://localhost:${toString port}";
-            }
-          ];
-        }
-        extra-service-config
-      ];
-    };
+      # Backend service (shared by all routers)
+      {
+        services.${name} = mkMerge [
+          {
+            loadBalancer.servers = mkDefault [
+              {
+                url = "http://localhost:${toString port}";
+              }
+            ];
+          }
+          extra-service-config
+        ];
+      }
+    ];
 
   # Convenience wrapper that adds Authentik authentication middleware
   mk-authd-service =
@@ -97,6 +112,7 @@ rec {
       hostname,
       subdomain ? name,
       domain ? "jm0.io",
+      public ? true,
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
@@ -110,6 +126,7 @@ rec {
         hostname
         subdomain
         domain
+        public
         entry-points
         cert-resolver
         extra-router-config

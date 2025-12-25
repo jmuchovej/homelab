@@ -58,7 +58,10 @@ lib.rebellion.mk-module args {
           };
 
           services.traefik.dynamicConfigOptions.http = lib.mkMerge [
-            (mk-authd-service { inherit hostname name port; })
+            (mk-authd-service {
+              inherit hostname name port;
+              public = false; # Local-only, accessible via <name>.da-vcx-1.lab
+            })
           ];
         };
     in
