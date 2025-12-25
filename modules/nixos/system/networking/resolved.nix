@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
@@ -20,7 +19,10 @@ in
       # dnssec = "true";
       # this is necessary to get tailscale picking up your headscale instance
       # and allows you to ping connected hosts by hostname
-      domains = [ "da" "lab" "~." ];
+      domains = [
+        "lab"
+        "~."
+      ];
       dnsovertls = "opportunistic";
       # extraConfig =
       #   mkIf cfg.dns == "dnsmasq" ''
@@ -37,7 +39,10 @@ in
     systemd.services.dynamic-dns = {
       description = "Set DNS to default gateway";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" ];
+      after = [
+        "network-online.target"
+      ]
+      ++ lib.optionals config.rebellion.services.mesh.enable [ "consul.service" ];
       wants = [ "network-online.target" ];
 
       serviceConfig = {
@@ -45,19 +50,25 @@ in
         RemainAfterExit = true;
       };
 
-      script = ''
-        # Get the default gateway
-        GATEWAY=$(${pkgs.iproute2}/bin/ip route show default | ${pkgs.gawk}/bin/awk '/default/ { print $3; exit }')
-        DEVICE=$(${pkgs.iproute2}/bin/ip route show default | ${pkgs.gawk}/bin/awk '/default/ { print $5; exit }')
+      script =
+        let
+          ip = lib.getExe' pkgs.iproute2 "ip";
+          awk = lib.getExe' pkgs.gawk "awk";
+          resolvectl = lib.getExe' pkgs.systemd "resolvectl";
+        in
+        ''
+          # Get the default gateway
+          GATEWAY=$(${ip} route show default | ${awk} '/default/ { print $3; exit }')
+          DEVICE=$(${ip} route show default | ${awk} '/default/ { print $5; exit }')
 
-        if [ -n "$GATEWAY" ]; then
-          echo "Setting DNS to gateway: $GATEWAY"
-          ${pkgs.systemd}/bin/resolvectl dns "$DEVICE" "$GATEWAY"
-        else
-          echo "No default gateway found"
-          exit 1
-        fi
-      '';
+          if [ -n "$GATEWAY" ]; then
+            echo "Setting DNS to gateway: $GATEWAY"
+            ${resolvectl} dns "$DEVICE" 127.0.0.1 "$GATEWAY"
+          else
+            echo "No default gateway found"
+            exit 1
+          fi
+        '';
     };
 
     # Run on network changes
