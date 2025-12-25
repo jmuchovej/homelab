@@ -29,6 +29,7 @@ lib.rebellion.mk-module args {
         {
           port = 8787;
           name = "readarr";
+          dbs = [ "readarr-cache" ];
         }
         {
           port = 9696;
@@ -37,7 +38,11 @@ lib.rebellion.mk-module args {
       ];
 
       mkarr =
-        { name, port }:
+        {
+          name,
+          port,
+          dbs ? [ ],
+        }:
         lib.mkMerge [
           {
             sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
@@ -45,7 +50,8 @@ lib.rebellion.mk-module args {
             services.postgresql.ensureDatabases = [
               name
               "${name}-log"
-            ];
+            ]
+            ++ dbs;
             services.postgresql.ensureUsers = [
               {
                 inherit name;
