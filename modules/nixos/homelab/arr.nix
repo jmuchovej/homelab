@@ -12,7 +12,75 @@ lib.rebellion.mk-module args {
       inherit (builtins) toString;
       inherit (lib.rebellion.traefik) mk-authd-service with-consul;
 
-      arrs = [
+      # Helper to generate database permission grants
+      mk-db-grants =
+        {
+          name,
+          dbs ? [ ],
+        }:
+        let
+          all-dbs = [
+            name
+            "${name}-log"
+          ]
+          ++ dbs;
+        in
+        lib.concatMapStringsSep "\n" (
+          db: ''psql -tAc 'GRANT ALL ON SCHEMA public TO "${name}"' -d ${db}''
+        ) all-dbs;
+
+      mk-arr =
+        {
+          name,
+          port,
+          dbs ? [ ],
+        }:
+        let
+          databases = [
+            name
+            "${name}-log"
+          ]
+          ++ dbs;
+        in
+        {
+          psql = mk-db-grants {
+            inherit name;
+            dbs = databases;
+          };
+
+          config = lib.mkMerge [
+            {
+              sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
+
+              services.postgresql.ensureDatabases = databases;
+              services.postgresql.ensureUsers = [
+                {
+                  inherit name;
+                  ensureDBOwnership = true;
+                }
+              ];
+
+              services.${name} = {
+                enable = true;
+                openFirewall = true;
+                environmentFiles = [ config.sops.secrets."${name}/env".path ];
+              };
+            }
+            (with-consul config (mk-authd-service {
+              inherit hostname name port;
+              public = false;
+              checks = [
+                {
+                  http = "http://localhost:${toString port}/ping";
+                  interval = "10s";
+                  timeout = "2s";
+                }
+              ];
+            }))
+          ];
+        };
+
+      arrs = map mk-arr [
         {
           port = 7878;
           name = "radarr";
@@ -36,60 +104,18 @@ lib.rebellion.mk-module args {
           name = "prowlarr";
         }
       ];
-
-      mkarr =
-        {
-          name,
-          port,
-          dbs ? [ ],
-        }:
-        lib.mkMerge [
-          {
-            sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
-
-            services.postgresql.ensureDatabases = [
-              name
-              "${name}-log"
-            ]
-            ++ dbs;
-            services.postgresql.ensureUsers = [
-              {
-                inherit name;
-                ensureDBOwnership = true;
-              }
-            ];
-
-            services.${name} = {
-              enable = true;
-              openFirewall = true;
-              environmentFiles = [ config.sops.secrets."${name}/env".path ];
-            };
-          }
-          (with-consul config (mk-authd-service {
-            inherit hostname name port;
-            public = false;
-            checks = [
-              {
-                http = "http://localhost:${toString port}/ping";
-                interval = "10s";
-                timeout = "2s";
-              }
-            ];
-          }))
-        ];
     in
-    lib.mkMerge [
-      # PostgreSQL permissions for all *arr apps
-      {
-        systemd.services.postgresql.postStart = lib.mkAfter (
-          lib.concatMapStringsSep "\n" (app: ''
-            psql -tAc 'GRANT ALL ON SCHEMA public TO "${app.name}"' -d ${app.name}
-            psql -tAc 'GRANT ALL ON SCHEMA public TO "${app.name}"' -d ${app.name}-log
-          '') arrs
-        );
-      }
+    lib.mkMerge (
+      [
+        # PostgreSQL permissions for all *arr apps (including custom dbs)
+        {
+          systemd.services.postgresql.postStart = lib.mkAfter (
+            lib.concatMapStringsSep "\n" (arr: arr.psql) arrs
+          );
+        }
 
+      ]
       # Individual *arr service configurations
-      (lib.mkMerge (map mkarr arrs))
-    ];
+      ++ (map (arr: arr.config) arrs)
+    );
 }
