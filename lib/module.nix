@@ -22,7 +22,7 @@ rec {
   ## lib.mkopt nixpkgs.lib.types.str "My default" "Description of my option."
   ## ```
   ##
-  #@ Type -> Any -> String
+  ##@ Type -> Any -> String
   mkopt =
     type: default: description:
     mkOption { inherit type default description; };
@@ -33,7 +33,7 @@ rec {
   ## lib.mkopt' nixpkgs.lib.types.str "My default"
   ## ```
   ##
-  #@ Type -> Any -> String
+  #@ Type -> Any
   mkopt' = type: default: mkopt type default null;
 
   ## Create a boolean NixOS module option.

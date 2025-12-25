@@ -18,6 +18,7 @@
       common = import ./system/common.nix { inherit inputs; };
     };
     traefik = import ./traefik.nix { inherit inputs; };
+    consul = import ./consul.nix { inherit inputs; };
     zed = import ./zed.nix { inherit inputs; };
     # keep-sorted end
   };
