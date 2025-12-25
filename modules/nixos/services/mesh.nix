@@ -44,8 +44,8 @@ lib.rebellion.mk-module args {
 
       # Generate retry-join list from datacenter peers
       # Append .${datacenter} domain suffix to each peer
-      retryJoinPeers = map (peer: "${peer}.${datacenter}") peers;
-
+      # retry-join-peers = map (p: "${p.nodename}.${datacenter}") peers;
+      retry-join-peers = map (p: "${p.hostname}.lab") peers;
     in
     {
       services.consul = {
@@ -73,8 +73,8 @@ lib.rebellion.mk-module args {
         // (lib.optionalAttrs cfg.consul.server {
           bootstrap_expect = cfg.consul.bootstrap-expect;
         })
-        // (lib.optionalAttrs (retryJoinPeers != [ ]) {
-          retry_join = retryJoinPeers;
+        // (lib.optionalAttrs (retry-join-peers != [ ]) {
+          retry_join = retry-join-peers;
           retry_interval = "15s";
           retry_max = 0;
         })
