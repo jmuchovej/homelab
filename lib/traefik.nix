@@ -3,9 +3,9 @@ let
   inherit (inputs.nixpkgs.lib)
     mkDefault
     mkMerge
+    mkIf
     concatStringsSep
     optionalAttrs
-    mkIf
     ;
 
   consul = import ./consul.nix { inherit inputs; };
@@ -21,42 +21,35 @@ rec {
   # When Consul is disabled: Falls back to direct Traefik configuration
   with-consul =
     config: svc:
-    let
-      consul-enabled = config.services.consul.enable or false;
-    in
     mkMerge [
       # If Consul is enabled, ONLY register in Consul (Traefik will discover via Catalog)
       # If Consul is disabled, fall back to direct Traefik config
-      (
-        if consul-enabled then
-          {
-            environment.etc = consul.mk-consul-config {
-              name = svc.svc.name;
-              port = svc.port;
-              hostname = svc.hostname;
-              subdomain = svc.subdomain;
-              middlewares = svc.middlewares or [ ];
-              checks = svc.checks or null;
-            };
-          }
-        else
-          (apply-service svc)
-      )
+      (mkIf config.rebellion.services.mesh.enable {
+        environment.etc = consul.mk-consul-config {
+          name = svc.svc.name;
+          port = svc.port;
+          hostname = svc.hostname;
+          subdomain = svc.subdomain;
+          middlewares = svc.middlewares or [ ];
+          checks = svc.checks or null;
+        };
+      })
+      (mkIf (!config.rebellion.services.mesh.enable) (dynamic-http (apply-service svc)))
     ];
 
   # Helper to merge service config into Traefik dynamicConfigOptions.http
   # Usage: services.traefik.dynamicConfigOptions.http = apply-service (mk-service {...});
   apply-service =
-    svc:
+    s:
     mkMerge [
-      (optionalAttrs (svc ? pub) { routers.${svc.pub.name} = svc.pub.config; })
-      (optionalAttrs (svc ? lab) { routers.${svc.lab.name} = svc.lab.config; })
-      { services.${svc.svc.name} = svc.svc.config; }
+      (optionalAttrs (s ? pub ? name) { routers.${s.pub.name} = s.pub.config; })
+      (optionalAttrs (s ? lab ? name) { routers.${s.lab.name} = s.lab.config; })
+      { services.${s.svc.name} = s.svc.config; }
     ];
 
   # Alternative helper that lets you modify parts before applying
   # Usage: apply-service' (svc: svc // { public.config.rule = "..."; })
-  apply-service' = fn: svc: apply-service (fn svc);
+  apply-service' = fn: service: apply-service (fn service);
 
   # Create a standardized Traefik service configuration
   # Returns router and service config that should be assigned to dynamicConfigOptions.http

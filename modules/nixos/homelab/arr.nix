@@ -9,7 +9,8 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion.traefik) mk-authd-service;
+      inherit (builtins) toString;
+      inherit (lib.rebellion.traefik) mk-authd-service with-consul;
 
       arrs = [
         {
@@ -37,33 +38,39 @@ lib.rebellion.mk-module args {
 
       mkarr =
         { name, port }:
-        {
-          sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
+        lib.mkMerge [
+          {
+            sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
 
-          services.postgresql.ensureDatabases = [
-            name
-            "${name}-log"
-          ];
-          services.postgresql.ensureUsers = [
-            {
-              inherit name;
-              ensureDBOwnership = true;
-            }
-          ];
+            services.postgresql.ensureDatabases = [
+              name
+              "${name}-log"
+            ];
+            services.postgresql.ensureUsers = [
+              {
+                inherit name;
+                ensureDBOwnership = true;
+              }
+            ];
 
-          services.${name} = {
-            enable = true;
-            openFirewall = true;
-            environmentFiles = [ config.sops.secrets."${name}/env".path ];
-          };
-
-          services.traefik.dynamicConfigOptions.http = lib.mkMerge [
-            (mk-authd-service {
-              inherit hostname name port;
-              public = false; # Local-only, accessible via <name>.da-vcx-1.lab
-            })
-          ];
-        };
+            services.${name} = {
+              enable = true;
+              openFirewall = true;
+              environmentFiles = [ config.sops.secrets."${name}/env".path ];
+            };
+          }
+          (with-consul config (mk-authd-service {
+            inherit hostname name port;
+            public = false;
+            checks = [
+              {
+                http = "http://localhost:${toString port}/ping";
+                interval = "10s";
+                timeout = "2s";
+              }
+            ];
+          }))
+        ];
     in
     lib.mkMerge [
       # PostgreSQL permissions for all *arr apps

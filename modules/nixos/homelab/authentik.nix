@@ -11,7 +11,6 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion) get-file;
-      inherit (lib.rebellion.traefik) mk-service;
     in
     lib.mkMerge [
       {
@@ -66,17 +65,31 @@ lib.rebellion.mk-module args {
         };
       }
 
-      {
-        services.traefik.dynamicConfigOptions.http = mk-service {
-          inherit hostname;
-          name = "auth";
-          port = 9000;
-          subdomain = "id";
-          domain = "jm0.io";
-          extra-router-config = {
-            rule = "Host(`id.jm0.io`) || HostRegexp(`[a-z0-9]+\.lab\.jm0\.io`) && PathPrefix(`/outpost.goauthentik.io/`)";
+      (
+        let
+          inherit (lib.rebellion.traefik) mk-service apply-service dynamic-http;
+          auth = mk-service {
+            inherit hostname;
+            name = "auth";
+            port = 9000;
+            subdomain = "id";
+            domain = "jm0.io";
           };
-        };
-      }
+          inherit (lib.string) replaceString concatStringsSep;
+          rule = concatStringsSep " || " [
+            "Host(`id.jm0.io`)"
+            "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
+          ];
+        in
+        dynamic-http (
+          apply-service (
+            auth
+            // {
+              pub.config.rule = rule;
+              lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
+            }
+          )
+        )
+      )
     ];
 }

@@ -5,12 +5,13 @@ lib.rebellion.mk-module args {
     {
       lib,
       pkgs,
+      config,
       hostname,
       ...
     }:
     let
       inherit (lib) mkMerge;
-      inherit (lib.rebellion.traefik) mk-service;
+      inherit (lib.rebellion.traefik) mk-service with-consul;
     in
     mkMerge [
       {
@@ -98,13 +99,19 @@ lib.rebellion.mk-module args {
           }
         ];
       }
-      {
-        services.traefik.dynamicConfigOptions.http = mk-service {
-          inherit hostname;
-          name = "hass";
-          port = 8123;
-          subdomain = "home-assistant";
-        };
-      }
+
+      (with-consul config (mk-service {
+        inherit hostname;
+        name = "hass";
+        port = 8123;
+        subdomain = "home-assistant";
+        checks = [
+          {
+            http = "http://localhost:8123/api/";
+            interval = "10s";
+            timeout = "2s";
+          }
+        ];
+      }))
     ];
 }
