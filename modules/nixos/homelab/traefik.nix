@@ -33,16 +33,19 @@ lib.rebellion.mk-module args {
         443
       ];
 
+      sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
+      sops.templates."CF_DNS_API_TOKEN".content = ''
+        CF_DNS_API_TOKEN=${config.sops.placeholder."cloudflare/api-key"}
+      '';
+
       systemd.services.traefik = {
         serviceConfig.EnvironmentFile = [
-          config.sops.secrets."cloudflare/api-key".path
+          config.sops.templates."CF_DNS_API_TOKEN".path
         ];
         # When consul integration is enabled, ensure consul is running
         after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
         wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
       };
-
-      sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
 
       services.tailscale.permitCertUid = mkForce "traefik";
 

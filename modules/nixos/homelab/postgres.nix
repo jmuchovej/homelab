@@ -60,6 +60,10 @@ lib.rebellion.mk-module args {
         startAt = "*-*-* 10:00:00";
       };
 
+      services.traefik.staticConfigOptions.entryPoints = {
+        postgres.address = "0.0.0.0:5433";
+      };
+
       services.traefik.dynamicConfigOptions.tcp = {
         services.postgres.loadBalancer.servers = [
           { address = "127.0.0.1:5432"; }

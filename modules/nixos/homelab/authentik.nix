@@ -21,11 +21,11 @@ lib.rebellion.mk-module args {
           authentik-outposts.proxy
         ];
 
-        sops.secrets."authentik".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.secrets."authentik/env".sopsFile = get-file "secrets/secrets.sops.yaml";
 
         services.authentik = {
           enable = true;
-          environmentFile = config.sops.secrets.authentik.path;
+          environmentFile = config.sops.secrets."authentik/env".path;
           settings = {
             email = {
               host = "smtp.mailgun.org";
