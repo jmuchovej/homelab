@@ -4,8 +4,10 @@
   inputs = {
     catppuccin.url = "github:catppuccin/nix";
 
-    # Flake Utils
-    # flake-utils.url = "github:numtide/flake-utils";
+    # devenv
+    devenv.url = "github:cachix/devenv";
+    devenv.inputs.nixpkgs.follows = "nixpkgs";
+
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
@@ -24,8 +26,6 @@
     # Nix Darwin
     nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    # Install Mac Apps in a Spotlight-discoverable way.
-    # mac-app-util.url = "github:hraban/mac-app-util";
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
     nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -86,6 +86,10 @@
       url = "github:homebrew/homebrew-services";
       flake = false;
     };
+    homebrew-fvm = {
+      url = "github:leoafarias/fvm";
+      flake = false;
+    };
   };
 
   outputs =
@@ -116,7 +120,6 @@
           macos = with inputs; [
             # { nix.linux-builder.enable = true; }
             # nix-rosetta-builder.darwinModules.default
-            # mac-app-util.darwinModules.default
             home-manager.darwinModules.home-manager
             sops-nix.darwinModules.sops
             nix-homebrew.darwinModules.nix-homebrew

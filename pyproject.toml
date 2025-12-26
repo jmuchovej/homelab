@@ -25,6 +25,11 @@ dev = [
   "ruff>=0.14.10",
   "ty>=0.0.5",
 ]
+docs = [
+  "mkdocs-material>=9.7.1",
+  "mkdocstrings-python>=2.0.1",
+  "zensical>=0.0.15",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]
