@@ -21,7 +21,7 @@ lib.rebellion.mk-module args {
         ];
 
         sops.secrets."authentik/secret-key".sopsFile = get-file "secrets/secrets.sops.yaml";
-        sops.sops.secrets."mailgun/token".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.secrets."mailgun/token".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.templates."AUTHENTIK_ENV".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
