@@ -20,11 +20,16 @@ lib.rebellion.mk-module args {
           authentik-outposts.proxy
         ];
 
-        sops.secrets."authentik/env".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.secrets."authentik/secret-key".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.sops.secrets."mailgun/token".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.templates."AUTHENTIK_ENV".content = ''
+          AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
+          AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
+        '';
 
         services.authentik = {
           enable = true;
-          environmentFile = config.sops.secrets."authentik/env".path;
+          environmentFile = config.sops.templates."AUTHENTIK_ENV".path;
           settings = {
             email = {
               host = "smtp.mailgun.org";
@@ -67,7 +72,7 @@ lib.rebellion.mk-module args {
 
       (
         let
-          inherit (lib.rebellion.traefik) mk-service apply-service dynamic-http;
+          inherit (lib.rebellion.traefik) mk-service with-consul;
           auth = mk-service {
             inherit hostname;
             name = "auth";
@@ -81,15 +86,13 @@ lib.rebellion.mk-module args {
             "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
           ];
         in
-        dynamic-http (
-          apply-service (
-            auth
-            // {
-              pub.config.rule = rule;
-              lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
-            }
-          )
-        )
+        (with-consul config (
+          auth
+          // {
+            pub.config.rule = rule;
+            lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
+          }
+        ))
       )
     ];
 }
