@@ -80,7 +80,7 @@ lib.rebellion.mk-module args {
             subdomain = "id";
             domain = "jm0.io";
           };
-          inherit (lib.string) replaceString concatStringsSep;
+          inherit (lib.strings) replaceString concatStringsSep;
           rule = concatStringsSep " || " [
             "Host(`id.jm0.io`)"
             "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
