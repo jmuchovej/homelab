@@ -20,21 +20,19 @@ rec {
   # When Consul is enabled: Only creates Consul registration (Traefik reads from Consul)
   # When Consul is disabled: Falls back to direct Traefik configuration
   with-consul =
-    config: svc:
+    config: service:
     mkMerge [
       # If Consul is enabled, ONLY register in Consul (Traefik will discover via Catalog)
       # If Consul is disabled, fall back to direct Traefik config
       (mkIf config.rebellion.services.mesh.enable {
         environment.etc = consul.mk-consul-config {
-          name = svc.svc.name;
-          port = svc.port;
-          hostname = svc.hostname;
-          subdomain = svc.subdomain;
-          middlewares = svc.middlewares or [ ];
-          checks = svc.checks or null;
+          inherit (service) port hostname;
+          name = service.svc.name;
+          checks = service.checks or null;
+          tags = mk-tags service;
         };
       })
-      (mkIf (!config.rebellion.services.mesh.enable) (dynamic-http (apply-service svc)))
+      (mkIf (!config.rebellion.services.mesh.enable) (dynamic-http (apply-service service)))
     ];
 
   # Helper to merge service config into Traefik dynamicConfigOptions.http
@@ -186,4 +184,48 @@ rec {
         ;
       middlewares = middlewares ++ [ "authentik" ];
     };
+
+  # Convert a service structure from mk-service into Consul tags
+  # This flattens the router/service configs into the tag format Consul expects
+  mk-tags = service: let
+    inherit (inputs.nixpkgs.lib)
+      optionals
+      filter
+      concatStringsSep
+      mapAttrsToList
+      flatten;
+
+    # Helper to convert attrset to tags with prefix
+    attrs-to-tags = prefix: attrs:
+      let
+        to-tag = name: value:
+          if builtins.isAttrs value then
+            attrs-to-tags "${prefix}.${name}" value
+          else if builtins.isList value then
+            "${prefix}.${name}=${concatStringsSep "," value}"
+          else if builtins.isBool value then
+            "${prefix}.${name}=${if value then "true" else "false"}"
+          else
+            "${prefix}.${name}=${toString value}";
+      in
+        flatten (mapAttrsToList to-tag attrs);
+
+    # Generate tags for public router (if present)
+    pub-tags = optionals (service.pub != null) (
+      attrs-to-tags "traefik.http.routers.${service.pub.name}" service.pub.config
+    );
+
+    # Generate tags for local router
+    lab-tags = attrs-to-tags "traefik.http.routers.${service.lab.name}" service.lab.config;
+
+    # Generate tags for backend service
+    svc-tags = attrs-to-tags "traefik.http.services.${service.svc.name}" service.svc.config;
+
+  in
+    filter (tag: tag != null && tag != "") (
+      [ "traefik.enable=true" ]
+      ++ pub-tags
+      ++ lab-tags
+      ++ svc-tags
+    );
 }

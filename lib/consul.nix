@@ -7,53 +7,24 @@ rec {
       name,
       port,
       hostname,
-      subdomain ? name,
-      middlewares ? [ ],
       tags ? [ ],
       checks ? null,
       meta ? { },
     }:
     let
-      inherit (inputs.nixpkgs.lib) concatStringsSep;
-
       # Default health check if none provided
       default-check = {
         http = "http://localhost:${toString port}";
         interval = "10s";
         timeout = "2s";
       };
-
-      service-checks = if checks != null then checks else [ default-check ];
-
-      # Generate Traefik tags for Consul Catalog provider
-      traefik-tags =
-        let
-          subdomains = if builtins.isList subdomain then subdomain else [ subdomain ];
-          # Create tags for local .lab domain routing
-          subdomain-tags = map (
-            sub: "traefik.http.routers.${name}.rule=Host(`${sub}.${hostname}.lab`)"
-          ) subdomains;
-          # Add middleware tags if any
-          middleware-tags =
-            if middlewares != [ ] then
-              [ "traefik.http.routers.${name}.middlewares=${concatStringsSep "," middlewares}" ]
-            else
-              [ ];
-        in
-        [
-          "traefik.enable=true"
-          "traefik.http.services.${name}.loadbalancer.server.port=${toString port}"
-        ]
-        ++ subdomain-tags
-        ++ middleware-tags;
     in
     {
       service = {
         id = "${name}-${hostname}";
-        inherit name port;
+        inherit name port tags;
         address = hostname;
-        tags = traefik-tags ++ tags;
-        checks = service-checks;
+        checks = if checks != null then checks else [ default-check ];
         meta = meta // {
           node = hostname;
         };
@@ -66,8 +37,6 @@ rec {
       name,
       port,
       hostname,
-      subdomain ? name,
-      middlewares ? [ ],
       tags ? [ ],
       checks ? null,
       meta ? { },
@@ -79,8 +48,6 @@ rec {
             name
             port
             hostname
-            subdomain
-            middlewares
             tags
             checks
             meta
