@@ -51,7 +51,7 @@ lib.rebellion.mk-module args {
             }
           ];
           healthcheck = mk-healthcheck service {
-            router = "/"; # Root path doesn't require auth
+            route = "/"; # Root path doesn't require auth
           };
         in
         with-consul config (service // { checks = [ healthcheck ]; })

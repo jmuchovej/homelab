@@ -101,10 +101,11 @@ rec {
       pub =
         if public then
           {
-            name = name;
-            config = merge-attrs router-config {
-              tls.certResolver = cert-resolver; rule = mkDefault pub-rule;
-            };
+            inherit name;
+            config = merge-attrs [router-config {
+              rule = mkDefault pub-rule;
+              tls.certResolver = cert-resolver;
+            }];
           }
         else
           null;
@@ -112,14 +113,15 @@ rec {
       # Accessor for local router (always present)
       lab = {
         name = "${name}-lab";
-        config = merge-attrs router-config {
-          tls = {}; rule = mkDefault lab-rule;
-        };
+        config = merge-attrs [router-config {
+          rule = mkDefault lab-rule;
+          tls = {};
+        }];
       };
 
       # Accessor for backend service
       svc = {
-        name = name;
+        inherit name;
         config = service-config;
       };
 
@@ -227,7 +229,6 @@ rec {
 
     # Generate tags for backend service
     svc-tags = attrs-to-tags "traefik.http.services.${svc.name}" svc.config;
-
   in
     filter (tag: tag != null && tag != "") (
       [ "traefik.enable=true" ]
@@ -235,6 +236,7 @@ rec {
       ++ lab-tags
       ++ svc-tags
     );
+
   # Generate Consul service registration JSON
   # Returns the JSON content for /etc/consul.d/<name>.json
   mk-consul-service =
@@ -270,9 +272,9 @@ rec {
   # For services with secrets in healthchecks, pass the template name:
   #   with-consul config (service // {
   #     checks = [ healthcheck ];
-  #     templateName = "consul-hass";
+  #     template = "consul-hass";
   #   })
-  # This will automatically create sops.templates.<templateName>.content with the JSON.
+  # This will automatically create `sops.templates.<template>.content` with the JSON.
   with-consul =
     config: service:
     let
@@ -307,7 +309,7 @@ rec {
       }
       # If using a sops template, create the template and use it as source
       (mkIf has-template {
-        sops.templates.${service.templateName}.content = consul-json;
+        sops.templates.${service.template}.content = consul-json;
         environment.etc."consul.d/${service.svc.name}.json".source =
           config.sops.templates.${service.template}.path;
       })
@@ -318,7 +320,7 @@ rec {
     ];
 
   mk-healthcheck = service: {
-    id ? service.name,
+    id ? service.svc.name,
     protocol ? "http",
     host ? "localhost",
     port ? service.port,
@@ -329,14 +331,11 @@ rec {
     body ? { },
     method ? "GET",
   }: let
-    inherit (inputs.nixpkgs) lib;
-    inherit (lib.strings) hasPrefix tail;
-
-    clean-route = if hasPrefix "/" route then (tail route) else route;
+    inherit (inputs.nixpkgs.lib.strings) removePrefix;
 
     healthcheck-base = {
       inherit id interval timeout method header;
-      http = "${protocol}://${host}:${toString port}/${clean-route}";
+      http = "${protocol}://${host}:${toString port}/${removePrefix "/" route}";
     };
 
     healthcheck = if method == "POST" then
