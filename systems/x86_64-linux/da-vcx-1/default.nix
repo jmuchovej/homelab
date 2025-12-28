@@ -53,6 +53,10 @@ in
       };
       vip.priority = 100;
     };
+    services.proton-vpn = enabled // {
+      location = "SE-US#1";
+    };
+    services.qbittorrent = enabled;
 
     system = {
       nix = enabled;
