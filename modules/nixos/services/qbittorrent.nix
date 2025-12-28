@@ -35,17 +35,26 @@ lib.rebellion.mk-module args {
         };
       }
 
-      (with-consul config (merge-attrs [
-        (mk-traefik-service {
-          inherit hostname;
-          name = "qbittorrent";
-          port = config.services.qbittorrent.webuiPort;
-          public = false;
-          healthcheck = "/"; # Root path doesn't require auth
-        })
-        {
-          svc.config.loadBalancer.passHostHeader = false;
-        }
-      ]))
+      (
+        let
+          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion.network) with-consul mk-traefik-service mk-healthcheck;
+          service = merge-attrs [
+            (mk-traefik-service {
+              inherit hostname;
+              name = "qbittorrent";
+              port = config.services.qbittorrent.webuiPort;
+              public = false;
+            })
+            {
+              svc.config.loadBalancer.passHostHeader = false;
+            }
+          ];
+          healthcheck = mk-healthcheck service {
+            router = "/"; # Root path doesn't require auth
+          };
+        in
+        with-consul config (service // { checks = [ healthcheck ]; })
+      )
     ];
 }
