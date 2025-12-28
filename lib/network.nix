@@ -309,9 +309,14 @@ rec {
       }
       # If using a sops template, create the template and use it as source
       (mkIf has-template {
-        sops.templates.${service.template}.content = consul-json;
-        environment.etc."consul.d/${service.svc.name}.json".source =
-          config.sops.templates.${service.template}.path;
+        sops.templates.${service.template} = {
+          content = consul-json;
+          owner = "consul";
+          restartUnits = [ "consul.service" ];
+          path = "/etc/consul.d/${service.svc.name}.json";
+        };
+        # environment.etc."consul.d/${service.svc.name}.json".source =
+          # config.sops.templates.${service.template}.path;
       })
       # Otherwise write JSON directly
       (mkIf (!has-template) {
