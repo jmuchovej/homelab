@@ -311,7 +311,6 @@ rec {
       (mkIf has-template {
         sops.templates.${service.template} = {
           content = consul-json;
-          owner = "consul";
           restartUnits = [ "consul.service" ];
           path = "/etc/consul.d/${service.svc.name}.json";
         };
