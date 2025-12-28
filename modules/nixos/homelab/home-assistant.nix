@@ -6,12 +6,13 @@ lib.rebellion.mk-module args {
       lib,
       pkgs,
       config,
+      datacenter,
       hostname,
       ...
     }:
     let
-      inherit (lib) mkMerge;
-      inherit (lib.rebellion.traefik) mk-service with-consul;
+      inherit (lib) mkMerge get-file;
+      inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
     in
     mkMerge [
       {
@@ -100,18 +101,33 @@ lib.rebellion.mk-module args {
         ];
       }
 
-      (with-consul config (mk-service {
-        inherit hostname;
-        name = "hass";
-        port = 8123;
-        subdomain = "home-assistant";
-        checks = [
+      (
+        let
+          service = mk-traefik-service {
+            inherit hostname;
+            name = "hass";
+            port = 8123;
+            subdomain = "home-assistant";
+          };
+          healthcheck = mk-healthcheck service {
+            route = "/api/";
+            header = {
+              Authorization = [ "Bearer ${config.sops.placeholder."consul/home-assistant"}" ];
+            };
+          };
+        in
+        mkMerge [
           {
-            http = "http://localhost:8123/api/";
-            interval = "10s";
-            timeout = "2s";
+            sops.secrets."consul/home-assistant".sopsFile = get-file "secrets/${datacenter}.sops.yaml";
           }
-        ];
-      }))
+          (with-consul config (
+            service
+            // {
+              checks = [ healthcheck ];
+              template = "consul/hass";
+            }
+          ))
+        ]
+      )
     ];
 }

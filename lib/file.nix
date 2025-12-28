@@ -19,7 +19,7 @@ let
     in
     filter (name: hasSuffix ".nix" name) (builtins.attrNames entries);
 
-  merge-attrs' = attrsList: foldl' (acc: attrs: acc // attrs) { } attrsList;
+  merge-attrs' = attrs-ls: foldl' (acc: attrs: acc // attrs) { } attrs-ls;
 in
 {
   # Read a file and return its contents
@@ -49,11 +49,6 @@ in
   # Returns a list of file names (without paths)
   # Usage: get-nix-files ./hooks
   get-nix-files = get-nix-files';
-
-  # Merge a list of attribute sets into a single attribute set
-  # Later values override earlier ones
-  # Usage: merge-attrs [ { a = 1; } { b = 2; } { a = 3; } ] => { a = 3; b = 2; }
-  merge-attrs = merge-attrs';
 
   # Import all .nix files from a directory
   # Returns a list of imported values

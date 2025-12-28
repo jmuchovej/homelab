@@ -72,13 +72,13 @@ lib.rebellion.mk-module args {
 
       (
         let
-          inherit (lib.rebellion.traefik) mk-service with-consul;
-          auth = mk-service {
+          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion.network) mk-traefik-service with-consul;
+          auth = mk-traefik-service {
             inherit hostname;
             name = "auth";
             port = 9000;
-            subdomain = "id";
-            domain = "jm0.io";
+            healthcheck = "/-/health/ready/";
           };
           inherit (lib.strings) replaceString concatStringsSep;
           rule = concatStringsSep " || " [
@@ -86,13 +86,13 @@ lib.rebellion.mk-module args {
             "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
           ];
         in
-        (with-consul config (
+        (with-consul config (merge-attrs [
           auth
-          // {
+          {
             pub.config.rule = rule;
             lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
           }
-        ))
+        ]))
       )
     ];
 }

@@ -10,8 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkMerge;
-      inherit (lib.rebellion.traefik) mk-service with-consul;
-
+      inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
     in
     mkMerge [
       {
@@ -22,12 +21,41 @@ lib.rebellion.mk-module args {
           accelerationDevices = [ "*" ];
           openFirewall = true;
         };
-
+      }
+      (
+        let
+          service = mk-traefik-service {
+            inherit hostname;
+            name = "plex";
+            port = 32400;
+            subdomain = [
+              "plex"
+              "play"
+            ];
+          };
+          healthcheck = mk-healthcheck service { route = "/web/index.html"; };
+        in
+        with-consul config (service // { checks = [ healthcheck ]; })
+      )
+      {
         services.tautulli = {
           enable = true;
           openFirewall = true;
         };
-
+      }
+      (
+        let
+          service = mk-traefik-service {
+            inherit hostname;
+            name = "tautulli";
+            port = 8181;
+            public = false;
+          };
+          healthcheck = mk-healthcheck service { route = "/status"; };
+        in
+        with-consul config (service // { checks = [ healthcheck ]; })
+      )
+      {
         services.jellyseerr = {
           enable = true;
           openFirewall = true;
@@ -39,51 +67,21 @@ lib.rebellion.mk-module args {
           "requests.jm0.io" = "http://localhost:5055";
         };
       }
-      (with-consul config (mk-service {
-        inherit hostname;
-        name = "plex";
-        port = 32400;
-        subdomain = [
-          "plex"
-          "play"
-        ];
-        checks = [
-          {
-            http = "http://localhost:32400/web/index.html";
-            interval = "10s";
-            timeout = "2s";
-          }
-        ];
-      }))
-      (with-consul config (mk-service {
-        inherit hostname;
-        name = "seerr";
-        port = 5055;
-        subdomain = [
-          "seerr"
-          "request"
-          "requests"
-        ];
-        checks = [
-          {
-            http = "http://localhost:5055/api/v1/status";
-            interval = "10s";
-            timeout = "2s";
-          }
-        ];
-      }))
-      (with-consul config (mk-service {
-        inherit hostname;
-        name = "tautulli";
-        port = 8181;
-        public = false;
-        checks = [
-          {
-            http = "http://localhost:8181/status";
-            interval = "10s";
-            timeout = "2s";
-          }
-        ];
-      }))
+      (
+        let
+          service = mk-traefik-service {
+            inherit hostname;
+            name = "seerr";
+            port = 5055;
+            subdomain = [
+              "seerr"
+              "request"
+              "requests"
+            ];
+          };
+          healthcheck = mk-healthcheck service { route = "/api/v1/status"; };
+        in
+        with-consul config (service // { checks = [ healthcheck ]; })
+      )
     ];
 }

@@ -11,7 +11,7 @@ in
     inherit (rebellion-lib.flake.lib)
       file
       system
-      traefik
+      network
       zed
       ;
 
@@ -23,7 +23,6 @@ in
       import-dir-plain
       import-subdirs
       import-modules-recursive
-      merge-attrs
       ;
   };
 
@@ -36,7 +35,6 @@ in
     import-dir-plain
     import-subdirs
     import-modules-recursive
-    merge-attrs
     ;
 
   inherit (rebellion-lib.flake.lib.module)
@@ -49,10 +47,9 @@ in
     mkopt-package'
     enable-for-system
     mk-module
+    mk-desktop-module
     get-shared
-    mkopt-nested
-    mkopt-nested-enable
-    mkopt-vscode
+    merge-attrs
     enable
     enabled
     disabled

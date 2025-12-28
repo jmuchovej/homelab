@@ -7,13 +7,8 @@ let
     types
     mkDefault
     mkForce
-    attrsOf
-    submodule
-    listOf
-    package
+    recursiveUpdate
     ;
-
-  JSON = (inputs.nixpkgs.formats.json { }).type;
 in
 rec {
   ## Create a NixOS module option.
@@ -126,8 +121,17 @@ rec {
     in
     if isFunction maybe-fn then (maybe-fn args) else maybe-fn;
 
+  /**
+    Deeply merge a list of attribute sets into a single attribute set without
+    losing nested fields. (Later values override earlier ones, but keys are a
+    union of all keys.)
+
+    Usage: merge-attrs [ { a = 1; } { b = 2; } { a = 3; } ] => { a = 3; b = 2; }
+  */
+  merge-attrs = attrs-ls: builtins.foldl' (acc: attr: recursiveUpdate acc attr) { } attrs-ls;
+
   # Create a module with common options
-  # Usage: mk-module moduleArgs { name = "mymodule"; config = args: { ... }; }
+  # Usage: mk-module args { name = "mymodule"; config = args: { ... }; }
   mk-module =
     module-args:
     {
@@ -200,37 +204,6 @@ rec {
       inherit (lib.rebellion) get-file;
     in
     get-file "modules/shared/${partial}/default.nix";
-
-  ## Sugar to make nesting options a smidge quicker.
-  mkopt-nested =
-    options:
-    mkopt' types.submodule {
-      inherit options;
-    };
-
-  ## Sugar to make nesting `{..}.enable` options quicker.
-  mkopt-nested-enable =
-    feature:
-    mkopt-nested {
-      enable = mkopt-enable feature;
-    };
-
-  mkopt-vscode =
-    extension-list: user-settings:
-    mkopt' (attrsOf (submodule {
-      options = {
-        extensions = mkOption {
-          type = listOf package;
-          default = extension-list;
-          description = "Extensions to add to VSCode";
-        };
-        userSettings = mkOption {
-          type = JSON;
-          default = user-settings;
-          description = "User Settings to add to VSCode";
-        };
-      };
-    })) { };
 
   default-attrs = mapAttrs (_key: mkDefault);
 

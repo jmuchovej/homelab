@@ -1,7 +1,6 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "homelab.traefik";
-
   options =
     { lib, ... }:
     let
@@ -16,6 +15,7 @@ lib.rebellion.mk-module args {
       cfg,
       config,
       lib,
+      hostname,
       ...
     }:
     let
@@ -25,153 +25,193 @@ lib.rebellion.mk-module args {
 
       data-dir = config.services.traefik.dataDir;
     in
-    {
-      rebellion.security.certificates = enabled;
+    lib.mkMerge [
+      {
+        rebellion.security.certificates = enabled;
 
-      networking.firewall.allowedTCPPorts = [
-        80
-        443
-      ];
-
-      sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
-      sops.templates."CF_DNS_API_TOKEN".content = ''
-        CF_DNS_API_TOKEN=${config.sops.placeholder."cloudflare/api-key"}
-      '';
-
-      systemd.services.traefik = {
-        serviceConfig.EnvironmentFile = [
-          config.sops.templates."CF_DNS_API_TOKEN".path
+        networking.firewall.allowedTCPPorts = [
+          80
+          443
         ];
-        # When consul integration is enabled, ensure consul is running
-        after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
-        wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
-      };
 
-      services.tailscale.permitCertUid = mkForce "traefik";
+        sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.templates."CF_DNS_API_TOKEN".content = ''
+          CF_DNS_API_TOKEN=${config.sops.placeholder."cloudflare/api-key"}
+        '';
 
-      services.traefik = {
-        enable = true;
-
-        dynamicConfigOptions = {
-          # TLS certificates for local .lab domains
-          tls.certificates = [
-            {
-              certFile = config.sops.secrets."certs/lab.crt".path;
-              keyFile = config.sops.secrets."certs/lab.key".path;
-            }
+        systemd.services.traefik = {
+          serviceConfig.EnvironmentFile = [
+            config.sops.templates."CF_DNS_API_TOKEN".path
           ];
+          # When consul integration is enabled, ensure consul is running
+          after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
+          wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
         };
 
-        staticConfigOptions = {
-          log = {
-            level = "INFO";
-            filePath = "${data-dir}/traefik.log";
-            format = "json";
-            noColor = false;
-            maxSize = 100;
-            compress = true;
-          };
+        services.tailscale.permitCertUid = mkForce "traefik";
 
-          metrics.prometheus = { };
+        services.traefik = {
+          enable = true;
 
-          tracing = { };
-
-          accessLog = {
-            addInternals = true;
-            filePath = "${data-dir}/traefik-access.log";
-            bufferingSize = 100;
-            fields = {
-              names = {
-                StartUTC = "drop";
-              };
-            };
-            filters.statusCodes = [
-              "204-299"
-              "400-499"
-              "500-599"
+          dynamicConfigOptions = {
+            # TLS certificates for local .lab domains
+            tls.certificates = [
+              {
+                certFile = config.sops.secrets."certs/lab.crt".path;
+                keyFile = config.sops.secrets."certs/lab.key".path;
+              }
             ];
           };
 
-          api.dashboard = true;
-
-          certificatesResolvers = {
-            tailscale.tailscale = { };
-            letsencrypt = {
-              acme = {
-                email = "homelab@jm0.io";
-                storage = "${data-dir}/acme.json";
-                dnsChallenge.provider = "cloudflare";
-              };
-            };
-          };
-
-          entryPoints = {
-            redis.address = "0.0.0.0:6381";
-            postgres.address = "0.0.0.0:5433";
-            web = {
-              address = "0.0.0.0:80";
-              http.redirections.entryPoint = {
-                to = "websecure";
-                scheme = "https";
-                permanent = true;
-              };
+          staticConfigOptions = {
+            log = {
+              level = "INFO";
+              filePath = "${data-dir}/traefik.log";
+              format = "json";
+              noColor = false;
+              maxSize = 100;
+              compress = true;
             };
 
-            websecure = {
-              address = "0.0.0.0:443";
-              http.tls = {
-                certResolver = "letsencrypt";
-                domains = [
-                  {
-                    main = "lab.jm0.io";
-                    sans = [ "*.lab.jm0.io" ];
-                  }
-                  {
-                    main = "jm0.io";
-                    sans = [ "*.jm0.io" ];
-                  }
-                ];
+            metrics.prometheus = { };
+
+            tracing = { };
+
+            accessLog = {
+              addInternals = true;
+              filePath = "${data-dir}/traefik-access.log";
+              bufferingSize = 100;
+              fields = {
+                names = {
+                  StartUTC = "drop";
+                };
               };
-              transport = {
-                respondingTimeouts = {
-                  readTimeout = "10m";
-                  writeTimeout = "10m";
-                  idleTimeout = "10m";
+              filters.statusCodes = [
+                "204-299"
+                "400-499"
+                "500-599"
+              ];
+            };
+
+            api.debug = true;
+            api.dashboard = true;
+
+            certificatesResolvers = {
+              tailscale.tailscale = { };
+              letsencrypt = {
+                acme = {
+                  email = "homelab@jm0.io";
+                  storage = "${data-dir}/acme.json";
+                  dnsChallenge.provider = "cloudflare";
                 };
               };
             };
-          };
 
-          # Consul Catalog provider for service discovery
-          providers = mkIf cfg.consul-integration {
-            consulCatalog = {
-              endpoint = {
-                address = "127.0.0.1:8500";
-                scheme = "http";
+            entryPoints = {
+              redis.address = "0.0.0.0:6381";
+              web = {
+                address = "0.0.0.0:80";
+                http.redirections.entryPoint = {
+                  to = "websecure";
+                  scheme = "https";
+                  permanent = true;
+                };
               };
 
-              # Use Consul Connect for service mesh
-              connectAware = true;
-              connectByDefault = false;
+              websecure = {
+                address = "0.0.0.0:443";
+                http.tls = {
+                  certResolver = "letsencrypt";
+                  domains = [
+                    {
+                      main = "lab.jm0.io";
+                      sans = [ "*.lab.jm0.io" ];
+                    }
+                    {
+                      main = "jm0.io";
+                      sans = [ "*.jm0.io" ];
+                    }
+                  ];
+                };
+                transport = {
+                  respondingTimeouts = {
+                    readTimeout = "10m";
+                    writeTimeout = "10m";
+                    idleTimeout = "10m";
+                  };
+                };
+              };
+            };
 
-              # Service name prefix for routing
-              prefix = "traefik";
+            # Consul Catalog provider for service discovery
+            providers = mkIf cfg.consul-integration {
+              consulCatalog = {
+                endpoint = {
+                  address = "127.0.0.1:8500";
+                  scheme = "http";
+                };
 
-              # Refresh interval
-              refreshInterval = "15s";
+                # Disable Consul Connect - we're only using Consul for service discovery
+                connectAware = false;
+                connectByDefault = false;
 
-              # Expose services by default
-              exposedByDefault = false;
+                # Service name prefix for routing
+                prefix = "traefik";
 
-              # Default rule template (uses service name)
-              defaultRule = "Host(`{{ normalize .Name }}.lab`)";
+                # Refresh interval
+                refreshInterval = "15s";
 
-              # Health check configuration
-              constraints = "tag==`traefik.enable=true`";
+                # Expose services by default
+                exposedByDefault = false;
+
+                # Default rule template (uses service name)
+                defaultRule = "Host(`{{ normalize .Name }}.lab`)";
+
+                # Health check configuration
+                constraints = "Tag(`traefik.enable=true`)";
+              };
             };
           };
         };
-      };
+      }
+      (
+        let
+          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
+          service-base = mk-traefik-service {
+            inherit hostname;
+            name = "traefik";
+            port = 80;
+          };
 
-    };
+          inherit (lib.strings) replaceString concatStringsSep;
+          rule = concatStringsSep " && " [
+            "Host(`jm0.io`)"
+            "(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+          ];
+          service = merge-attrs [
+            service-base
+            {
+              pub.config.rule = rule;
+              lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
+            }
+          ];
+          healthcheck-api = mk-healthcheck service {
+            route = "/api/";
+          };
+          healthcheck-dashboard = mk-healthcheck service {
+            route = "/dashboard/";
+          };
+        in
+        with-consul config (
+          service
+          // {
+            checks = [
+              healthcheck-api
+              healthcheck-dashboard
+            ];
+          }
+        )
+      )
+    ];
 }

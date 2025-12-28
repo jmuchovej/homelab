@@ -9,8 +9,7 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (builtins) toString;
-      inherit (lib.rebellion.traefik) mk-authd-service with-consul;
+      inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
 
       # Helper to generate database permission grants
       mk-db-grants =
@@ -18,16 +17,9 @@ lib.rebellion.mk-module args {
           name,
           dbs ? [ ],
         }:
-        let
-          all-dbs = [
-            name
-            "${name}-log"
-          ]
-          ++ dbs;
-        in
         lib.concatMapStringsSep "\n" (
           db: ''psql -tAc 'GRANT ALL ON SCHEMA public TO "${name}"' -d ${db}''
-        ) all-dbs;
+        ) dbs;
 
       mk-arr =
         {
@@ -66,17 +58,23 @@ lib.rebellion.mk-module args {
                 environmentFiles = [ config.sops.secrets."${name}/env".path ];
               };
             }
-            (with-consul config (mk-authd-service {
-              inherit hostname name port;
-              public = false;
-              checks = [
-                {
-                  http = "http://localhost:${toString port}/ping";
-                  interval = "10s";
-                  timeout = "2s";
+            (
+              let
+                service = mk-traefik-service {
+                  inherit hostname name port;
+                  public = false;
+                };
+                healthcheck = mk-healthcheck service {
+                  route = "/ping/";
+                };
+              in
+              with-consul config (
+                service
+                // {
+                  checks = [ healthcheck ];
                 }
-              ];
-            }))
+              )
+            )
           ];
         };
 
