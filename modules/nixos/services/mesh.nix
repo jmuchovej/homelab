@@ -106,12 +106,9 @@ lib.rebellion.mk-module args {
           };
         };
 
-        # DNS integration - forward .consul queries to Consul
-        # Use 127.0.0.1 explicitly to force IPv4 (Consul only listens on IPv4)
-        services.resolved.extraConfig = ''
-          DNS=127.0.0.1#8600
-          Domains=~consul
-        '';
+        # DNS integration - use dnsmasq for Consul DNS forwarding
+        # dnsmasq configuration is in modules/nixos/system/networking/dnsmasq.nix
+        rebellion.system.networking.dns = "dnsmasq";
 
         rebellion.homelab.traefik = {
           enable = true;

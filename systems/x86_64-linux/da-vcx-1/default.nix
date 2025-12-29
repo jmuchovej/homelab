@@ -66,7 +66,9 @@ in
         silent-boot = enabled;
       };
       locale = enabled;
-      networking = enabled;
+      networking = enabled // {
+        dns = "dnsmasq";
+      };
     };
     virtualization = {
       containers = enabled;
