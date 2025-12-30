@@ -9,7 +9,7 @@ let
 in
 mkIf (cfg.dns == "systemd-resolved") {
   networking.networkmanager.dns = "systemd-resolved";
-  networking.resolveconf.enable = false;
+  networking.resolvconf.enable = false;
 
   services.dnsmasq.enable = mkForce false;
 

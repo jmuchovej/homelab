@@ -9,14 +9,13 @@ let
   inherit (lib.rebellion) disabled;
 
   mesh = config.rebellion.services.mesh or disabled;
+  dynamic-gateway-conf = "/run/dnsmasq/dynamic-gateway.conf";
 in
 mkIf (cfg.dns == "dnsmasq") {
   networking.networkmanager.dns = mkIf (!mesh.enable) "dnsmasq";
   services.resolved.enable = mkForce false;
-
   services.dnsmasq = {
     enable = true;
-
     resolveLocalQueries = true;
 
     settings = mkMerge [
@@ -31,8 +30,7 @@ mkIf (cfg.dns == "dnsmasq") {
 
         interface = [ "lo" ];
 
-        # Always include dynamic gateway config (populated by dnsmasq-dynamic-upstream)
-        conf-file = [ "/run/dnsmasq/gateway.conf" ];
+        conf-file = [ dynamic-gateway-conf ];
       }
 
       # When mesh is enabled, override DNS configuration
@@ -42,9 +40,6 @@ mkIf (cfg.dns == "dnsmasq") {
 
         # Listen on consul's interface to serve DNS via VIP
         interface = [ mesh.consul.interface ];
-
-        # Don't read /etc/resolv.conf for upstream servers
-        no-resolv = true;
       })
     ];
   };
@@ -63,8 +58,8 @@ mkIf (cfg.dns == "dnsmasq") {
       fi
 
       echo "Configuring dnsmasq to use gateway: $GATEWAY"
-      mkdir -p /run/dnsmasq
-      echo "server=$GATEWAY" > /run/dnsmasq/gateway.conf
+      mkdir -p "$(dirname "${dynamic-gateway-conf}")"
+      echo "server=$GATEWAY" > ${dynamic-gateway-conf}
     '';
   };
 

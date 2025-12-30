@@ -152,6 +152,10 @@ rec {
       evaluation-args = module-args // {
         inherit cfg;
       };
+
+      # Evaluate imports if they're functions (allowing them to receive evaluation-args)
+      evald-imports = map (imp: eval-if-func imp evaluation-args) imports;
+
       # Always evaluate config as a function with full module args
       evald-config = eval-if-func config evaluation-args;
       evald-conditions = eval-if-func conditions evaluation-args;
@@ -161,7 +165,7 @@ rec {
       should-enable = (name == null) || cfg.enable;
     in
     {
-      inherit imports;
+      imports = evald-imports;
       options = setAttrByPath name-parts (base-optionset // evald-options);
       config = lib.mkIf (should-enable && evald-conditions) evald-config;
     };

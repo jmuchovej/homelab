@@ -19,24 +19,24 @@ lib.rebellion.mk-module args {
         "systemd-networkd"
       ]) "systemd-networkd" "Network manager to use";
     };
+  imports = [
+    (import ./dynamic-gateway.part.nix)
+    (import ./networkd.part.nix)
+    (import ./dnsmasq.part.nix)
+    (import ./networkmanager.part.nix)
+    (import ./resolved.part.nix)
+  ];
   config =
     {
       cfg,
       lib,
       pkgs,
       ...
-    }@args:
+    }:
     let
       inherit (lib) mkDefault mkForce optionals;
     in
     {
-      imports = [
-        (import ./networkd.part.nix args)
-        (import ./dnsmasq.part.nix args)
-        (import ./networkmanager.part.nix args)
-        (import ./resolved.part.nix args)
-      ];
-
       boot = {
         extraModprobeConfig = "options bonding max_bonds=0";
 
