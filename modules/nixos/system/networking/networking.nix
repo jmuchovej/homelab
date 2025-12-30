@@ -31,10 +31,10 @@ lib.rebellion.mk-module args {
     in
     {
       imports = [
-        (import ./networking/networkd.part.nix args)
-        (import ./networking/dnsmasq.part.nix args)
-        (import ./networking/networkmanager.part.nix args)
-        (import ./networking/resolved.part.nix args)
+        (import ./networkd.part.nix args)
+        (import ./dnsmasq.part.nix args)
+        (import ./networkmanager.part.nix args)
+        (import ./resolved.part.nix args)
       ];
 
       boot = {
