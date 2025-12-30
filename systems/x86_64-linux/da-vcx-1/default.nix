@@ -68,6 +68,7 @@ in
       locale = enabled;
       networking = enabled // {
         dns = "dnsmasq";
+        manager = "networkmanager";
       };
     };
     virtualization = {
