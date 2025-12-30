@@ -9,14 +9,16 @@ let
     mkIf
     mkForce
     mkMerge
+    optionals
     ;
+  inherit (lib.rebellion) disabled;
 
   cfg = config.rebellion.system.networking;
-  mesh-enabled = config.rebellion.services.mesh.enable or false;
+  mesh = config.rebellion.services.mesh or disabled;
 in
 {
   config = mkIf (cfg.enable && cfg.dns == "dnsmasq") {
-    networking.networkmanager.dns = "dnsmasq";
+    networking.networkmanager.dns = mkIf (!mesh.enable) "dnsmasq";
     services.resolved.enable = mkForce false;
     services.dnsmasq = {
       enable = true;
@@ -32,39 +34,35 @@ in
             "2620:fe::fe"
             "2620:fe::9"
           ];
+
+          interface = [ "lo" ];
+
+          # Always include dynamic gateway config (populated by dnsmasq-dynamic-upstream)
+          conf-file = [ "/run/dnsmasq/gateway.conf" ];
         }
 
         # When mesh is enabled, override DNS configuration
-        (mkIf mesh-enabled {
+        (mkIf mesh.enable {
           # Forward .consul queries to local Consul agent
-          server = [
-            "/consul/127.0.0.1#8600"
-            # Get default gateway dynamically for other queries
-            # This will be the MikroTik router
-          ];
+          server = [ "/consul/127.0.0.1#8600" ];
 
-          # Listen on all interfaces to serve DNS via VIP
-          listen-address = [
-            "127.0.0.1"
-            "0.0.0.0"
-          ];
-          bind-interfaces = true;
+          # Listen on consul's interface to serve DNS via VIP
+          interface = [ mesh.consul.interface ];
 
           # Don't read /etc/resolv.conf for upstream servers
           no-resolv = true;
-
-          # Include the dynamic gateway config when mesh is enabled
-          conf-file = [ "/run/dnsmasq/gateway.conf" ];
         })
       ];
     };
 
-    # When mesh is enabled, dynamically set MikroTik as upstream
-    systemd.services.dnsmasq-dynamic-upstream = mkIf mesh-enabled {
+    # Dynamically set gateway as upstream DNS (always enabled, not mesh-specific)
+    # This mirrors dynamic-dns in resolved.nix - it's a networking safeguard
+    systemd.services.dnsmasq-dynamic-upstream = {
       description = "Configure dnsmasq to use gateway as upstream DNS";
       wantedBy = [ "dnsmasq.service" ];
       before = [ "dnsmasq.service" ];
-      after = [ "network-online.target" ];
+      after = [ "network-online.target" ] ++ optionals mesh.enable [ "consul.service" ];
+      wants = [ "network-online.target" ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -78,17 +76,15 @@ in
           awk = getExe' pkgs.gawk "awk";
         in
         ''
-          # Get the default gateway (MikroTik router)
+          # Get the default gateway (router)
           GATEWAY=$(${ip} route show default | ${awk} '/default/ { print $3; exit }')
 
           if [ -n "$GATEWAY" ]; then
             echo "Adding gateway $GATEWAY as upstream DNS for dnsmasq"
-            # Create a dnsmasq config snippet
             mkdir -p /run/dnsmasq
             echo "server=$GATEWAY" > /run/dnsmasq/gateway.conf
           else
-            echo "Warning: No default gateway found"
-            # Fallback to Quad9
+            echo "Warning: No default gateway found, using Quad9 fallback"
             mkdir -p /run/dnsmasq
             echo "server=9.9.9.9" > /run/dnsmasq/gateway.conf
           fi
@@ -96,12 +92,12 @@ in
     };
 
     # Open firewall for DNS when mesh is enabled
-    networking.firewall = mkIf mesh-enabled {
+    networking.firewall = mkIf mesh.enable {
       allowedUDPPorts = [ 53 ];
       allowedTCPPorts = [ 53 ];
     };
 
     # Point system DNS to localhost when mesh is enabled
-    networking.nameservers = mkIf mesh-enabled (mkForce [ "127.0.0.1" ]);
+    networking.nameservers = mkIf mesh.enable (mkForce [ "127.0.0.1" ]);
   };
 }
