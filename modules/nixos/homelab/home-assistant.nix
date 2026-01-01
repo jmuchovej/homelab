@@ -34,20 +34,23 @@ lib.rebellion.mk-module args {
               #   https://github.com/home-assistant/core/issues/157961
               # server_host = [ "0.0.0.0" "::" ];
               # NOTE: disabled authentik is configured correctly
-              # use_x_forwarded_for = true;
-              # trusted_proxies = [
-              #   "10.42.0.0/16"
-              #   "10.69.0.0/16"
-              #   "10.94.0.0/16"
-              #   "10.99.0.0/16"
-              #   "192.168.1.0/24"
-              # ];
+              use_x_forwarded_for = true;
+              trusted_proxies = [
+                "127.0.0.1"
+                "10.42.0.0/16"
+                "10.69.0.0/16"
+                "10.94.0.0/16"
+                "10.99.0.0/16"
+                "192.168.1.0/24"
+              ];
             };
             homeassistant = {
               name = "Home";
               unit_system = "us_customary";
               time_zone = "America/New_York";
               temperature_unit = "F";
+              internal_url = "https://home-assistant.service.consul";
+              external_url = "https://home.${datacenter}.jm0.io";
             };
           };
           customComponents = (
@@ -108,7 +111,7 @@ lib.rebellion.mk-module args {
       (
         let
           service = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "home-assistant";
             port = 8123;
           };

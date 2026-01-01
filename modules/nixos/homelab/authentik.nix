@@ -7,6 +7,7 @@ lib.rebellion.mk-module args {
       pkgs,
       lib,
       hostname,
+      datacenter,
       ...
     }:
     let
@@ -75,7 +76,7 @@ lib.rebellion.mk-module args {
           inherit (lib.rebellion) merge-attrs;
           inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
           service-base = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "auth";
             port = 9000;
           };

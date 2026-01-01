@@ -16,6 +16,7 @@ lib.rebellion.mk-module args {
       config,
       lib,
       hostname,
+      datacenter,
       ...
     }:
     let
@@ -124,8 +125,8 @@ lib.rebellion.mk-module args {
                   certResolver = "letsencrypt";
                   domains = [
                     {
-                      main = "lab.jm0.io";
-                      sans = [ "*.lab.jm0.io" ];
+                      main = "${datacenter}.jm0.io";
+                      sans = [ "*.${datacenter}.jm0.io" ];
                     }
                     {
                       main = "jm0.io";
@@ -179,7 +180,7 @@ lib.rebellion.mk-module args {
           inherit (lib.rebellion) merge-attrs;
           inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
           service-base = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "traefik";
             port = 80;
           };

@@ -5,6 +5,7 @@ lib.rebellion.mk-module args {
     {
       lib,
       hostname,
+      datacenter,
       config,
       ...
     }:
@@ -25,7 +26,7 @@ lib.rebellion.mk-module args {
       (
         let
           service = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "plex";
             port = 32400;
             subdomain = [
@@ -46,7 +47,7 @@ lib.rebellion.mk-module args {
       (
         let
           service = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "tautulli";
             port = 8181;
             public = false;
@@ -70,7 +71,7 @@ lib.rebellion.mk-module args {
       (
         let
           service = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             name = "seerr";
             port = 5055;
             subdomain = [

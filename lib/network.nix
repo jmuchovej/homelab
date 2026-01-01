@@ -67,15 +67,17 @@ rec {
       name,
       port,
       hostname,
+      datacenter,
       subdomain ? name,
-      pub-domain ? "jm0.io",
-      lab-domain ? "${hostname}.lab",
+      pub-domain ? "${datacenter}.jm0.io",
+      lab-domain ? "lab",
       public ? true,
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
     }:
     let
+      # Use datacenter-based domain for public router
       pub-rule = mk-rule subdomain pub-domain;
 
       # Build rule for local .lab domain
@@ -129,6 +131,7 @@ rec {
       inherit
         port
         hostname
+        datacenter
         subdomain
         pub-domain
         lab-domain
@@ -143,6 +146,7 @@ rec {
       name,
       port,
       hostname,
+      datacenter,
       subdomain ? name,
       pub-domain ? "jm0.io",
       lab-domain ? "${hostname}.lab",
@@ -156,6 +160,7 @@ rec {
         name
         port
         hostname
+        datacenter
         subdomain
         pub-domain
         lab-domain

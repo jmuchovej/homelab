@@ -6,6 +6,7 @@ lib.rebellion.mk-module args {
       config,
       lib,
       hostname,
+      datacenter,
       ...
     }:
     let
@@ -61,7 +62,12 @@ lib.rebellion.mk-module args {
             (
               let
                 service = mk-traefik-service {
-                  inherit hostname name port;
+                  inherit
+                    hostname
+                    datacenter
+                    name
+                    port
+                    ;
                   public = false;
                 };
                 healthcheck = mk-healthcheck service {
@@ -111,7 +117,18 @@ lib.rebellion.mk-module args {
             lib.concatMapStringsSep "\n" (arr: arr.psql) arrs
           );
         }
-
+        {
+          services.recyclarr = {
+            enable = true;
+            command = "sync";
+            schedule = "daily";
+            # https://recyclarr.dev/reference/configuration/
+            configuration = {
+              radarr = [ ];
+              sonarr = [ ];
+            };
+          };
+        }
       ]
       # Individual *arr service configurations
       ++ (map (arr: arr.config) arrs)

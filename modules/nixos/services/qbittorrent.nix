@@ -7,6 +7,7 @@ lib.rebellion.mk-module args {
       lib,
       pkgs,
       hostname,
+      datacenter,
       ...
     }:
     let
@@ -99,10 +100,10 @@ lib.rebellion.mk-module args {
           inherit (lib.rebellion.network) with-consul mk-traefik-service mk-healthcheck;
           service = merge-attrs [
             (mk-traefik-service {
-              inherit hostname;
+              inherit hostname datacenter;
               name = "qbittorrent";
               port = config.services.qbittorrent.webuiPort;
-              public = false;
+              public = true;
             })
             {
               svc.config.loadBalancer.passHostHeader = false;

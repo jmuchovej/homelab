@@ -194,7 +194,7 @@ lib.rebellion.mk-module args {
         let
           inherit (lib.rebellion.network) with-consul mk-traefik-service mk-healthcheck;
           service = mk-traefik-service {
-            inherit hostname;
+            inherit hostname datacenter;
             port = 8500;
             name = "consul";
             public = false;
