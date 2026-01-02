@@ -228,13 +228,14 @@ rec {
       name,
       port,
       hostname,
+      address ? null,
       tags ? [ ],
       checks ? [ ],
       meta ? { },
     }:
     {
       service = [
-        {
+        ({
           # id = "${name}-${hostname}";
           id = name;
           inherit name port tags checks;
@@ -245,6 +246,7 @@ rec {
             node = hostname;
           };
         }
+        // (if address != null then { inherit address; } else { }))
       ];
     };
 
@@ -266,12 +268,15 @@ rec {
       has-template = service ? template;
 
       # Always generate the consul service config
-      consul-service = mk-consul-service {
-        inherit (service) port hostname;
-        name = service.svc.name;
-        checks = service.checks or [ ];
-        tags = mk-traefik-tags service;
-      };
+      consul-service = mk-consul-service (
+        {
+          inherit (service) port hostname;
+          name = service.svc.name;
+          checks = service.checks or [ ];
+          tags = mk-traefik-tags service;
+        }
+        // (if service ? address then { inherit (service) address; } else { })
+      );
 
       consul-json = builtins.toJSON consul-service;
     in

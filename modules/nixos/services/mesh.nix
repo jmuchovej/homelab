@@ -196,8 +196,8 @@ lib.rebellion.mk-module args {
           service = mk-traefik-service {
             inherit hostname datacenter;
             port = 8500;
-            name = "consul";
-            public = false;
+            name = "consul-ui";
+            subdomain = "consul";
           };
           healthcheck = mk-healthcheck service {
             route = "/v1/health/node/${hostname}";
@@ -207,6 +207,7 @@ lib.rebellion.mk-module args {
           service
           // {
             checks = [ healthcheck ];
+            address = "127.0.0.1";
           }
         )
       )
