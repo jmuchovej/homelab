@@ -156,7 +156,7 @@ rec {
   # Convert a service structure from mk-service into Consul tags
   # This flattens the router/service configs into the tag format Consul expects
   mk-traefik-tags = service: let
-    inherit (service) lab pub svc;
+    inherit (service) pub svc;
     inherit (inputs.nixpkgs.lib)
       optionals
       filter
@@ -206,12 +206,10 @@ rec {
         flatten (mapAttrsToList to-tag attrs);
 
     # Generate tags for public router (if present)
-    pub-tags = optionals (pub != null) (
-      attrs-to-tags "traefik.http.routers.${pub.name}" pub.config
-    );
+    pub-tags = attrs-to-tags "traefik.http.routers.${pub.name}" pub.config;
 
     # Generate tags for local router
-    lab-tags = attrs-to-tags "traefik.http.routers.${lab.name}" lab.config;
+    # lab-tags = attrs-to-tags "traefik.http.routers.${lab.name}" lab.config;
 
     # Generate tags for backend service
     svc-tags = attrs-to-tags "traefik.http.services.${svc.name}" svc.config;
@@ -219,7 +217,7 @@ rec {
     filter (tag: tag != null && tag != "") (
       [ "traefik.enable=true" ]
       ++ pub-tags
-      ++ lab-tags
+      # ++ lab-tags
       ++ svc-tags
     );
 
