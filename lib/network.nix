@@ -69,21 +69,18 @@ rec {
       hostname,
       datacenter,
       subdomain ? name,
-      pub-domain ? "${datacenter}.jm0.io",
-      lab-domain ? "lab",
+      domain ? "${datacenter}.jm0.io",
       public ? true,
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
     }:
     let
-      # Use datacenter-based domain for public router
-      pub-rule = mk-rule subdomain pub-domain;
+      pub-rule = mk-rule subdomain domain;
 
-      # Build rule for local .lab domain
-      lab-rule = mk-rule subdomain lab-domain;
+      lab-rule = mk-rule subdomain ".lab";
 
-      # Build router configs
+      # Base router config for `pub` and `lab` rules
       router-config = {
         service = name;
         entryPoints = entry-points;
@@ -100,24 +97,11 @@ rec {
     # Return a structured result with accessors
     {
       # Accessor for public router (only present if public = true)
-      pub =
-        if public then
-          {
-            inherit name;
-            config = merge-attrs [router-config {
-              rule = mkDefault pub-rule;
-              tls.certResolver = cert-resolver;
-            }];
-          }
-        else
-          null;
-
-      # Accessor for local router (always present)
-      lab = {
-        name = "${name}-lab";
+      pub = {
+        inherit name;
         config = merge-attrs [router-config {
-          rule = mkDefault lab-rule;
-          tls = {};
+          rule = mkDefault pub-rule;
+          tls.certResolver = cert-resolver;
         }];
       };
 
@@ -133,8 +117,7 @@ rec {
         hostname
         datacenter
         subdomain
-        pub-domain
-        lab-domain
+        domain
         public
         middlewares
         ;
@@ -148,8 +131,7 @@ rec {
       hostname,
       datacenter,
       subdomain ? name,
-      pub-domain ? "jm0.io",
-      lab-domain ? "${hostname}.lab",
+      domain ? "${datacenter}.jm0.io",
       public ? true,
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
@@ -162,8 +144,7 @@ rec {
         hostname
         datacenter
         subdomain
-        pub-domain
-        lab-domain
+        domain
         public
         entry-points
         cert-resolver
