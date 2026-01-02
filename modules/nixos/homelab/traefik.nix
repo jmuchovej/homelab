@@ -95,6 +95,7 @@ lib.rebellion.mk-module args {
             };
 
             api.debug = true;
+            api.insecure = true;
             api.dashboard = true;
 
             certificatesResolvers = {
@@ -152,18 +153,14 @@ lib.rebellion.mk-module args {
                   scheme = "http";
                 };
 
-                # Disable Consul Connect - we're only using Consul for service discovery
                 connectAware = false;
-                connectByDefault = false;
 
-                # Service name prefix for routing
                 prefix = "traefik";
 
-                # Refresh interval
                 refreshInterval = "15s";
 
-                # Expose services by default
                 exposedByDefault = false;
+                connectByDefault = true;
 
                 # Default rule template (uses service name)
                 defaultRule = "Host(`{{ normalize .Name }}.lab`)";
@@ -182,23 +179,22 @@ lib.rebellion.mk-module args {
           service-base = mk-traefik-service {
             inherit hostname datacenter;
             name = "traefik";
-            port = 80;
+            port = 8080;
           };
 
-          inherit (lib.strings) replaceString concatStringsSep;
+          inherit (lib.strings) concatStringsSep;
           rule = concatStringsSep " && " [
-            "Host(`jm0.io`)"
+            "Host(`${datacenter}.jm0.io`)"
             "(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
           ];
           service = merge-attrs [
             service-base
             {
               pub.config.rule = rule;
-              lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
             }
           ];
           healthcheck-api = mk-healthcheck service {
-            route = "/api/";
+            route = "/api/version";
           };
           healthcheck-dashboard = mk-healthcheck service {
             route = "/dashboard/";
