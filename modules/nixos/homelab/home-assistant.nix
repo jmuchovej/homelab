@@ -49,7 +49,7 @@ lib.rebellion.mk-module args {
               unit_system = "us_customary";
               time_zone = "America/New_York";
               temperature_unit = "F";
-              internal_url = "https://home-assistant.service.consul";
+              internal_url = "https://home.${datacenter}.jm0.io";
               external_url = "https://home.${datacenter}.jm0.io";
             };
           };
@@ -113,6 +113,7 @@ lib.rebellion.mk-module args {
           service = mk-traefik-service {
             inherit hostname datacenter;
             name = "home-assistant";
+            subdomain = "home";
             port = 8123;
           };
           healthcheck = mk-healthcheck service {
