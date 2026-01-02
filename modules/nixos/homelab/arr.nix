@@ -129,6 +129,25 @@ lib.rebellion.mk-module args {
             };
           };
         }
+        {
+          services.flaresolverr = {
+            enable = true;
+          };
+        }
+        (
+          let
+            inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
+            service = mk-traefik-service {
+              inherit hostname datacenter;
+              name = "flaresolverr";
+              port = config.services.flaresolverr.port;
+            };
+            healthcheck = mk-healthcheck service {
+              route = "/health";
+            };
+          in
+          with-consul config (service // { checks = [ healthcheck ]; })
+        )
       ]
       # Individual *arr service configurations
       ++ (map (arr: arr.config) arrs)
