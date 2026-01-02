@@ -20,7 +20,10 @@ mkIf (cfg.dns == "dnsmasq") {
 
     settings = mkMerge [
       {
-        # Default upstream servers (Quad9)
+        # Ensures the gateway is tried first before fallbacks
+        strict-order = true;
+
+        # Default upstream servers (Quad9) - these are fallbacks
         server = [
           "9.9.9.9"
           "149.112.112.112"
@@ -33,13 +36,16 @@ mkIf (cfg.dns == "dnsmasq") {
         conf-file = [ dynamic-gateway-conf ];
       }
 
-      # When mesh is enabled, override DNS configuration
+      # When mesh is enabled, add mesh-specific DNS configuration
       (mkIf mesh.enable {
         # Forward .consul queries to local Consul agent
         server = [ "/consul/127.0.0.1#8600" ];
 
-        # Listen on consul's interface to serve DNS via VIP
-        interface = [ mesh.consul.interface ];
+        # Listen on both loopback (for local queries) and mesh interface (for VIP)
+        interface = [
+          "lo"
+          mesh.consul.interface
+        ];
       })
     ];
   };
