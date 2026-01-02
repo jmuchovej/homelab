@@ -81,15 +81,15 @@ lib.rebellion.mk-module args {
             port = 9000;
           };
           inherit (lib.strings) replaceString concatStringsSep;
-          rule = concatStringsSep " || " [
+          base-rule = concatStringsSep " || " [
             "Host(`id.jm0.io`)"
             "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
           ];
+          rule = "${base-rule} || ${replaceString "jm0.io" "${datacenter}.jm0.io" base-rule}";
           service = merge-attrs [
             service-base
             {
               pub.config.rule = rule;
-              lab.config.rule = (replaceString "jm0.io" "${hostname}.lab" rule);
             }
           ];
           healthcheck-server = mk-healthcheck service {
