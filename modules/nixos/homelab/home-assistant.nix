@@ -119,7 +119,7 @@ lib.rebellion.mk-module args {
           healthcheck = mk-healthcheck service {
             route = "/api/";
             header = {
-              Authorization = "Bearer ${config.sops.placeholder."consul/home-assistant"}";
+              Authorization = [ "Bearer ${config.sops.placeholder."consul/home-assistant"}" ];
             };
           };
         in
@@ -127,7 +127,7 @@ lib.rebellion.mk-module args {
           service
           // {
             checks = [ healthcheck ];
-            template = "consul/hass";
+            write-template = true;
           }
         ))
       )

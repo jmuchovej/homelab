@@ -265,7 +265,7 @@ rec {
     config: service:
     let
       inherit (inputs.nixpkgs.lib) mkMerge mkIf;
-      has-template = service ? template;
+      write-template = service.write-template or false;
 
       # Always generate the consul service config
       consul-service = mk-consul-service (
@@ -279,6 +279,7 @@ rec {
       );
 
       consul-json = builtins.toJSON consul-service;
+      service-file = "consul.d/${service.svc.name}.json";
     in
     mkMerge [
       # Assert that mesh.enable exists and is explicitly set (not undefined)
@@ -297,18 +298,19 @@ rec {
         ];
       }
       # If using a sops template, create the template and use it as source
-      (mkIf has-template {
-        sops.templates.${service.template} = {
+      (mkIf write-template (let
+        in {
+        sops.templates."${service-file}" = {
           content = consul-json;
           restartUnits = [ "consul.service" ];
-          path = "/etc/consul.d/${service.svc.name}.json";
+          owner = "consul";
+          group = "consul";
         };
-        # environment.etc."consul.d/${service.svc.name}.json".source =
-          # config.sops.templates.${service.template}.path;
-      })
+        services.consul.extraConfigFiles = [ config.sops.templates.${service-file}.path ];
+      }))
       # Otherwise write JSON directly
-      (mkIf (!has-template) {
-        environment.etc."consul.d/${service.svc.name}.json".text = consul-json;
+      (mkIf (!write-template) {
+        environment.etc."${service-file}".text = consul-json;
       })
     ];
 
