@@ -1,10 +1,11 @@
-{ lib, ... }@args:
+{ lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "homelab.arr";
   config =
     {
       config,
       lib,
+      pkgs,
       hostname,
       datacenter,
       ...
@@ -129,11 +130,15 @@ lib.rebellion.mk-module args {
             };
           };
         }
-        {
-          services.flaresolverr = {
-            enable = true;
-          };
-        }
+        # {
+        #   # FlareSolverr with fixed NUR package (Chromium 126)
+        #   # See: https://github.com/NixOS/nixpkgs/issues/332776
+        #   # https://github.com/NixOS/nixpkgs/issues/332776#issuecomment-2506433253
+        #   services.flaresolverr = {
+        #     enable = true;
+        #     package = pkgs.nur.repos.xddxdd.flaresolverr-21hsmw;
+        #   };
+        # }
         (
           let
             inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
