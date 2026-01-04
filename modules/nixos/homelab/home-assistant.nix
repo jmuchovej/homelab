@@ -42,6 +42,7 @@ lib.rebellion.mk-module args {
                 "10.94.0.0/16"
                 "10.99.0.0/16"
                 "192.168.1.0/24"
+                "::1"
               ];
             };
             homeassistant = {
@@ -81,6 +82,7 @@ lib.rebellion.mk-module args {
             "androidtv_remote"
             "plex"
             "tts"
+            "http"
             "group"
             "script"
             "scene"
@@ -128,6 +130,7 @@ lib.rebellion.mk-module args {
           // {
             checks = [ healthcheck ];
             write-template = true;
+            address = "127.0.0.1";
           }
         ))
       )
