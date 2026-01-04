@@ -160,10 +160,10 @@ lib.rebellion.mk-module args {
                 refreshInterval = "15s";
 
                 exposedByDefault = false;
-                connectByDefault = true;
+                connectByDefault = false;
 
                 # Default rule template (uses service name)
-                defaultRule = "Host(`{{ normalize .Name }}.lab`)";
+                defaultRule = "Host(`{{ normalize .Name }}.${datacenter}.jm0.io`)";
 
                 # Health check configuration
                 constraints = "Tag(`traefik.enable=true`)";
