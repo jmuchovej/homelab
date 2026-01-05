@@ -70,6 +70,7 @@ lib.rebellion.mk-module args {
               numpy
               gtts
               pydantic
+              python-otbr-api # matter/thread
             ];
           extraComponents = [
             "default_config"
@@ -103,6 +104,10 @@ lib.rebellion.mk-module args {
             name = "hass";
             ensureDBOwnership = true;
           }
+        ];
+
+        networking.firewall.allowedTCPPorts = [
+          39501 # hubitat
         ];
       }
 
