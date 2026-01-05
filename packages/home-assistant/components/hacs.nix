@@ -58,24 +58,45 @@ buildHomeAssistantComponent rec {
       exit 1
     fi
 
-    # Create a temporary directory to unpack the wheel
+    hacs_dir="$component_dir/hacs"
+
+    if [[ ! -d "$hacs_dir" ]]; then
+      echo "ERROR: HACS component directory not found at $hacs_dir"
+      exit 1
+    fi
+
+    rm -rf "$hacs_dir/hacs_frontend"
+
     temp_frontend=$(mktemp -d)
+    trap "rm -rf $temp_frontend" EXIT
 
     # Unpack the wheel file (which is just a zip archive)
-    ${unzip}/bin/unzip -q ${hacs-frontend} -d "$temp_frontend"
+    ${lib.getExe unzip} -q ${hacs-frontend} -d "$temp_frontend"
 
     # Copy the hacs_frontend directory into the installed component
     # The wheel contains a hacs_frontend/ directory at the root
-    cp -r "$temp_frontend/hacs_frontend" "$component_dir/hacs"
-
-    # Clean up (the bash script removes .dist-info files)
-    rm -rf "$component_dir/hacs"/*.dist-info
-
-    # Verify the installation succeeded
-    if [[ ! -f "$component_dir/hacs/hacs_frontend/version.py" ]]; then
-      echo "ERROR: Frontend installation failed - version.py not found"
+    if [[ -d "$temp_frontend/hacs_frontend" ]]; then
+      cp -r "$temp_frontend/hacs_frontend" "$component_dir/hacs"
+    else
+      echo "ERROR: hacs_frontend directory not found in wheel"
       exit 1
     fi
+
+    # Remove any `manifest.json` so `pkgs.home-assistant` doesn't try to add
+    # them as components
+    find "$hacs_dir/hacs_frontend" -mindepth 2 -name "manifest.json" -delete
+
+    # Clean up (the bash script removes .dist-info files)
+    rm -rf "$hacs_dir"/*.dist-info
+
+    # Verify the installation succeeded
+    if [[ ! -f "$hacs_dir/hacs_frontend/version.py" ]]; then
+      echo "ERROR: Frontend installation failed - version.py not found"
+      ls -la "$hacs_dir/hacs_frontend" || echo "hacs_frontend directory does not exist"
+      exit 1
+    fi
+
+    echo "HACS frontend installed successfully to $hacs_dir/hacs_frontend"
   '';
 
   meta = {
