@@ -67,7 +67,8 @@ lib.rebellion.mk-module args {
           staticConfigOptions = {
             log = {
               level = "INFO";
-              filePath = "${data-dir}/traefik.log";
+              # log to `systemd-journald`
+              # filePath = "${data-dir}/traefik.log";
               format = "json";
               noColor = false;
               maxSize = 100;
