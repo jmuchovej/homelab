@@ -2,6 +2,7 @@
   cfg,
   config,
   lib,
+  datacenter,
   ...
 }:
 let
@@ -39,7 +40,13 @@ mkIf (cfg.dns == "dnsmasq") {
       # When mesh is enabled, add mesh-specific DNS configuration
       (mkIf mesh.enable {
         # Forward .consul queries to local Consul agent
-        server = [ "/consul/127.0.0.1#8600" ];
+        server = [
+          "/consul/127.0.0.1#8600"
+        ];
+
+        # The 'local' directive ensures it's authoritative (no upstream query)
+        local = [ "/${datacenter}.jm0.io/" ];
+        address = [ "/${datacenter}.jm0.io/${mesh.vip.address}" ];
 
         # Listen on both loopback (for local queries) and mesh interface (for VIP)
         interface = [
