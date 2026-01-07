@@ -50,17 +50,13 @@ lib.rebellion.mk-module args {
           };
         };
 
-        systemd.services.qbittorrent = {
-          serviceConfig.SupplementaryGroups = [ "proton" ];
-
-          # Inject secrets into qBittorrent config at runtime
-          preStart =
-            let
-              crudini = getExe' pkgs.crudini "crudini";
-              python = getExe' pkgs.python3 "python";
-              profile-dir = config.services.qbittorrent.profileDir;
-            in
-            ''
+        systemd.services.qbittorrent =
+          let
+            crudini = getExe' pkgs.crudini "crudini";
+            python = getExe' pkgs.python3 "python";
+            qb = config.services.qbittorrent;
+            # Inject secrets into qBittorrent config at runtime
+            pre-start = pkgs.writeShellScript "qbittorrent-inject-secrets" ''
               # Read secrets from sops-nix
               USERNAME=$(cat ${config.sops.secrets."qbittorrent/username".path})
               PASSWORD=$(cat ${config.sops.secrets."qbittorrent/password".path})
@@ -85,13 +81,21 @@ lib.rebellion.mk-module args {
               print(f'@ByteArray({encoded_salt}:{encoded_hash})')
               ")
 
-              CONFIG_FILE="${profile-dir}/qBittorrent/config/qBittorrent.conf"
+              CONFIG_FILE="${qb.profileDir}/qBittorrent/config/qBittorrent.conf"
+              mkdir -p "$(dirname "$CONFIG_FILE")"
+              touch "$CONFIG_FILE"
+              chown -R ${qb.user}:${qb.group} ${qb.profileDir}
 
               # Update config file using crudini
               ${crudini} --set "$CONFIG_FILE" "Preferences" "WebUI\\Username" "$USERNAME"
               ${crudini} --set "$CONFIG_FILE" "Preferences" "WebUI\\Password_PBKDF2" "\"$HASH\""
+              chown -R ${qb.user}:${qb.group} "$CONFIG_FILE"
             '';
-        };
+          in
+          {
+            serviceConfig.SupplementaryGroups = [ "proton" ];
+            serviceConfig.ExecStartPre = lib.mkAfter [ "+${pre-start} " ];
+          };
       }
 
       (
