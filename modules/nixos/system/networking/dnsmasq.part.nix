@@ -60,6 +60,7 @@ mkIf (cfg.dns == "dnsmasq") {
   systemd.services.dynamic-gateway = {
     wantedBy = [ "dnsmasq.target" ];
     before = [ "dnsmasq.target" ];
+    requiredBy = [ "dnsmasq.service" ];
 
     script = mkForce ''
       # Source the discovered gateway
@@ -74,6 +75,11 @@ mkIf (cfg.dns == "dnsmasq") {
       mkdir -p "$(dirname "${dynamic-gateway-conf}")"
       echo "server=$GATEWAY" > ${dynamic-gateway-conf}
     '';
+  };
+
+  systemd.services.dnsmasq = {
+    requires = [ "dynamic-gateway.service" ];
+    after = [ "dynamic-gateway.service" ];
   };
 
   # Open firewall for DNS when mesh is enabled
