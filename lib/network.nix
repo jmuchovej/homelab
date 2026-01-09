@@ -383,7 +383,7 @@ rec {
     config: service:
     let
       inherit (inputs.nixpkgs.lib) mkMerge mkIf;
-      write-template = service.template or false;
+      write-template = service.write-template or false;
       is-public = service.public or false;
       other-tags = service.tags or [ ];
 
