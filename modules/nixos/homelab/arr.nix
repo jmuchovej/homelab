@@ -11,7 +11,12 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
+      inherit (lib.rebellion.network)
+        mk-traefik-service
+        mk-authentik
+        mk-healthcheck
+        with-consul
+        ;
 
       # Helper to generate database permission grants
       mk-db-grants =
@@ -25,7 +30,8 @@ lib.rebellion.mk-module args {
 
       mk-arr =
         {
-          name,
+          proper-name,
+          name ? lib.strings.toLower proper-name,
           port,
           dbs ? [ ],
         }:
@@ -69,16 +75,24 @@ lib.rebellion.mk-module args {
                     name
                     port
                     ;
-                  public = false;
                 };
                 healthcheck = mk-healthcheck service {
                   route = "/ping/";
+                };
+                authentik-tags = mk-authentik service {
+                  type = "proxy";
+                  group = "Media Management";
+                  access = [ "media-managers" ];
+                  skip-paths = "/api/*";
+                  basic-auth.username = "servarr-username";
+                  basic-auth.password = "servarr-password";
                 };
               in
               with-consul config (
                 service
                 // {
                   checks = [ healthcheck ];
+                  tags = authentik-tags;
                 }
               )
             )
@@ -88,25 +102,25 @@ lib.rebellion.mk-module args {
       arrs = map mk-arr [
         {
           port = 7878;
-          name = "radarr";
+          proper-name = "Radarr";
         }
         {
           port = 8989;
-          name = "sonarr";
+          proper-name = "Sonarr";
         }
         {
           port = 8686;
-          name = "lidarr";
+          proper-name = "Lidarr";
         }
-        # { port = 6767; name = "bazarr"; }
+        # { port = 6767; proper-name = "Bazarr"; }
         {
           port = 8787;
-          name = "readarr";
+          proper-name = "Readarr";
           dbs = [ "readarr-cache" ];
         }
         {
           port = 9696;
-          name = "prowlarr";
+          proper-name = "Prowlarr";
         }
       ];
     in
@@ -139,20 +153,20 @@ lib.rebellion.mk-module args {
         #     package = pkgs.nur.repos.xddxdd.flaresolverr-21hsmw;
         #   };
         # }
-        (
-          let
-            inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
-            service = mk-traefik-service {
-              inherit hostname datacenter;
-              name = "flaresolverr";
-              port = config.services.flaresolverr.port;
-            };
-            healthcheck = mk-healthcheck service {
-              route = "/health";
-            };
-          in
-          with-consul config (service // { checks = [ healthcheck ]; })
-        )
+        # (
+        #   let
+        #     inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
+        #     service = mk-traefik-service {
+        #       inherit hostname datacenter;
+        #       name = "flaresolverr";
+        #       port = config.services.flaresolverr.port;
+        #     };
+        #     healthcheck = mk-healthcheck service {
+        #       route = "/health";
+        #     };
+        #   in
+        #   with-consul config (service // { checks = [ healthcheck ]; })
+        # )
       ]
       # Individual *arr service configurations
       ++ (map (arr: arr.config) arrs)

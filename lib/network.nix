@@ -76,8 +76,13 @@ rec {
       middlewares ? [ ],
     }:
     let
-      pub-rule = mk-rule subdomain domain;
+      inherit (inputs.nixpkgs.lib.strings) splitString replaceStrings;
+      inherit (builtins) head;
 
+      pub-rule = mk-rule subdomain domain;
+      rule-parts = splitString "||" pub-rule;
+      no-hosts = map (s: replaceStrings ["Host(`" "`)" " "] ["" "" ""] s) rule-parts;
+      base-url = head no-hosts;
       lab-rule = mk-rule subdomain ".lab";
 
       # Base router config for `pub` and `lab` rules
@@ -109,6 +114,11 @@ rec {
       svc = {
         inherit name;
         config = service-config;
+      };
+
+      url = {
+        ext = base-url;
+        int = base-url;
       };
 
       # Store original parameters for Consul registration
@@ -151,6 +161,46 @@ rec {
         ;
       # Reference middleware from file provider when using Consul
       middlewares = middlewares ++ [ "authentik@file" ];
+    };
+
+  # Convenience wrapper that restricts access to local networks only
+  # Perfect for *arr apps, admin panels, and other internal-only services
+  #
+  # Usage: mk-local-only-service {
+  #   name = "sonarr";
+  #   port = 8989;
+  #   hostname = "da-vcx-1";
+  #   datacenter = "da";
+  #   restriction = "local-only";  # or "admin-only" or "homelab-only"
+  # }
+  mk-local-only-service =
+    {
+      name,
+      port,
+      hostname,
+      datacenter,
+      subdomain ? name,
+      domain ? "${datacenter}.jm0.io",
+      public ? true,
+      entry-points ? [ "websecure" ],
+      cert-resolver ? "letsencrypt",
+      middlewares ? [ ],
+      restriction ? "local-only",  # local-only | admin-only | homelab-only
+    }:
+    mk-traefik-service {
+      inherit
+        name
+        port
+        hostname
+        datacenter
+        subdomain
+        domain
+        public
+        entry-points
+        cert-resolver
+        ;
+      # Add the IP whitelist middleware based on restriction level
+      middlewares = middlewares ++ [ "${restriction}@file" ];
     };
 
   # Convert a service structure from mk-service into Consul tags
@@ -221,6 +271,71 @@ rec {
       ++ svc-tags
     );
 
+  mk-authentik = service: {
+    name ? service.svc.name,
+    type ? "proxy",         # proxy, oauth, ldap
+    group ? null,           # "Media", "Compute", etc.
+    access ? [],            # ["media", "admins", ...]
+    icon ? service.svc.name,
+    skip-paths ? null,
+    basic-auth ? false,
+  }: let
+    inherit (inputs.nixpkgs) lib;
+    inherit (builtins) filter;
+
+    tags = [
+      "authentik.name=${name}"
+      "authentik.group=${group}"
+      "authentik.type=${type}"
+      "authentik.url.ext=https://${service.url.ext}"
+      "authentik.url.int=https://${service.url.int}"
+    ]
+    ++ lib.optionals (icon != null) ["authentik.icon=${icon}"]
+    ++ lib.optionals (access != []) ["authentik.access=${lib.concatStringsSep "," access}"]
+    ++ lib.optionals (skip-paths != null) ["authentik.skip-paths=${skip-paths}"]
+    ++ lib.optionals (basic-auth != {} || basic-auth || basic-auth.enabled) [
+      "authentik.basic-auth.enabled=${lib.boolToString true}"
+      "authentik.basic-auth.username=${basic-auth.username or "username"}"
+      "authentik.basic-auth.password=${basic-auth.password or "password"}"
+    ];
+    in
+      filter (tag: tag != null && tag != "") (
+        [ "authentik.enable=true" ]
+        ++ tags
+      );
+
+  mk-authentik-tags = {
+    name,
+    type ? "proxy",         # proxy, oauth, ldap
+    group ? null,           # "Media", "Compute", etc.
+    access ? [],            # ["media", "admins", ...]
+    icon ? null,
+    skip-paths ? null,
+    basic-auth ? false,
+  }: let
+    inherit (inputs.nixpkgs) lib;
+    inherit (builtins) filter;
+
+    tags = [
+      "authentik.name=${name}"
+      "authentik.group=${group}"
+      "authentik.type=${type}"
+    ]
+    ++ lib.optionals (icon != null) ["authentik.icon=${icon}"]
+    ++ lib.optionals (access != []) ["authentik.access=${lib.concatStringsSep "," access}"]
+    ++ lib.optionals (skip-paths != null) ["authentik.skip-paths=${skip-paths}"]
+    ++ lib.optionals (basic-auth != {} || basic-auth || basic-auth.enabled) [
+      "authentik.basic-auth.enabled=${lib.boolToString true}"
+      "authentik.basic-auth.username=${basic-auth.username or "username"}"
+      "authentik.basic-auth.password=${basic-auth.password or "password"}"
+    ]
+    ;
+  in
+    filter (tag: tag != null && tag != "") (
+      [ "authentik.enable=true" ]
+      ++ tags
+    );
+
   # Generate Consul service registration JSON
   # Returns the JSON content for /etc/consul.d/<name>.json
   mk-consul-service =
@@ -261,11 +376,23 @@ rec {
   #     template = "consul-hass";
   #   })
   # This will automatically create `sops.templates.<template>.content` with the JSON.
+  #
+  # To mark a service as publicly accessible (creates Cloudflare DNS via Terraform):
+  #   with-consul config (service // { public = true; })
   with-consul =
     config: service:
     let
       inherit (inputs.nixpkgs.lib) mkMerge mkIf;
-      write-template = service.write-template or false;
+      write-template = service.template or false;
+      is-public = service.public or false;
+      other-tags = service.tags or [ ];
+
+      # Generate base Traefik tags
+      base-tags = mk-traefik-tags service;
+
+      # Add "public" tag if service is marked as public
+      # This allows Terraform to query Consul and create Cloudflare DNS records
+      all-tags = base-tags ++ (if is-public then [ "public" ] else [ ]) ++ other-tags;
 
       # Always generate the consul service config
       consul-service = mk-consul-service (
@@ -273,7 +400,7 @@ rec {
           inherit (service) port hostname;
           name = service.svc.name;
           checks = service.checks or [ ];
-          tags = mk-traefik-tags service;
+          tags = all-tags;
         }
         // (if service ? address then { inherit (service) address; } else { })
       );
