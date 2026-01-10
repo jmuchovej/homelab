@@ -96,8 +96,8 @@ lib.rebellion.mk-module args {
 
             # ACL configuration
             acl = {
-              enabled = cfg.consul.acl-enabled;
-              default_policy = if cfg.consul.acl-enabled then "deny" else "allow";
+              enabled = true;
+              default_policy = "allow";
               enable_token_persistence = true;
             };
 
