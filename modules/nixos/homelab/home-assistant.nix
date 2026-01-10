@@ -12,7 +12,6 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkMerge get-file;
-      inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
     in
     mkMerge [
       {
@@ -117,6 +116,12 @@ lib.rebellion.mk-module args {
 
       (
         let
+          inherit (lib.rebellion.network)
+            mk-authentik
+            mk-traefik-service
+            with-consul
+            mk-healthcheck
+            ;
           service = mk-traefik-service {
             inherit hostname datacenter;
             name = "home-assistant";
@@ -129,6 +134,12 @@ lib.rebellion.mk-module args {
               Authorization = [ "Bearer ${config.sops.placeholder."consul/home-assistant"}" ];
             };
           };
+          authentik-tags = mk-authentik service {
+            type = "oidc";
+            group = "Home";
+            access = [ "home" ];
+            skip-paths = "/api/*";
+          };
         in
         (with-consul config (
           service
@@ -136,6 +147,7 @@ lib.rebellion.mk-module args {
             checks = [ healthcheck ];
             write-template = true;
             address = "127.0.0.1";
+            tags = authentik-tags;
           }
         ))
       )
