@@ -11,7 +11,7 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion) get-file;
+      inherit (lib.rebellion) get-file enabled;
     in
     lib.mkMerge [
       {
@@ -22,14 +22,23 @@ lib.rebellion.mk-module args {
         ];
 
         sops.secrets."authentik/secret-key".sopsFile = get-file "secrets/secrets.sops.yaml";
+        sops.secrets."authentik/token".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.secrets."mailgun/token".sopsFile = get-file "secrets/secrets.sops.yaml";
+
+        # Environment for the main authentik server
         sops.templates."AUTHENTIK_ENV".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
         '';
 
-        services.authentik = {
-          enable = true;
+        # Environment for outposts (proxy, ldap, radius)
+        sops.templates."AUTHENTIK_OUTPOST_ENV".content = ''
+          AUTHENTIK_HOST=https://id.${datacenter}.jm0.io
+          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/token"}
+          AUTHENTIK_INSECURE=false
+        '';
+
+        services.authentik = enabled // {
           environmentFile = config.sops.templates."AUTHENTIK_ENV".path;
           settings = {
             email = {
@@ -45,6 +54,18 @@ lib.rebellion.mk-module args {
           };
         };
 
+        services.authentik-proxy = enabled // {
+          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+        };
+
+        services.authentik-ldap = enabled // {
+          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+        };
+
+        services.authentik-radius = enabled // {
+          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+        };
+
         services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
           "id.jm0.io" = "http://localhost:9000";
         };
@@ -52,7 +73,7 @@ lib.rebellion.mk-module args {
         services.traefik.dynamicConfigOptions.http.middlewares = {
           authentik.forwardAuth = {
             tls.insecureSkipVerify = true;
-            address = "https://localhost:9443/outpost.goauthentik.io/auth/traefik";
+            address = "https://id.${datacenter}.jm0.io/outpost.goauthentik.io/auth/traefik";
             trustForwardHeader = true;
             authResponseHeaders = [
               "X-authentik-username"
