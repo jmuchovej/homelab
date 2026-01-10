@@ -135,7 +135,7 @@ lib.rebellion.mk-module args {
             };
           };
           authentik-tags = mk-authentik service {
-            type = "oidc";
+            type = "oauth";
             group = "Home";
             access = [ "home" ];
             skip-paths = "/api/*";
