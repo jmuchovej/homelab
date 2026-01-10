@@ -33,7 +33,8 @@ lib.rebellion.mk-module args {
 
         # Environment for outposts (proxy, ldap, radius)
         sops.templates."AUTHENTIK_OUTPOST_ENV".content = ''
-          AUTHENTIK_HOST=https://id.${datacenter}.jm0.io
+          AUTHENTIK_HOST=https://localhost:9000
+          AUTHENTIK_HOST_BROWSER=https://id.${datacenter}.jm0.io
           AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/token"}
           AUTHENTIK_INSECURE=false
         '';
