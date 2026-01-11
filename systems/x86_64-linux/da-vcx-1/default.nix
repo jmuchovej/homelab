@@ -57,6 +57,9 @@ in
       location = "SE-US#1";
     };
     services.qbittorrent = enabled;
+    services.s3 = enabled // {
+      data-dir = [ "/impulse/s3" ];
+    };
 
     system = {
       nix = enabled;
@@ -83,34 +86,6 @@ in
       media = enabled;
       postgres = enabled;
       arr = enabled;
-    };
-
-    services.kubernetes = disabled // {
-      cidr = {
-        cluster = "10.69.0.0/16";
-        service = "10.70.0.1/16";
-      };
-      is-first = true;
-      role = "server";
-      # Opt for Cilium
-      services.kube-proxy = disabled;
-      services.flannel = disabled;
-      services.flux = enabled;
-      services.service-lb = disabled;
-      services.traefik = disabled;
-      services.local-io = disabled;
-      services.metrics = disabled;
-      services.coredns = disabled;
-      helm = enabled // {
-        completed-if = "get CustomResourceDefinition -A | grep -q 'cilium.io'";
-      };
-      minio = enabled // {
-        buckets = [
-          "volsync"
-          "postgres"
-        ];
-        data-dir = [ "/impulse/minio" ];
-      };
     };
 
     suites = {
