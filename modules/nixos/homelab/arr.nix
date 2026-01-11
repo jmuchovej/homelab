@@ -12,7 +12,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion.network)
-        mk-traefik-service
+        mk-authd-traefik-service
         mk-authentik
         mk-healthcheck
         with-consul
@@ -68,7 +68,7 @@ lib.rebellion.mk-module args {
             }
             (
               let
-                service = mk-traefik-service {
+                service = mk-authd-traefik-service {
                   inherit
                     hostname
                     datacenter

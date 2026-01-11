@@ -76,21 +76,15 @@ rec {
       middlewares ? [ ],
     }:
     let
-      inherit (inputs.nixpkgs.lib.strings) splitString replaceStrings;
-      inherit (builtins) head;
+      inherit (inputs.nixpkgs) lib;
+      inherit (lib.strings) splitString replaceStrings;
+      inherit (builtins) head filter;
 
       pub-rule = mk-rule subdomain domain;
       rule-parts = splitString "||" pub-rule;
       no-hosts = map (s: replaceStrings ["Host(`" "`)" " "] ["" "" ""] s) rule-parts;
       base-url = head no-hosts;
       lab-rule = mk-rule subdomain ".lab";
-
-      # Base router config for `pub` and `lab` rules
-      router-config = {
-        service = name;
-        entryPoints = entry-points;
-        middlewares = middlewares;
-      };
 
       service-config = {
         loadBalancer.server.port = mkDefault (toString port);
@@ -101,14 +95,29 @@ rec {
     in
     # Return a structured result with accessors
     {
-      # Accessor for public router (only present if public = true)
       pub = {
         inherit name;
-        config = merge-attrs [router-config {
-          rule = mkDefault pub-rule;
+        config = {
+          service = name;
+          rule = pub-rule;
+          entryPoints = entry-points;
+          middlewares = middlewares;
           tls.certResolver = cert-resolver;
-        }];
+          priority = 10;
+        };
       };
+
+      auth = if (builtins.elem "authentik@file" middlewares) then {
+        name = "${name}-auth";
+        config = {
+          service = "authentik@file";
+          rule = "(${pub-rule}) && PathPrefix(`/outpost.goauthentik.io/`)";
+          entryPoints = entry-points;
+          tls.certResolver = cert-resolver;
+          middlewares = filter (mw: mw != "authentik@file") middlewares;
+          priority = 15;
+        };
+      } else { };
 
       # Accessor for backend service
       svc = {
@@ -206,7 +215,7 @@ rec {
   # Convert a service structure from mk-service into Consul tags
   # This flattens the router/service configs into the tag format Consul expects
   mk-traefik-tags = service: let
-    inherit (service) pub svc;
+    inherit (service) pub auth svc;
     inherit (inputs.nixpkgs.lib)
       optionals
       filter
@@ -259,7 +268,9 @@ rec {
     pub-tags = attrs-to-tags "traefik.http.routers.${pub.name}" pub.config;
 
     # Generate tags for local router
-    # lab-tags = attrs-to-tags "traefik.http.routers.${lab.name}" lab.config;
+    auth-tags = if auth ? config then
+      attrs-to-tags "traefik.http.routers.${auth.name}" auth.config
+    else [ ];
 
     # Generate tags for backend service
     svc-tags = attrs-to-tags "traefik.http.services.${svc.name}" svc.config;
@@ -267,7 +278,7 @@ rec {
     filter (tag: tag != null && tag != "") (
       [ "traefik.enable=true" ]
       ++ pub-tags
-      # ++ lab-tags
+      ++ auth-tags
       ++ svc-tags
     );
 
@@ -304,38 +315,6 @@ rec {
         ++ tags
       );
 
-  mk-authentik-tags = {
-    name,
-    type ? "proxy",         # proxy, oauth, ldap
-    group ? null,           # "Media", "Compute", etc.
-    access ? [],            # ["media", "admins", ...]
-    icon ? null,
-    skip-paths ? null,
-    basic-auth ? false,
-  }: let
-    inherit (inputs.nixpkgs) lib;
-    inherit (builtins) filter;
-
-    tags = [
-      "authentik.name=${name}"
-      "authentik.group=${group}"
-      "authentik.type=${type}"
-    ]
-    ++ lib.optionals (icon != null) ["authentik.icon=${icon}"]
-    ++ lib.optionals (access != []) ["authentik.access=${lib.concatStringsSep "," access}"]
-    ++ lib.optionals (skip-paths != null) ["authentik.skip-paths=${skip-paths}"]
-    ++ lib.optionals (basic-auth != {} || basic-auth || basic-auth.enabled) [
-      "authentik.basic-auth.enabled=${lib.boolToString true}"
-      "authentik.basic-auth.username=${basic-auth.username or "username"}"
-      "authentik.basic-auth.password=${basic-auth.password or "password"}"
-    ]
-    ;
-  in
-    filter (tag: tag != null && tag != "") (
-      [ "authentik.enable=true" ]
-      ++ tags
-    );
-
   # Generate Consul service registration JSON
   # Returns the JSON content for /etc/consul.d/<name>.json
   mk-consul-service =
@@ -351,12 +330,8 @@ rec {
     {
       service = [
         ({
-          # id = "${name}-${hostname}";
-          id = name;
+          id = "${name}-${hostname}";
           inherit name port tags checks;
-          # Omit the address field so Consul uses the node's registered address.
-          #   This ensures services get the actual IP from the agent's interface
-          #   configuration.
           meta = meta // {
             node = hostname;
           };

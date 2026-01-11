@@ -12,6 +12,15 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion) get-file enabled;
+      s3 = config.services.s3;
+
+      authentik-host = "https://localhost:94443";
+
+      OUTPOST_ENV = ''
+        AUTHENTIK_HOST=${authentik-host}
+        AUTHENTIK_HOST_BROWSER=https://id.${datacenter}.jm0.io
+        AUTHENTIK_INSECURE=false
+      '';
     in
     lib.mkMerge [
       {
@@ -31,14 +40,6 @@ lib.rebellion.mk-module args {
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
         '';
 
-        # Environment for outposts (proxy, ldap, radius)
-        sops.templates."AUTHENTIK_OUTPOST_ENV".content = ''
-          AUTHENTIK_HOST=https://localhost:9000
-          AUTHENTIK_HOST_BROWSER=https://id.${datacenter}.jm0.io
-          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/token"}
-          AUTHENTIK_INSECURE=false
-        '';
-
         services.authentik = enabled // {
           environmentFile = config.sops.templates."AUTHENTIK_ENV".path;
           settings = {
@@ -55,26 +56,45 @@ lib.rebellion.mk-module args {
           };
         };
 
+        sops.placeholder."authentik/outposts/proxy-token".sopsFile = get-file "secrets/secrets.yaml";
+        sops.templates."authentik/outposts/proxy-env".content = ''
+          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/proxy-token"}
+          ${OUTPOST_ENV}
+        '';
+
         services.authentik-proxy = enabled // {
-          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+          environmentFile = config.sops.templates."authentik/outposts/proxy-env".path;
         };
 
+        sops.placeholder."authentik/outposts/ldap-token".sopsFile = get-file "secrets/secrets.yaml";
+        sops.templates."authentik/outposts/ldap-env".content = ''
+          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/proxy-token"}
+          ${OUTPOST_ENV}
+        '';
         services.authentik-ldap = enabled // {
-          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+          environmentFile = config.sops.templates."authentik/outposts/ldap-env".path;
         };
 
+        sops.placeholder."authentik/outposts/radius-token".sopsFile = get-file "secrets/secrets.yaml";
+        sops.templates."authentik/outposts/radius-env".content = ''
+          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/radius-token"}
+          ${OUTPOST_ENV}
+        '';
         services.authentik-radius = enabled // {
-          environmentFile = config.sops.templates."AUTHENTIK_OUTPOST_ENV".path;
+          environmentFile = config.sops.templates."authentik/outposts/radius-env".path;
         };
 
         services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
           "id.jm0.io" = "http://localhost:9000";
         };
 
-        services.traefik.dynamicConfigOptions.http.middlewares = {
-          authentik.forwardAuth = {
+        services.traefik.dynamicConfigOptions.http = {
+          services.authentik.loadBalancer.servers = [
+            { url = "${authentik-host}/outpost.goauthentik.io/"; }
+          ];
+          middlewares.authentik.forwardAuth = {
             tls.insecureSkipVerify = true;
-            address = "https://id.${datacenter}.jm0.io/outpost.goauthentik.io/auth/traefik";
+            address = "${authentik-host}/outpost.goauthentik.io/auth/traefik";
             trustForwardHeader = true;
             authResponseHeaders = [
               "X-authentik-username"
@@ -93,6 +113,10 @@ lib.rebellion.mk-module args {
         };
       }
 
+      (lib.mkIf s3.enable {
+        rebellion.services.s3.buckets = [ "authentik" ];
+      })
+
       (
         let
           inherit (lib.rebellion) merge-attrs;
@@ -102,12 +126,11 @@ lib.rebellion.mk-module args {
             name = "auth";
             port = 9000;
           };
-          inherit (lib.strings) replaceString concatStringsSep;
-          base-rule = concatStringsSep " || " [
+          inherit (lib.strings) concatStringsSep;
+          rule = concatStringsSep " || " [
             "Host(`id.jm0.io`)"
-            "(HostRegexp(`[a-z0-9]+.jm0.io`) && PathPrefix(`/outpost.goauthentik.io/`))"
+            "Host(`id.${datacenter}.jm0.io`)"
           ];
-          rule = "${base-rule} || ${replaceString "jm0.io" "${datacenter}.jm0.io" base-rule}";
           service = merge-attrs [
             service-base
             {
