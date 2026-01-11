@@ -32,6 +32,8 @@ lib.rebellion.mk-module args {
       svc-addr = 9500;
       web-addr = 9501;
       minio = config.services.minio;
+      minio-owner = "minio";
+      minio-group = "minio";
     in
     lib.mkMerge [
       {
@@ -39,11 +41,11 @@ lib.rebellion.mk-module args {
         sops.secrets."s3/root/pass".sopsFile = get-file "secrets/${datacenter}.sops.yaml";
         sops.templates."S3_ENV" = {
           content = ''
-            MINIO_ROOT_USER=${config.sops.placeholders."s3/root/user"}
-            MINIO_ROOT_PASSWORD=${config.sops.placeholders."s3/root/pass"}
+            MINIO_ROOT_USER=${config.sops.placeholder."s3/root/user"}
+            MINIO_ROOT_PASSWORD=${config.sops.placeholder."s3/root/pass"}
           '';
-          owner = minio.user;
-          group = minio.group;
+          owner = minio-owner;
+          group = minio-group;
           mode = "0400";
         };
         services.minio = {
@@ -51,16 +53,16 @@ lib.rebellion.mk-module args {
           browser = true;
           listenAddress = ":${toString svc-addr}";
           consoleAddress = ":${toString web-addr}";
-          rootCredentialsFile = config.sops.secrets."S3_ENV".path;
+          rootCredentialsFile = config.sops.templates."S3_ENV".path;
           region = "us-east-1";
           dataDir = cfg.data-dir;
         };
 
         systemd.services.minio-init = {
           enable = true;
-          path = with pkgs; [
-            minio
-            minio-client
+          path = [
+            pkgs.minio
+            pkgs.minio-client
           ];
           requiredBy = [ "multi-user.target" ];
           after = [
@@ -73,19 +75,55 @@ lib.rebellion.mk-module args {
           ];
           serviceConfig = {
             Type = "simple";
-            User = minio.user;
-            Group = minio.group;
+            User = minio-owner;
+            Group = minio-group;
             RuntimeDirectory = "minio-init";
+            RuntimeDirectoryMode = "0775";
             EnvironmentFile = [
               minio.rootCredentialsFile
             ];
-            Environment = "MC_CONFIG_DIR=$RUNTIME_DIRECTORY";
+            # hardening (copied from `minio.nix`)
+            DevicePolicy = "closed";
+            CapabilityBoundingSet = "";
+            RestrictAddressFamilies = [
+              "AF_INET"
+              "AF_INET6"
+              "AF_NETLINK"
+              "AF_UNIX"
+            ];
+            DeviceAllow = "";
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            PrivateMounts = true;
+            PrivateTmp = true;
+            PrivateUsers = true;
+            ProtectClock = true;
+            ProtectControlGroups = true;
+            ProtectHome = true;
+            ProtectKernelLogs = true;
+            ProtectKernelModules = true;
+            ProtectKernelTunables = true;
+            MemoryDenyWriteExecute = true;
+            LockPersonality = true;
+            RemoveIPC = true;
+            RestrictNamespaces = true;
+            RestrictRealtime = true;
+            RestrictSUIDSGID = true;
+            SystemCallArchitectures = "native";
+            SystemCallFilter = [
+              "@system-service"
+              "~@privileged"
+            ];
+            ProtectProc = "invisible";
+            ProtectHostname = true;
+            UMask = "0077";
+            PermissionsStartOnly = true;
           };
 
           script = ''
-            set -e
+            export MC_CONFIG_DIR="$RUNTIME_DIRECTORY"
             sleep 5
-            mc alias set minio http://s3.services.consul:${toString svc-addr} "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+            mc alias set minio http://localhost:${toString svc-addr} "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
 
             # `--region ${minio.region}`
             # `-p`  -- "ignore existing bucket/directory"
