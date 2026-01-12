@@ -13,12 +13,17 @@ lib.rebellion.mk-module args {
     let
       inherit (lib.rebellion) enabled;
       inherit (lib.rebellion.file) get-secret get-secret';
+      inherit (lib.strings) replaceString;
       s3 = config.rebellion.services.s3;
 
-      authentik-host = "http://localhost:9000";
+      authentik-http = "http://localhost:9000";
+      authentik-https = "https://localhost:9443";
+
+      authentik-proxy-http = config.services.authentik-proxy.listenHTTP;
+      authentik-proxy-https = config.services.authentik-proxy.listenHTTPS;
 
       OUTPOST_ENV = ''
-        AUTHENTIK_HOST=${authentik-host}
+        AUTHENTIK_HOST=${authentik-http}
         AUTHENTIK_HOST_BROWSER=https://id.${datacenter}.jm0.io
         AUTHENTIK_INSECURE=false
       '';
@@ -57,6 +62,8 @@ lib.rebellion.mk-module args {
             disable_startup_analytics = true;
             avatars = "initials";
           };
+          worker.listenHTTP = "localhost:9001";
+          worker.listenMetrics = "localhost:9301";
         };
 
         sops.templates."authentik/outposts/proxy-env".content = ''
@@ -66,6 +73,9 @@ lib.rebellion.mk-module args {
 
         services.authentik-proxy = enabled // {
           environmentFile = config.sops.templates."authentik/outposts/proxy-env".path;
+          listenHTTP = "localhost:9004";
+          listenHTTPS = "localhost:9005";
+          listenMetrics = "localhost:9303";
         };
 
         sops.templates."authentik/outposts/ldap-env".content = ''
@@ -74,6 +84,7 @@ lib.rebellion.mk-module args {
         '';
         services.authentik-ldap = enabled // {
           environmentFile = config.sops.templates."authentik/outposts/ldap-env".path;
+          listenMetrics = "localhost:9302";
         };
 
         sops.templates."authentik/outposts/radius-env".content = ''
@@ -82,6 +93,7 @@ lib.rebellion.mk-module args {
         '';
         services.authentik-radius = enabled // {
           environmentFile = config.sops.templates."authentik/outposts/radius-env".path;
+          listenMetrics = "localhost:9306";
         };
 
         services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
@@ -90,11 +102,11 @@ lib.rebellion.mk-module args {
 
         services.traefik.dynamicConfigOptions.http = {
           services.authentik.loadBalancer.servers = [
-            { url = "${authentik-host}/outpost.goauthentik.io/"; }
+            { url = "http://${authentik-proxy-http}/outpost.goauthentik.io/"; }
           ];
           middlewares.authentik.forwardAuth = {
             tls.insecureSkipVerify = true;
-            address = "${authentik-host}/outpost.goauthentik.io/auth/traefik";
+            address = "http://${authentik-proxy-http}/outpost.goauthentik.io/auth/traefik";
             trustForwardHeader = true;
             authResponseHeaders = [
               "X-authentik-username"
