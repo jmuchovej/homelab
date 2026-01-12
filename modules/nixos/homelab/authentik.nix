@@ -11,10 +11,11 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion) get-file enabled;
+      inherit (lib.rebellion) enabled;
+      inherit (lib.rebellion.file) get-secret get-secret';
       s3 = config.rebellion.services.s3;
 
-      authentik-host = "https://localhost:94443";
+      authentik-host = "http://localhost:9000";
 
       OUTPOST_ENV = ''
         AUTHENTIK_HOST=${authentik-host}
@@ -23,6 +24,12 @@ lib.rebellion.mk-module args {
       '';
     in
     lib.mkMerge [
+      (get-secret' config "authentik/secret-key")
+      (get-secret' config "authentik/token")
+      (get-secret' config "mailgun/token")
+      (get-secret config "outposts/proxy-token" "authentik")
+      (get-secret config "outposts/ldap-token" "authentik")
+      (get-secret config "outposts/radius-token" "authentik")
       {
         environment.systemPackages = with pkgs; [
           authentik
@@ -30,18 +37,14 @@ lib.rebellion.mk-module args {
           authentik-outposts.proxy
         ];
 
-        sops.secrets."authentik/secret-key".sopsFile = get-file "secrets/secrets.sops.yaml";
-        sops.secrets."authentik/token".sopsFile = get-file "secrets/secrets.sops.yaml";
-        sops.secrets."mailgun/token".sopsFile = get-file "secrets/secrets.sops.yaml";
-
         # Environment for the main authentik server
-        sops.templates."AUTHENTIK_ENV".content = ''
+        sops.templates."authentik/env".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
         '';
 
         services.authentik = enabled // {
-          environmentFile = config.sops.templates."AUTHENTIK_ENV".path;
+          environmentFile = config.sops.templates."authentik/env".path;
           settings = {
             email = {
               host = "smtp.mailgun.org";
@@ -56,9 +59,8 @@ lib.rebellion.mk-module args {
           };
         };
 
-        sops.secrets."authentik/outposts/proxy-token".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.templates."authentik/outposts/proxy-env".content = ''
-          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/proxy-token"}
+          AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/proxy-token"}
           ${OUTPOST_ENV}
         '';
 
@@ -66,18 +68,16 @@ lib.rebellion.mk-module args {
           environmentFile = config.sops.templates."authentik/outposts/proxy-env".path;
         };
 
-        sops.secrets."authentik/outposts/ldap-token".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.templates."authentik/outposts/ldap-env".content = ''
-          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/proxy-token"}
+          AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/proxy-token"}
           ${OUTPOST_ENV}
         '';
         services.authentik-ldap = enabled // {
           environmentFile = config.sops.templates."authentik/outposts/ldap-env".path;
         };
 
-        sops.secrets."authentik/outposts/radius-token".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.templates."authentik/outposts/radius-env".content = ''
-          AUTHENTIK_TOKEN=${config.sops.placeholder."authentik/outposts/radius-token"}
+          AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/radius-token"}
           ${OUTPOST_ENV}
         '';
         services.authentik-radius = enabled // {

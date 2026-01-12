@@ -28,16 +28,13 @@ rec {
   # Check if a file exists
   path-exists = path: builtins.pathExists path;
 
-  get-secret =
-    config: secret:
-    {
-      filepath ? "secrets",
-    }:
-    {
-      config.sops.secrets."${secret}" = {
-        sopsFile = get-file "secrets/${filepath}.sops.yaml";
-      };
+  get-secret = config: secret: filepath: {
+    sops.secrets."${secret}" = {
+      sopsFile = get-file "secrets/${filepath}.sops.yaml";
     };
+  };
+
+  get-secret' = config: secret: get-secret config secret "secrets";
 
   # Import a nix file with error handling
   # If path is a directory, will look for default.nix within it

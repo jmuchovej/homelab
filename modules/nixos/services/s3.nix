@@ -2,7 +2,7 @@
 lib.rebellion.mk-module args {
   name = "services.s3";
   options =
-    { lib, pkgs, ... }:
+    { lib, ... }:
     with lib.types;
     let
       inherit (lib.rebellion) mkopt;
@@ -24,8 +24,14 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion.file) get-file;
-      inherit (lib.rebellion.network) with-consul mk-healthcheck mk-traefik-service;
+      inherit (lib.rebellion.file) get-secret;
+      inherit (lib.rebellion.network)
+        with-consul
+        mk-healthcheck
+        mk-traefik-service
+        mk-authentik
+        mk-openid-url
+        ;
       inherit (lib.lists) forEach;
       inherit (builtins) toString;
 
@@ -36,13 +42,19 @@ lib.rebellion.mk-module args {
       minio-group = "minio";
     in
     lib.mkMerge [
+      (get-secret config "s3/root/user" datacenter)
+      (get-secret config "s3/root/pass" datacenter)
+      (get-secret config "s3/client-id" "authentik")
+      (get-secret config "s3/client-secret" "authentik")
       {
-        sops.secrets."s3/root/user".sopsFile = get-file "secrets/${datacenter}.sops.yaml";
-        sops.secrets."s3/root/pass".sopsFile = get-file "secrets/${datacenter}.sops.yaml";
-        sops.templates."S3_ENV" = {
+        sops.templates."s3/env" = {
           content = ''
             MINIO_ROOT_USER=${config.sops.placeholder."s3/root/user"}
             MINIO_ROOT_PASSWORD=${config.sops.placeholder."s3/root/pass"}
+            MINIO_IDENTITY_OPENID_CONFIG_URL=${mk-openid-url config.sops.placeholder."s3/client-id" datacenter}
+            MINIO_IDENTITY_OPENID_CLIENT_ID=${config.sops.placeholder."s3/client-id"}
+            MINIO_IDENTITY_OPENID_CLIENT_SECRET=${config.sops.placeholder."s3/client-secret"}
+            MINIO_IDENTITY_OPENID_SCOPES="openid profile email entitlements"
           '';
           owner = minio-owner;
           group = minio-group;
@@ -53,7 +65,7 @@ lib.rebellion.mk-module args {
           browser = true;
           listenAddress = ":${toString svc-addr}";
           consoleAddress = ":${toString web-addr}";
-          rootCredentialsFile = config.sops.templates."S3_ENV".path;
+          rootCredentialsFile = config.sops.templates."s3/env".path;
           region = "us-east-1";
           dataDir = cfg.data-dir;
         };
@@ -150,6 +162,11 @@ lib.rebellion.mk-module args {
             id = "minio-ready";
             route = "/minio/health/ready";
           };
+          authentik-tags = mk-authentik service {
+            type = "oauth";
+            group = "Compute";
+            access = [ "compute-managers" ];
+          };
         in
         with-consul config service
         // {
@@ -157,6 +174,7 @@ lib.rebellion.mk-module args {
             healthcheck-live
             healthcheck-ready
           ];
+          tags = authentik-tags;
         }
       )
     ];

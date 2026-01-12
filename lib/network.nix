@@ -14,6 +14,9 @@ rec {
     services.traefik.dynamicConfigOptions.http = http;
   };
 
+  mk-openid-url = client-id: datacenter:
+  "https://id.${datacenter}.jm0.io/application/o/${client-id}/.well-known/openid-configuration";
+
   # Helper to merge service config into Traefik dynamicConfigOptions.http
   # Usage: services.traefik.dynamicConfigOptions.http = apply-service (mk-service {...});
   apply-service =
