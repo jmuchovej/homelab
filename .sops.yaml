@@ -11,7 +11,7 @@ keys:
   - &install-iso age1fvv4l46j890x8387lly88n2aww4xdxma2jd0ta9zysf97hkvhg6smg6x0r
 
 creation_rules:
-  - path_regex: "secrets/secrets\\.sops\\.yaml$"
+  - path_regex: "secrets/.*\\.sops\\.yaml$"
     key_groups:
       - age: [*john, *lab, *en-t65-1, *da-vcx-1, *da-vcx-2]
 

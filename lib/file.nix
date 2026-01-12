@@ -21,12 +21,23 @@ let
 
   merge-attrs' = attrs-ls: foldl' (acc: attrs: acc // attrs) { } attrs-ls;
 in
-{
+rec {
   # Read a file and return its contents
   read-file = path: builtins.readFile path;
 
   # Check if a file exists
   path-exists = path: builtins.pathExists path;
+
+  get-secret =
+    config: secret:
+    {
+      filepath ? "secrets",
+    }:
+    {
+      config.sops.secrets."${secret}" = {
+        sopsFile = get-file "secrets/${filepath}.sops.yaml";
+      };
+    };
 
   # Import a nix file with error handling
   # If path is a directory, will look for default.nix within it
