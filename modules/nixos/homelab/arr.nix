@@ -64,6 +64,9 @@ lib.rebellion.mk-module args {
                 enable = true;
                 openFirewall = true;
                 environmentFiles = [ config.sops.secrets."${name}/env".path ];
+                settings = {
+                  auth.method = "External";
+                };
               };
             }
             (
