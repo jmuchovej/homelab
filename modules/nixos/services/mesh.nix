@@ -4,7 +4,7 @@ lib.rebellion.mk-module args {
   description = "Service mesh with Consul, Traefik load balancing, and VIP failover";
 
   options =
-    { cfg, lib, ... }:
+    { lib, ... }:
     with lib.types;
     let
       inherit (lib.rebellion) mkopt mkopt-bool;
@@ -41,7 +41,12 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-
+      inherit (lib.rebellion.network)
+        with-consul
+        mk-authd-traefik-service
+        mk-healthcheck
+        mk-authentik
+        ;
       # Generate retry-join list from datacenter peers
       # Append .${datacenter} domain suffix to each peer
       # retry-join-peers = map (p: "${p.nodename}.${datacenter}") peers;
@@ -110,7 +115,7 @@ lib.rebellion.mk-module args {
         # dnsmasq configuration is in modules/nixos/system/networking/dnsmasq.nix
         rebellion.system.networking.dns = "dnsmasq";
 
-        rebellion.homelab.traefik = {
+        rebellion.services.traefik = {
           enable = true;
           consul-integration = true;
         };
@@ -192,8 +197,7 @@ lib.rebellion.mk-module args {
       }
       (
         let
-          inherit (lib.rebellion.network) with-consul mk-traefik-service mk-healthcheck;
-          service = mk-traefik-service {
+          service = mk-authd-traefik-service {
             inherit hostname datacenter;
             port = 8500;
             name = "consul-ui";
@@ -202,12 +206,20 @@ lib.rebellion.mk-module args {
           healthcheck = mk-healthcheck service {
             route = "/v1/health/node/${hostname}";
           };
+          authentik-tags = mk-authentik service {
+            type = "proxy";
+            group = "Compute";
+            access = [ "compute-managers" ];
+            icon = "consul";
+            skip-paths = "/api/*";
+          };
         in
         with-consul config (
           service
           // {
             checks = [ healthcheck ];
             address = "127.0.0.1";
+            tags = authentik-tags;
           }
         )
       )

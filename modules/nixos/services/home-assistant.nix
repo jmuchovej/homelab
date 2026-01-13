@@ -1,6 +1,6 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.home-assistant";
+  name = "services.home-assistant";
   config =
     {
       lib,
@@ -11,9 +11,9 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib) mkMerge get-file;
+      inherit (lib.rebellion.file) get-secret;
     in
-    mkMerge [
+    lib.mkMerge [
       {
         environment.systemPackages = with pkgs; [
           home-assistant
@@ -110,9 +110,7 @@ lib.rebellion.mk-module args {
         ];
       }
 
-      {
-        sops.secrets."consul/home-assistant".sopsFile = get-file "secrets/${datacenter}.sops.yaml";
-      }
+      (get-secret config "consul/home-assistant" datacenter)
 
       (
         let

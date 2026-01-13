@@ -1,6 +1,6 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.traefik";
+  name = "services.traefik";
   options =
     { lib, ... }:
     let
@@ -22,11 +22,12 @@ lib.rebellion.mk-module args {
     let
       inherit (lib) mkForce mkIf;
       inherit (lib.rebellion) enabled;
-      inherit (lib.rebellion.file) get-file;
+      inherit (lib.rebellion.file) get-file get-secret';
 
       data-dir = config.services.traefik.dataDir;
     in
     lib.mkMerge [
+      (get-secret' config "cloudflare/api-key")
       {
         rebellion.security.certificates = enabled;
 
@@ -35,7 +36,6 @@ lib.rebellion.mk-module args {
           443
         ];
 
-        sops.secrets."cloudflare/api-key".sopsFile = get-file "secrets/secrets.sops.yaml";
         sops.templates."CF_DNS_API_TOKEN".content = ''
           CF_DNS_API_TOKEN=${config.sops.placeholder."cloudflare/api-key"}
         '';
@@ -195,9 +195,11 @@ lib.rebellion.mk-module args {
             }
           ];
           healthcheck-api = mk-healthcheck service {
+            id = "traefik-api";
             route = "/api/version";
           };
           healthcheck-dashboard = mk-healthcheck service {
+            id = "traefik-dashboard";
             route = "/dashboard/";
           };
         in

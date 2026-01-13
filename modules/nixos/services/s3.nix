@@ -165,6 +165,7 @@ lib.rebellion.mk-module args {
           authentik-tags = mk-authentik service {
             type = "oauth";
             group = "Compute";
+            icon = "minio";
             access = [ "compute-managers" ];
           };
         in

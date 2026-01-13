@@ -1,6 +1,6 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.media";
+  name = "services.media";
   config =
     {
       lib,

@@ -1,6 +1,6 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.authentik";
+  name = "services.authentik";
   config =
     {
       config,
@@ -13,7 +13,6 @@ lib.rebellion.mk-module args {
     let
       inherit (lib.rebellion) enabled;
       inherit (lib.rebellion.file) get-secret get-secret';
-      inherit (lib.strings) replaceString;
       s3 = config.rebellion.services.s3;
 
       authentik-http = "http://localhost:9000";

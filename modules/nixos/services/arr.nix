@@ -1,11 +1,10 @@
-{ lib, pkgs, ... }@args:
+{ lib, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.arr";
+  name = "services.arr";
   config =
     {
       config,
       lib,
-      pkgs,
       hostname,
       datacenter,
       ...
@@ -17,6 +16,7 @@ lib.rebellion.mk-module args {
         mk-healthcheck
         with-consul
         ;
+      inherit (lib.rebellion.file) get-secret;
 
       # Helper to generate database permission grants
       mk-db-grants =
@@ -36,9 +36,11 @@ lib.rebellion.mk-module args {
           dbs ? [ ],
         }:
         let
+          maindb = name;
+          logdb = "${name}-log";
           databases = [
-            name
-            "${name}-log"
+            maindb
+            logdb
           ]
           ++ dbs;
         in
@@ -49,8 +51,11 @@ lib.rebellion.mk-module args {
           };
 
           config = lib.mkMerge [
+            (get-secret config "${name}/key" datacenter)
             {
-              sops.secrets."${name}/env".sopsFile = ./arr.sops.yaml;
+              sops.templates."${name}/env".content = ''
+                ${lib.toUpper name}__POSTGRES__APIKEY=${config.sops.placeholder."${name}/key"}
+              '';
 
               services.postgresql.ensureDatabases = databases;
               services.postgresql.ensureUsers = [
@@ -63,9 +68,13 @@ lib.rebellion.mk-module args {
               services.${name} = {
                 enable = true;
                 openFirewall = true;
-                environmentFiles = [ config.sops.secrets."${name}/env".path ];
+                environmentFiles = [ config.sops.templates."${name}/env".path ];
                 settings = {
                   auth.method = "External";
+                  postgres.user = name;
+                  postgres.host = "localhost";
+                  postgres.maindb = maindb;
+                  postgres.logdb = logdb;
                 };
               };
             }

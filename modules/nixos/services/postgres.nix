@@ -1,6 +1,6 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
-  name = "homelab.postgres";
+  name = "services.postgres";
   options =
     let
       inherit (lib.rebellion) mkopt;
@@ -19,6 +19,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion.file) get-file;
+      s3 = config.rebellion.services.s3;
     in
     {
       sops.secrets."postgres/terraform".sopsFile = (get-file "secrets/secrets.sops.yaml");
@@ -75,5 +76,7 @@ lib.rebellion.mk-module args {
           service = "postgres";
         };
       };
+
+      rebellion.services.s3.buckets = lib.mkIf s3.enable [ "postgres" ];
     };
 }

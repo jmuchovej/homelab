@@ -10,23 +10,22 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (builtins) readFile;
-      inherit (lib.rebellion.file) get-file;
+      inherit (lib) mkIf mkMerge;
+      inherit (lib.rebellion.file) get-file get-secret;
 
-      traefik = config.rebellion.homelab.traefik;
-      sopsFile = get-file "secrets/${datacenter}.sops.yaml";
-      owner = "traefik";
-    in
-    {
-      sops.secrets."certs/lab.key" = lib.mkIf (traefik.enable) {
-        inherit sopsFile owner;
+      traefik = config.rebellion.services.traefik;
+      sops-opts = {
+        owner = "traefik";
         mode = "0400";
       };
-      sops.secrets."certs/lab.crt" = lib.mkIf (traefik.enable) {
-        inherit sopsFile owner;
-        mode = "0444";
-      };
-      security.pki.certificates = [
-        (readFile (get-file "secrets/certificates/${datacenter}/ca.crt"))
-      ];
-    };
+    in
+    mkMerge [
+      {
+        security.pki.certificates = [
+          (readFile (get-file "secrets/certificates/${datacenter}/ca.crt"))
+        ];
+      }
+      (mkIf traefik.enable (get-secret config "certs/lab.key" datacenter) // sops-opts)
+      (mkIf traefik.enable (get-secret config "certs/lab.crt" datacenter) // sops-opts)
+    ];
 }

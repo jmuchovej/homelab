@@ -78,15 +78,13 @@ in
       containers = enabled;
     };
 
-    homelab = {
-      authentik = enabled;
-      cloudflared = enabled;
-      traefik = enabled;
-      home-assistant = enabled;
-      media = enabled;
-      postgres = enabled;
-      arr = enabled;
-    };
+    services.authentik = enabled;
+    services.cloudflared = enabled;
+    services.traefik = enabled;
+    services.home-assistant = enabled;
+    services.media = enabled;
+    services.postgres = enabled;
+    services.arr = enabled;
 
     suites = {
       server = enabled;
