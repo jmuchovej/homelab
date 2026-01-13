@@ -46,12 +46,12 @@ lib.rebellion.mk-module args {
           inherit (lib.rebellion) merge-attrs;
           inherit (lib.rebellion.network)
             with-consul
-            mk-traefik-service
+            mk-authd-traefik-service
             mk-healthcheck
             mk-authentik
             ;
           service = merge-attrs [
-            (mk-traefik-service {
+            (mk-authd-traefik-service {
               inherit hostname datacenter;
               name = "qbittorrent";
               port = config.services.qbittorrent.webuiPort;
