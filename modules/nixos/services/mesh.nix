@@ -43,7 +43,7 @@ lib.rebellion.mk-module args {
     let
       inherit (lib.rebellion.network)
         with-consul
-        mk-authd-traefik-service
+        mk-traefik-service
         mk-healthcheck
         mk-authentik
         ;
@@ -197,7 +197,7 @@ lib.rebellion.mk-module args {
       }
       (
         let
-          service = mk-authd-traefik-service {
+          service = mk-traefik-service {
             inherit hostname datacenter;
             port = 8500;
             name = "consul-ui";
@@ -206,20 +206,20 @@ lib.rebellion.mk-module args {
           healthcheck = mk-healthcheck service {
             route = "/v1/health/node/${hostname}";
           };
-          authentik-tags = mk-authentik service {
-            type = "proxy";
-            group = "Compute";
-            access = [ "compute-managers" ];
-            icon = "consul";
-            skip-paths = "/api/*";
-          };
+          # authentik-tags = mk-authentik service {
+          #   type = "proxy";
+          #   group = "Compute";
+          #   access = [ "compute-managers" ];
+          #   icon = "consul";
+          #   skip-paths = "/api/*";
+          # };
         in
         with-consul config (
           service
           // {
             checks = [ healthcheck ];
             address = "127.0.0.1";
-            tags = authentik-tags;
+            # tags = authentik-tags;
           }
         )
       )
