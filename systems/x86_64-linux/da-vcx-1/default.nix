@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
   inherit (lib.rebellion) enabled disabled;
 in
@@ -41,6 +41,7 @@ in
       syncthing = enabled;
       tailscale = enabled;
       local-llms = enabled // {
+        ollama.package = pkgs.ollama-cuda;
         ollama.models = [
           "embeddinggema"
           "qwen3-embedding"

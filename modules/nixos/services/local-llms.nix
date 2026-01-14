@@ -2,13 +2,14 @@
 lib.rebellion.mk-module args {
   name = "services.local-llms";
   options =
-    { lib, ... }:
+    { lib, pkgs, ... }:
     with lib.types;
     let
-      inherit (lib.rebellion) mkopt;
+      inherit (lib.rebellion) mkopt mkopt-package;
     in
     {
       ollama = {
+        package = mkopt-package pkgs.ollama-cpu "Which version of Ollama should be installed? `pkgs.ollama-[,-vulkan,-rocm,-cuda,-cpu]`";
         models = mkopt (listOf str) [ ] ''
           List of models to download using `ollama pull` once `ollama.service` starts. It generally follows <option>services.ollama.loadModels</option>.
 
@@ -38,7 +39,7 @@ lib.rebellion.mk-module args {
     lib.mkMerge [
       {
         services.ollama = enabled // {
-          acceleration = null; # defaults based on `nixpkgs.config.{cuda,rocm}Support` OR `false`
+          package = cfg.ollama.package;
           syncModels = true;
           loadModels = cfg.ollama.models;
         };
@@ -57,8 +58,8 @@ lib.rebellion.mk-module args {
             group = "Compute";
             type = "proxy";
             access = [
-              "Compute"
-              "Compute Admin"
+              "compute"
+              "compute-managers"
             ];
           };
         in
