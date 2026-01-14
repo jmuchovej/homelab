@@ -63,12 +63,14 @@ lib.rebellion.mk-module args {
             ];
           };
         in
-        with-consul config service
-        // {
-          checks = [ healthcheck ];
-          tags = authentik-tags;
-          address = config.services.ollama.host;
-        }
+        with-consul config (
+          service
+          // {
+            checks = [ healthcheck ];
+            tags = authentik-tags;
+            address = config.services.ollama.host;
+          }
+        )
       )
     ];
 }
