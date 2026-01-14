@@ -40,7 +40,7 @@ lib.rebellion.mk-module args {
         services.ollama = enabled // {
           acceleration = null; # defaults based on `nixpkgs.config.{cuda,rocm}Support` OR `false`
           syncModels = true;
-          loadModels = cfg.models;
+          loadModels = cfg.ollama.models;
         };
       }
       (
