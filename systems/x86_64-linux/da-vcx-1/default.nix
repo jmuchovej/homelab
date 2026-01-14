@@ -41,7 +41,55 @@ in
       syncthing = enabled;
       tailscale = enabled;
       local-llms = enabled // {
-        vllm.model = "Qwen/Qwen2.5-72B-Instruct";
+        ollama.models = [
+          "embeddinggema"
+          "qwen3-embedding"
+          "all-minilm"
+          "deepseek-r1"
+          "deepseek-v3.1"
+          "qwen2.5-coder"
+          "qwen2.5"
+          "phi3"
+          "phi"
+          "phi3.5"
+          "qwen"
+          "qwen2"
+          "codellamma"
+          "dolphin3"
+          "olmo2"
+          "deepseek-v3"
+          "deepseek-coder"
+          "codegemma"
+          "falcon3"
+          "qwq"
+          "qwen2.5vl"
+          "phi"
+          "phi4-reasoning"
+          "llama3.3"
+          "qwen3"
+          "qwen3-vl"
+          "magistral"
+          "ministral-3"
+          "gemma"
+          "gemma2"
+          "gemma3"
+          "llava"
+          "llama3.2-vision"
+          "nemotron-3-nano"
+          "gpt-oss"
+          "mistral"
+          "mixtral"
+          "cogito"
+          "llama4"
+          "devstral"
+          "devstral-2"
+          "llama3.2"
+          "llama3.1"
+          "llama3"
+          "nomic-embed-text"
+          "mxbai-embed-large"
+          "olmo-3"
+        ];
       };
     };
 
@@ -60,6 +108,14 @@ in
     services.s3 = enabled // {
       data-dir = [ "/impulse/s3" ];
     };
+    services.chroma = enabled;
+    services.authentik = enabled;
+    services.cloudflared = enabled;
+    services.traefik = enabled;
+    services.home-assistant = enabled;
+    services.media = enabled;
+    services.postgres = enabled;
+    services.arr = enabled;
 
     system = {
       nix = enabled;
@@ -77,14 +133,6 @@ in
     virtualization = {
       containers = enabled;
     };
-
-    services.authentik = enabled;
-    services.cloudflared = enabled;
-    services.traefik = enabled;
-    services.home-assistant = enabled;
-    services.media = enabled;
-    services.postgres = enabled;
-    services.arr = enabled;
 
     suites = {
       server = enabled;

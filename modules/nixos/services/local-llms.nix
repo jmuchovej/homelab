@@ -1,61 +1,73 @@
-{
-    # Snowfall Lib provides a customized `lib` instance with access to your flake's library
-    # as well as the libraries available from your flake's inputs.
-    lib,
-    # An instance of `pkgs` with your overlays and packages applied is also available.
-    pkgs,
-    # You also have access to your flake's inputs.
-    inputs,
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "services.local-llms";
+  options =
+    { lib, ... }:
+    with lib.types;
+    let
+      inherit (lib.rebellion) mkopt;
+    in
+    {
+      ollama = {
+        models = mkopt (listOf str) [ ] ''
+          List of models to download using `ollama pull` once `ollama.service` starts. It generally follows <option>services.ollama.loadModels</option>.
 
-    # Additional metadata is provided by Snowfall Lib.
-    namespace, # The namespace used for your flake, defaulting to "internal" if not set.
-    system, # The system architecture for this host (eg. `x86_64-linux`).
-    target, # The Snowfall Lib target for this system (eg. `x86_64-iso`).
-    format, # A normalized name for the system target (eg. `iso`).
-    virtual, # A boolean to determine whether this system is a virtual target using nixos-generators.
-    systems, # An attribute map of your defined hosts.
-
-    # All other arguments come from the system system.
-    config,
-    ...
-}:
-let
-  inherit (lib) mkOption mkEnableOption mkIf types;
-  cfg = config.rebellion.services.local-llms;
-in {
-  options.rebellion.services.local-llms = with types; {
-    enable = mkEnableOption "Local LLMs";
-    vllm = {
-      model = mkOption {
-        type = str;
-        description = "model to deploy, from HuggingFace";
+          Search for models on [ollama's library](https://ollama.com/library).
+        '';
       };
     };
-  };
 
-  config = mkIf cfg.enable {
-    environment.systemPackages = (with pkgs; [
-      ollama ollama-cuda
-    ]);
-
-    sops.secrets."vllm" = {};
-
-    virtualisation.oci-containers.containers.vllm = {
-      pull = "always";
-      image = "docker.io/vllm/vllm-openai:latest";
-      hostname = "vllm";
-      extraOptions = [
-        "--device=nvidia.com/gpu=all"
-        "--ipc=host"
-      ];
-      volumes = [
-        "/warp/models/huggingface:/root/.cache/huggingface"
-      ];
-      ports = [ "8556:8000" ];
-      environmentFiles = [
-        config.sops.secrets."vllm".path
-      ];
-      cmd = [ "--model=${cfg.vllm.model}" ];
-    };
-  };
+  config =
+    {
+      cfg,
+      lib,
+      config,
+      datacenter,
+      hostname,
+      ...
+    }:
+    let
+      inherit (lib.rebellion.network)
+        mk-authd-traefik-service
+        with-consul
+        mk-authentik
+        mk-healthcheck
+        ;
+      inherit (lib.rebellion) enabled;
+    in
+    lib.mkMerge [
+      {
+        services.ollama = enabled // {
+          acceleration = null; # defaults based on `nixpkgs.config.{cuda,rocm}Support` OR `false`
+          syncModels = true;
+          loadModels = cfg.models;
+        };
+      }
+      (
+        let
+          service = mk-authd-traefik-service {
+            inherit hostname datacenter;
+            name = "ollama";
+            port = config.services.ollama.port;
+          };
+          healthcheck = mk-healthcheck service {
+            route = "/";
+          };
+          authentik-tags = mk-authentik service {
+            group = "Compute";
+            type = "proxy";
+            access = [
+              "Compute"
+              "Compute Admin"
+            ];
+          };
+        in
+        with-consul config service
+        // {
+          checks = [ healthcheck ];
+          tags = authentik-tags;
+          address = config.services.ollama.host;
+        }
+      )
+    ];
 }
