@@ -81,7 +81,7 @@ lib.mkMerge [
           ENABLE_OAUTH_GROUP_CREATION = "True";
           OAUTH_ALLOWED_ROLES = "compute,compute-manager";
           OAUTH_ADMIN_ROLES = "compute-manager";
-          OAUTH_ALLOWED_DOMAINS = "jm0.io";
+          OAUTH_ALLOWED_DOMAINS = "*.${datacenter}.jm0.io,*.jm0.io,jm0.io";
 
           # Cloud Storage: https://docs.openwebui.com/getting-started/env-configuration/#cloud-storage
           # STORAGE_PROVIDER = "s3";
