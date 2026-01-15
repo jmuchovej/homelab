@@ -77,23 +77,23 @@ lib.rebellion.mk-module args {
           listenMetrics = "localhost:9303";
         };
 
-        sops.templates."authentik/outposts/ldap-env".content = ''
-          AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/proxy-token"}
-          ${OUTPOST_ENV}
-        '';
-        services.authentik-ldap = enabled // {
-          environmentFile = config.sops.templates."authentik/outposts/ldap-env".path;
-          listenMetrics = "localhost:9302";
-        };
+        # sops.templates."authentik/outposts/ldap-env".content = ''
+        #   AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/proxy-token"}
+        #   ${OUTPOST_ENV}
+        # '';
+        # services.authentik-ldap = enabled // {
+        #   environmentFile = config.sops.templates."authentik/outposts/ldap-env".path;
+        #   listenMetrics = "localhost:9302";
+        # };
 
-        sops.templates."authentik/outposts/radius-env".content = ''
-          AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/radius-token"}
-          ${OUTPOST_ENV}
-        '';
-        services.authentik-radius = enabled // {
-          environmentFile = config.sops.templates."authentik/outposts/radius-env".path;
-          listenMetrics = "localhost:9306";
-        };
+        # sops.templates."authentik/outposts/radius-env".content = ''
+        #   AUTHENTIK_TOKEN=${config.sops.placeholder."outposts/radius-token"}
+        #   ${OUTPOST_ENV}
+        # '';
+        # services.authentik-radius = enabled // {
+        #   environmentFile = config.sops.templates."authentik/outposts/radius-env".path;
+        #   listenMetrics = "localhost:9306";
+        # };
 
         services.cloudflared.tunnels."3326fa87-32b9-4693-9c86-3cbe4e735195".ingress = {
           "id.jm0.io" = "http://localhost:9000";
