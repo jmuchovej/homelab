@@ -12,13 +12,33 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion.file) get-secret;
+      inherit (lib.rebellion.network) mk-openid-url;
     in
     lib.mkMerge [
+      (get-secret config "home-assistant/client-id" "authentik")
+      (get-secret config "home-assistant/client-secret" "authentik")
       {
         environment.systemPackages = with pkgs; [
           home-assistant
           home-assistant-cli
         ];
+
+        sops.templates."secrets.yaml" =
+          let
+            client-id = config.sops.placeholder."home-assistant/client-id";
+            ha-service = config.systemd.services.home-assistant.serviceConfig;
+          in
+          {
+            content = ''
+              logger: debug
+              ak-client-id: ${client-id}
+              ak-client-secret: ${config.sops.placeholder."home-assistant/client-secret"}
+              ak-provider-url: ${mk-openid-url client-id datacenter}
+            '';
+            path = config.services.home-assistant.configDir + "/secrets.yaml";
+            owner = ha-service.User;
+            group = ha-service.Group;
+          };
 
         services.home-assistant = {
           enable = true;
@@ -51,6 +71,11 @@ lib.rebellion.mk-module args {
               temperature_unit = "F";
               internal_url = "https://home.${datacenter}.jm0.io";
               external_url = "https://home.${datacenter}.jm0.io";
+            };
+            auth_oidc = {
+              client_id = "!secret ak-client-id";
+              client_secret = "!secret ak-client-secret";
+              discovery_url = "!secret ak-provider-url";
             };
           };
           customComponents = (
@@ -133,13 +158,14 @@ lib.rebellion.mk-module args {
             };
           };
           authentik-tags = mk-authentik service {
+            name = "Home Assistant";
             type = "oauth";
             group = "Home";
             access = [ "home" ];
             skip-paths = "/api/*";
           };
         in
-        (with-consul config (
+        with-consul config (
           service
           // {
             checks = [ healthcheck ];
@@ -147,7 +173,7 @@ lib.rebellion.mk-module args {
             address = "127.0.0.1";
             tags = authentik-tags;
           }
-        ))
+        )
       )
     ];
 }
