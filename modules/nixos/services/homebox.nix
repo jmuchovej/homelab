@@ -52,9 +52,12 @@ lib.rebellion.mk-module args {
             HBOX_OIDC_ENABLED = "true";
             HBOX_OIDC_AUTO_REDIRECT = "true";
             HBOX_OIDC_VERIFY_EMAIL = "true";
-            HBOX_OIDC_BUTTON_TEXT = "Signin with Authentik";
+            HBOX_OIDC_BUTTON_TEXT = "Sign in with JM Cloud";
+            HBOX_OIDC_SCOPE = "openid profile email groups";
+            HBOX_OIDC_ALLOWED_GROUPS = "Home";
+
             HBOX_OPTIONS_ALLOW_LOCAL_LOGIN = "false";
-            HBOX_OPTIONS_ALLOW_REGISTRATION = "false";
+            HBOX_OPTIONS_ALLOW_REGISTRATION = "true";
             HBOX_OPTIONS_TRUST_PROXY = "true";
             HBOX_OPTIONS_HOSTNAME = "homebox.${datacenter}.jm0.io";
           };
@@ -80,6 +83,7 @@ lib.rebellion.mk-module args {
           after = [ "postgresql.service" ];
           wants = [ "postgresql.service" ];
           serviceConfig.EnvironmentFile = config.sops.templates."homebox.env".path;
+          restartTriggers = [ config.sops.templates."homebox.env".path ];
         };
 
         services.postgresql = {
