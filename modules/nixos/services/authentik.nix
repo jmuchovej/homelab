@@ -30,7 +30,7 @@ lib.rebellion.mk-module args {
     lib.mkMerge [
       (get-secret' config "authentik/secret-key")
       (get-secret' config "authentik/token")
-      (get-secret' config "mailgun/token")
+      (get-secret' config "mailgun/smtp-token")
       (get-secret config "outposts/proxy-token" "authentik")
       (get-secret config "outposts/ldap-token" "authentik")
       (get-secret config "outposts/radius-token" "authentik")
@@ -44,7 +44,7 @@ lib.rebellion.mk-module args {
         # Environment for the main authentik server
         sops.templates."authentik/env".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
-          AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/token"}
+          AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
         '';
 
         services.authentik = enabled // {
@@ -56,7 +56,7 @@ lib.rebellion.mk-module args {
               username = "postmaster@sandbox99f6437cfdb74594b267f6cc24740684.mailgun.org";
               use_tls = true;
               use_ssl = false;
-              from = "homelab@jm.io";
+              from = "homelab@jm0.io";
             };
             disable_startup_analytics = true;
             avatars = "initials";

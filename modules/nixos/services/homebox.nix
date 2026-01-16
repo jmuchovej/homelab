@@ -21,7 +21,7 @@ lib.rebellion.mk-module args {
         ;
     in
     lib.mkMerge [
-      (get-secret' config "mailgun/token")
+      (get-secret' config "mailgun/smtp-token")
       (get-secret config "homebox/client-id" "authentik")
       (get-secret config "homebox/client-secret" "authentik")
       {
@@ -75,7 +75,7 @@ lib.rebellion.mk-module args {
               HBOX_OIDC_CLIENT_ID = ${client-id}
               HBOX_OIDC_ISSUER_URL = ${issuer-url}
               HBOX_OIDC_CLIENT_SECRET = ${config.sops.placeholder."homebox/client-secret"}
-              HBOX_MAILER_PASSWORD = ${config.sops.placeholder."mailgun/token"}
+              HBOX_MAILER_PASSWORD = ${config.sops.placeholder."mailgun/smtp-token"}
             '';
           };
 
