@@ -77,13 +77,18 @@ rec {
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
+      priority ? 10,
+      route ? null,
     }:
     let
       inherit (inputs.nixpkgs) lib;
       inherit (lib.strings) splitString replaceStrings;
       inherit (builtins) head filter;
 
-      pub-rule = mk-rule subdomain domain;
+      pub-rule = let
+        host-rule = mk-rule subdomain domain;
+        in
+        if route != null then "(${host-rule}) && PathPrefix(`${route}`)" else host-rule;
       rule-parts = splitString "||" pub-rule;
       no-hosts = map (s: replaceStrings ["Host(`" "`)" " "] ["" "" ""] s) rule-parts;
       base-url = head no-hosts;
@@ -106,7 +111,7 @@ rec {
           entryPoints = entry-points;
           middlewares = middlewares;
           tls.certResolver = cert-resolver;
-          priority = 10;
+          priority = priority;
         };
       };
 
@@ -118,7 +123,7 @@ rec {
           entryPoints = entry-points;
           tls.certResolver = cert-resolver;
           middlewares = filter (mw: mw != "authentik@file") middlewares;
-          priority = 15;
+          priority = priority + 5;
         };
       } else { };
 

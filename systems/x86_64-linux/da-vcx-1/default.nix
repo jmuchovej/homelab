@@ -118,6 +118,7 @@ in
     services.postgres = enabled;
     services.arr = enabled;
     services.homebox = enabled;
+    services.immich = enabled;
 
     system = {
       nix = enabled;
