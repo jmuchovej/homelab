@@ -40,6 +40,9 @@ in
       openssh = enabled;
       syncthing = enabled;
       tailscale = enabled;
+      split-pro = enabled // {
+        port = 7548;
+      };
       local-llms = enabled // {
         ollama.package = pkgs.ollama-cuda;
         ollama.models = [
