@@ -25,6 +25,7 @@ lib.rebellion.mk-module args {
         AUTHENTIK_HOST=${authentik-http}
         AUTHENTIK_HOST_BROWSER=https://id.${datacenter}.jm0.io
         AUTHENTIK_INSECURE=false
+        AUTHENTIK_OUTPOST__DISABLE_EMBEDDED_OUTPOST=true
       '';
     in
     lib.mkMerge [
@@ -58,6 +59,8 @@ lib.rebellion.mk-module args {
               use_ssl = false;
               from = "homelab@jm0.io";
             };
+            outposts.disable_embedded_outpost = true;
+            tenants.enabled = true;
             disable_startup_analytics = true;
             avatars = "initials";
           };
