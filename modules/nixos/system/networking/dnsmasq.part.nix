@@ -9,11 +9,12 @@ let
   inherit (lib) mkIf mkForce mkMerge;
   inherit (lib.rebellion) disabled;
 
-  mesh = config.rebellion.services.mesh or disabled;
+  consul-dns = config.rebellion.services.consul.dns or disabled;
+  keepalived = config.rebellion.services.keepalived or disabled;
   dynamic-gateway-conf = "/run/dnsmasq/dynamic-gateway.conf";
 in
 mkIf (cfg.dns == "dnsmasq") {
-  networking.networkmanager.dns = mkIf (!mesh.enable) "dnsmasq";
+  networking.networkmanager.dns = mkIf (!consul-dns.enable) "dnsmasq";
   services.resolved.enable = mkForce false;
   services.dnsmasq = {
     enable = true;
@@ -37,8 +38,8 @@ mkIf (cfg.dns == "dnsmasq") {
         conf-file = [ dynamic-gateway-conf ];
       }
 
-      # When mesh is enabled, add mesh-specific DNS configuration
-      (mkIf mesh.enable {
+      # When consul is enabled, add consul-specific DNS configuration
+      (mkIf consul-dns.enable {
         # Forward .consul queries to local Consul agent
         server = [
           "/consul/127.0.0.1#8600"
@@ -46,12 +47,12 @@ mkIf (cfg.dns == "dnsmasq") {
 
         # The 'local' directive ensures it's authoritative (no upstream query)
         local = [ "/${datacenter}.jm0.io/" ];
-        address = [ "/${datacenter}.jm0.io/${mesh.vip.address}" ];
+        address = [ "/${datacenter}.jm0.io/${keepalived.vip.address}" ];
 
-        # Listen on both loopback (for local queries) and mesh interface (for VIP)
+        # Listen on both loopback (for local queries) and consul interface (for VIP)
         interface = [
           "lo"
-          mesh.consul.interface
+          keepalived.interface
         ];
       })
     ];
@@ -82,12 +83,12 @@ mkIf (cfg.dns == "dnsmasq") {
     after = [ "dynamic-gateway.service" ];
   };
 
-  # Open firewall for DNS when mesh is enabled
-  networking.firewall = mkIf mesh.enable {
+  # Open firewall for DNS when consul is enabled
+  networking.firewall = mkIf consul-dns.enable {
     allowedUDPPorts = [ 53 ];
     allowedTCPPorts = [ 53 ];
   };
 
-  # Point system DNS to localhost when mesh is enabled
-  networking.nameservers = mkIf mesh.enable (mkForce [ "127.0.0.1" ]);
+  # Point system DNS to localhost when consul is enabled
+  networking.nameservers = mkIf consul-dns.enable (mkForce [ "127.0.0.1" ]);
 }

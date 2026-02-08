@@ -97,14 +97,42 @@ in
       };
     };
 
-    services.mesh = enabled // {
-      consul = {
-        server = true;
-        bootstrap-expect = 1;
-        interface = "enp12s0";
-      };
-      vip.priority = 100;
+    ##### Service Mesh [for once the other nodes are online] #####
+    services.consul = enabled // {
+      server = true;
+      connect = enabled;
+      dns = enabled;
+      acl = enabled;
+      interface = "enp12s0";
+      bootstrap-expect = 1;
     };
+    services.openbao = enabled // {
+      interface = "enp12s0";
+    };
+    services.nomad = enabled // {
+      server = true;
+      client = true;
+      bootstrap-expect = 1;
+      interface = "enp12s0";
+      consul.enable = true;
+      volumes = [ ];
+    };
+    services.keepalived = enabled // {
+      interface = "enp12s0";
+      vip.address = "10.69.1.1";
+      vip.prefix = 16;
+      vrrp.router-id = 42;
+      vrrp.priority = 242;
+      vrrp.preempt = false;
+      vrrp.advert-interval = 1;
+      checks.consul = true;
+      checks.traefik = true;
+    };
+    services.traefik = enabled // {
+      consul-integration = true;
+    };
+    ##### /Service Mesh #####
+
     services.proton-vpn = enabled // {
       location = "SE-US#1";
     };
@@ -115,7 +143,6 @@ in
     services.chroma = enabled;
     services.authentik = enabled;
     services.cloudflared = enabled;
-    services.traefik = enabled;
     services.home-assistant = enabled;
     services.media = enabled;
     services.postgres = enabled;

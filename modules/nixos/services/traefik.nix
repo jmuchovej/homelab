@@ -22,7 +22,7 @@ lib.rebellion.mk-module args {
     let
       inherit (lib) mkForce mkIf;
       inherit (lib.rebellion) enabled;
-      inherit (lib.rebellion.file) get-file get-secret';
+      inherit (lib.rebellion.file) get-secret';
 
       data-dir = config.services.traefik.dataDir;
     in
@@ -36,13 +36,13 @@ lib.rebellion.mk-module args {
           443
         ];
 
-        sops.templates."CF_DNS_API_TOKEN".content = ''
+        sops.templates."traefik.env".content = ''
           CF_DNS_API_TOKEN=${config.sops.placeholder."cloudflare/api-key"}
         '';
 
         systemd.services.traefik = {
           serviceConfig.EnvironmentFile = [
-            config.sops.templates."CF_DNS_API_TOKEN".path
+            config.sops.templates."traefik.env".path
           ];
           # When consul integration is enabled, ensure consul is running
           after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
