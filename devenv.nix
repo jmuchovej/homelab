@@ -35,6 +35,9 @@
     ssh-to-age
     ssh-to-pgp
     age
+    consul
+    nomad
+    openbao
   ];
 
   # https://devenv.sh/languages/
