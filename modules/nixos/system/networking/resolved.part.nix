@@ -19,16 +19,17 @@ mkIf (cfg.dns == "systemd-resolved") {
     # dnssec = "true";
     # this is necessary to get tailscale picking up your headscale instance
     # and allows you to ping connected hosts by hostname
-    domains = [
+    settings.Resolve.Domains = [
       "lab"
       "~."
     ];
-    dnsovertls = "opportunistic";
+    settings.Resolve.DNSOverTLS = "opportunistic";
+
     # extraConfig =
     #   mkIf cfg.dns == "dnsmasq" ''
     #     DNSStubListener=false
     #   '';
-    fallbackDns = [
+    settings.Resolve.FallbackDNS = [
       "9.9.9.9"
       "149.112.112.112"
       "2620:fe::fe"
