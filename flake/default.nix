@@ -6,6 +6,7 @@
     ./packages.nix
     ./modules.nix
     ./systems.nix
+    ./deploy.nix
     ./homes.nix
     inputs.flake-parts.flakeModules.partitions
   ];
