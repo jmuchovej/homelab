@@ -90,6 +90,9 @@
       url = "github:leoafarias/fvm";
       flake = false;
     };
+
+    # MCP Servers
+    mcp-servers.url = "github:natsukium/mcp-servers-nix";
   };
 
   outputs =
@@ -110,6 +113,7 @@
           nur.overlays.default
           topology.overlays.default
           nix-vscode-extensions.overlays.default
+          mcp-servers.overlays.default
         ];
         modules = {
           homes = with inputs; [
