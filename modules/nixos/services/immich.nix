@@ -55,12 +55,34 @@ lib.rebellion.mk-module args {
               timeout = 30000;
               tokenEndpointAuthMethod = "client_secret_post";
             };
-            passwordLogin.enabled = false;
+            notifications.smtp = {
+              enabled = true;
+              from = "immich@jm0.io";
+              replyTo = "no-reply@jm0.io";
+              transport = {
+                host = "smtp.mailgun.org";
+                port = 587;
+                ignoreCert = false;
+                secure = false;
+                username._secret = config.sops.secrets."mailgun/username".path;
+                password._secret = config.sops.secrets."mailgun/smtp-token".path;
+              };
+            };
             server = {
               externalDomain = "https://photos.${datacenter}.jm0.io";
               loginPageMessage = "";
               publicUsers = false;
             };
+            passwordLogin.enabled = false;
+            reverseGeocoding.enabled = true;
+            storageTemplate = {
+              enabled = true;
+              hashVerificationEnabled = true;
+              template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{fileame}}";
+            };
+            trash.enabled = true;
+            trash.days = 90;
+            user.deleteDelay = 7;
           };
         };
 
