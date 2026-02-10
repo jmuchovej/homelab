@@ -19,7 +19,7 @@ let
   host-homes = filterAttrs (_name: config: config.hostname != null) hm-configs;
 
   generate-home-configuration =
-    base-name: base-config:
+    _base-name: base-config:
     let
       matching-hosts = filterAttrs (_name: config: config.hostname == base-config.hostname) host-homes;
 
@@ -61,36 +61,6 @@ let
           { };
     in
     base-configs // host-configs;
-
-  _generate-home-configuration =
-    _name:
-    {
-      system,
-      username,
-      hostname,
-      user-dir,
-      path,
-      ...
-    }:
-    let
-      # Find the base config for this user+system (if it exists).
-      base-config = base-homes."${username}" or null;
-      has-base = base-config != null && base-config.system == system;
-      base-modules = if has-base then [ base-config.path ] else [ ];
-    in
-    {
-      name = user-dir; # Use the full "username@hostname" as key
-      value = self.lib.system.homes {
-        inherit
-          inputs
-          system
-          hostname
-          username
-          ;
-        # merge base config modules first, then host-specific modules
-        modules = base-modules ++ [ path ];
-      };
-    };
 in
 {
   imports = [ inputs.home-manager.flakeModules.home-manager ];
