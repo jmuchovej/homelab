@@ -4,10 +4,6 @@
   inputs = {
     catppuccin.url = "github:catppuccin/nix";
 
-    # devenv
-    devenv.url = "github:cachix/devenv";
-    devenv.inputs.nixpkgs.follows = "nixpkgs";
-
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
@@ -57,13 +53,6 @@
 
     # Deploy
     deploy.url = "github:serokell/deploy-rs";
-
-    # treefmt
-    treefmt-nix.url = "github:numtide/treefmt-nix";
-
-    # git-hooks
-    git-hooks-nix.url = "github:cachix/git-hooks.nix";
-    git-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     # authentik
     authentik-nix.url = "github:nix-community/authentik-nix";
