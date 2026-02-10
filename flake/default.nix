@@ -1,7 +1,7 @@
 { inputs, ... }:
 {
   imports = [
-    ../lib
+    ./lib
     ./overlays.nix
     ./packages.nix
     ./modules.nix

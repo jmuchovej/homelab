@@ -1,6 +1,7 @@
 # Custom Library Functions
 
-Reusable Nix functions extending `nixpkgs.lib` for `rebellion`-specific patterns.
+Reusable Nix functions extending `nixpkgs.lib` for `rebellion`-specific
+patterns.
 
 ## Library Structure
 
@@ -89,7 +90,8 @@ Determine which category fits your function:
 - File operations → `file.nix`
 - Module utilities → `module.nix`
 - System builders → `system/`
-- New category → Create top-level file. **IF** it's sensible to split into multiple files, mirror the setup of `system/`
+- New category → Create top-level file. **IF** it's sensible to split into
+  multiple files, mirror the setup of `system/`
 
 ### 2. Write Pure Function
 
