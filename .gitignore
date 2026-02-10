@@ -3,15 +3,9 @@ assets/di/
 assets/sh/
 _arxiv/
 _research/
+.envrc.local
 
-# Pixi
-.pixi/
-
-# Talos & K8s
-kubeconfig
-talosconfig
 .decrypted~*.yaml
-.config.env
 *.agekey
 *.pub
 *.key
