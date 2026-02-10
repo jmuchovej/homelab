@@ -1,4 +1,6 @@
 # Things that aren't useful now, but haven't been deemed trash-worthy
+assets/di/
+assets/sh/
 _arxiv/
 _research/
 
