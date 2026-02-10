@@ -11,11 +11,7 @@ let
     attrValues
     composeManyExtensions
     ;
-  inherit (builtins)
-    pathExists
-    attrNames
-    readDir
-    ;
+  inherit (builtins) pathExists;
   inherit (self.lib.file) get-nix-files safe-import;
 
   overlays-path = ../overlays;

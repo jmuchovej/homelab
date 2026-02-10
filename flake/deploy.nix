@@ -11,7 +11,7 @@ in
     {
       inherit hostname;
       sshUser = "lab";
-      user = "lab";
+      user = "root";
       magicRollback = true;
       autoRollback = true;
       remoteBuild = true;
