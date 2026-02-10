@@ -4,7 +4,7 @@
     # keep-sorted start block=yes newline_separated=yes
     file = import ./file.nix {
       inherit inputs;
-      self = ../.;
+      self = ../../.;
     };
     module = import ./module.nix { inherit inputs; };
     overlay = import ./overlay.nix { inherit inputs; };

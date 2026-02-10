@@ -57,7 +57,7 @@ inputs.nix-darwin.lib.darwinSystem {
   # Auto-inject home configurations for this system+hostname
   ++ [ hm-config ]
   # Import all macos modules recursively
-  ++ (ext-lib.import-modules-recursive ../../modules/macos { })
-  ++ [ ../../systems/${system}/${hostname} ]
+  ++ (ext-lib.import-modules-recursive ../../../modules/macos { })
+  ++ [ ../../../systems/${system}/${hostname} ]
   ++ modules;
 }

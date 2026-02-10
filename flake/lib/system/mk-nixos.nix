@@ -55,7 +55,7 @@ inputs.nixpkgs.lib.nixosSystem {
   # Auto-inject home configurations for this system+hostname
   ++ [ hm-config ]
   # Import all nixos modules recursively
-  ++ (ext-lib.import-modules-recursive ../../modules/nixos { })
-  ++ [ ../../systems/${system}/${hostname} ]
+  ++ (ext-lib.import-modules-recursive ../../../modules/nixos { })
+  ++ [ ../../../systems/${system}/${hostname} ]
   ++ modules;
 }

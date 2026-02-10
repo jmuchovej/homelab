@@ -35,6 +35,6 @@ inputs.home-manager.lib.homeManagerConfiguration {
   ]
   ++ flake.rebellion.modules.homes
   # Import all home modules recursively
-  ++ (ext-lib.import-modules-recursive ../../modules/home { })
+  ++ (ext-lib.import-modules-recursive ../../../modules/home { })
   ++ modules;
 }

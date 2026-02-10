@@ -24,7 +24,7 @@ rec {
     }:
     let
       inherit (flake.lib.file) parse-home-configurations;
-      home-paths = ../../homes;
+      home-paths = ../../../homes;
       all-homes = parse-home-configurations home-paths;
 
       # Match the sytem architecture
@@ -84,7 +84,7 @@ rec {
             { _module.args.lib = ext-lib; }
           ]
           ++ flake.rebellion.modules.homes
-          ++ (ext-lib.import-modules-recursive ../../modules/home { });
+          ++ (ext-lib.import-modules-recursive ../../../modules/home { });
 
           users = mapAttrs' (_name: config: {
             name = config.username;
