@@ -1,8 +1,4 @@
-{ inputs }:
-let
-  inherit (inputs.lib) mkDefault mkMerge concatMapStringsSep;
-in
-{
+_: {
   # Create a standardized Traefik service configuration
   # Returns router and service config that should be assigned to dynamicConfigOptions.http
   # Usage in modules: services.traefik.dynamicConfigOptions.http = lib.rebellion.traefik.mk-service { ... };

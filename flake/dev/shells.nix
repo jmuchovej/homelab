@@ -35,6 +35,7 @@
           consul
           nomad
           openbao
+          mkpasswd
           config.treefmt.build.wrapper
         ];
 

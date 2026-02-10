@@ -88,11 +88,11 @@ lib.rebellion.mk-module args {
 
           extraConfig = {
             # Datacenter and node configuration
-            datacenter = datacenter;
+            inherit datacenter;
             node_name = hostname;
 
             # Server/Client configuration
-            server = cfg.server;
+            inherit (cfg) server;
           }
           // (lib.optionalAttrs cfg.server {
             bootstrap_expect = cfg.bootstrap-expect;

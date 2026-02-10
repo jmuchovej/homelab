@@ -13,7 +13,7 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf mkMerge;
       inherit (lib.rebellion.file) get-file get-secret;
 
-      traefik = config.rebellion.services.traefik;
+      inherit (config.rebellion.services) traefik;
       sops-opts = {
         owner = "traefik";
         mode = "0400";

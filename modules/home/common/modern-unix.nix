@@ -5,8 +5,6 @@ lib.rebellion.mk-module args {
   name = "modern-unix";
   config =
     {
-      cfg,
-      config,
       lib,
       pkgs,
       ...
@@ -19,8 +17,6 @@ lib.rebellion.mk-module args {
         ;
       inherit (lib.rebellion) enabled;
       inherit (pkgs.stdenv) isLinux isDarwin;
-
-      system = pkgs.stdenv.hostPlatform.system;
     in
     {
       home.shellAliases = {

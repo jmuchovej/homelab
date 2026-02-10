@@ -18,16 +18,14 @@ lib.rebellion.mk-module args {
   config =
     {
       cfg,
-      config,
       lib,
       pkgs,
       ...
     }:
     let
       inherit (lib) mkDefault mapAttrs;
-      inherit (lib.rebellion) enabled;
       inherit (builtins) concatStringsSep;
-      inherit (pkgs.stdenv) isLinux isDarwin;
+      inherit (pkgs.stdenv) isDarwin;
 
       # Apply default values to extra-hosts if not already set
       applyHostDefaults =

@@ -1,10 +1,9 @@
 {
   config,
   lib,
-  pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (builtins) concatStringsSep map;
   inherit (lib) mkIf mkEnableOption;
   inherit (lib.strings) fileContents;
@@ -12,7 +11,8 @@
 
   cfg = config.rebellion.programs.tools.tmux;
   configFiles = get-files ./tmux;
-in {
+in
+{
   options.rebellion.programs.tools.tmux = {
     enable = mkEnableOption "tmux";
   };

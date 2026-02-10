@@ -21,29 +21,23 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      default-packages = (
-        with pkgs.rPackages;
-        [
-          # Tidyverse and friends
-          tidyverse
-          tidymodels
-          pastecs
-          # Document Writing
-          quarto
-          # Language Server
-          languageserver
-        ]
-      );
+      default-packages = with pkgs.rPackages; [
+        # Tidyverse and friends
+        tidyverse
+        tidymodels
+        pastecs
+        # Document Writing
+        quarto
+        # Language Server
+        languageserver
+      ];
 
       R = cfg.package.override { packages = default-packages; };
       # RStudio = cfg.rstudio-package.override { packages = default-packages; };
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          reditorsupport.r
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        reditorsupport.r
+      ];
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/r

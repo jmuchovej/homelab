@@ -8,17 +8,11 @@ lib.rebellion.mk-desktop-module args {
     {
       cfg,
       lib,
-      config,
       pkgs,
       ...
     }:
     let
-      inherit (lib)
-        mkIf
-        mkForce
-        mkMerge
-        ;
-      # inherit (builtins) concatStringsSep;
+      inherit (lib) mkIf mkForce;
     in
     {
       home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "zed --wait");

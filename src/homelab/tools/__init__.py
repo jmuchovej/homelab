@@ -1,16 +1,13 @@
+# ruff: noqa: E402
 from rich.console import Console
 
 console = Console()
 
+from homelab.tools._certs import gen_cert_auth, gen_cert_child, gen_key
 from homelab.tools._misc import (
-    display_certificate_info,
     discover_datacenters_systems,
+    display_certificate_info,
     root_dir,
-)
-from homelab.tools._certs import (
-    gen_key,
-    gen_cert_auth,
-    gen_cert_child,
 )
 
 __all__ = [

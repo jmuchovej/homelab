@@ -28,7 +28,7 @@ rec {
   # Check if a file exists
   path-exists = path: builtins.pathExists path;
 
-  get-secret = config: secret: filepath: {
+  get-secret = _config: secret: filepath: {
     sops.secrets."${secret}" = {
       sopsFile = get-file "secrets/${filepath}.sops.yaml";
     };

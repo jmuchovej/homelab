@@ -4,7 +4,6 @@ lib.rebellion.mk-module args {
   config =
     {
       config,
-      pkgs,
       lib,
       ...
     }:

@@ -5,29 +5,32 @@ This module provides commands for generating, verifying, and managing Certificat
 Authorities (CAs) and wildcard certificates for local .lab domains. Each datacenter
 should have its own CA to allow independent rotation and management.
 """
-import itertools
-import os
 
-from datetime import timezone, datetime, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 
-from homelab.tools._certs import save_cert, save_priv_key
-from typing_extensions import Annotated
 import typer
-from typer import Typer, Argument, Option
 from cryptography import x509
-from cryptography.x509 import Certificate, DNSName
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
-from cryptography.x509.oid import NameOID
 from rich.panel import Panel
 from rich.table import Table
+from typer import Argument, Option, Typer
+from typing_extensions import Annotated
 
-from homelab.tools import console, display_certificate_info, discover_datacenters_systems, root_dir, gen_key, gen_cert_auth, gen_cert_child
+from homelab.tools import (
+    console,
+    discover_datacenters_systems,
+    display_certificate_info,
+    gen_cert_auth,
+    gen_cert_child,
+    gen_key,
+    root_dir,
+)
+from homelab.tools._certs import save_cert, save_priv_key
+
 
 def _dir():
     return root_dir() / "secrets" / "certificates"
+
 
 cli = Typer(
     help="Generate self-signed CA and wildcard certificates for homelab domains",
@@ -35,15 +38,33 @@ cli = Typer(
     no_args_is_help=True,
 )
 
+
 @cli.command(no_args_is_help=True)
 def generate(
     datacenter: Annotated[str, Argument(help="Datacenter identifier")],
-    domain_suffix: Annotated[str, Option("-d", "--domain-suffix", help="Domain suffix for certificates")] = "lab",
+    domain_suffix: Annotated[
+        str, Option("-d", "--domain-suffix", help="Domain suffix for certificates")
+    ] = "lab",
     t1: Annotated[datetime, Option("-s", "--start-date")] = datetime.now(timezone.utc),
-    ca_validity: Annotated[int, Option(help="CA certificate validity in days")] = 365 * 10,
-    cert_validity: Annotated[int, Option(help="Wildcard certificate validity in days")] = 825,
-    force: Annotated[bool, Option("-f", "--force", help="Overwrite existing certificates without prompting")] = False,
-    output_dir: Annotated[Path | None, Option("-o", "--output-dir", help="Output directory (default: secrets/certificates/<datacenter>)")] = None,
+    ca_validity: Annotated[int, Option(help="CA certificate validity in days")] = 365
+    * 10,
+    cert_validity: Annotated[
+        int, Option(help="Wildcard certificate validity in days")
+    ] = 825,
+    force: Annotated[
+        bool,
+        Option(
+            "-f", "--force", help="Overwrite existing certificates without prompting"
+        ),
+    ] = False,
+    output_dir: Annotated[
+        Path | None,
+        Option(
+            "-o",
+            "--output-dir",
+            help="Output directory (default: secrets/certificates/<datacenter>)",
+        ),
+    ] = None,
 ) -> None:
     """
     Generate self-signed CA and wildcard certificates for homelab domains.
@@ -146,12 +167,6 @@ def generate(
     console.print()
     display_certificate_info(wildcard_cert, "Wildcard Certificate")
 
-    # Read private keys for display
-    with open(ca_dir / "ca.key", "r") as f:
-        ca_key_content = f.read()
-    with open(ca_dir / "wildcard.key", "r") as f:
-        wildcard_key_content = f.read()
-
     ca_rel = ca_dir.relative_to(here)
     # Display next steps
     console.print(
@@ -212,7 +227,10 @@ def list_datacenters() -> None:
 @cli.command(no_args_is_help=True)
 def verify(
     datacenter: Annotated[str, Argument(help="Datacenter identifier to verify")],
-    ca_dir: Annotated[Path | None, Option(help="CA directory (default: secrets/certificates/<datacenter>)")] = None,
+    ca_dir: Annotated[
+        Path | None,
+        Option(help="CA directory (default: secrets/certificates/<datacenter>)"),
+    ] = None,
 ) -> None:
     """
     Verify existing CA and wildcard certificates.
@@ -288,4 +306,6 @@ def verify(
             f"[yellow]⚠[/yellow] Wildcard cert expires in {wildcard_days_left} days - consider renewal"
         )
     else:
-        console.print(f"[green]✓[/green] Wildcard cert valid for {wildcard_days_left} days")
+        console.print(
+            f"[green]✓[/green] Wildcard cert valid for {wildcard_days_left} days"
+        )

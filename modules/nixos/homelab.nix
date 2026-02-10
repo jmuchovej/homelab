@@ -1,12 +1,10 @@
 {
   config,
   lib,
-  pkgs,
-  namespace,
   ...
 }:
 let
-  inherit (lib) mkIf mkDefault mkEnableOption;
+  inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.homelab;
 in

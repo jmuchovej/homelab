@@ -35,7 +35,6 @@ lib.rebellion.mk-module args {
   config =
     {
       cfg,
-      config,
       lib,
       pkgs,
       datacenter,
@@ -79,8 +78,8 @@ lib.rebellion.mk-module args {
           ];
 
           settings = {
-            datacenter = cfg.datacenter;
-            region = cfg.region;
+            inherit (cfg) datacenter;
+            inherit (cfg) region;
             data_dir = "/var/lib/nomad";
             log_level = "INFO";
 
@@ -94,9 +93,9 @@ lib.rebellion.mk-module args {
             };
 
             ports = {
-              http = cfg.ports.http;
-              rpc = cfg.ports.rpc;
-              serf = cfg.ports.serf;
+              inherit (cfg.ports) http;
+              inherit (cfg.ports) rpc;
+              inherit (cfg.ports) serf;
             };
 
             # Server configuration
@@ -137,7 +136,7 @@ lib.rebellion.mk-module args {
 
             # Consul integration
             consul = lib.mkIf cfg.consul.enable {
-              address = cfg.consul.address;
+              inherit (cfg.consul) address;
               server_service_name = "nomad";
               client_service_name = "nomad-client";
               auto_advertise = true;

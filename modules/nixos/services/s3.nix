@@ -37,7 +37,7 @@ lib.rebellion.mk-module args {
 
       svc-addr = 9500;
       web-addr = 9501;
-      minio = config.services.minio;
+      inherit (config.services) minio;
       minio-owner = "minio";
       minio-group = "minio";
     in

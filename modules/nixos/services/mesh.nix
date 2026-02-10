@@ -36,7 +36,6 @@ lib.rebellion.mk-module args {
       pkgs,
       datacenter,
       hostname,
-      nodename,
       peers,
       ...
     }:
@@ -45,7 +44,6 @@ lib.rebellion.mk-module args {
         with-consul
         mk-traefik-service
         mk-healthcheck
-        mk-authentik
         ;
       # Generate retry-join list from datacenter peers
       # Append .${datacenter} domain suffix to each peer
@@ -70,11 +68,11 @@ lib.rebellion.mk-module args {
 
           extraConfig = {
             # Datacenter and node configuration
-            datacenter = datacenter;
+            inherit datacenter;
             node_name = hostname;
 
             # Server/Client configuration
-            server = cfg.consul.server;
+            inherit (cfg.consul) server;
           }
           // (lib.optionalAttrs cfg.consul.server {
             bootstrap_expect = cfg.consul.bootstrap-expect;
@@ -154,9 +152,9 @@ lib.rebellion.mk-module args {
 
             vrrpInstances.mesh_ingress = {
               state = "BACKUP";
-              interface = cfg.consul.interface;
+              inherit (cfg.consul) interface;
               virtualRouterId = cfg.vip.router-id;
-              priority = cfg.vip.priority;
+              inherit (cfg.vip) priority;
               noPreempt = !cfg.vip.preempt;
 
               virtualIps = [

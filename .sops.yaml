@@ -1,4 +1,3 @@
----
 keys:
   # - &john age1lvcgfp9v4kj24zyr5rkuchzmhkaxhjqhlkyqstscn0m7glkdt4ns7ye6eg
   - &john age1gx0l7q0g2j0dxpg8ta5vcpk24v4ftph4u0qmhdzf6yzgqp5s0chsfm0mza
@@ -9,57 +8,44 @@ keys:
   - &da-vcx-3 age139ss56a6gqta3cjrtx49f6x539czvh37l6yjwppdn9lg4chm8ghssuz4zn
   - &da-k8s age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
   - &install-iso age1fvv4l46j890x8387lly88n2aww4xdxma2jd0ta9zysf97hkvhg6smg6x0r
-
 creation_rules:
   - path_regex: "secrets/.*\\.sops\\.yaml$"
     key_groups:
       - age: [*john, *lab, *en-t65-1, *da-vcx-1, *da-vcx-2]
-
   - path_regex: "modules/.*\\.sops\\.yaml$"
     mac_only_encrypted: true
     key_groups:
       - age: [*john, *lab, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-k8s]
-
   - path_regex: "secrets/da\\.sops\\.yaml$"
     key_groups:
       - age: [*john, *lab, *da-vcx-1, *da-vcx-2, *da-vcx-3]
-
   - path_regex: "[^/]+/da-n1x/?[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john]
-
   - path_regex: "[^/]+/da-vcx-1/?[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab, *da-vcx-1]
-
   - path_regex: "[^/]+/da-vcx-2/?[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab, *da-vcx-2]
-
   - path_regex: "[^/]+/da-vcx-3/?[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab, *da-vcx-3]
-
   - path_regex: "secrets/en\\.sops\\.yaml$"
     key_groups:
       - age: [*john, *lab, *en-t65-1]
-
   - path_regex: "[^/]+/en-t65-1/[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab, *en-t65-1]
-
   - path_regex: systems/x86_64-install-iso/minimal/[^/]+\.sops\.(yaml|json|env|ini)$
     key_groups:
       - age: [*john, *lab, *install-iso]
-
   - path_regex: "secrets/homes/john\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john]
-
   - path_regex: "secrets/homes/lab\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab]
-
 stores:
   yaml:
     indent: 2

@@ -2,38 +2,41 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (lib) getExe getExe';
-in {
+in
+{
   programs.helix.languages = {
-    language = let
-      deno = lang: {
-        command = getExe pkgs.deno;
-        args = [
-          "fmt"
-          "-"
-          "--ext"
-          lang
-        ];
-      };
+    language =
+      let
+        deno = lang: {
+          command = getExe pkgs.deno;
+          args = [
+            "fmt"
+            "-"
+            "--ext"
+            lang
+          ];
+        };
 
-      prettier = lang: {
-        command = getExe pkgs.nodePackages.prettier;
-        args = [
-          "--parser"
-          lang
+        prettier = lang: {
+          command = getExe pkgs.nodePackages.prettier;
+          args = [
+            "--parser"
+            lang
+          ];
+        };
+        prettierLangs = map (e: {
+          name = e;
+          formatter = prettier e;
+        });
+        langs = [
+          "css"
+          "scss"
+          "html"
         ];
-      };
-      prettierLangs = map (e: {
-        name = e;
-        formatter = prettier e;
-      });
-      langs = [
-        "css"
-        "scss"
-        "html"
-      ];
-    in
+      in
       [
         {
           name = "bash";
@@ -93,17 +96,17 @@ in {
     language-server = {
       bash-language-server = {
         command = getExe pkgs.bash-language-server;
-        args = ["start"];
+        args = [ "start" ];
       };
 
       clangd = {
         command = getExe' pkgs.clang-tools "clangd";
-        clangd.fallbackFlags = ["-std=c++2b"];
+        clangd.fallbackFlags = [ "-std=c++2b" ];
       };
 
       deno-lsp = {
         command = getExe pkgs.deno;
-        args = ["lsp"];
+        args = [ "lsp" ];
         environment.NO_COLOR = "1";
         config.deno = {
           enable = true;
@@ -128,7 +131,7 @@ in {
 
       dprint = {
         command = getExe pkgs.dprint;
-        args = ["lsp"];
+        args = [ "lsp" ];
       };
 
       nil = {
@@ -141,40 +144,42 @@ in {
 
       typescript-language-server = {
         command = getExe pkgs.nodePackages.typescript-language-server;
-        args = ["--stdio"];
-        config = let
-          inlayHints = {
-            includeInlayEnumMemberValueHints = true;
-            includeInlayFunctionLikeReturnTypeHints = true;
-            includeInlayFunctionParameterTypeHints = true;
-            includeInlayParameterNameHints = "all";
-            includeInlayParameterNameHintsWhenArgumentMatchesName = true;
-            includeInlayPropertyDeclarationTypeHints = true;
-            includeInlayVariableTypeHints = true;
-          };
-        in {
-          typescript-language-server.source = {
-            addMissingImports.ts = true;
-            fixAll.ts = true;
-            organizeImports.ts = true;
-            removeUnusedImports.ts = true;
-            sortImports.ts = true;
-          };
+        args = [ "--stdio" ];
+        config =
+          let
+            inlayHints = {
+              includeInlayEnumMemberValueHints = true;
+              includeInlayFunctionLikeReturnTypeHints = true;
+              includeInlayFunctionParameterTypeHints = true;
+              includeInlayParameterNameHints = "all";
+              includeInlayParameterNameHintsWhenArgumentMatchesName = true;
+              includeInlayPropertyDeclarationTypeHints = true;
+              includeInlayVariableTypeHints = true;
+            };
+          in
+          {
+            typescript-language-server.source = {
+              addMissingImports.ts = true;
+              fixAll.ts = true;
+              organizeImports.ts = true;
+              removeUnusedImports.ts = true;
+              sortImports.ts = true;
+            };
 
-          typescript = {
-            inherit inlayHints;
-          };
-          javascript = {
-            inherit inlayHints;
-          };
+            typescript = {
+              inherit inlayHints;
+            };
+            javascript = {
+              inherit inlayHints;
+            };
 
-          hostInfo = "helix";
-        };
+            hostInfo = "helix";
+          };
       };
 
       vscode-css-language-server = {
         command = lib.getExe' pkgs.vscode-langservers-extracted "vscode-css-language-server";
-        args = ["--stdio"];
+        args = [ "--stdio" ];
         config = {
           provideFormatter = true;
           css.validate.enable = true;

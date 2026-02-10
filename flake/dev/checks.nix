@@ -15,7 +15,12 @@
 
         settings.hooks = {
           pre-commit-hook-ensure-sops.enable = true;
-          treefmt.enable = true;
+          treefmt = {
+            enable = true;
+            # no-cache (default: true) uses mtime-based change detection which
+            # races with pre-commit's stash/restore cycle, causing false positives.
+            settings.no-cache = false;
+          };
         };
       };
 

@@ -1,9 +1,8 @@
-from typing_extensions import Annotated
-
 import typer
 from typer import Context, Option, Typer
+from typing_extensions import Annotated
 
-from homelab.commands import _ca
+from homelab.commands import _ca, _users
 
 cli = Typer(
     name="homelab",
@@ -12,6 +11,7 @@ cli = Typer(
     no_args_is_help=True,
     invoke_without_command=True,
 )
+
 
 def _version_callback(requested: bool) -> None:
     """
@@ -24,6 +24,7 @@ def _version_callback(requested: bool) -> None:
     """
     if requested:
         from homelab._about import __version__
+
         typer.echo(f"v{__version__}")
 
 
@@ -36,3 +37,4 @@ def common(
 
 
 cli.add_typer(_ca.cli)
+cli.add_typer(_users.cli)

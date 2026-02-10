@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.go";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,
@@ -13,12 +12,9 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          golang.go
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        golang.go
+      ];
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/go
@@ -53,17 +49,14 @@ lib.rebellion.mk-module args {
 
     in
     {
-      home.packages = (
-        with pkgs;
-        [
-          go
-          air
-          gotools
-          golangci-lint
-          gotestsum
-          gopls
-        ]
-      );
+      home.packages = with pkgs; [
+        go
+        air
+        gotools
+        golangci-lint
+        gotestsum
+        gopls
+      ];
 
       programs.vscode = mkIf config.rebellion.editor.vscode.enable {
         profiles.default.extensions = vsc-extensions;

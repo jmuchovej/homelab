@@ -19,10 +19,10 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib.rebellion.file) get-file;
-      s3 = config.rebellion.services.s3;
+      inherit (config.rebellion.services) s3;
     in
     {
-      sops.secrets."postgres/terraform".sopsFile = (get-file "secrets/secrets.sops.yaml");
+      sops.secrets."postgres/terraform".sopsFile = get-file "secrets/secrets.sops.yaml";
 
       sops.templates."init.sql" = {
         content = ''

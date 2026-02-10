@@ -3,8 +3,6 @@ lib.rebellion.mk-module args {
   name = "homelab.k9s";
   config =
     {
-      cfg,
-      config,
       pkgs,
       ...
     }:

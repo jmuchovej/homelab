@@ -182,7 +182,7 @@ rec {
     }:
     let
       inherit (builtins) isFunction;
-      desktop = module-args.config.rebellion.desktop;
+      inherit (module-args.config.rebellion) desktop;
 
       evald-conditions =
         if isFunction conditions then

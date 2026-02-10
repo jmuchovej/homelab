@@ -9,7 +9,7 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion.file) get-secret' get-secret;
+      inherit (lib.rebellion.file) get-secret;
       inherit (lib.rebellion.network)
         mk-openid-url
         with-consul
@@ -97,7 +97,7 @@ lib.rebellion.mk-module args {
         let
           service = mk-traefik-service {
             inherit hostname datacenter;
-            port = config.services.immich.port;
+            inherit (config.services.immich) port;
             name = "immich";
             subdomain = [
               "immich"
@@ -128,7 +128,7 @@ lib.rebellion.mk-module args {
         let
           service = mk-traefik-service {
             inherit hostname datacenter;
-            port = config.services.immich-public-proxy.port;
+            inherit (config.services.immich-public-proxy) port;
             name = "immich-public-proxy";
             subdomain = [
               "immich"

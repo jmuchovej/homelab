@@ -1,7 +1,5 @@
 {
-  inputs,
   lib,
-  pkgs,
   ...
 }@args:
 lib.rebellion.mk-module args {
@@ -31,18 +29,13 @@ lib.rebellion.mk-module args {
       inputs,
       ...
     }:
-    let
-      #! https://github.com/LnL7/nix-darwin/issues/852
-      #! According to ️^, the using `nix.linux-builder` with `nix*-unstable` doesn't work...
-      # linux-builder-package = inputs.nixpkgs-stable.legacyPackages.${system}.darwin.linux-builder;
-    in
     {
       users.users.${cfg.user.name} = {
         uid = lib.mkIf (cfg.user.uid != null) cfg.user.uid;
         shell = pkgs.zsh;
       };
 
-      homebrew = lib.mkIf (cfg.homebrew.enable) {
+      homebrew = lib.mkIf cfg.homebrew.enable {
         enable = true;
 
         global = {
@@ -59,7 +52,7 @@ lib.rebellion.mk-module args {
         brews = [ ];
       };
 
-      nix-homebrew = lib.mkIf (cfg.homebrew.enable) {
+      nix-homebrew = lib.mkIf cfg.homebrew.enable {
         enable = true;
         user = cfg.user.name;
 

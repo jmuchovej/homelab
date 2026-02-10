@@ -55,21 +55,18 @@ lib.rebellion.mk-module args {
         ]
       );
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          # Regular-ole Python
-          ms-python.python
-          # charliermarsh.ruff
+      vsc-extensions = with pkgs.open-vsx; [
+        # Regular-ole Python
+        ms-python.python
+        # charliermarsh.ruff
 
-          # Jupyter
-          ms-toolsai.jupyter
-          ms-toolsai.jupyter-renderers
-          ms-toolsai.vscode-jupyter-powertoys
-          ms-toolsai.vscode-jupyter-cell-tags
-          ms-toolsai.jupyter-keymap
-        ]
-      );
+        # Jupyter
+        ms-toolsai.jupyter
+        ms-toolsai.jupyter-renderers
+        ms-toolsai.vscode-jupyter-powertoys
+        ms-toolsai.vscode-jupyter-cell-tags
+        ms-toolsai.jupyter-keymap
+      ];
       vsc-user-settings = {
         "python.locator" = "js";
       };

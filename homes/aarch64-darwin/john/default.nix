@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   ...
 }:
@@ -10,20 +9,22 @@ in
 {
   rebellion = {
     user = {
-    	name = "john";
+      name = "john";
       real-name = "John Muchovej";
     };
 
     editor = {
       neovim = mkDefault enabled;
       vscode = mkDefault enabled;
-      zed = mkDefault enabled // { default = true; };
+      zed = mkDefault enabled // {
+        default = true;
+      };
     };
     desktop = enabled // {
       wezterm = mkDefault enabled;
       # ghostty = mkDefault enabled;
       # arc     = enabled;
-      appflowy  = enabled;
+      appflowy = enabled;
     };
 
     shell = {
@@ -46,9 +47,13 @@ in
 
     ssh = {
       extra-hosts = {
-        git = { host = "git*"; identitiesOnly = true; identityFile = "~/.ssh/1p-%h.pub"; };
+        git = {
+          host = "git*";
+          identitiesOnly = true;
+          identityFile = "~/.ssh/1p-%h.pub";
+        };
       };
-      authorized-keys = [];
+      authorized-keys = [ ];
     };
 
     homelab = enabled;

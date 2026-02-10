@@ -5,25 +5,23 @@ let
     mkMerge
     optionalAttrs
     ;
-
-  module = import ./module.nix { inherit inputs; };
-  inherit (module) merge-attrs;
 in
 rec {
   dynamic-http = http: {
     services.traefik.dynamicConfigOptions.http = http;
   };
 
-  mk-openid-url = client-id: datacenter:
-  "https://id.${datacenter}.jm0.io/application/o/${client-id}-oauth/.well-known/openid-configuration";
+  mk-openid-url =
+    client-id: datacenter:
+    "https://id.${datacenter}.jm0.io/application/o/${client-id}-oauth/.well-known/openid-configuration";
 
   # Helper to merge service config into Traefik dynamicConfigOptions.http
   # Usage: services.traefik.dynamicConfigOptions.http = apply-service (mk-service {...});
   apply-service =
     s:
     mkMerge [
-      (optionalAttrs (s ? pub ? name) { routers.${s.pub.name} = s.pub.config; })
-      (optionalAttrs (s ? lab ? name) { routers.${s.lab.name} = s.lab.config; })
+      (optionalAttrs ((s ? pub) ? name) { routers.${s.pub.name} = s.pub.config; })
+      (optionalAttrs ((s ? lab) ? name) { routers.${s.lab.name} = s.lab.config; })
       { services.${s.svc.name} = s.svc.config; }
     ];
 
@@ -32,12 +30,13 @@ rec {
   apply-service' = fn: service: apply-service (fn service);
 
   /**
-   * Creates a rule for a given subdomain and domain.
-   * If subdomain is a list, it creates a rule for each subdomain.
-   * If subdomain is a string, it creates a rule for that subdomain.
-   * If subdomain is null, it creates a rule for the domain itself.
-   */
-  mk-rule = subdomain: domain:
+    Creates a rule for a given subdomain and domain.
+    If subdomain is a list, it creates a rule for each subdomain.
+    If subdomain is a string, it creates a rule for that subdomain.
+    If subdomain is null, it creates a rule for the domain itself.
+  */
+  mk-rule =
+    subdomain: domain:
     let
       inherit (builtins) isList;
       inherit (inputs.nixpkgs.lib.strings) concatStringsSep;
@@ -85,14 +84,14 @@ rec {
       inherit (lib.strings) splitString replaceStrings;
       inherit (builtins) head filter;
 
-      pub-rule = let
-        host-rule = mk-rule subdomain domain;
+      pub-rule =
+        let
+          host-rule = mk-rule subdomain domain;
         in
         if route != null then "(${host-rule}) && PathPrefix(`${route}`)" else host-rule;
       rule-parts = splitString "||" pub-rule;
-      no-hosts = map (s: replaceStrings ["Host(`" "`)" " "] ["" "" ""] s) rule-parts;
+      no-hosts = map (s: replaceStrings [ "Host(`" "`)" " " ] [ "" "" "" ] s) rule-parts;
       base-url = head no-hosts;
-      lab-rule = mk-rule subdomain ".lab";
 
       service-config = {
         loadBalancer.server.port = mkDefault (toString port);
@@ -109,23 +108,27 @@ rec {
           service = name;
           rule = pub-rule;
           entryPoints = entry-points;
-          middlewares = middlewares;
+          inherit middlewares;
           tls.certResolver = cert-resolver;
-          priority = priority;
+          inherit priority;
         };
       };
 
-      auth = if (builtins.elem "authentik@file" middlewares) then {
-        name = "${name}-auth";
-        config = {
-          service = "authentik@file";
-          rule = "(${pub-rule}) && PathPrefix(`/outpost.goauthentik.io/`)";
-          entryPoints = entry-points;
-          tls.certResolver = cert-resolver;
-          middlewares = filter (mw: mw != "authentik@file") middlewares;
-          priority = priority + 5;
-        };
-      } else { };
+      auth =
+        if (builtins.elem "authentik@file" middlewares) then
+          {
+            name = "${name}-auth";
+            config = {
+              service = "authentik@file";
+              rule = "(${pub-rule}) && PathPrefix(`/outpost.goauthentik.io/`)";
+              entryPoints = entry-points;
+              tls.certResolver = cert-resolver;
+              middlewares = filter (mw: mw != "authentik@file") middlewares;
+              priority = priority + 5;
+            };
+          }
+        else
+          { };
 
       # Accessor for backend service
       svc = {
@@ -202,7 +205,7 @@ rec {
       entry-points ? [ "websecure" ],
       cert-resolver ? "letsencrypt",
       middlewares ? [ ],
-      restriction ? "local-only",  # local-only | admin-only | homelab-only
+      restriction ? "local-only", # local-only | admin-only | homelab-only
     }:
     mk-traefik-service {
       inherit
@@ -222,106 +225,112 @@ rec {
 
   # Convert a service structure from mk-service into Consul tags
   # This flattens the router/service configs into the tag format Consul expects
-  mk-traefik-tags = service: let
-    inherit (service) pub auth svc;
-    inherit (inputs.nixpkgs.lib)
-      optionals
-      filter
-      concatStringsSep
-      mapAttrsToList
-      flatten;
+  mk-traefik-tags =
+    service:
+    let
+      inherit (service) pub auth svc;
+      inherit (inputs.nixpkgs.lib)
+        filter
+        concatStringsSep
+        mapAttrsToList
+        flatten
+        ;
 
-    # Helper to unwrap mkDefault/mkOverride values
-    unwrap-value = value:
-      if builtins.isAttrs value && value ? _type then
-        # This is a wrapped value (mkDefault, mkOverride, etc.)
-        if value._type == "override" && value ? content then
-          unwrap-value value.content
+      # Helper to unwrap mkDefault/mkOverride values
+      unwrap-value =
+        value:
+        if builtins.isAttrs value && value ? _type then
+          # This is a wrapped value (mkDefault, mkOverride, etc.)
+          if value._type == "override" && value ? content then unwrap-value value.content else value
         else
-          value
-      else
-        value;
+          value;
 
-    # Helper to convert attrset to tags with prefix
-    attrs-to-tags = prefix: attrs:
-      let
-        to-tag = name: value:
-          let
-            inherit (builtins) isAttrs isList genList head elemAt length isBool;
-            unwrapped = unwrap-value value;
-          in
-          if isAttrs unwrapped && !(unwrapped ? _type) then
-            attrs-to-tags "${prefix}.${name}" unwrapped
-          else if isList unwrapped then
-            # Check if list contains attrsets (like servers list)
-            if unwrapped != [] && isAttrs (head unwrapped) then
-              # Convert list of attrsets to indexed tags: servers[0].url=...
-              let
-                indexed-tags = genList (i:
-                  attrs-to-tags "${prefix}.${name}[${toString i}]" (elemAt unwrapped i)
-                ) (length unwrapped);
-              in
+      # Helper to convert attrset to tags with prefix
+      attrs-to-tags =
+        prefix: attrs:
+        let
+          to-tag =
+            name: value:
+            let
+              inherit (builtins)
+                isAttrs
+                isList
+                genList
+                head
+                elemAt
+                length
+                isBool
+                ;
+              unwrapped = unwrap-value value;
+            in
+            if isAttrs unwrapped && !(unwrapped ? _type) then
+              attrs-to-tags "${prefix}.${name}" unwrapped
+            else if isList unwrapped then
+              # Check if list contains attrsets (like servers list)
+              if unwrapped != [ ] && isAttrs (head unwrapped) then
+                # Convert list of attrsets to indexed tags: servers[0].url=...
+                let
+                  indexed-tags = genList (i: attrs-to-tags "${prefix}.${name}[${toString i}]" (elemAt unwrapped i)) (
+                    length unwrapped
+                  );
+                in
                 flatten indexed-tags
+              else
+                # Simple list - join with commas
+                "${prefix}.${name}=${concatStringsSep "," (map toString unwrapped)}"
+            else if isBool unwrapped then
+              "${prefix}.${name}=${if unwrapped then "true" else "false"}"
             else
-              # Simple list - join with commas
-              "${prefix}.${name}=${concatStringsSep "," (map toString unwrapped)}"
-          else if isBool unwrapped then
-            "${prefix}.${name}=${if unwrapped then "true" else "false"}"
-          else
-            "${prefix}.${name}=${toString unwrapped}";
-      in
+              "${prefix}.${name}=${toString unwrapped}";
+        in
         flatten (mapAttrsToList to-tag attrs);
 
-    # Generate tags for public router (if present)
-    pub-tags = attrs-to-tags "traefik.http.routers.${pub.name}" pub.config;
+      # Generate tags for public router (if present)
+      pub-tags = attrs-to-tags "traefik.http.routers.${pub.name}" pub.config;
 
-    # Generate tags for local router
-    auth-tags = if auth ? config then
-      attrs-to-tags "traefik.http.routers.${auth.name}" auth.config
-    else [ ];
+      # Generate tags for local router
+      auth-tags =
+        if auth ? config then attrs-to-tags "traefik.http.routers.${auth.name}" auth.config else [ ];
 
-    # Generate tags for backend service
-    svc-tags = attrs-to-tags "traefik.http.services.${svc.name}" svc.config;
-  in
+      # Generate tags for backend service
+      svc-tags = attrs-to-tags "traefik.http.services.${svc.name}" svc.config;
+    in
     filter (tag: tag != null && tag != "") (
-      [ "traefik.enable=true" ]
-      ++ pub-tags
-      ++ auth-tags
-      ++ svc-tags
+      [ "traefik.enable=true" ] ++ pub-tags ++ auth-tags ++ svc-tags
     );
 
-  mk-authentik = service: {
-    name ? service.svc.name,
-    type ? "proxy",         # proxy, oauth, ldap
-    group ? null,           # "Media", "Compute", etc.
-    access ? [],            # ["media", "admins", ...]
-    icon ? service.svc.name,
-    skip-paths ? null,
-    basic-auth ? false,
-  }: let
-    inherit (inputs.nixpkgs) lib;
-    inherit (builtins) filter;
+  mk-authentik =
+    service:
+    {
+      name ? service.svc.name,
+      type ? "proxy", # proxy, oauth, ldap
+      group ? null, # "Media", "Compute", etc.
+      access ? [ ], # ["media", "admins", ...]
+      icon ? service.svc.name,
+      skip-paths ? null,
+      basic-auth ? false,
+    }:
+    let
+      inherit (inputs.nixpkgs) lib;
+      inherit (builtins) filter;
 
-    tags = [
-      "authentik.name=${name}"
-      "authentik.group=${group}"
-      "authentik.type=${type}"
-      "authentik.url.ext=https://${service.url.ext}"
-      "authentik.url.int=https://${service.url.int}"
-    ]
-    ++ lib.optionals (icon != null) ["authentik.icon=${icon}"]
-    ++ lib.optionals (access != []) ["authentik.access=${lib.concatStringsSep "," access}"]
-    ++ lib.optionals (skip-paths != null) ["authentik.skip-paths=${skip-paths}"]
-    ++ lib.optionals (basic-auth != {} || basic-auth || basic-auth.enabled) [
-      "authentik.basic-auth.enabled=${lib.boolToString true}"
-      "authentik.basic-auth.username=${basic-auth.username or "username"}"
-      "authentik.basic-auth.password=${basic-auth.password or "password"}"
-    ];
+      tags = [
+        "authentik.name=${name}"
+        "authentik.group=${group}"
+        "authentik.type=${type}"
+        "authentik.url.ext=https://${service.url.ext}"
+        "authentik.url.int=https://${service.url.int}"
+      ]
+      ++ lib.optionals (icon != null) [ "authentik.icon=${icon}" ]
+      ++ lib.optionals (access != [ ]) [ "authentik.access=${lib.concatStringsSep "," access}" ]
+      ++ lib.optionals (skip-paths != null) [ "authentik.skip-paths=${skip-paths}" ]
+      ++ lib.optionals (basic-auth != { } || basic-auth || basic-auth.enabled) [
+        "authentik.basic-auth.enabled=${lib.boolToString true}"
+        "authentik.basic-auth.username=${basic-auth.username or "username"}"
+        "authentik.basic-auth.password=${basic-auth.password or "password"}"
+      ];
     in
-      filter (tag: tag != null && tag != "") (
-        [ "authentik.enable=true" ]
-        ++ tags
-      );
+    filter (tag: tag != null && tag != "") ([ "authentik.enable=true" ] ++ tags);
 
   # Generate Consul service registration JSON
   # Returns the JSON content for /etc/consul.d/<name>.json
@@ -337,14 +346,21 @@ rec {
     }:
     {
       service = [
-        ({
-          id = "${name}-${hostname}";
-          inherit name port tags checks;
-          meta = meta // {
-            node = hostname;
-          };
-        }
-        // (if address != null then { inherit address; } else { }))
+        (
+          {
+            id = "${name}-${hostname}";
+            inherit
+              name
+              port
+              tags
+              checks
+              ;
+            meta = meta // {
+              node = hostname;
+            };
+          }
+          // (if address != null then { inherit address; } else { })
+        )
       ];
     };
 
@@ -381,7 +397,7 @@ rec {
       consul-service = mk-consul-service (
         {
           inherit (service) port hostname;
-          name = service.svc.name;
+          inherit (service.svc) name;
           checks = service.checks or [ ];
           tags = all-tags;
         }
@@ -408,8 +424,7 @@ rec {
         ];
       }
       # If using a sops template, create the template and use it as source
-      (mkIf write-template (let
-        in {
+      (mkIf write-template {
         sops.templates."${service-file}" = {
           content = consul-json;
           restartUnits = [ "consul.service" ];
@@ -417,35 +432,43 @@ rec {
           group = "consul";
         };
         services.consul.extraConfigFiles = [ config.sops.templates.${service-file}.path ];
-      }))
+      })
       # Otherwise write JSON directly
       (mkIf (!write-template) {
         environment.etc."${service-file}".text = consul-json;
       })
     ];
 
-  mk-healthcheck = service: {
-    id ? service.svc.name,
-    protocol ? "http",
-    host ? "localhost",
-    port ? service.port,
-    route,
-    interval ? "10s",
-    timeout ? "2s",
-    header ? { },
-    body ? { },
-    method ? "GET",
-  }: let
-    inherit (inputs.nixpkgs.lib.strings) removePrefix;
+  mk-healthcheck =
+    service:
+    {
+      id ? service.svc.name,
+      protocol ? "http",
+      host ? "localhost",
+      port ? service.port,
+      route,
+      interval ? "10s",
+      timeout ? "2s",
+      header ? { },
+      body ? { },
+      method ? "GET",
+    }:
+    let
+      inherit (inputs.nixpkgs.lib.strings) removePrefix;
 
-    healthcheck-base = {
-      inherit id interval timeout method header;
-      http = "${protocol}://${host}:${toString port}/${removePrefix "/" route}";
-    };
+      healthcheck-base = {
+        inherit
+          id
+          interval
+          timeout
+          method
+          header
+          ;
+        http = "${protocol}://${host}:${toString port}/${removePrefix "/" route}";
+      };
 
-    healthcheck = if method == "POST" then
-        healthcheck-base // { body = builtins.toJSON body; }
-      else
-        healthcheck-base;
-  in healthcheck;
+      healthcheck =
+        if method == "POST" then healthcheck-base // { body = builtins.toJSON body; } else healthcheck-base;
+    in
+    healthcheck;
 }

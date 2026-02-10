@@ -1,14 +1,19 @@
 {
   config,
   lib,
-  namespace,
-  host,
   ...
-}: let
-  inherit (lib) types mkIf mkEnableOption mkOption;
+}:
+let
+  inherit (lib)
+    types
+    mkIf
+    mkEnableOption
+    mkOption
+    ;
 
   cfg = config.rebellion.security.sops;
-in {
+in
+{
   options.rebellion.security.sops = with types; {
     enable = mkEnableOption "sops";
     defaultSopsFile = mkOption {
@@ -17,7 +22,7 @@ in {
     };
     sshKeyPaths = mkOption {
       type = listOf path;
-      default = ["/etc/ssh/ssh_host_ed25519_key"];
+      default = [ "/etc/ssh/ssh_host_ed25519_key" ];
       description = "SSH Key paths to use.";
     };
   };

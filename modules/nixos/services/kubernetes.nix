@@ -14,7 +14,6 @@ let
     types
     optionals
     ;
-  inherit (lib.lists) forEach;
   inherit (lib.strings) splitString;
   inherit (lib.rebellion) enabled get-file;
 
@@ -134,14 +133,13 @@ in
         "ValidatingAdmissionWebhook"
       ];
       k3sDisabledServices =
-        [ ]
-        ++ optionals (!cfg.services.flannel.enable) [ "flannel" ]
+        optionals (!cfg.services.flannel.enable) [ "flannel" ]
         ++ optionals (!cfg.services.service-lb.enable) [ "servicelb" ]
         ++ optionals (!cfg.services.coredns.enable) [ "coredns" ]
         ++ optionals (!cfg.services.local-io.enable) [ "local-storage" ]
         ++ optionals (!cfg.services.metrics.enable) [ "metrics-server" ]
         ++ optionals (!cfg.services.traefik.enable) [ "traefik" ];
-      k3sDesiredFlags = ([
+      k3sDesiredFlags = [
         "--kubelet-arg=config=/etc/rancher/k3s/kubelet.config"
         "--node-label \"k3s-upgrade=false\""
         "--kube-apiserver-arg anonymous-auth=true"
@@ -153,7 +151,7 @@ in
         "--kube-apiserver-arg='enable-admission-plugins=${lib.concatStringsSep "," k3sAdmissionPlugins}'"
         "--cluster-cidr=${cfg.cidr.cluster}"
         "--service-cidr=${cfg.cidr.service}"
-      ])
+      ]
       ++ (optionals (!cfg.services.flannel.enable) [
         "--flannel-backend=none"
         "--disable-network-policy"
@@ -190,35 +188,32 @@ in
         fi
       '';
 
-      environment.systemPackages = (
-        with pkgs;
-        [
-          jq
-          cilium-cli
-          age
-          fluxcd
-          sops
-          minio-client
-          k9s
-          krelay
-          helmfile
-          kubecolor
-          kubectl
-          kubectx
-          kubelogin
-          (wrapHelm kubernetes-helm {
-            plugins = with pkgs.kubernetes-helmPlugins; [
-              helm-diff
-              helm-secrets
-              helm-git
-              helm-s3
-            ];
-          })
-          kubeseal
+      environment.systemPackages = with pkgs; [
+        jq
+        cilium-cli
+        age
+        fluxcd
+        sops
+        minio-client
+        k9s
+        krelay
+        helmfile
+        kubecolor
+        kubectl
+        kubectx
+        kubelogin
+        (wrapHelm kubernetes-helm {
+          plugins = with pkgs.kubernetes-helmPlugins; [
+            helm-diff
+            helm-secrets
+            helm-git
+            helm-s3
+          ];
+        })
+        kubeseal
 
-          (writeShellScriptBin "nuke-k3s" (readFile ./nuke-k3s))
-        ]
-      );
+        (writeShellScriptBin "nuke-k3s" (readFile ./nuke-k3s))
+      ];
 
       environment.etc."rancher/k3s/kubelet.config" = {
         mode = "0750";

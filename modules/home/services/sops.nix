@@ -18,7 +18,6 @@ lib.rebellion.mk-module args {
     {
       cfg,
       config,
-      lib,
       pkgs,
       ...
     }:

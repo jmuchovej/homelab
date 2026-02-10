@@ -2,12 +2,10 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
 }:
 let
   inherit (lib) mkIf mkEnableOption;
-  inherit (lib.rebellion) mkBoolOpt;
 
   cfg = config.rebellion.system.time;
 in

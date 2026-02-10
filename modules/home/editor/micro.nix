@@ -8,7 +8,6 @@ lib.rebellion.mk-module args {
     {
       cfg,
       lib,
-      config,
       ...
     }:
     let

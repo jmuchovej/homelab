@@ -1,13 +1,15 @@
+import os
 from collections import defaultdict
 from enum import Enum
-from pydantic import BaseModel
-import os
 from pathlib import Path
+
 from cryptography.x509 import Certificate, ExtensionNotFound
 from cryptography.x509.oid import ExtensionOID
+from pydantic import BaseModel
 from rich.table import Table
 
 from homelab.tools import console
+
 
 def root_dir() -> Path:
     """
@@ -27,6 +29,7 @@ def root_dir() -> Path:
         return Path(root)
 
     return Path().cwd().resolve()
+
 
 def display_certificate_info(cert: Certificate, title: str) -> None:
     """
@@ -64,9 +67,11 @@ class Architecture(Enum):
     arm64 = "aarch64"
     amd64 = "x86_64"
 
+
 class Platform(Enum):
     macos = "darwin"
     nixos = "linux"
+
 
 class System(BaseModel):
     name: str
@@ -77,7 +82,9 @@ class System(BaseModel):
     def __init__(self, details: str, name: str) -> None:
         (arch, os) = details.split("-", maxsplit=1)
         (datacenter, name) = name.split("-", maxsplit=1)
-        super().__init__(name=name, datacenter=datacenter, arch=Architecture(arch), os=Platform(os))
+        super().__init__(
+            name=name, datacenter=datacenter, arch=Architecture(arch), os=Platform(os)
+        )
 
     def __hash__(self) -> int:
         return hash((self.name, self.datacenter, self.arch, self.os))

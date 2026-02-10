@@ -35,7 +35,7 @@ rec {
       host-configs = filterAttrs (_name: config: config.hostname == hostname) system-configs;
 
       merge-configs =
-        user-at-host: host-config:
+        _user-at-host: host-config:
         let
           base-config = base-configs.${host-config.username};
           base-module = if base-config != null then [ base-config.path ] else [ ];
@@ -95,7 +95,7 @@ rec {
                 homeDirectory =
                   let
                     # username = builtins.trace "DEBUG[lib/system/common.nix]: username=${toString config.username}" config.username;
-                    username = config.username;
+                    inherit (config) username;
                     home-directory = if isNixOS then "/home/${username}" else "/Users/${username}";
                     # hd = builtins.trace "DEBUG[lib/system/common.nix]: home-directory=${toString home-directory}" home-directory;
                     hd = inputs.lib.mkDefault home-directory;

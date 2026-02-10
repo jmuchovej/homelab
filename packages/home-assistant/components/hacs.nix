@@ -105,5 +105,6 @@ buildHomeAssistantComponent rec {
     homepage = "https://hacs.xyz/";
     maintainers = [ ];
     license = lib.licenses.mit;
+    platforms = lib.platforms.linux;
   };
 }

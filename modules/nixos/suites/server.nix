@@ -44,7 +44,7 @@ in
 
     users.mutableUsers = false;
 
-    sops.secrets."lab/password".sopsFile = (get-file "secrets/secrets.sops.yaml");
+    sops.secrets."lab/password".sopsFile = get-file "secrets/secrets.sops.yaml";
     sops.secrets."lab/password".neededForUsers = true;
 
     users.users.lab = {

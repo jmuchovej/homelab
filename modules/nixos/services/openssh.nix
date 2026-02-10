@@ -2,7 +2,6 @@
   config,
   format,
   lib,
-  namespace,
   ...
 }:
 let
@@ -16,7 +15,7 @@ let
 
   cfg = config.rebellion.services.openssh;
 
-  default-key =  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO lab@home.jm0.io";
+  default-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO lab@home.jm0.io";
 in
 {
   options.rebellion.services.openssh = with types; {
@@ -108,11 +107,11 @@ in
     rebellion = {
       user.extra.options.openssh.authorizedKeys.keys = cfg.authorized-keys;
 
-    #   home.extraOptions = {
-    #     programs.zsh.shellAliases = foldl (
-    #       aliases: system: aliases // { "ssh-${system}" = "ssh ${system} -t tmux a"; }
-    #     ) { } (builtins.attrNames other-hosts);
-    #   };
+      #   home.extraOptions = {
+      #     programs.zsh.shellAliases = foldl (
+      #       aliases: system: aliases // { "ssh-${system}" = "ssh ${system} -t tmux a"; }
+      #     ) { } (builtins.attrNames other-hosts);
+      #   };
     };
   };
 }

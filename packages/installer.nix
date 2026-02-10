@@ -1,5 +1,5 @@
 { writeShellScriptBin, gum, ... }:
-writeShellScriptBin  "install" ''
+writeShellScriptBin "install" ''
   host=$1
   addr=$2
   ${gum}/bin/gum style \

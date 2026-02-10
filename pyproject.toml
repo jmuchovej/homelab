@@ -5,12 +5,14 @@ description = "CLI tools for managing some parts of my Homelab"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
-  { name = "John Muchovej", email = "jmuchovej@users.noreply.github.com" }
+  { name = "John Muchovej", email = "jmuchovej@users.noreply.github.com" },
 ]
 dependencies = [
   "cryptography>=46.0.3",
-  "pydantic>=2.12.5",
+  "pydantic[email]>=2.12.5",
   "rich>=14.2.0",
+  "sopsy>=1.2.1",
+  "srsly>=2.5.2",
   "typer>=0.20.1",
   "typing-extensions>=4.15.0",
 ]
@@ -22,6 +24,7 @@ homelab = "homelab:cli"
 dev = [
   "ipython>=9.8.0",
   "mypy>=1.19.1",
+  "requests>=2.32.5",
   "ruff>=0.14.10",
   "ty>=0.0.5",
 ]

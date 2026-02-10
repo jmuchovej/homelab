@@ -1,29 +1,19 @@
 {
   pkgs,
-  options,
   config,
   lib,
-  host,
-  namespace,
   ...
-}@args:
+}:
 let
   inherit (lib)
-    mkEnableOption
-    mkOption
     mkIf
-    types
-    optionals
     ;
-  inherit (lib.lists) forEach;
-  inherit (builtins) elemAt concatStringsSep;
-  inherit (lib.strings) splitString;
-  inherit (lib.rebellion) enabled;
+  inherit (builtins) concatStringsSep;
   inherit (lib.rebellion.file) scan-dir get-file;
 
   k8s = config.rebellion.services.kubernetes;
   cfg = config.rebellion.services.kubernetes.helm;
-  yaml-format = (pkgs.formats.yaml { });
+  yaml-format = pkgs.formats.yaml { };
 
   get-k8s =
     {
@@ -153,7 +143,7 @@ in
     systemd.paths."k3s-bootstrap-apps" = {
       wantedBy = [ "multi-user.target" ];
       pathConfig = {
-        PathModified = (get-file "kubernetes/bootstrap.sops.yaml");
+        PathModified = get-file "kubernetes/bootstrap.sops.yaml";
       };
     };
     systemd.services."k3s-bootstrap-apps" = {

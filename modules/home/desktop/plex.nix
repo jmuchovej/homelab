@@ -6,18 +6,11 @@ lib.rebellion.mk-desktop-module args {
     amp = lib.mkEnableOption "Plexamp";
   };
   conditions = { cfg, ... }: cfg.player.enable || cfg.amp.enable;
-  config =
-    {
-      cfg,
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      # TODO needs upstream support
-      # home.packages = ([]
-      #   ++ optionals cfg.player.enable [ pkgs.plex-desktop ]
-      #   ++ optionals cfg.amp.enable    [ pkgs.plexamp      ]
-      # );
-    };
+  config = _: {
+    # TODO needs upstream support
+    # home.packages = ([]
+    #   ++ optionals cfg.player.enable [ pkgs.plex-desktop ]
+    #   ++ optionals cfg.amp.enable    [ pkgs.plexamp      ]
+    # );
+  };
 }

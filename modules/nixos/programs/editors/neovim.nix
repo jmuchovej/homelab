@@ -1,14 +1,15 @@
 {
   config,
   lib,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkEnableOption mkIf;
   inherit (lib.rebellion) enabled;
 
   cfg = config.rebellion.programs.editors.neovim;
-in {
+in
+{
   options.rebellion.programs.editors.neovim = {
     enable = mkEnableOption "neovim";
     default = mkEnableOption "Neovim as the default $EDITOR";

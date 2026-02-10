@@ -20,7 +20,7 @@ lib.rebellion.mk-desktop-module args {
         # orca-slicer
       ];
 
-      programs.vscode.extensions = optionals (vsc.enable) [
+      programs.vscode.extensions = optionals vsc.enable [
         pkgs.vscode-extensions.antyos.openscad
       ];
     };

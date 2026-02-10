@@ -1,5 +1,4 @@
 {
-  cfg,
   config,
   lib,
   hostname,
@@ -34,11 +33,11 @@ lib.mkMerge [
       '';
     services.open-webui =
       let
-        ollama = config.services.ollama;
+        inherit (config.services) ollama;
       in
       enabled
       // {
-        host = ollama.host;
+        inherit (ollama) host;
         port = ollama.port + 1;
         environment = {
           WEBUI_URL = "https://chat.${datacenter}.jm0.io";
@@ -106,7 +105,7 @@ lib.mkMerge [
         inherit hostname datacenter;
         name = "open-webui";
         subdomain = "chat";
-        port = config.services.open-webui.port;
+        inherit (config.services.open-webui) port;
       };
       healthcheck = mk-healthcheck service {
         route = "/health";

@@ -9,9 +9,6 @@ lib.rebellion.mk-module args {
       inherit (lib.types)
         str
         port
-        nullOr
-        path
-        int
         ;
       inherit (lib.rebellion) mkopt mkopt-bool;
     in
@@ -103,7 +100,7 @@ lib.rebellion.mk-module args {
           package = pkgs.openbao;
 
           settings = {
-            ui = cfg.ui;
+            inherit (cfg) ui;
 
             api_addr = "http://${bind-addr}:${toString cfg.ports.api}";
             cluster_addr = "https://${bind-addr}:${toString cfg.ports.cluster}";

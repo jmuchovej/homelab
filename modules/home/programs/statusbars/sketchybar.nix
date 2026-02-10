@@ -2,9 +2,9 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkEnableOption mkIf getExe;
 
   cfg = config.rebellion.programs.statusbars.sketchybar;
@@ -12,9 +12,10 @@
   shellAliases = with pkgs; {
     push =
       # bash
-      ''command git push && ${getExe sketchybar} --trigger git_push'';
+      "command git push && ${getExe sketchybar} --trigger git_push";
   };
-in {
+in
+{
   options.rebellion.programs.statusbars.sketchybar = {
     enable = mkEnableOption "Whether to enable sketchybar in the desktop environment.";
   };
@@ -36,7 +37,7 @@ in {
 
     xdg.configFile = {
       "sketchybar" = {
-        source = lib.cleanSourceWith {src = lib.cleanSource ./config/.;};
+        source = lib.cleanSourceWith { src = lib.cleanSource ./config/.; };
 
         recursive = true;
       };

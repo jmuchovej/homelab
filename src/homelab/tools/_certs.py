@@ -1,16 +1,28 @@
-from pathlib import Path
-from homelab.tools import discover_datacenters_systems
 import itertools
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.serialization import (
-    NoEncryption, PrivateFormat, Encoding
-)
-from cryptography.x509 import Certificate, Name, NameAttribute, CertificateBuilder, DNSName, ExtensionType
-from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from cryptography.hazmat.primitives.serialization import (
+    Encoding,
+    NoEncryption,
+    PrivateFormat,
+)
+from cryptography.x509 import (
+    Certificate,
+    CertificateBuilder,
+    DNSName,
+    ExtensionType,
+    Name,
+    NameAttribute,
+)
+from cryptography.x509.oid import NameOID
+
+from homelab.tools import discover_datacenters_systems
+
 
 def gen_key(key_size: int = 2048) -> RSAPrivateKey:
     """
@@ -30,6 +42,7 @@ def gen_key(key_size: int = 2048) -> RSAPrivateKey:
         public_exponent=65537,
         key_size=key_size,
     )
+
 
 def _attrs(name: str) -> list[NameAttribute]:
     """
@@ -57,6 +70,7 @@ def _attrs(name: str) -> list[NameAttribute]:
         NameAttribute(NameOID.COMMON_NAME, name),
     ]
 
+
 def _builder(
     subject: Name,
     issuer: Name,
@@ -64,7 +78,7 @@ def _builder(
     signing_key: RSAPrivateKey,
     t1: datetime,
     dt: int,
-    extensions: list[tuple[ExtensionType, bool]]
+    extensions: list[tuple[ExtensionType, bool]],
 ) -> Certificate:
     """
     Build and sign an X.509 certificate.
@@ -104,16 +118,17 @@ def _builder(
         .not_valid_after(t1 + timedelta(days=dt))
     )
 
-    for (extension, critical) in extensions:
+    for extension, critical in extensions:
         builder = builder.add_extension(extension, critical=critical)
 
     return builder.sign(signing_key, hashes.SHA256())
+
 
 def gen_cert_auth(
     priv_key: RSAPrivateKey,
     datacenter: str,
     t1: datetime = datetime.now(timezone.utc),
-    duration: int = 365 * 10
+    duration: int = 365 * 10,
 ) -> Certificate:
     """
     Generate self-signed CA certificate.
@@ -151,11 +166,16 @@ def gen_cert_auth(
         decipher_only=False,
     )
     ext3 = x509.SubjectKeyIdentifier.from_public_key(priv_key.public_key())
-    return _builder(subject, issuer, priv_key, priv_key, t1, duration, [
-        (ext1, True),
-        (ext2, True),
-        (ext3, False)
-    ])
+    return _builder(
+        subject,
+        issuer,
+        priv_key,
+        priv_key,
+        t1,
+        duration,
+        [(ext1, True), (ext2, True), (ext3, False)],
+    )
+
 
 def gen_cert_child(
     priv_key: RSAPrivateKey,
@@ -200,14 +220,19 @@ def gen_cert_child(
 
     # Build Subject Alternative Names (SAN)
     # Only include datacenter-specific hosts to avoid conflicts between datacenters
-    san_list: list[DNSName] = list(itertools.chain(*[[
-            # Wildcard for services: *.da-vcx-1.lab, *.en-t65-1.lab
-            x509.DNSName(f"*.{host}.{suffix}"),
-            # Bare hostname: da-vcx-1.lab, en-t65-1.lab
-            x509.DNSName(f"{host}.{suffix}"),
-        ] for host in discover_datacenters_systems().get(datacenter, [])
-    ]))
-
+    san_list: list[DNSName] = list(
+        itertools.chain(
+            *[
+                [
+                    # Wildcard for services: *.da-vcx-1.lab, *.en-t65-1.lab
+                    x509.DNSName(f"*.{host}.{suffix}"),
+                    # Bare hostname: da-vcx-1.lab, en-t65-1.lab
+                    x509.DNSName(f"{host}.{suffix}"),
+                ]
+                for host in discover_datacenters_systems().get(datacenter, [])
+            ]
+        )
+    )
 
     ext1 = x509.SubjectAlternativeName(san_list)
     ext2 = x509.BasicConstraints(ca=False, path_length=None)
@@ -224,13 +249,22 @@ def gen_cert_child(
     )
     ext4 = x509.SubjectKeyIdentifier.from_public_key(priv_key.public_key())
     ext5 = x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key())
-    return _builder(subject, ca_cert.subject, priv_key, ca_key, t1, duration, [
-        (ext1, False),
-        (ext2, True),
-        (ext3, True),
-        (ext4, False),
-        (ext5, False),
-    ])
+    return _builder(
+        subject,
+        ca_cert.subject,
+        priv_key,
+        ca_key,
+        t1,
+        duration,
+        [
+            (ext1, False),
+            (ext2, True),
+            (ext3, True),
+            (ext4, False),
+            (ext5, False),
+        ],
+    )
+
 
 def save_priv_key(key: RSAPrivateKey, path: Path) -> None:
     """
@@ -248,12 +282,15 @@ def save_priv_key(key: RSAPrivateKey, path: Path) -> None:
     File permissions are set to 0o600 (read/write for owner only).
     """
     with path.open("wb") as f:
-        f.write(key.private_bytes(
-            encoding=Encoding.PEM,
-            format=PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=NoEncryption()
-        ))
+        f.write(
+            key.private_bytes(
+                encoding=Encoding.PEM,
+                format=PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=NoEncryption(),
+            )
+        )
     path.chmod(0o600)  # Read/write for owner only
+
 
 def save_cert(cert: Certificate, path: Path) -> None:
     """

@@ -18,7 +18,7 @@ in
 lib.mkMerge [
   {
     services.ollama = enabled // {
-      package = cfg.ollama.package;
+      inherit (cfg.ollama) package;
       syncModels = true;
       loadModels = cfg.ollama.models;
     };
@@ -28,7 +28,7 @@ lib.mkMerge [
       service = mk-authd-traefik-service {
         inherit hostname datacenter;
         name = "ollama";
-        port = config.services.ollama.port;
+        inherit (config.services.ollama) port;
       };
       healthcheck = mk-healthcheck service {
         route = "/";

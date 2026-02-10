@@ -13,20 +13,13 @@ lib.rebellion.mk-desktop-module args {
   conditions =
     { cfg, ... }:
     cfg.mail.desktop.enable || cfg.mail.bridge.enable || cfg.vpn.enable || cfg.pass.enable;
-  config =
-    {
-      cfg,
-      config,
-      pkgs,
-      ...
-    }:
-    {
-      # TODO needs upstream support
-      # home.packages = ([]
-      #   ++ optionals cfg.mail.desktop.enable [ pkgs.protonmail-desktop ]
-      #   ++ optionals cfg.mail.bridge.enable  [ pkgs.protonmail-bridge  ]
-      #   ++ optionals cfg.vpn.enable          [ pkgs.protonvpn-cli      ]
-      #   ++ optionals cfg.pass.enable         [ pkgs.proton-pass        ]
-      # );
-    };
+  config = _: {
+    # TODO needs upstream support
+    # home.packages = ([]
+    #   ++ optionals cfg.mail.desktop.enable [ pkgs.protonmail-desktop ]
+    #   ++ optionals cfg.mail.bridge.enable  [ pkgs.protonmail-bridge  ]
+    #   ++ optionals cfg.vpn.enable          [ pkgs.protonvpn-cli      ]
+    #   ++ optionals cfg.pass.enable         [ pkgs.proton-pass        ]
+    # );
+  };
 }

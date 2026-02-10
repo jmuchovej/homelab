@@ -8,7 +8,6 @@ lib.rebellion.mk-desktop-module args {
     {
       cfg,
       lib,
-      config,
       ...
     }:
     let

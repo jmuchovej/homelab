@@ -1,4 +1,5 @@
-{ ... }: let
+_:
+let
   btrfs-defaults = [
     "defaults"
     "compress=zstd:1"
@@ -6,7 +7,8 @@
     "noatime"
     "nodiratime"
   ];
-in {
+in
+{
   disko.devices = {
     disk.nvme0 = {
       device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300IBBB23122507026";
@@ -43,7 +45,10 @@ in {
               extraArgs = [
                 "-f"
               ];
-              mountOptions = [ "defaults" "discard" ];
+              mountOptions = [
+                "defaults"
+                "discard"
+              ];
 
               subvolumes = {
                 "@" = {

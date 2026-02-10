@@ -78,15 +78,14 @@ lib.rebellion.mk-module args {
               discovery_url = "!secret ak-provider-url";
             };
           };
-          customComponents = (
+          customComponents =
             with pkgs.home-assistant-custom-components;
             with pkgs.rebellion.home-assistant.components;
             [
               auth_oidc
               adaptive_lighting
               hacs
-            ]
-          );
+            ];
           # customLovelaceModules = with pkgs.home-assistant-custom-lovelace-modules; [ ];
           extraPackages =
             python3Packages: with python3Packages; [

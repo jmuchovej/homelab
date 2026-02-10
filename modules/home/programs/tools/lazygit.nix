@@ -1,13 +1,14 @@
 {
   config,
   lib,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.programs.tools.lazygit;
-in {
+in
+{
   options.rebellion.programs.tools.lazygit = {
     enable = mkEnableOption "lazygit";
   };

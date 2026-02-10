@@ -74,14 +74,14 @@ lib.rebellion.mk-module args {
 
         vrrpScripts =
           { }
-          // lib.optionalAttrs cfg.checks.consul { check-consul = check-consul; }
-          // lib.optionalAttrs cfg.checks.traefik { check-traefik = check-traefik; };
+          // lib.optionalAttrs cfg.checks.consul { inherit check-consul; }
+          // lib.optionalAttrs cfg.checks.traefik { inherit check-traefik; };
 
         vrrpInstances.mesh_ingress = {
           state = "BACKUP"; # All nodes start as backup, VRRP elects master
-          interface = cfg.interface;
+          inherit (cfg) interface;
           virtualRouterId = cfg.vrrp.router-id;
-          priority = cfg.vrrp.priority;
+          inherit (cfg.vrrp) priority;
           noPreempt = !cfg.vrrp.preempt;
 
           virtualIps = [
@@ -92,8 +92,7 @@ lib.rebellion.mk-module args {
           ];
 
           trackScripts =
-            [ ]
-            ++ lib.optional cfg.checks.consul "check-consul"
+            lib.optional cfg.checks.consul "check-consul"
             ++ lib.optional cfg.checks.traefik "check-traefik"
             ++ cfg.checks.custom;
 
@@ -119,12 +118,10 @@ lib.rebellion.mk-module args {
       # Ensure keepalived starts after dependent services
       systemd.services.keepalived = {
         after =
-          [ ]
-          ++ lib.optional cfg.checks.consul "consul.service"
+          lib.optional cfg.checks.consul "consul.service"
           ++ lib.optional cfg.checks.traefik "traefik.service";
         wants =
-          [ ]
-          ++ lib.optional cfg.checks.consul "consul.service"
+          lib.optional cfg.checks.consul "consul.service"
           ++ lib.optional cfg.checks.traefik "traefik.service";
       };
     };

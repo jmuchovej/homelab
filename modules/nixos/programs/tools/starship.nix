@@ -2,22 +2,26 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.programs.tools.starship;
-in {
+in
+{
   options.rebellion.programs.tools.starship = {
     enable = mkEnableOption "starship";
   };
 
   config = mkIf cfg.enable {
     programs.starship = {
-      enable  = true;
+      enable = true;
       package = pkgs.starship;
-      presets = [ "nerd-font-symbols" "jetpack" ];
+      presets = [
+        "nerd-font-symbols"
+        "jetpack"
+      ];
     };
   };
 }

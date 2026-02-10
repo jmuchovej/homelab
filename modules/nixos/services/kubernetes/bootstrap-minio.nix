@@ -1,19 +1,13 @@
 {
   pkgs,
-  options,
   config,
   lib,
   host,
-  namespace,
   ...
-}@args:
+}:
 let
   inherit (lib)
-    mkEnableOption
-    mkOption
     mkIf
-    types
-    optionals
     ;
   inherit (lib.lists) forEach;
   inherit (builtins) elemAt;

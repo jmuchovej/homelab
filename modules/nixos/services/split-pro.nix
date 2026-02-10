@@ -57,58 +57,19 @@ lib.rebellion.mk-module args {
           };
         };
 
-        # Setup pg_cron extension and _prisma_migrations table for SplitPro
-        # pg_cron requires superuser to create, but we need _prisma_migrations to exist
-        # so Prisma doesn't complain about "non-empty schema" when it sees the cron schema
+        # Setup pg_cron extension, permissions, and handle failed migrations
         systemd.services.split-pro-db-setup = {
-          description = "Setup pg_cron extension for SplitPro";
+          description = "Setup database for SplitPro";
           after = [ "postgresql.service" ];
           requires = [ "postgresql.service" ];
           before = [ "split-pro.service" ];
           wantedBy = [ "multi-user.target" ];
-          path = [ config.services.postgresql.package ];
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
             User = "postgres";
+            ExecStart = "${lib.getExe' pkgs.rebellion.split-pro "sp-db-setup"} ${dbName} ${dbUser}";
           };
-          script =
-            let
-              prisma = lib.getExe pkgs.prisma_6;
-              splitProDir = "${pkgs.rebellion.split-pro}/share/split-pro";
-            in
-            ''
-              # Create pg_cron extension (requires superuser)
-              psql -d ${dbName} -c "CREATE EXTENSION IF NOT EXISTS pg_cron;"
-
-              # Create _prisma_migrations table owned by split-pro user
-              # This prevents Prisma from seeing the cron schema as "non-empty database"
-              psql -d ${dbName} <<EOF
-                CREATE TABLE IF NOT EXISTS _prisma_migrations (
-                  id VARCHAR(36) PRIMARY KEY,
-                  checksum VARCHAR(64) NOT NULL,
-                  finished_at TIMESTAMPTZ,
-                  migration_name VARCHAR(255) NOT NULL,
-                  logs TEXT,
-                  rolled_back_at TIMESTAMPTZ,
-                  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-                  applied_steps_count INTEGER NOT NULL DEFAULT 0
-                );
-                ALTER TABLE IF EXISTS _prisma_migrations OWNER TO "${dbUser}";
-
-                -- Grant split-pro access to cron schema for the foreign key reference
-                GRANT USAGE ON SCHEMA cron TO "${dbUser}";
-                GRANT SELECT, REFERENCES ON ALL TABLES IN SCHEMA cron TO "${dbUser}";
-              EOF
-
-              # Mark any failed migrations as rolled back so they can be retried
-              failed_migrations=$(psql -d ${dbName} -t -A -c "SELECT migration_name FROM _prisma_migrations WHERE finished_at IS NULL AND rolled_back_at IS NULL;")
-              for migration in $failed_migrations; do
-                echo "Marking failed migration as rolled back: $migration"
-                cd ${splitProDir}
-                DATABASE_URL="postgresql://${dbUser}@localhost/${dbName}" ${prisma} migrate resolve --rolled-back "$migration"
-              done
-            '';
         };
 
         # SplitPro systemd service
@@ -205,13 +166,14 @@ lib.rebellion.mk-module args {
         let
           service = mk-traefik-service {
             inherit hostname datacenter;
-            port = cfg.port;
+            inherit (cfg) port;
             name = "split-pro";
           };
           healthcheck = mk-healthcheck service {
             route = "/";
           };
           authentik-tags = mk-authentik service {
+            name = "Split Pro";
             type = "oauth";
             group = "Home";
             access = [ "home" ];

@@ -30,7 +30,7 @@ in
       home.extraOptions = {
         home.shellAliases = {
           # Prevent shell log command from overriding macOS log
-          log = ''command log'';
+          log = "command log";
         };
       };
 

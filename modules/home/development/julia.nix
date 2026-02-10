@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.julia";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,
@@ -13,12 +12,9 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          julialang.language-julia
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        julialang.language-julia
+      ];
       vsc-user-settings = {
         "julia.symbolCacheDownload" = true;
         "terminal.integrated.commandsToSkipShell" = [
@@ -43,12 +39,9 @@ lib.rebellion.mk-module args {
       };
     in
     {
-      home.packages = (
-        with pkgs;
-        [
-          julia-bin
-        ]
-      );
+      home.packages = with pkgs; [
+        julia-bin
+      ];
 
       programs.vscode = mkIf config.rebellion.editor.vscode.enable {
         profiles.default.extensions = vsc-extensions;

@@ -7,7 +7,7 @@
  * @website https://github.com/catppuccin/discord
  * @invite r6Mdz5dpFc
  **/
- button[class*="emojiButtonNormal"] > div > div {
+button[class*="emojiButtonNormal"] > div > div {
   filter: grayscale(0.77) hue-rotate(185deg) brightness(1.03) opacity(100%)
     !important;
 }

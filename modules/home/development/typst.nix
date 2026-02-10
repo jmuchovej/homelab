@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.typst";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,
@@ -13,12 +12,9 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          myriad-dreamin.tinymist
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        myriad-dreamin.tinymist
+      ];
       vsc-user-settings = {
         "[typst]" = {
           "editor.wordSeparators" = "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?";
@@ -58,14 +54,11 @@ lib.rebellion.mk-module args {
       };
     in
     {
-      home.packages = (
-        with pkgs;
-        [
-          typst
-          typstyle
-          tinymist
-        ]
-      );
+      home.packages = with pkgs; [
+        typst
+        typstyle
+        tinymist
+      ];
 
       programs.vscode = mkIf config.rebellion.editor.vscode.enable {
         profiles.default.extensions = vsc-extensions;

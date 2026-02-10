@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.web";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,

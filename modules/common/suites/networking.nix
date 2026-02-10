@@ -1,8 +1,8 @@
-{ config, lib, ... }@args:
+{ lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "suites.networking";
   config =
-    { config, lib, ... }:
+    { lib, ... }:
     let
       inherit (lib) mkDefault;
       inherit (lib.rebellion) enabled;

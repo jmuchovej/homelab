@@ -9,8 +9,6 @@ lib.rebellion.mk-module args {
   ];
   config =
     {
-      cfg,
-      config,
       pkgs,
       ...
     }:

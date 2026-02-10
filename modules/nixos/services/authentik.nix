@@ -13,13 +13,11 @@ lib.rebellion.mk-module args {
     let
       inherit (lib.rebellion) enabled;
       inherit (lib.rebellion.file) get-secret get-secret';
-      s3 = config.rebellion.services.s3;
+      inherit (config.rebellion.services) s3;
 
       authentik-http = "http://localhost:9000";
-      authentik-https = "https://localhost:9443";
 
       authentik-proxy-http = config.services.authentik-proxy.listenHTTP;
-      authentik-proxy-https = config.services.authentik-proxy.listenHTTPS;
 
       OUTPOST_ENV = ''
         AUTHENTIK_HOST=${authentik-http}

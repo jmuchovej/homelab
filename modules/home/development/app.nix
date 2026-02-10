@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.app";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,
@@ -13,17 +12,12 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      default-vscode = config.rebellion.editor.vscode or { };
-
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          dart-code.dart-code
-          dart-code.flutter
-          zxh404.vscode-proto3
-          sswg.swift-lang
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        dart-code.dart-code
+        dart-code.flutter
+        zxh404.vscode-proto3
+        sswg.swift-lang
+      ];
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/dart
@@ -67,14 +61,11 @@ lib.rebellion.mk-module args {
       };
     in
     {
-      home.packages = (
-        with pkgs;
-        [
-          flutter
-          kotlin
-          swift
-        ]
-      );
+      home.packages = with pkgs; [
+        flutter
+        kotlin
+        swift
+      ];
 
       programs.vscode = mkIf config.rebellion.editor.vscode.enable {
         profiles.default.extensions = vsc-extensions;

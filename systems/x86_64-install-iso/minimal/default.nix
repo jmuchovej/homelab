@@ -1,25 +1,23 @@
 {
-  config,
   pkgs,
   lib,
   namespace,
   ...
 }:
 let
-  inherit (lib) mkForce mkDefault;
+  inherit (lib) mkForce;
   inherit (lib.${namespace}) enabled;
 in
 {
   networking.wireless.enable = mkForce false;
 
-  environment.systemPackages = with pkgs;
-    [
-      git
-      wget
-      curl
-      pciutils
-      file
-    ];
+  environment.systemPackages = with pkgs; [
+    git
+    wget
+    curl
+    pciutils
+    file
+  ];
 
   ${namespace} = {
     nix = enabled;

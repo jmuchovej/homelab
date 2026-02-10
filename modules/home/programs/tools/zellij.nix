@@ -2,9 +2,9 @@
   config,
   lib,
   pkgs,
-  namespace,
   ...
-}: let
+}:
+let
   inherit (lib) mkIf mkEnableOption;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
@@ -17,7 +17,8 @@
 
     zellij --layout dev  attach --create "$session_name" options --default-cwd "$(pwd)"
   '';
-in {
+in
+{
   options.rebellion.programs.tools.zellij = {
     enable = mkEnableOption "zellij";
   };
@@ -40,11 +41,12 @@ in {
 
         # clipboard provider
         copy_command =
-          if isLinux
-          then "wl-copy"
-          else if isDarwin
-          then "pbcopy"
-          else "";
+          if isLinux then
+            "wl-copy"
+          else if isDarwin then
+            "pbcopy"
+          else
+            "";
 
         auto_layouts = true;
 
@@ -76,8 +78,8 @@ in {
     };
 
     programs.zed-editor = mkIf config.programs.zed-editor.enable {
-      extensions = ["kdl"];
-      userSettings = {};
+      extensions = [ "kdl" ];
+      userSettings = { };
     };
   };
 }

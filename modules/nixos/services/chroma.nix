@@ -26,7 +26,7 @@ lib.rebellion.mk-module args {
           service = mk-traefik-service {
             inherit hostname datacenter;
             name = "chroma";
-            port = config.services.chromadb.port;
+            inherit (config.services.chromadb) port;
           };
           healthcheck = mk-healthcheck service {
             route = "/api/v1/heartbeat";

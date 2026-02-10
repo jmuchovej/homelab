@@ -7,7 +7,7 @@ let
   inherit (lib) mkIf mkEnableOption;
 
   cfg = config.rebellion.desktop.ghostty;
-  desktop = config.rebellion.desktop;
+  inherit (config.rebellion) desktop;
   brew = config.rebellion.homebrew;
 in
 {
@@ -17,7 +17,7 @@ in
 
   config = mkIf (cfg.enable && desktop.enable) {
     # environment.systemPackages = [ pkgs.ghostty ];
-    homebrew = mkIf (brew.enable) {
+    homebrew = mkIf brew.enable {
       casks = [ "ghostty" ];
     };
   };

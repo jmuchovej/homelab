@@ -5,7 +5,6 @@
   lib,
   pkgs,
   system,
-  host,
   ...
 }:
 let
@@ -24,24 +23,21 @@ let
     mkopt
     enabled
     disabled
-    get-file
     ;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.rebellion.system.nix;
-  cfg-sops = config.rebellion.security.sops;
 
   # region Nix Registry
   linux-pkgs = inputs.nixpkgs;
   macos-pkgs = inputs.nixpkgs-unstable;
-  remap-nixpkgs = (
+  remap-nixpkgs =
     reg:
     reg
     // {
       nixpkgs.flake = if isLinux then linux-pkgs else macos-pkgs;
-    }
-  );
-  drop-unstable-macos = (reg: if isDarwin then removeAttrs reg [ "nixpkgs-unstable" ] else reg);
+    };
+  drop-unstable-macos = reg: if isDarwin then removeAttrs reg [ "nixpkgs-unstable" ] else reg;
   mappedRegistry = pipe inputs [
     (filterAttrs (_: isType "flake"))
     (mapAttrs (_: flake: { inherit flake; }))

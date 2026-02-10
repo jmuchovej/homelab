@@ -3,7 +3,6 @@ lib.rebellion.mk-module args {
   name = "development.rust";
   config =
     {
-      cfg,
       pkgs,
       lib,
       config,
@@ -13,13 +12,10 @@ lib.rebellion.mk-module args {
       inherit (lib) mkIf;
       inherit (lib.rebellion.zed) mkzed-settings;
 
-      vsc-extensions = (
-        with pkgs.open-vsx;
-        [
-          rust-lang.rust-analyzer
-          vadimcn.vscode-lldb
-        ]
-      );
+      vsc-extensions = with pkgs.open-vsx; [
+        rust-lang.rust-analyzer
+        vadimcn.vscode-lldb
+      ];
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/rust
@@ -47,15 +43,12 @@ lib.rebellion.mk-module args {
       };
     in
     {
-      home.packages = (
-        with pkgs;
-        [
-          cargo
-          rustc
-          cargo-binstall
-          cargo-xtask
-        ]
-      );
+      home.packages = with pkgs; [
+        cargo
+        rustc
+        cargo-binstall
+        cargo-xtask
+      ];
 
       programs.vscode = mkIf config.rebellion.editor.vscode.enable {
         profiles.default.extensions = vsc-extensions;
