@@ -1,3 +1,4 @@
+# Imported by platform-specific system/fonts.nix modules.
 {
   config,
   lib,
@@ -5,13 +6,6 @@
   ...
 }:
 let
-  inherit (lib)
-    types
-    mkIf
-    mkEnableOption
-    mkOption
-    ;
-
   cfg = config.rebellion.system.fonts;
 
   default-fonts = with pkgs; [
@@ -45,21 +39,20 @@ let
   ];
 in
 {
-  options.rebellion.system.fonts = with types; {
-    enable = mkEnableOption "fonts";
-    fonts = mkOption {
-      type = listOf package;
+  options.rebellion.system.fonts = {
+    fonts = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
       default = default-fonts;
       description = "Custom fonts to install.";
     };
-    default = mkOption {
-      type = str;
+    default = lib.mkOption {
+      type = lib.types.str;
       default = "MonaspiceNe Nerd Font";
       description = "Default font name";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = {
     nixpkgs.config.input-fonts.acceptLicense = true;
 
     environment.variables = {

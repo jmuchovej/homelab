@@ -22,7 +22,7 @@ lib.rebellion.mk-module args {
         historySubstringSearch.enable = true;
         enableCompletion = true;
 
-        # dotDir = "${config.xdg.configHome}/zsh";
+        dotDir = "${config.xdg.configHome}/zsh";
 
         # Disable /etc/{zshrc,zprofile} that contains the "sane-default" setup out of the box
         # in order avoid issues with incorrect precedence to our own zshrc.

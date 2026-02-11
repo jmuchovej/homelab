@@ -1,29 +1,26 @@
+# Imported by platform-specific system/nix.nix modules.
+# TODO figure out remote building
 {
-  self,
-  inputs,
   config,
   lib,
   pkgs,
+  self,
+  inputs,
   system,
   ...
 }:
 let
   inherit (lib)
-    mkIf
     mkDefault
-    mkEnableOption
+    mkIf
     mkOption
-    types
     pipe
     filterAttrs
     mapAttrs
     isType
+    types
     ;
-  inherit (lib.rebellion)
-    mkopt
-    enabled
-    disabled
-    ;
+  inherit (lib.rebellion) mkopt enabled disabled;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.rebellion.system.nix;
@@ -46,21 +43,17 @@ let
   ];
   # endregion
 in
-# TODO figure out remote building
 {
-  options.rebellion.system.nix = with types; {
-    enable = mkEnableOption "manage nix configuration" // {
-      default = true;
-    };
-    package = mkopt package pkgs.lixPackageSets.stable.lix "Which nix package to use.";
+  options.rebellion.system.nix = {
+    package = mkopt types.package pkgs.lixPackageSets.stable.lix "Which nix package to use.";
     extra-users = mkOption {
-      type = listOf str;
+      type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Extra users to trust";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = {
     # faster rebuilding
     documentation = {
       doc = disabled;
@@ -78,15 +71,14 @@ in
       deploy-rs
     ];
 
-    environment.etc = {
-
-    }
-    // mkIf isLinux {
-      "nixos".source = self;
-    }
-    // mkIf isDarwin {
-      "nix-darwin".source = self;
-    };
+    environment.etc =
+      { }
+      // mkIf isLinux {
+        "nixos".source = self;
+      }
+      // mkIf isDarwin {
+        "nix-darwin".source = self;
+      };
 
     nix =
       let

@@ -135,18 +135,24 @@ rec {
   mk-module =
     module-args:
     {
-      name,
+      name ? null,
+      namespace ? null,
       imports ? [ ],
-      description ? name,
+      description ? (if name != null then name else namespace),
       options ? { },
       config ? { },
       conditions ? _: true,
+      always-active ? false,
     }:
     let
       inherit (module-args) lib;
       inherit (lib) setAttrByPath getAttrFromPath splitString;
 
-      name-parts = [ "rebellion" ] ++ (if name == null then [ ] else (splitString "." name));
+      effective-name = if namespace != null then namespace else name;
+      name-parts = [
+        "rebellion"
+      ]
+      ++ (if effective-name == null then [ ] else (splitString "." effective-name));
       cfg = getAttrFromPath name-parts module-args.config;
 
       evaluation-args = module-args // {
@@ -161,8 +167,18 @@ rec {
       evald-conditions = eval-if-func conditions evaluation-args;
       evald-options = eval-if-func options evaluation-args;
 
-      base-optionset = if (name != null) then { enable = mkopt-enable description; } else { };
-      should-enable = (name == null) || cfg.enable;
+      # Only create `enable` when `name` is set (not for `namespace` or `null`)
+      base-optionset =
+        if (name != null) then
+          {
+            enable =
+              if always-active then mkopt-bool true "Enable `${description}`." else mkopt-enable description;
+          }
+        else
+          { };
+
+      # namespace modules are always active (no enable to check)
+      should-enable = (effective-name == null) || (namespace != null) || cfg.enable;
     in
     {
       imports = evald-imports;

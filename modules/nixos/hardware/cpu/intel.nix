@@ -1,31 +1,21 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "hardware.cpu.intel";
+  description = "Intel CPUs";
+  config =
+    { pkgs, ... }:
+    {
+      environment.systemPackages = [ pkgs.intel-gpu-tools ];
 
-  cfg = config.rebellion.hardware.cpu.intel;
-in
-{
-  options.rebellion.hardware.cpu.intel = {
-    enable = mkEnableOption "Intel CPUs";
-  };
+      hardware.cpu.intel.updateMicrocode = true;
 
-  config = mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.intel-gpu-tools ];
+      boot = {
+        kernelModules = [ "kvm-intel" ];
 
-    hardware.cpu.intel.updateMicrocode = true;
-
-    boot = {
-      kernelModules = [ "kvm-intel" ];
-
-      kernelParams = [
-        "i915.fastboot=1"
-        "enable_gvt=1"
-      ];
+        kernelParams = [
+          "i915.fastboot=1"
+          "enable_gvt=1"
+        ];
+      };
     };
-  };
 }

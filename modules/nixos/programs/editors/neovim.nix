@@ -1,25 +1,25 @@
-{
-  config,
-  lib,
-  ...
-}:
-let
-  inherit (lib) mkEnableOption mkIf;
-  inherit (lib.rebellion) enabled;
-
-  cfg = config.rebellion.programs.editors.neovim;
-in
-{
-  options.rebellion.programs.editors.neovim = {
-    enable = mkEnableOption "neovim";
-    default = mkEnableOption "Neovim as the default $EDITOR";
-  };
-
-  config = mkIf cfg.enable {
-    environment.sessionVariables = {
-      EDITOR = mkIf cfg.default "nvim";
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "programs.editors.neovim";
+  description = "neovim";
+  options =
+    { lib, ... }:
+    let
+      inherit (lib.rebellion) mkopt-enable;
+    in
+    {
+      default = mkopt-enable "Neovim as the default $EDITOR";
     };
+  config =
+    { cfg, lib, ... }:
+    let
+      inherit (lib.rebellion) enabled;
+    in
+    {
+      environment.sessionVariables = {
+        EDITOR = lib.mkIf cfg.default "nvim";
+      };
 
-    programs.neovim = enabled;
-  };
+      programs.neovim = enabled;
+    };
 }

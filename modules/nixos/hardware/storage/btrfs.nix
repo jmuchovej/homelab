@@ -1,86 +1,85 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib)
-    mkIf
-    mkEnableOption
-    mkOption
-    types
-    genAttrs
-    getExe
-    ;
-  inherit (cfg) dedupe-filesystems;
-
-  cfg = config.rebellion.hardware.storage.btrfs;
-
-  dedupe-fs-attrset = genAttrs dedupe-filesystems (name: {
-    spec = "LABEL=${name}";
-    hashTableSizeMB = 1024;
-    verbosity = "info";
-    workDir = ".beeshome";
-    extraOptions = [
-      "--thread-factor"
-      "0.1"
-      "--loadavg-target"
-      "5"
-    ];
-  });
-in
-{
-  options.rebellion.hardware.storage.btrfs = with types; {
-    enable = mkEnableOption "le support for btrfs devices";
-    auto-scrub = mkEnableOption "btrfs autoScrub";
-    dedupe = mkEnableOption "btrfs deduplication";
-    dedupe-filesystems = mkOption {
-      type = listOf str;
-      default = [ ];
-      description = "Unique btrfs filesystems to dedupe.";
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "hardware.storage.btrfs";
+  description = "le support for btrfs devices";
+  options =
+    { lib, ... }:
+    let
+      inherit (lib) mkOption types;
+      inherit (lib.rebellion) mkopt-enable;
+    in
+    {
+      auto-scrub = mkopt-enable "btrfs autoScrub";
+      dedupe = mkopt-enable "btrfs deduplication";
+      dedupe-filesystems = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "Unique btrfs filesystems to dedupe.";
+      };
+      scrub-mounts = mkOption {
+        type = types.listOf types.path;
+        default = [ ];
+        description = "Btrfs mount paths to scrub.";
+      };
     };
-    scrub-mounts = mkOption {
-      type = listOf path;
-      default = [ ];
-      description = "Btrfs mount paths to scrub.";
-    };
-  };
+  config =
+    {
+      cfg,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib) mkIf genAttrs getExe;
+      inherit (cfg) dedupe-filesystems;
 
-  config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      btdu
-      btrfs-assistant
-      btrfs-snap
-      compsize
-      snapper
-    ];
+      dedupe-fs-attrset = genAttrs dedupe-filesystems (name: {
+        spec = "LABEL=${name}";
+        hashTableSizeMB = 1024;
+        verbosity = "info";
+        workDir = ".beeshome";
+        extraOptions = [
+          "--thread-factor"
+          "0.1"
+          "--loadavg-target"
+          "5"
+        ];
+      });
+    in
+    {
+      environment.systemPackages = with pkgs; [
+        btdu
+        btrfs-assistant
+        btrfs-snap
+        compsize
+        snapper
+      ];
 
-    services = {
-      btrfs = {
-        autoScrub = mkIf cfg.auto-scrub {
-          enable = true;
-          fileSystems = mkIf (builtins.length cfg.scrub-mounts > 0) cfg.scrubMounts;
-          interval = "weekly";
+      services = {
+        btrfs = {
+          autoScrub = mkIf cfg.auto-scrub {
+            enable = true;
+            fileSystems = mkIf (builtins.length cfg.scrub-mounts > 0) cfg.scrubMounts;
+            interval = "weekly";
+          };
+        };
+
+        beesd = mkIf cfg.dedupe {
+          filesystems = mkIf (builtins.length dedupe-filesystems > 0) dedupe-fs-attrset;
         };
       };
 
-      beesd = mkIf cfg.dedupe {
-        filesystems = mkIf (builtins.length dedupe-filesystems > 0) dedupe-fs-attrset;
+      systemd.services.cpulimit-bees = {
+        enable = cfg.dedupe;
+        after = [ "sysinit.target" ];
+        description = "CPU Limit Bees";
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = "${getExe pkgs.cpulimit} -e bees -l 20";
+          Restart = "always";
+        };
       };
     };
-
-    systemd.services.cpulimit-bees = {
-      enable = cfg.dedupe;
-      after = [ "sysinit.target" ];
-      description = "CPU Limit Bees";
-      wantedBy = [ "multi-user.target" ];
-
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${getExe pkgs.cpulimit} -e bees -l 20";
-        Restart = "always";
-      };
-    };
-  };
 }

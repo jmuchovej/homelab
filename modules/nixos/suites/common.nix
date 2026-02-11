@@ -1,36 +1,26 @@
-{
-  pkgs,
-  config,
-  lib,
-  ...
-}:
-let
-  inherit (lib) mkIf;
-  inherit (lib.rebellion) get-file enabled;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "suites.common";
+  always-active = true;
+  imports = [ (lib.rebellion.get-file "modules/common/suites/common.nix") ];
+  config =
+    { lib, pkgs, ... }:
+    let
+      inherit (lib.rebellion) enabled;
+    in
+    {
+      rebellion = {
+        system = {
+          networking = enabled;
+        };
 
-  cfg = config.rebellion.suites.common;
-in
-{
-  imports = [
-    (get-file "modules/common/suites/common.nix")
-  ];
-
-  config = mkIf cfg.enable {
-    rebellion = {
-      system = {
-        nix = enabled;
-        boot = enabled;
-        locale = enabled;
-        networking = enabled;
+        services.openssh = enabled;
+        security.sops = enabled;
       };
 
-      services.openssh = enabled;
-      security.sops = enabled;
+      environment.systemPackages = with pkgs; [
+        pciutils
+        usbutils
+      ];
     };
-
-    environment.systemPackages = with pkgs; [
-      pciutils
-      usbutils
-    ];
-  };
 }

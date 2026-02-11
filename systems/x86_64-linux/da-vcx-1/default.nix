@@ -32,7 +32,7 @@ in
     security = {
       sudo = enabled;
       sops = enabled // {
-        defaultSopsFile = ./secrets.sops.yaml;
+        default-sops-file = ./secrets.sops.yaml;
       };
     };
     services = {
@@ -151,13 +151,9 @@ in
     services.immich = enabled;
 
     system = {
-      nix = enabled;
-      boot = enabled // {
-        plymouth = enabled;
-        secure-boot = disabled;
-        silent-boot = enabled;
-      };
-      locale = enabled;
+      boot.plymouth = enabled;
+      boot.secure-boot = disabled;
+      boot.silent-boot = enabled;
       networking = enabled // {
         dns = "dnsmasq";
         manager = "networkmanager";

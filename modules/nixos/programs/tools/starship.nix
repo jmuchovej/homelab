@@ -1,20 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
-
-  cfg = config.rebellion.programs.tools.starship;
-in
-{
-  options.rebellion.programs.tools.starship = {
-    enable = mkEnableOption "starship";
-  };
-
-  config = mkIf cfg.enable {
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "programs.tools.starship";
+  description = "starship";
+  config = _: {
     programs.starship = {
       enable = true;
       package = pkgs.starship;

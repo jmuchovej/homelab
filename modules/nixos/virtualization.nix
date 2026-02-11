@@ -1,14 +1,5 @@
-{
-  lib,
-  ...
-}:
-let
-  inherit (lib) mkEnableOption;
-in
-{
-  options.rebellion.virtualization = {
-    enable = mkEnableOption "virtualization" // {
-      description = "No-op for setting up hierarchy.";
-    };
-  };
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "virtualization";
+  description = "No-op for setting up hierarchy.";
 }

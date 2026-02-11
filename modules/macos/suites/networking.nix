@@ -1,15 +1,5 @@
-{ config, lib, ... }:
-let
-  inherit (lib) mkIf;
-  inherit (lib.rebellion) get-file;
-
-  cfg = config.rebellion.suites.networking;
-in
-{
-  imports = [
-    (get-file "modules/common/suites/networking.nix")
-  ];
-
-  config = mkIf cfg.enable {
-  };
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "suites.networking";
+  imports = [ (lib.rebellion.get-file "modules/common/suites/networking.nix") ];
 }

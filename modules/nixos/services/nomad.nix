@@ -45,7 +45,7 @@ lib.rebellion.mk-module args {
       inherit (lib.strings) concatMapStringsSep;
 
       # Generate retry-join list from datacenter peers
-      retry-join-peers = map (p: "${p.hostname}.node.consul") peers;
+      retry-join-peers = map (p: "${p.hostname}") peers;
 
       # Generate host_volume blocks for each volume
       host-volumes = concatMapStringsSep "\n" (vol: ''

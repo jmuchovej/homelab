@@ -1,35 +1,24 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "programs.tools.bat";
+  description = "bat";
+  config =
+    { pkgs, ... }:
+    {
+      programs.bat = {
+        enable = true;
+        extraPackages = with pkgs.bat-extras; [
+          batdiff
+          batgrep
+          batman
+          batpipe
+          batwatch
+          prettybat
+        ];
+      };
 
-  cfg = config.rebellion.programs.tools.bat;
-in
-{
-  options.rebellion.programs.tools.bat = {
-    enable = mkEnableOption "bat";
-  };
-
-  config = mkIf cfg.enable {
-    programs.bat = {
-      enable = true;
-
-      extraPackages = with pkgs.bat-extras; [
-        batdiff
-        batgrep
-        batman
-        batpipe
-        batwatch
-        prettybat
-      ];
+      environment.shellAliases = {
+        cat = "bat";
+      };
     };
-
-    environment.shellAliases = {
-      cat = "bat";
-    };
-  };
 }

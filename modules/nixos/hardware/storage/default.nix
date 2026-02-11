@@ -1,32 +1,29 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkIf mkDefault mkEnableOption;
-
-  cfg = config.rebellion.hardware.storage;
-in
-{
-  options.rebellion.hardware.storage = {
-    enable = mkEnableOption "extra storage devices";
-    ssd = {
-      enable = mkEnableOption "support for SSDs" // {
-        default = true;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "hardware.storage";
+  description = "extra storage devices";
+  options =
+    { lib, ... }:
+    let
+      inherit (lib.rebellion) mkopt-enable;
+    in
+    {
+      ssd = {
+        enable = mkopt-enable "support for SSDs" // {
+          default = true;
+        };
       };
     };
-  };
+  config =
+    { cfg, ... }:
+    {
+      environment.systemPackages = with pkgs; [
+        btrfs-progs
+        fuseiso
+        nfs-utils
+        ntfs3g
+      ];
 
-  config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      btrfs-progs
-      fuseiso
-      nfs-utils
-      ntfs3g
-    ];
-
-    services.fstrim.enable = mkDefault cfg.ssd.enable;
-  };
+      services.fstrim.enable = lib.mkDefault cfg.ssd.enable;
+    };
 }

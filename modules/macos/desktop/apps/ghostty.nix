@@ -1,24 +1,21 @@
-{
-  config,
-  lib,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
-
-  cfg = config.rebellion.desktop.ghostty;
-  inherit (config.rebellion) desktop;
-  brew = config.rebellion.homebrew;
-in
-{
-  options.rebellion.desktop.ghostty = {
-    enable = mkEnableOption "Ghostty";
-  };
-
-  config = mkIf (cfg.enable && desktop.enable) {
-    # environment.systemPackages = [ pkgs.ghostty ];
-    homebrew = mkIf brew.enable {
-      casks = [ "ghostty" ];
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "desktop.ghostty";
+  conditions = { config, ... }: config.rebellion.desktop.enable;
+  config =
+    {
+      cfg,
+      lib,
+      config,
+      ...
+    }:
+    let
+      brew = config.rebellion.homebrew;
+    in
+    {
+      # environment.systemPackages = [ pkgs.ghostty ];
+      homebrew = lib.mkIf brew.enable {
+        casks = [ "ghostty" ];
+      };
     };
-  };
 }

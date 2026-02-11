@@ -1,34 +1,23 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkEnableOption mkIf;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "programs.shells.zsh";
+  description = "`zsh`";
+  config =
+    { pkgs, ... }:
+    {
+      programs.zsh = {
+        enable = true;
+        autosuggestions.enable = true;
+        enableCompletion = true;
+      };
 
-  cfg = config.rebellion.programs.shells.zsh;
-in
-{
-  options.rebellion.programs.shells.zsh = {
-    enable = mkEnableOption "`zsh`";
-  };
+      environment.sessionVariables = {
+        LC_ALL = "en_US.UTF-8";
+        KEYTIMEOUT = 0;
+      };
 
-  config = mkIf cfg.enable {
-    programs.zsh = {
-      enable = true;
-
-      autosuggestions.enable = true;
-      enableCompletion = true;
+      environment.systemPackages = with pkgs; [
+        nix-zsh-completions
+      ];
     };
-
-    environment.sessionVariables = {
-      LC_ALL = "en_US.UTF-8";
-      KEYTIMEOUT = 0;
-    };
-
-    environment.systemPackages = with pkgs; [
-      nix-zsh-completions
-    ];
-  };
 }

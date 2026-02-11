@@ -1,19 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkEnableOption mkIf;
-  cfg = config.rebellion.suites.development;
-in
-{
-  options.rebellion.suites.development = {
-    enable = mkEnableOption "`development` suite";
-  };
-
-  config = mkIf cfg.enable {
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "suites.development";
+  description = "`development` suite";
+  config = _: {
     # apps.neovim.enable = true;
     # apps.tools.direnv.enable = true;
 

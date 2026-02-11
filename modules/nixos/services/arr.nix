@@ -1,4 +1,4 @@
-{ lib, ... }@args:
+{ lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "services.arr";
   config =

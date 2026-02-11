@@ -1,48 +1,41 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  inherit (lib) mkIf mkDefault;
-  inherit (lib.rebellion) get-file enabled;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "suites.common";
+  always-active = true;
+  imports = [ (lib.rebellion.get-file "modules/common/suites/common.nix") ];
+  config =
+    { lib, pkgs, ... }:
+    let
+      inherit (lib) mkDefault;
+      inherit (lib.rebellion) enabled;
+    in
+    {
+      environment.systemPackages = with pkgs; [
+        gawk
+        gnugrep
+        gnupg
+        gnused
+        gnutls
+        terminal-notifier
+        trash-cli
+      ];
 
-  cfg = config.rebellion.suites.common;
-in
-{
-  imports = [
-    (get-file "modules/common/suites/common.nix")
-  ];
+      rebellion = {
+        home.extraOptions = {
+          home.shellAliases = {
+            log = "command log";
+          };
+        };
 
-  config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      gawk
-      gnugrep
-      gnupg
-      gnused
-      gnutls
-      terminal-notifier
-      trash-cli
-    ];
+        homebrew = mkDefault enabled;
 
-    rebellion = {
-      home.extraOptions = {
-        home.shellAliases = {
-          # Prevent shell log command from overriding macOS log
-          log = "command log";
+        system = {
+          nix = mkDefault enabled;
+          fonts = mkDefault enabled;
+          input = mkDefault enabled;
+          interface = mkDefault enabled;
+          networking = mkDefault enabled;
         };
       };
-
-      homebrew = mkDefault enabled;
-
-      system = {
-        nix = mkDefault enabled;
-        fonts = mkDefault enabled;
-        input = mkDefault enabled;
-        interface = mkDefault enabled;
-        networking = mkDefault enabled;
-      };
     };
-  };
 }

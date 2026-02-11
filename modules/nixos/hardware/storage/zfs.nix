@@ -1,66 +1,67 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
-let
-  inherit (lib)
-    types
-    mkIf
-    mkOption
-    mkEnableOption
-    ;
-  inherit (lib.rebellion) enabled;
-
-  cfg = config.rebellion.hardware.storage.zfs;
-in
-{
-  options.rebellion.hardware.storage.zfs = with types; {
-    enable = mkEnableOption "ZFS";
-    auto-snapshot = {
-      enable = mkEnableOption "ZFS auto-snapshotting";
-    };
-    pools = mkOption {
-      type = listOf str;
-      default = [ ];
-      description = "ZFS Pools to manage.";
-    };
-  };
-
-  config = mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.zfs ];
-
-    boot.supportedFilesystems = [ "zfs" ];
-
-    boot.zfs = {
-      allowHibernation = false;
-      extraPools = cfg.pools;
-    };
-
-    services.zfs = {
-      autoSnapshot = mkIf cfg.auto-snapshot.enable (
-        enabled
-        // {
-          flags = "-k -p";
-          frequent = 12;
-          daily = 10;
-          weekly = 7;
-          hourly = 48;
-          monthly = 24;
-        }
-      );
-
-      autoScrub = enabled // {
-        interval = "monthly";
-        inherit (cfg) pools;
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "hardware.storage.zfs";
+  description = "ZFS";
+  options =
+    { lib, ... }:
+    let
+      inherit (lib) mkOption types;
+      inherit (lib.rebellion) mkopt-enable;
+    in
+    {
+      auto-snapshot = {
+        enable = mkopt-enable "ZFS auto-snapshotting";
       };
-
-      trim = {
-        enable = true;
-        interval = "daily";
-        randomizedDelaySec = "4h";
+      pools = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "ZFS Pools to manage.";
       };
     };
-  };
+  config =
+    {
+      cfg,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib) mkIf;
+      inherit (lib.rebellion) enabled;
+    in
+    {
+      environment.systemPackages = [ pkgs.zfs ];
+
+      boot.supportedFilesystems = [ "zfs" ];
+
+      boot.zfs = {
+        allowHibernation = false;
+        extraPools = cfg.pools;
+      };
+
+      services.zfs = {
+        autoSnapshot = mkIf cfg.auto-snapshot.enable (
+          enabled
+          // {
+            flags = "-k -p";
+            frequent = 12;
+            daily = 10;
+            weekly = 7;
+            hourly = 48;
+            monthly = 24;
+          }
+        );
+
+        autoScrub = enabled // {
+          interval = "monthly";
+          inherit (cfg) pools;
+        };
+
+        trim = {
+          enable = true;
+          interval = "daily";
+          randomizedDelaySec = "4h";
+        };
+      };
+    };
 }

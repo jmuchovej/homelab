@@ -1,123 +1,123 @@
-{
-  pkgs,
-  config,
-  lib,
-  host,
-  ...
-}:
-let
-  inherit (builtins) elemAt readFile;
-  inherit (lib)
-    mkEnableOption
-    mkOption
-    mkIf
-    types
-    optionals
-    ;
-  inherit (lib.strings) splitString;
-  inherit (lib.rebellion) enabled get-file;
-
-  cfg = config.rebellion.services.kubernetes;
-  datacenter = elemAt (splitString "-" host) 0;
-  sopsFile = get-file "secrets/${datacenter}.sops.yaml";
-in
-{
-  options.rebellion.services.kubernetes = with types; {
-    enable = mkEnableOption "kubernetes";
-    role = mkOption {
-      type = enum [
-        "agent"
-        "server"
-      ];
-      default = "server";
-      description = "What kind of node is this? (A k3s `server` or `agent`?)";
-    };
-    is-first = mkEnableOption "set as 'first'.";
-    leader = mkOption {
-      type = nullOr str;
-      default = null;
-      description = "Hostname of the lead server in a multi-node setup.";
-    };
-    cidr = {
-      cluster = mkOption {
-        type = str;
-        description = "CIDR for Pods.";
-      };
-      service = mkOption {
-        type = str;
-        description = "CIDR for Servicees.";
-      };
-    };
-    services = {
-      coredns = {
-        enable = mkEnableOption "coredns";
-      };
-      kube-proxy = {
-        enable = mkEnableOption "kube-proxy";
-      };
-      flannel = {
-        enable = mkEnableOption "flannel";
-      };
-      flux = {
-        enable = mkEnableOption "flux";
-      };
-      service-lb = {
-        enable = mkEnableOption "service-lb";
-      };
-      traefik = {
-        enable = mkEnableOption "trefik";
-      };
-      local-io = {
-        enable = mkEnableOption "local IO";
-      };
-      metrics = {
-        enable = mkEnableOption "metrics-server";
-      };
-    };
-
-    helm = {
-      enable = mkEnableOption "helm";
-      completed-if = mkOption {
-        type = types.str;
-        description = ''
-          kubectl command condition meet when bootstrap is completed
-        '';
-      };
-      file = mkOption {
-        type = with types; str;
-        description = ''
-          Path to bootstrap helmfile
-        '';
-      };
-    };
-
-    minio = {
-      enable = mkEnableOption "minio";
-      buckets = mkOption {
-        type = with types; listOf str;
-        default = [
-          "volsync"
-          "postgres"
-        ];
-        description = ''
-          Bucket name.
-        '';
-      };
-      data-dir = mkOption {
-        default = [ "/var/lib/minio/data" ];
-        type = with types; listOf (either path str);
-        description = "The list of data directories or nodes for storing the objects.";
-      };
-    };
-  };
-
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "services.kubernetes";
+  description = "kubernetes";
   imports = [
     ./kubernetes/bootstrap-apps.nix
     ./kubernetes/bootstrap-minio.nix
   ];
-
-  config =
+  options =
+    { lib, ... }:
     let
+      inherit (lib) mkOption types;
+      inherit (lib.rebellion) mkopt-enable;
+    in
+    {
+      role = mkOption {
+        type = types.enum [
+          "agent"
+          "server"
+        ];
+        default = "server";
+        description = "What kind of node is this? (A k3s `server` or `agent`?)";
+      };
+      is-first = mkopt-enable "set as 'first'.";
+      leader = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Hostname of the lead server in a multi-node setup.";
+      };
+      cidr = {
+        cluster = mkOption {
+          type = types.str;
+          description = "CIDR for Pods.";
+        };
+        service = mkOption {
+          type = types.str;
+          description = "CIDR for Servicees.";
+        };
+      };
+      services = {
+        coredns = {
+          enable = mkopt-enable "coredns";
+        };
+        kube-proxy = {
+          enable = mkopt-enable "kube-proxy";
+        };
+        flannel = {
+          enable = mkopt-enable "flannel";
+        };
+        flux = {
+          enable = mkopt-enable "flux";
+        };
+        service-lb = {
+          enable = mkopt-enable "service-lb";
+        };
+        traefik = {
+          enable = mkopt-enable "trefik";
+        };
+        local-io = {
+          enable = mkopt-enable "local IO";
+        };
+        metrics = {
+          enable = mkopt-enable "metrics-server";
+        };
+      };
+
+      helm = {
+        enable = mkopt-enable "helm";
+        completed-if = mkOption {
+          type = types.str;
+          description = ''
+            kubectl command condition meet when bootstrap is completed
+          '';
+        };
+        file = mkOption {
+          type = types.str;
+          description = ''
+            Path to bootstrap helmfile
+          '';
+        };
+      };
+
+      minio = {
+        enable = mkopt-enable "minio";
+        buckets = mkOption {
+          type = types.listOf types.str;
+          default = [
+            "volsync"
+            "postgres"
+          ];
+          description = ''
+            Bucket name.
+          '';
+        };
+        data-dir = mkOption {
+          default = [ "/var/lib/minio/data" ];
+          type = types.listOf (types.either types.path types.str);
+          description = "The list of data directories or nodes for storing the objects.";
+        };
+      };
+    };
+  config =
+    {
+      cfg,
+      lib,
+      pkgs,
+      config,
+      host,
+      ...
+    }:
+    let
+      inherit (builtins) elemAt readFile;
+      inherit (lib) mkIf optionals;
+      inherit (lib.strings) splitString;
+      inherit (lib.rebellion) enabled;
+      inherit (lib.rebellion.file) get-file;
+
+      datacenter = elemAt (splitString "-" host) 0;
+      sopsFile = get-file "secrets/${datacenter}.sops.yaml";
+
       k3sAdmissionPlugins = [
         "DefaultStorageClass"
         "DefaultTolerationSeconds"
@@ -168,7 +168,7 @@ in
         k3sDesiredFlags
       ];
     in
-    mkIf cfg.enable {
+    {
       assertions = [
         {
           assertion = (cfg.is-first && cfg.leader == null) || (!cfg.is-first && cfg.leader != null);

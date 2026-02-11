@@ -1,44 +1,40 @@
-{
-  config,
-  lib,
-  inputs,
-  ...
-}:
-let
-  inherit (lib) mkIf;
-  inherit (lib.rebellion) get-file;
-  inherit (inputs) homebrew-fvm;
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "suites.development";
+  config =
+    {
+      config,
+      lib,
+      inputs,
+      ...
+    }:
+    let
+      inherit (lib) mkIf;
+      inherit (inputs) homebrew-fvm;
+      brew = config.rebellion.homebrew;
+    in
+    {
+      homebrew = mkIf brew.enable {
+        brews = [
+          "cocoapods"
+          "xcodegen"
+          "xcodes"
+          "leoafarias/fvm/fvm"
+        ];
 
-  cfg = config.rebellion.suites.development;
-  brew = config.rebellion.homebrew;
-in
-{
-  imports = [
-    (get-file "modules/common/suites/development.nix")
-  ];
+        casks = [
+          "flutter"
+          "powershell"
+          "beekeeper-studio"
+        ];
 
-  config = mkIf cfg.enable {
-    homebrew = mkIf brew.enable {
-      brews = [
-        "cocoapods"
-        "xcodegen"
-        "xcodes"
-        "leoafarias/fvm/fvm"
-      ];
+        masApps = mkIf brew.mas.enable {
+          "Playgrounds" = 1496833156;
+        };
+      };
 
-      casks = [
-        "flutter"
-        "powershell"
-        "beekeeper-studio"
-      ];
-
-      masApps = mkIf brew.mas.enable {
-        "Playgrounds" = 1496833156;
+      nix-homebrew = mkIf brew.enable {
+        taps."leoafarias/fvm" = homebrew-fvm;
       };
     };
-
-    nix-homebrew = mkIf brew.enable {
-      taps."leoafarias/fvm" = homebrew-fvm;
-    };
-  };
 }

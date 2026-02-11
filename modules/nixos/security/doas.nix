@@ -1,43 +1,29 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-with lib;
-with lib.rebellion;
-let
-  inherit (lib) mkEnableOption;
-  cfg = config.rebellion.security.doas;
-in
-{
-  options.rebellion.security.doas = {
-    enable = mkEnableOption "`doas` (`sudo` replacement)";
-  };
+{ lib, pkgs, ... }@args:
+lib.rebellion.mk-module args {
+  name = "security.doas";
+  description = "`doas` (`sudo` replacement)";
+  config =
+    { config, pkgs, ... }:
+    {
+      security.sudo.enable = lib.mkForce false;
 
-  config = mkIf cfg.enable {
-    # Disable sudo
-    security.sudo.enable = false;
-
-    environment.systemPackages = [
-      pkgs.doas-sudo-shim
-    ];
-
-    # Enable and configure `doas`.
-    security.doas = {
-      enable = true;
-      extraRules = [
-        {
-          users = [ config.rebellion.user.name ];
-          noPass = true;
-          keepEnv = true;
-        }
+      environment.systemPackages = [
+        pkgs.doas-sudo-shim
       ];
-    };
 
-    # Add an alias to the shell for backward-compat and convenience.
-    environment.shellAliases = {
-      sudo = "doas";
+      security.doas = {
+        enable = true;
+        extraRules = [
+          {
+            users = [ config.rebellion.user.name ];
+            noPass = true;
+            keepEnv = true;
+          }
+        ];
+      };
+
+      environment.shellAliases = {
+        sudo = "doas";
+      };
     };
-  };
 }

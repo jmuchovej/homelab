@@ -1,43 +1,33 @@
-{
-  config,
-  lib,
-  ...
-}:
-let
-  inherit (lib) mkIf mkEnableOption;
+{ lib, ... }@args:
+lib.rebellion.mk-module args {
+  name = "programs.tools.lazygit";
+  config =
+    { cfg, config, ... }:
+    {
+      programs.lazygit = {
+        enable = true;
 
-  cfg = config.rebellion.programs.tools.lazygit;
-in
-{
-  options.rebellion.programs.tools.lazygit = {
-    enable = mkEnableOption "lazygit";
-  };
-
-  config = mkIf cfg.enable {
-    programs.lazygit = {
-      enable = true;
-
-      settings = {
-        gui = {
-          authorColors = {
-            "${config.rebellion.user.fullName}" = "#c6a0f6";
-            "dependabot[bot]" = "#eed49f";
+        settings = {
+          gui = {
+            authorColors = {
+              "${config.rebellion.user.fullName}" = "#c6a0f6";
+              "dependabot[bot]" = "#eed49f";
+            };
+            branchColors = {
+              main = "#ed8796";
+              master = "#ed8796";
+              dev = "#8bd5ca";
+            };
+            nerdFontsVersion = "3";
           };
-          branchColors = {
-            main = "#ed8796";
-            master = "#ed8796";
-            dev = "#8bd5ca";
+          git = {
+            overrideGpg = true;
           };
-          nerdFontsVersion = "3";
-        };
-        git = {
-          overrideGpg = true;
         };
       };
-    };
 
-    home.shellAliases = {
-      lg = "lazygit";
+      home.shellAliases = {
+        lg = "lazygit";
+      };
     };
-  };
 }
