@@ -35,17 +35,24 @@ lib.rebellion.mk-module args {
   config =
     {
       cfg,
+      config,
       lib,
       pkgs,
       datacenter,
+      hostname,
       peers,
       ...
     }:
     let
       inherit (lib.strings) concatMapStringsSep;
+      inherit (lib.rebellion.network)
+        with-consul
+        mk-traefik-service
+        mk-healthcheck
+        ;
 
       # Generate retry-join list from datacenter peers
-      retry-join-peers = map (p: "${p.hostname}") peers;
+      retry-join-peers = map (p: "${p.hostname}.node.consul") peers;
 
       # Generate host_volume blocks for each volume
       host-volumes = concatMapStringsSep "\n" (vol: ''
@@ -83,8 +90,10 @@ lib.rebellion.mk-module args {
             data_dir = "/var/lib/nomad";
             log_level = "INFO";
 
-            # Bind to interface IP
-            bind_addr = "{{ GetInterfaceIP \"${cfg.interface}\" }}";
+            # Listen on all interfaces (advertise uses specific interface)
+            # TODO: once networking is sorted, lock down to specific iface
+            # bind_addr = "{{ GetInterfaceIP \"${cfg.interface}\" }}";
+            bind_addr = "0.0.0.0";
 
             advertise = {
               http = "{{ GetInterfaceIP \"${cfg.interface}\" }}";
@@ -281,5 +290,27 @@ lib.rebellion.mk-module args {
           ];
         };
       })
+
+      # Nomad UI service registration
+      (
+        let
+          service = mk-traefik-service {
+            inherit hostname datacenter;
+            port = cfg.ports.http;
+            name = "nomad-ui";
+            subdomain = "nomad";
+          };
+          healthcheck = mk-healthcheck service {
+            route = "/v1/agent/health";
+          };
+        in
+        with-consul config (
+          service
+          // {
+            checks = [ healthcheck ];
+            address = "127.0.0.1";
+          }
+        )
+      )
     ];
 }
