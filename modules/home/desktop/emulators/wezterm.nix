@@ -10,6 +10,15 @@ lib.rebellion.mk-desktop-module args {
       catppuccin = import (get-file "modules/home/theme/catppuccin/colors.part.nix");
     in
     {
+      rebellion.dock.entries = [
+        {
+          name = "WezTerm.app";
+          source = "hm";
+          group = "terminals";
+          order = 610;
+        }
+      ];
+
       programs.wezterm = {
         enable = true;
         package = pkgs.wezterm;

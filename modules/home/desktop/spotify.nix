@@ -5,5 +5,14 @@ lib.rebellion.mk-desktop-module args {
     { pkgs, ... }:
     {
       home.packages = [ pkgs.spotify ];
+
+      rebellion.dock.entries = [
+        {
+          name = "Spotify.app";
+          source = "applications";
+          group = "communication";
+          order = 230;
+        }
+      ];
     };
 }

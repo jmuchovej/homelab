@@ -23,6 +23,15 @@ lib.rebellion.mk-module args {
         dbeaver-bin
       ];
 
+      rebellion.dock.entries = [
+        {
+          name = "Bruno.app";
+          source = "hm";
+          group = "editors";
+          order = 520;
+        }
+      ];
+
       home.shellAliases = {
         prefetch-sri = "nix store prefetch-file $1";
         nrh = "${nr-bin} rev HEAD";

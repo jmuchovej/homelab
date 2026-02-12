@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }@args:
+{ lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "system.interface";
   config =
@@ -65,46 +65,6 @@ lib.rebellion.mk-module args {
         wvous-tr-corner = 1;
         wvous-bl-corner = 1;
         wvous-br-corner = 1;
-
-        persistent-apps =
-          let
-            # username = config.rebellion.user.name;
-            # homepath = config.users.users.${username}.home;
-            home-manager-apps = "/Users/${config.rebellion.user.name}/Applications/Home Manager Apps";
-          in
-          [
-            { app = "/System/Applications/System Settings.app"; }
-            { app = "/System/Applications/Utilities/Activity Monitor.app"; }
-            { spacer.small = true; }
-            { app = "/System/Applications/Messages.app"; }
-            { app = "/Applications/Beeper Desktop.app"; }
-            { app = "/Applications/Spotify.app"; }
-            { app = "/Applications/Things3.app"; }
-            # { app = "${pkgs.caprine-bin}/Applications/Caprine.app"; }
-            # { app = "${pkgs.element-desktop}/Applications/Element.app"; }
-            # { app = "${pkgs.discord}/Applications/Discord.app"; }
-            # { app = "/Applications/Thunderbird.app"; }
-            { spacer.small = true; }
-            # { app = "${pkgs.arc-browser}/Applications/Arc.app"; }
-            { app = "${home-manager-apps}/Brave Browser.app"; }
-            { app = "${home-manager-apps}/Firefox Developer Edition.app"; }
-            { app = "/Applications/Safari.app"; }
-            { spacer.small = true; }
-            { app = "/Applications/Obsidian.app"; }
-            { app = "${home-manager-apps}/Notion.app"; }
-            { app = "/Applications/Notion Calendar.app"; }
-            { app = "${home-manager-apps}/Logseq.app"; }
-            { app = "${home-manager-apps}/Appflowy.app"; }
-            { spacer.small = true; }
-            { app = "${home-manager-apps}/Zed.app"; }
-            # { app = "${home-manager-apps}/Visual Studio Code.app"; }
-            { app = "${home-manager-apps}/Bruno.app"; }
-            { app = "/Applications/TablePlus.app"; }
-            { spacer.small = true; }
-            { app = "${home-manager-apps}/WezTerm.app"; }
-            # { app = "${home-manager-apps}/Applications/Ghostty.app"; }
-            { app = "/Applications/Ghostty.app"; }
-          ];
       };
 
       # file viewer settings

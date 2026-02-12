@@ -1,10 +1,10 @@
 { lib, config, ... }:
 let
-  inherit (lib.rebellion) enabled disabled;
+  inherit (lib.rebellion) enabled;
 in
 {
   rebellion = {
-    system.nix = disabled;
+    system.nix = enabled;
     suites = {
       common = enabled;
       desktop = enabled;
@@ -19,8 +19,6 @@ in
       spotify = enabled;
     };
   };
-
-  nix.enable = false;
 
   environment.systemPath = [ "/opt/homebrew/bin" ];
 

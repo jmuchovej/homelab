@@ -5,5 +5,14 @@ lib.rebellion.mk-desktop-module args {
     { pkgs, ... }:
     {
       home.packages = [ pkgs.logseq ];
+
+      rebellion.dock.entries = [
+        {
+          name = "Logseq.app";
+          source = "hm";
+          group = "pkm";
+          order = 440;
+        }
+      ];
     };
 }

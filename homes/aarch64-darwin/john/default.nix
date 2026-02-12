@@ -22,9 +22,14 @@ in
     };
     desktop = enabled // {
       wezterm = mkDefault enabled;
+      brave = enabled;
+      # firefox = enabled;
       # ghostty = mkDefault enabled;
       # arc     = enabled;
       appflowy = enabled;
+      # anytype = enabled;
+      logseq = enabled;
+      obsidian = enabled;
     };
 
     shell = {
@@ -56,8 +61,58 @@ in
       authorized-keys = [ ];
     };
 
+    dock.entries = [
+      {
+        name = "System Settings.app";
+        source = "system";
+        group = "system";
+        order = 110;
+      }
+      {
+        path = "/System/Applications/Utilities/Activity Monitor.app";
+        group = "system";
+        order = 120;
+      }
+      {
+        name = "Messages.app";
+        source = "system";
+        group = "communication";
+        order = 210;
+      }
+      {
+        name = "Beeper Desktop.app";
+        source = "applications";
+        group = "communication";
+        order = 220;
+      }
+      {
+        name = "Things3.app";
+        source = "applications";
+        group = "communication";
+        order = 240;
+      }
+      {
+        name = "Safari.app";
+        source = "applications";
+        group = "browsers";
+        order = 330;
+      }
+      {
+        name = "Notion Calendar.app";
+        source = "applications";
+        group = "pkm";
+        order = 430;
+      }
+      {
+        name = "TablePlus.app";
+        source = "applications";
+        group = "editors";
+        order = 530;
+      }
+    ];
+
     homelab = enabled;
-    nix = disabled;
+    nix = enabled;
   };
 
   # ======================== DO NOT CHANGE THIS ========================

@@ -11,5 +11,14 @@ lib.rebellion.mk-desktop-module args {
       # extensions = with pkgs.chromium-extensions; [
       # ];
     };
+
+    rebellion.dock.entries = [
+      {
+        name = "Brave Browser.app";
+        source = "hm";
+        group = "browsers";
+        order = 310;
+      }
+    ];
   };
 }

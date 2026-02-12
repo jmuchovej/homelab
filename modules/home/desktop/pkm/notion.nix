@@ -5,5 +5,14 @@ lib.rebellion.mk-desktop-module args {
     { pkgs, ... }:
     {
       home.packages = [ pkgs.notion-app ];
+
+      rebellion.dock.entries = [
+        {
+          name = "Notion.app";
+          source = "hm";
+          group = "pkm";
+          order = 420;
+        }
+      ];
     };
 }

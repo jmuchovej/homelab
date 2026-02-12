@@ -15,6 +15,15 @@ lib.rebellion.mk-desktop-module args {
       inherit (lib) mkIf mkForce;
     in
     {
+      rebellion.dock.entries = [
+        {
+          name = "Zed.app";
+          source = "hm";
+          group = "editors";
+          order = 510;
+        }
+      ];
+
       home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "zed --wait");
 
       home.shellAliases = {
