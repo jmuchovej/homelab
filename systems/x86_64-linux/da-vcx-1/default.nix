@@ -48,7 +48,7 @@ in
         ollama.models = [
           "all-minilm"
           "codegemma"
-          "codellamma"
+          "codellama"
           "cogito"
           "deepseek-coder"
           "deepseek-r1"
@@ -92,7 +92,7 @@ in
           "qwen3-embedding"
           "qwen3-vl"
           "qwq"
-          "embeddinggema"
+          "embeddinggemma"
         ];
       };
     };
