@@ -1,7 +1,20 @@
 terraform {
   required_providers {
-    cloudflare = { source = "cloudflare/cloudflare" }
-    sops       = { source = "carlpett/sops" }
+    # https://registry.terraform.io/providers/carlpett/sops/latest
+    sops = {
+      source  = "carlpett/sops"
+      version = ">= 1.3.0"
+    }
+    # https://registry.terraform.io/providers/goauthentik/authentik/latest
+    authentik = {
+      source  = "goauthentik/authentik"
+      version = ">= 2025.12.0"
+    }
+    # https://registry.terraform.io/providers/cloudflare/cloudflare/latest
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = ">= 4.7.1"
+    }
   }
 }
 
@@ -17,14 +30,25 @@ locals {
 provider "sops" {
 }
 
-data "sops_file" "dc" {
-  source_file = "${path.root}/secrets/${local.datacenter}.sops.yaml"
+data "sops_file" "secrets" {
+  source_file = "${path.root}/secrets/secrets.sops.yaml"
 }
 
 provider "cloudflare" {
   api_token = data.sops_file.secrets.data["cloudflare.api-key"]
 }
 
+provider "authentik" {
+  url   = "https://id.${local.domain.dc}"
+  token = data.sops_file.secrets.data["authentik.token"]
+}
+
 module "cloudflare" {
   source = "./cloudflare"
+}
+
+module "authentik" {
+  source     = "./authentik"
+  domain     = local.domain
+  datacenter = local.datacenter
 }
