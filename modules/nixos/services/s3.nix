@@ -32,7 +32,6 @@ lib.rebellion.mk-module args {
         mk-authentik
         mk-openid-url
         ;
-      inherit (lib.lists) forEach;
       inherit (builtins) toString;
 
       svc-addr = 9500;
@@ -143,7 +142,9 @@ lib.rebellion.mk-module args {
 
             # `--region ${minio.region}`
             # `-p`  -- "ignore existing bucket/directory"
-            ${toString (forEach cfg.buckets (b: "mc mb --region ${minio.region} -p minio/${b}"))}
+            ${lib.concatMapStringsSep "\n" (
+              bucket: "mc mb --region ${minio.region} -p minio/${bucket}"
+            ) cfg.buckets}
           '';
         };
         systemd.services.consul = {
