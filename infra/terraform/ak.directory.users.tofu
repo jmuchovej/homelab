@@ -1,5 +1,15 @@
-data "authentik_user" "admin" {
-  username = "akadmin"
+import {
+  to = authentik_user.admin
+  id = 6 // pk
+}
+
+resource "authentik_user" "admin" {
+  username  = data.sops_file.users.data["admin.username"]
+  type      = "internal"
+  path      = "users"
+  name      = data.sops_file.users.data["admin.name"]
+  email     = data.sops_file.users.data["admin.email"]
+  is_active = true
 }
 
 data "authentik_users" "all" {}
@@ -8,6 +18,7 @@ locals {
   user-keys = nonsensitive(toset([
     for user in keys(data.sops_file.users.data) :
     split(".", user)[0]
+    if !startswith(user, "admin")
   ]))
   user-data = yamldecode(data.sops_file.users.raw)
 }
