@@ -4,10 +4,6 @@ data "authentik_user" "admin" {
 
 data "authentik_users" "all" {}
 
-data "sops_file" "users" {
-  source_file = "${path.root}/secrets/users.sops.yaml"
-}
-
 locals {
   user-keys = nonsensitive(toset([
     for user in keys(data.sops_file.users.data) :

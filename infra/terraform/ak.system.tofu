@@ -1,22 +1,28 @@
 resource "authentik_brand" "default" {
   default             = false
-  domain              = var.domain.dc
+  domain              = local.domain.dc
   branding_logo       = "media/public/icon.png"
   branding_favicon    = "media/public/icon.png"
   branding_title      = "The Rebellion"
-  flow_authentication = data.authentik_flow.authn.id
-  flow_user_settings  = data.authentik_flow.user-settings.id
+  flow_authentication = authentik_flow.authn.uuid
+  flow_invalidation   = authentik_flow.invalidation.uuid
+  flow_user_settings  = authentik_flow.user-settings.uuid
+  flow_recovery       = authentik_flow.recovery.uuid
+  flow_unenrollment   = authentik_flow.unenrollment.uuid
 }
 
 # Brand for external access via Cloudflare tunnel
 resource "authentik_brand" "external" {
   default             = false
-  domain              = var.domain.root
+  domain              = local.domain.root
   branding_logo       = "media/public/icon.png"
   branding_favicon    = "media/public/icon.png"
   branding_title      = "The Rebellion"
-  flow_authentication = data.authentik_flow.authn.id
-  flow_user_settings  = data.authentik_flow.user-settings.id
+  flow_authentication = authentik_flow.authn.uuid
+  flow_invalidation   = authentik_flow.invalidation.uuid
+  flow_user_settings  = authentik_flow.user-settings.uuid
+  flow_recovery       = authentik_flow.recovery.uuid
+  flow_unenrollment   = authentik_flow.unenrollment.uuid
 }
 
 resource "authentik_system_settings" "default" {
@@ -33,7 +39,7 @@ resource "authentik_system_settings" "default" {
 }
 
 resource "authentik_certificate_key_pair" "wildcard" {
-  name             = "Wildcard Certificate for ${var.domain.dc}"
+  name             = "Wildcard Certificate for ${local.domain.dc}"
   certificate_data = data.sops_file.dc.data["certs.lab.crt"]
   key_data         = data.sops_file.dc.data["certs.lab.key"]
 }

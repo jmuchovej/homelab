@@ -21,17 +21,29 @@ terraform {
 locals {
   datacenter = "da"
   domain = {
-    root = "${module.cloudflare.domain.name}"
-    dc   = "${local.datacenter}.${module.cloudflare.domain.name}"
-    cf   = module.cloudflare.domain
+    root = data.cloudflare_zone.domain.name
+    dc   = "${local.datacenter}.${data.cloudflare_zone.domain.name}"
+    cf   = data.cloudflare_zone.domain
   }
 }
 
 provider "sops" {
 }
 
+data "sops_file" "dc" {
+  source_file = "${path.root}/secrets/${local.datacenter}.sops.yaml"
+}
+
 data "sops_file" "secrets" {
   source_file = "${path.root}/secrets/secrets.sops.yaml"
+}
+
+data "sops_file" "authentik" {
+  source_file = "${path.root}/secrets/authentik.sops.yaml"
+}
+
+data "sops_file" "users" {
+  source_file = "${path.root}/secrets/users.sops.yaml"
 }
 
 provider "cloudflare" {
@@ -41,14 +53,4 @@ provider "cloudflare" {
 provider "authentik" {
   url   = "https://id.${local.domain.dc}"
   token = data.sops_file.secrets.data["authentik.token"]
-}
-
-module "cloudflare" {
-  source = "./cloudflare"
-}
-
-module "authentik" {
-  source     = "./authentik"
-  domain     = local.domain
-  datacenter = local.datacenter
 }
