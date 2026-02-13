@@ -10,6 +10,11 @@ terraform {
       source  = "goauthentik/authentik"
       version = ">= 2025.12.0"
     }
+    # https://registry.terraform.io/providers/hashicorp/consul/latest
+    consul = {
+      source  = "hashicorp/consul"
+      version = "~> 2.20"
+    }
     # https://registry.terraform.io/providers/cloudflare/cloudflare/latest
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -48,6 +53,10 @@ data "sops_file" "users" {
 
 provider "cloudflare" {
   api_token = data.sops_file.secrets.data["cloudflare.api-key"]
+}
+
+provider "consul" {
+  address = "https://consul.${local.domain.dc}"
 }
 
 provider "authentik" {
