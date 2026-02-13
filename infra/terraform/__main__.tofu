@@ -20,6 +20,11 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = ">= 4.7.1"
     }
+    # https://registry.terraform.io/providers/hashicorp/vault/latest
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 5.0"
+    }
   }
 }
 
@@ -62,4 +67,12 @@ provider "consul" {
 provider "authentik" {
   url   = "https://id.${local.domain.dc}"
   token = data.sops_file.secrets.data["authentik.token"]
+}
+
+provider "vault" {
+  address = "https://vault.${local.domain.dc}"
+  auth_login_userpass {
+    username = "admin"
+    password = data.sops_file.dc.data["openbao.admin-pass"]
+  }
 }
