@@ -86,61 +86,41 @@
 
   outputs =
     inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
+    let
+      lib = import ./src/lib { inherit inputs; };
+    in
+    lib.rebellion.mk-flake {
+      inherit inputs;
+      src = ./.;
+
+      overlays = with inputs; [
+        nur.overlays.default
+        topology.overlays.default
+        nix-vscode-extensions.overlays.default
+        mcp-servers.overlays.default
       ];
 
-      imports = [
-        ./flake
-      ];
-
-      rebellion = {
-        overlays = with inputs; [
-          nur.overlays.default
-          topology.overlays.default
-          nix-vscode-extensions.overlays.default
-          mcp-servers.overlays.default
+      modules = with inputs; {
+        nixos = [
+          home-manager.nixosModules.home-manager
+          sops-nix.nixosModules.sops
+          disko.nixosModules.disko
+          topology.nixosModules.default
+          catppuccin.nixosModules.catppuccin
+          nix-index-database.nixosModules.nix-index
+          authentik-nix.nixosModules.default
         ];
-        modules = {
-          homes = with inputs; [
-            nix-index-database.homeModules.nix-index
-            catppuccin.homeModules.catppuccin
-            sops-nix.homeManagerModules.sops
-          ];
-          macos = with inputs; [
-            # { nix.linux-builder.enable = true; }
-            # nix-rosetta-builder.darwinModules.default
-            home-manager.darwinModules.home-manager
-            sops-nix.darwinModules.sops
-            nix-homebrew.darwinModules.nix-homebrew
-          ];
-          nixos = with inputs; [
-            # This is needed for `impermanence` to work.
-            # { fileSystems."/persist".neededForBoot = true; }
-            home-manager.nixosModules.home-manager
-            # lanzaboote.nixosModules.lanzaboote
-            sops-nix.nixosModules.sops
-            disko.nixosModules.disko
-            topology.nixosModules.default
-            catppuccin.nixosModules.catppuccin
-            nix-index-database.nixosModules.nix-index
-            authentik-nix.nixosModules.default
-          ];
-        };
+        macos = [
+          home-manager.darwinModules.home-manager
+          sops-nix.darwinModules.sops
+          nix-homebrew.darwinModules.nix-homebrew
+        ];
+        homes = [
+          nix-index-database.homeModules.nix-index
+          catppuccin.homeModules.catppuccin
+          sops-nix.homeManagerModules.sops
+        ];
       };
 
-      # topology = with inputs; let
-      #   node-name = builtins.head (builtins.attrNames self.nixosConfigurations);
-      #   host = self.nixosConfigurations.${node-name};
-      # in import topology {
-      #   inherit (host) pkgs;
-      #   modules = [
-      #     (import ./topology { inherit (host) config; })
-      #     { inherit (self) nixosConfigurations; }
-      #   ];
-      # };
     };
 }
