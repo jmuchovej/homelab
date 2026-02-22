@@ -7,28 +7,27 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     with lib.types;
     let
-      inherit (lib.rebellion) mkopt mkopt-bool;
+      inherit (lib.rebellion.options) mk mk-enable;
     in
     {
-      datacenter = mkopt str "da" "Nomad datacenter name";
-      region = mkopt str "da" "Nomad region name";
-      server = mkopt-bool false "Enable Nomad server mode";
-      client = mkopt-bool true "Enable Nomad client mode";
-      bootstrap-expect = mkopt int 3 "Number of servers to wait for before bootstrapping";
-      ui = mkopt-bool true "Enable Nomad web UI";
-      interface = mkopt str "enp1s0" "Network interface to bind Nomad";
+      datacenter = mk str "da" "Nomad datacenter name";
+      region = mk str "da" "Nomad region name";
+      server = mk-enable "Nomad Server mode" false;
+      client = mk-enable "Nomad Client mode" true;
+      bootstrap-expect = mk int 3 "Number of servers to wait for before bootstrapping";
+      ui = mk-enable "Nomad WebUI" true;
+      interface = mk str "enp1s0" "Network interface to bind Nomad";
 
-      consul = {
-        enable = mkopt-bool true "Enable Consul integration";
-        address = mkopt str "127.0.0.1:8500" "Consul HTTP address";
+      consul = (mk-enable "Consul integration" true) // {
+        address = mk str "127.0.0.1:8500" "Consul HTTP address";
       };
 
-      volumes = mkopt (listOf str) [ ] "List of host volume paths to expose";
+      volumes = mk (listOf str) [ ] "List of host volume paths to expose";
 
       ports = {
-        http = mkopt port 4646 "HTTP API port";
-        rpc = mkopt port 4647 "RPC port";
-        serf = mkopt port 4648 "Serf port";
+        http = mk port 4646 "HTTP API port";
+        rpc = mk port 4647 "RPC port";
+        serf = mk port 4648 "Serf port";
       };
     };
 
@@ -67,7 +66,7 @@ lib.rebellion.mk-module args {
         environment.systemPackages = [ pkgs.nomad ];
 
         # Enable Podman for Nomad client
-        rebellion.virtualization.containers = lib.mkIf cfg.client {
+        rebellion.virtualization.containers = lib.mkIf cfg.client.enable {
           enable = true;
         };
 
@@ -108,7 +107,7 @@ lib.rebellion.mk-module args {
             };
 
             # Server configuration
-            server = lib.mkIf cfg.server {
+            server = lib.mkIf cfg.server.enable {
               enabled = true;
               bootstrap_expect = cfg.bootstrap-expect;
 
@@ -130,7 +129,7 @@ lib.rebellion.mk-module args {
             };
 
             # Client configuration
-            client = lib.mkIf cfg.client {
+            client = lib.mkIf cfg.client.enable {
               enabled = true;
               network_interface = cfg.interface;
               node_class = "compute";
@@ -161,7 +160,7 @@ lib.rebellion.mk-module args {
 
             # UI
             ui = {
-              enabled = cfg.ui;
+              enabled = cfg.ui.enable;
               consul = lib.mkIf cfg.consul.enable {
                 ui_url = "https://consul.${datacenter}.jm0.io";
               };
@@ -214,7 +213,7 @@ lib.rebellion.mk-module args {
         };
 
         # Enable Podman socket for Nomad
-        systemd.sockets.podman.enable = lib.mkIf cfg.client true;
+        systemd.sockets.podman.enable = lib.mkIf cfg.client.enable true;
 
         # Firewall configuration
         networking.firewall = {
@@ -248,7 +247,7 @@ lib.rebellion.mk-module args {
       }
 
       # Consul Connect integration (requires CNI plugins)
-      (lib.mkIf (cfg.consul.enable && cfg.client) {
+      (lib.mkIf (cfg.consul.enable && cfg.client.enable) {
         # CNI configuration for Consul Connect
         environment.etc."cni/net.d/10-consul-connect.conflist".text = builtins.toJSON {
           cniVersion = "0.4.0";

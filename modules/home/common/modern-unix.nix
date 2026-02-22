@@ -86,28 +86,6 @@ lib.rebellion.mk-module args {
       programs.nix-index = enabled;
       programs.nix-your-shell = enabled;
 
-      # region bat #############################################################
-      programs.bat = {
-        enable = true;
-
-        config = {
-        };
-
-        extraPackages = with pkgs.bat-extras; [
-          batdiff
-          batgrep
-          batman
-          batpipe
-          batwatch
-          prettybat
-        ];
-      };
-
-      home.shellAliases = {
-        cat = "bat";
-      };
-      # endregion ##############################################################
-
       # region eza #############################################################
       programs.eza = {
         enable = true;

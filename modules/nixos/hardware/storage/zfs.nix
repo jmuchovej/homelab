@@ -6,12 +6,10 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     let
       inherit (lib) mkOption types;
-      inherit (lib.rebellion) mkopt-enable;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
-      auto-snapshot = {
-        enable = mkopt-enable "ZFS auto-snapshotting";
-      };
+      auto-snapshot = mk-enable' "ZFS auto-snapshotting";
       pools = mkOption {
         type = types.listOf types.str;
         default = [ ];

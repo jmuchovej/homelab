@@ -2,7 +2,7 @@
 lib.rebellion.mk-desktop-module args {
   name = "editor.zed";
   options = with lib.rebellion; {
-    default = mkopt-enable "Zed as the default $EDITOR";
+    default = mk-bool false "Enable Zed as the default $EDITOR.";
   };
   config =
     {
@@ -32,10 +32,11 @@ lib.rebellion.mk-desktop-module args {
 
       programs.zed-editor =
         let
-          inherit (lib.rebellion) import-dir merge-attrs;
+          inherit (lib.rebellion) import-dir attrs;
+
           languages-lsps = import-dir ./zed/languages-lsps { inherit lib pkgs; };
           zed = import-dir ./zed { inherit lib; };
-          settings = merge-attrs [
+          settings = attrs.merge-deep [
             zed.settings
             languages-lsps.settings
           ];

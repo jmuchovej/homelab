@@ -5,16 +5,16 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     let
       inherit (lib.types) attrs enum;
-      inherit (lib.rebellion) mkopt mkopt-enable;
+      inherit (lib.rebellion.options) mk mk-enable';
     in
     {
-      hosts = mkopt attrs { } "An attribute set to merge with <option>networking.hosts</option>";
-      optimize-tcp = mkopt-enable "optimize TCP connections";
-      dns = mkopt (enum [
+      hosts = mk attrs { } "An attribute set to merge with <option>networking.hosts</option>";
+      optimize-tcp = mk-enable' "optimize TCP connections";
+      dns = mk (enum [
         "dnsmasq"
         "systemd-resolved"
       ]) "systemd-resolved" "DNS resolver to use";
-      manager = mkopt (enum [
+      manager = mk (enum [
         "networkmanager"
         "systemd-networkd"
       ]) "systemd-networkd" "Network manager to use";
@@ -43,7 +43,7 @@ lib.rebellion.mk-module args {
         kernelModules = [
           "af_packet"
         ]
-        ++ optionals cfg.optimize-tcp [
+        ++ optionals cfg.optimize-tcp.enable [
           "tls"
           "tcp_bbr"
         ];

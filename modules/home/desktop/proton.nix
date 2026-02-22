@@ -1,15 +1,19 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-desktop-module args {
   name = "desktop.proton";
-  options = with lib.rebellion; {
-    mail = mkopt-nested {
-      desktop = mkopt-enable "ProtonMail Desktop";
-      bridge = mkopt-enable "ProtonMail Bridge";
-    };
+  options =
+    let
+      inherit (lib.rebellion.options) mk-enable';
+    in
+    {
+      mail = {
+        desktop = mk-enable' "ProtonMail Desktop";
+        bridge = mk-enable' "ProtonMail Bridge";
+      };
 
-    vpn = mkopt-enable "Proton VPN";
-    pass = mkopt-enable "Proton Pass";
-  };
+      vpn = mk-enable' "Proton VPN";
+      pass = mk-enable' "Proton Pass";
+    };
   conditions =
     { cfg, ... }:
     cfg.mail.desktop.enable || cfg.mail.bridge.enable || cfg.vpn.enable || cfg.pass.enable;

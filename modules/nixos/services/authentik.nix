@@ -131,7 +131,7 @@ lib.rebellion.mk-module args {
 
       (
         let
-          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion) attrs;
           inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
           service-base = mk-traefik-service {
             inherit hostname datacenter;
@@ -143,7 +143,7 @@ lib.rebellion.mk-module args {
             "Host(`id.jm0.io`)"
             "Host(`id.${datacenter}.jm0.io`)"
           ];
-          service = merge-attrs [
+          service = attrs.merge-deep [
             service-base
             {
               pub.config.rule = rule;

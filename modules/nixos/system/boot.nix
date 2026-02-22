@@ -5,19 +5,13 @@ lib.rebellion.mk-module args {
   options =
     { lib, ... }:
     let
-      inherit (lib.rebellion) mkopt-enable;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
       boot = {
-        plymouth = {
-          enable = mkopt-enable "plymouth boot splash";
-        };
-        secure-boot = {
-          enable = mkopt-enable "secure boot";
-        };
-        silent-boot = {
-          enable = mkopt-enable "silent boot";
-        };
+        plymouth = mk-enable' "plymouth boot splash";
+        secure-boot = mk-enable' "secure boot";
+        silent-boot = mk-enable' "silent boot";
       };
     };
   config =
@@ -29,7 +23,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) optionals;
-      inherit (lib.rebellion) default-attrs;
+      inherit (lib.rebellion) attrs;
     in
     {
       environment.systemPackages =
@@ -94,7 +88,7 @@ lib.rebellion.mk-module args {
           # themePackages = [ pkgs.catppuccin-plymouth ];
         };
 
-        tmp = default-attrs {
+        tmp = attrs.mk-default {
           useTmpfs = true;
           cleanOnBoot = true;
           tmpfsSize = "50%";

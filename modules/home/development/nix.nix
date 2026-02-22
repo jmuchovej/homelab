@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         jnoortheen.nix-ide
@@ -18,7 +18,7 @@ lib.rebellion.mk-module args {
       ];
       vsc-user-settings = { };
 
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         # https://github.com/zed-extensions/nix
         extensions = [ "nix" ];
         packages = with pkgs; [

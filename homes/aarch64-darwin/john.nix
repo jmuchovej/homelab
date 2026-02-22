@@ -61,6 +61,8 @@ in
       authorized-keys = [ ];
     };
 
+    tools.onepassword-cli.ssh-socket = enabled;
+
     dock.entries = [
       {
         name = "System Settings.app";

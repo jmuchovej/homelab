@@ -6,7 +6,7 @@ lib.rebellion.mk-module args {
     with lib.types;
     let
       inherit (pkgs.stdenv) isDarwin;
-      inherit (lib.rebellion) mkopt mkopt-enable;
+      inherit (lib.rebellion) options;
 
       home-directory =
         if cfg.user.name == null then
@@ -18,17 +18,17 @@ lib.rebellion.mk-module args {
     in
     {
       # host = {
-      #   name = mkopt (nullOr str) host "The hostname";
+      #   name = options.mk (nullOr str) host "The hostname";
       # };
 
       user = {
-        name = mkopt (nullOr str) null "Username";
-        home = mkopt (nullOr path) home-directory "Home directory";
-        real-name = mkopt (nullOr str) null "Your real name";
+        name = options.mk (nullOr str) null "Username";
+        home = options.mk (nullOr path) home-directory "Home directory";
+        real-name = options.mk (nullOr str) null "Your real name";
       };
 
       nix = {
-        enable = mkopt-enable "configuring nix";
+        enable = options.mk-bool' false;
       };
     };
   config =
@@ -57,7 +57,7 @@ lib.rebellion.mk-module args {
 
         shell.zsh = enabled;
         editor.neovim = enabled // {
-          default = mkDefault true;
+          default = mkDefault enabled;
         };
       };
     };

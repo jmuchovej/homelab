@@ -7,24 +7,24 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     with lib.types;
     let
-      inherit (lib.rebellion) mkopt mkopt-bool;
+      inherit (lib.rebellion.options) mk mk-bool;
     in
     {
       # Consul cluster configuration (extends nixos services.consul)
       consul = {
-        server = mkopt-bool false "Run as Consul server (vs client)";
-        bootstrap-expect = mkopt int 3 "Number of servers to wait for before bootstrapping cluster";
-        acl-enabled = mkopt-bool false "Enable ACLs";
-        interface = mkopt str "enp1s0" "Network interface to bind VIP to";
+        server = mk-bool false "Run as Consul server (vs client)";
+        bootstrap-expect = mk int 3 "Number of servers to wait for before bootstrapping cluster";
+        acl-enabled = mk-bool false "Enable ACLs";
+        interface = mk str "enp1s0" "Network interface to bind VIP to";
       };
 
       # VIP failover configuration (extends nixos services.keepalived)
       vip = {
-        address = mkopt str "10.69.1.1" "Virtual IP address for ingress";
-        prefix = mkopt int 16 "Network prefix length (e.g., 16 for /16)";
-        router-id = mkopt int 51 "VRRP router ID (must be same across all nodes)";
-        priority = mkopt int 100 "VRRP priority (higher = preferred master)";
-        preempt = mkopt-bool false "Whether higher priority node should reclaim VIP";
+        address = mk str "10.69.1.1" "Virtual IP address for ingress";
+        prefix = mk int 16 "Network prefix length (e.g., 16 for /16)";
+        router-id = mk int 51 "VRRP router ID (must be same across all nodes)";
+        priority = mk int 100 "VRRP priority (higher = preferred master)";
+        preempt = mk-bool false "Whether higher priority node should reclaim VIP";
       };
     };
 

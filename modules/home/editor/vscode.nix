@@ -1,8 +1,8 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-desktop-module args {
   name = "editor.vscode";
-  options = with lib.rebellion; {
-    default = mkopt-enable "VSCode as the default $EDITOR";
+  options = with lib.rebellion.options; {
+    default = mk-enable' "VSCode as the default $EDITOR";
   };
   config =
     {
@@ -50,7 +50,7 @@ lib.rebellion.mk-desktop-module args {
       desired-fonts-str = concatStringsSep ", " desired-fonts;
     in
     {
-      home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "vscode --wait");
+      home.sessionVariables.EDITOR = mkIf cfg.default.enable (mkForce "vscode --wait");
 
       programs.vscode = {
         enable = true;

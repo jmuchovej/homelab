@@ -40,17 +40,16 @@ lib.rebellion.mk-module args {
 
         systemd.services.qbittorrent.serviceConfig.SupplementaryGroups = [ "proton" ];
       }
-
       (
         let
-          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion) attrs;
           inherit (lib.rebellion.network)
             with-consul
             mk-authd-traefik-service
             mk-healthcheck
             mk-authentik
             ;
-          service = merge-attrs [
+          service = attrs.merge-deep [
             (mk-authd-traefik-service {
               inherit hostname datacenter;
               name = "qbittorrent";

@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         julialang.language-julia
@@ -24,7 +24,7 @@ lib.rebellion.mk-module args {
 
       # https://zed.dev/docs/languages/julia
       # https://github.com/JuliaEditorSupport/zed-julia
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         extensions = [ "julia" ];
         packages = with pkgs; [ julia-bin ];
         settings = {

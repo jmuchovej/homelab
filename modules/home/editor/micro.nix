@@ -1,9 +1,13 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "editor.micro";
-  options = with lib.rebellion; {
-    default = mkopt-enable "micro as the default $EDITOR";
-  };
+  options =
+    let
+      inherit (lib.rebellion.options) mk-enable';
+    in
+    {
+      default = mk-enable' "`micro` as the default $EDITOR";
+    };
   config =
     {
       cfg,
@@ -13,6 +17,7 @@ lib.rebellion.mk-module args {
     let
       inherit (lib)
         mkIf
+        mkForce
         cleanSourceWith
         cleanSource
         hasSuffix
@@ -26,13 +31,13 @@ lib.rebellion.mk-module args {
         };
       };
 
-      programs.bash.shellAliases.vimdiff = mkIf cfg.default "micro -d";
-      programs.fish.shellAliases.vimdiff = mkIf cfg.default "micro -d";
-      programs.zsh.shellAliases.vimdiff = mkIf cfg.default "micro -d";
+      programs.bash.shellAliases.vimdiff = mkIf cfg.default.enable "micro -d";
+      programs.fish.shellAliases.vimdiff = mkIf cfg.default.enable "micro -d";
+      programs.zsh.shellAliases.vimdiff = mkIf cfg.default.enable "micro -d";
 
-      # home.sessionVariables = {
-      #   EDITOR = mkIf cfg.default "micro";
-      # };
+      home.sessionVariables = {
+        EDITOR = mkIf cfg.default.enable (mkForce "micro");
+      };
 
       xdg.configFile."micro/colorschemes" = {
         source = cleanSourceWith {

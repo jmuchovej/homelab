@@ -4,10 +4,10 @@ lib.rebellion.mk-module args {
   options =
     let
       inherit (lib.types) enum;
-      inherit (lib.rebellion) mkopt;
+      inherit (lib.rebellion.options) mk;
     in
     {
-      location = mkopt (enum [
+      location = mk (enum [
         "SE-US#1"
         "CH-US#3"
       ]) "SE-US#1" "Which ProtonVPN server to use";
@@ -21,15 +21,16 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (lib.rebellion.file) get-file;
+      inherit (lib.rebellion.fs) get-secret';
+      inherit (lib.rebellion) attrs;
       inherit (lib) getExe getExe';
 
       ip = getExe' pkgs.iproute2 "ip";
-      iptables = getExe' pkgs.iptables "iptables";
-      ip6tables = getExe' pkgs.iptables "ip6tables";
+      ip4t = getExe' pkgs.iptables "iptables";
+      ip6t = getExe' pkgs.iptables "ip6tables";
 
-      vpn-mark = 42;
-      vpn-table = 200;
+      vpn-mark = toString 42;
+      vpn-table = toString 200;
 
       allowedIPs = [
         "0.0.0.0/0"
@@ -57,65 +58,67 @@ lib.rebellion.mk-module args {
         ];
       };
     in
-    {
-      sops.secrets."proton/vpn/${cfg.location}".sopsFile = get-file "secrets/secrets.sops.yaml";
+    lib.mkMerge [
+      (get-secret' config "proton/vpn/${cfg.location}")
+      {
 
-      # Create 'vpn' group for policy-based routing
-      users.groups.proton = { };
+        # Create 'vpn' group for policy-based routing
+        users.groups.proton = { };
 
-      # Policy-based routing: route traffic from 'vpn' group through proton0
-      networking.wg-quick.interfaces.proton0 = lib.recursiveUpdate {
-        address = [ "10.2.0.2/32" ];
-        dns = [ "10.2.0.1" ];
+        # Policy-based routing: route traffic from 'vpn' group through proton0
+        networking.wg-quick.interfaces.proton0 = attrs.merge-deep {
+          address = [ "10.2.0.2/32" ];
+          dns = [ "10.2.0.1" ];
 
-        table = "off";
+          table = "off";
 
-        # Setup policy-based routing after interface comes up
-        postUp = ''
-          # Create separate routing table for proton traffic
-          ${ip} route add default dev proton0 table ${toString vpn-table}
+          # Setup policy-based routing after interface comes up
+          postUp = ''
+            # Create separate routing table for proton traffic
+            ${ip} route add default dev proton0 table ${vpn-table}
 
-          # Rule: packets with mark ${toString vpn-mark} use proton table
-          ${ip} rule add fwmark ${toString vpn-mark} table ${toString vpn-table}
-          ${ip} -6 rule add fwmark ${toString vpn-mark} table ${toString vpn-table}
+            # Rule: packets with mark ${vpn-mark} use proton table
+            ${ip} rule add fwmark ${vpn-mark} table ${vpn-table}
+            ${ip} -6 rule add fwmark ${vpn-mark} table ${vpn-table}
 
-          # Prevent proton interface traffic from being marked (avoid loops)
-          ${ip} rule add oif proton0 lookup main pref 10
-          ${ip} -6 rule add oif proton0 lookup main pref 10
+            # Prevent proton interface traffic from being marked (avoid loops)
+            ${ip} rule add oif proton0 lookup main pref 10
+            ${ip} -6 rule add oif proton0 lookup main pref 10
 
-          # Mark packets from 'proton' group with fwmark ${toString vpn-mark}
-          ${iptables} -t mangle -A OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${toString vpn-mark}
-          ${ip6tables} -t mangle -A OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${toString vpn-mark}
-        '';
+            # Mark packets from 'proton' group with fwmark ${vpn-mark}
+            ${ip4t} -t mangle -A OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${vpn-mark}
+            ${ip6t} -t mangle -A OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${vpn-mark}
+          '';
 
-        # Cleanup when interface goes down
-        postDown = ''
-          ${iptables} -t mangle -D OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${toString vpn-mark} || true
-          ${ip6tables} -t mangle -D OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${toString vpn-mark} || true
+          # Cleanup when interface goes down
+          postDown = ''
+            ${ip4t} -t mangle -D OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${vpn-mark} || true
+            ${ip6t} -t mangle -D OUTPUT -m owner --gid-owner proton -j MARK --set-mark ${vpn-mark} || true
 
-          ${ip} rule del fwmark ${toString vpn-mark} table ${toString vpn-table} || true
-          ${ip} -6 rule del fwmark ${toString vpn-mark} table ${toString vpn-table} || true
+            ${ip} rule del fwmark ${vpn-mark} table ${toString vpn-table} || true
+            ${ip} -6 rule del fwmark ${vpn-mark} table ${toString vpn-table} || true
 
-          ${ip} rule del oif proton0 lookup main pref 10 || true
-          ${ip} -6 rule del oif proton0 lookup main pref 10 || true
+            ${ip} rule del oif proton0 lookup main pref 10 || true
+            ${ip} -6 rule del oif proton0 lookup main pref 10 || true
 
-          ${ip} route del default dev proton0 table ${toString vpn-table} || true
-        '';
-      } proton-vpn."${cfg.location}";
+            ${ip} route del default dev proton0 table ${vpn-table} || true
+          '';
+        } proton-vpn."${cfg.location}";
 
-      # Wrapper script to run programs through VPN
-      environment.systemPackages = [
-        (pkgs.writeShellScriptBin "proton-exec" ''
-          # Determine current user
-          if [ -n "$SUDO_USER" ]; then
-            EXEC_USER="$SUDO_USER"
-          else
-            EXEC_USER="$USER"
-          fi
+        # Wrapper script to run programs through VPN
+        environment.systemPackages = [
+          (pkgs.writeShellScriptBin "proton-exec" ''
+            # Determine current user
+            if [ -n "$SUDO_USER" ]; then
+              EXEC_USER="$SUDO_USER"
+            else
+              EXEC_USER="$USER"
+            fi
 
-          # Run command as current user but in 'vpn' group
-          exec ${getExe pkgs.sudo} -u "$EXEC_USER" -g proton "$@"
-        '')
-      ];
-    };
+            # Run command as current user but in 'vpn' group
+            exec ${getExe pkgs.sudo} -u "$EXEC_USER" -g proton "$@"
+          '')
+        ];
+      }
+    ];
 }

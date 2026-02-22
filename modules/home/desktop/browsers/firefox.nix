@@ -3,8 +3,8 @@ lib.rebellion.mk-desktop-module args {
   name = "desktop.firefox";
   options =
     { config, pkgs, ... }:
-    with lib.types;
     let
+      inherit (lib.rebellion.options) mk mk-enable';
       default-extensions = with config.nur.repos.rycee.firefox-addons; [
         # angular-devtools
         # auto-tab-discard
@@ -144,39 +144,16 @@ lib.rebellion.mk-desktop-module args {
         };
       };
     in
+    with lib.types;
     {
-      extensions = mkOption {
-        type = listOf package;
-        default = default-extensions;
-        description = "Extensions to install";
-      };
-      extra-config = mkOption {
-        type = str;
-        default = "";
-        description = "Extra configuration for the user profile JS file.";
-      };
-      gpu-acceleration = mkEnableOption "Enable GPU acceleration.";
-      hardware-decoding = mkEnableOption "Enable hardware video decoding.";
-      policies = mkOption {
-        type = attrs;
-        default = default-policies;
-        description = "Policies to apply to Firefox.";
-      };
-      search = mkOption {
-        type = attrs;
-        default = default-search;
-        description = "Search configuration";
-      };
-      settings = mkOption {
-        type = attrs;
-        default = { };
-        description = "Settings to apply to the profile.";
-      };
-      userChrome = mkOption {
-        type = str;
-        default = "";
-        description = "Extra configuration for the user chrome CSS file.";
-      };
+      extensions = mk (listOf package) default-extensions "Extensions to install";
+      extra-config = mk str "" "Extra configuration for the User Profile JS";
+      gpu-acceleration = mk-enable' "GPU Acceleration";
+      hardware-decoding = mk-enable' "Hardware Video Decoding";
+      policies = mk attrs default-policies "Policies to apply to Firefox";
+      search = mk attrs default-search "Search configuration";
+      settings = mk attrs { } "Settings to apply to the profile";
+      user-chrome = mk str "" "Extra configuration for the User Chrome CSS file.";
     };
   config =
     {
@@ -200,6 +177,15 @@ lib.rebellion.mk-desktop-module args {
       #   }
       # ]);
 
+      rebellion.dock.entries = [
+        {
+          name = "Firefox Developer Edition.app";
+          source = "hm";
+          group = "browsers";
+          order = 320;
+        }
+      ];
+
       programs.firefox = {
         enable = true;
         package = if isLinux then pkgs.firefox-devedition else null;
@@ -213,8 +199,9 @@ lib.rebellion.mk-desktop-module args {
           };
 
           ${config.rebellion.user.name} = {
-            inherit (cfg) extraConfig extensions search;
+            inherit (cfg) extensions search;
             inherit (config.rebellion.user) name;
+            extraConfig = cfg.extra-config;
 
             id = 1;
 
@@ -269,13 +256,13 @@ lib.rebellion.mk-desktop-module args {
                 "signon.management.page.breach-alerts.enabled" = false;
                 "xpinstall.signatures.required" = false;
               }
-              (optionalAttrs cfg.gpu-acceleration {
+              (optionalAttrs cfg.gpu-acceleration.enable {
                 "dom.webgpu.enabled" = true;
                 "gfx.webrender.all" = true;
                 "layers.gpu-process.enabled" = true;
                 "layers.mlgpu.enabled" = true;
               })
-              (optionalAttrs cfg.hardware-decoding {
+              (optionalAttrs cfg.hardware-decoding.enable {
                 "media.ffmpeg.vaapi.enabled" = true;
                 "media.gpu-process-decoder" = true;
                 "media.hardware-video-decoding.enabled" = true;
@@ -286,7 +273,7 @@ lib.rebellion.mk-desktop-module args {
             # userChrome =
             #   builtins.readFile ./chrome/userChrome.css
             #   + ''
-            #     ${cfg.userChrome}
+            #     ${cfg.user-chrome}
             #   '';
           };
         };

@@ -5,14 +5,17 @@ lib.rebellion.mk-module args {
     { config, lib, ... }:
     let
       inherit (lib.types) path listOf;
-      inherit (lib.rebellion) mkopt get-file;
+      inherit (lib.rebellion) options;
+      inherit (lib.rebellion.fs) get-file;
 
       username = config.rebellion.user.name;
       default-sops-file = get-file "secrets/homes/${username}.sops.yaml";
     in
     {
-      defaultSopsFile = mkopt path default-sops-file "Default sops file.";
-      sshKeyPaths = mkopt (listOf path) [ "/etc/ssh/ssh_host_ed25519_key" ] "SSH Key paths to use.";
+      default-sops-file = options.mk path default-sops-file "Default sops file.";
+      ssh-key-paths = options.mk (listOf path) [
+        "/etc/ssh/ssh_host_ed25519_key"
+      ] "SSH Key paths to use.";
     };
   config =
     {
@@ -29,14 +32,14 @@ lib.rebellion.mk-module args {
       ];
 
       sops = {
-        inherit (cfg) defaultSopsFile;
+        defaultSopsFile = cfg.default-sops-file;
         defaultSopsFormat = "yaml";
 
         age = {
           # TODO(jmuchovej): re-enable once `lab` has an SSH key to write
           # generateKey = true;
           keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-          sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ] ++ cfg.sshKeyPaths;
+          sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ] ++ cfg.ssh-key-paths;
         };
 
         secrets."nix".path = "${config.home.homeDirectory}/.config/nix/nix.conf";

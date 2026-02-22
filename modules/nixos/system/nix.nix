@@ -1,7 +1,7 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
   namespace = "system";
-  imports = [ (lib.rebellion.get-file "modules/common/system/nix.nix") ];
+  imports = [ (lib.rebellion.fs.get-file "modules/common/system/nix.nix") ];
   config =
     { lib, ... }:
     {

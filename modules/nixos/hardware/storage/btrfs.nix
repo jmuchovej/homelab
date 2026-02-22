@@ -6,18 +6,18 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     let
       inherit (lib) mkOption types;
-      inherit (lib.rebellion) mkopt-enable;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
-      auto-scrub = mkopt-enable "btrfs autoScrub";
-      dedupe = mkopt-enable "btrfs deduplication";
+      auto-scrub = mk-enable' "btrfs autoScrub";
+      dedupe = mk-enable' "btrfs deduplication";
       dedupe-filesystems = mkOption {
-        type = types.listOf types.str;
+        type = with types; (listOf str);
         default = [ ];
         description = "Unique btrfs filesystems to dedupe.";
       };
       scrub-mounts = mkOption {
-        type = types.listOf types.path;
+        type = with types; (listOf path);
         default = [ ];
         description = "Btrfs mount paths to scrub.";
       };
@@ -57,20 +57,20 @@ lib.rebellion.mk-module args {
 
       services = {
         btrfs = {
-          autoScrub = mkIf cfg.auto-scrub {
+          autoScrub = mkIf cfg.auto-scrub.enable {
             enable = true;
             fileSystems = mkIf (builtins.length cfg.scrub-mounts > 0) cfg.scrubMounts;
             interval = "weekly";
           };
         };
 
-        beesd = mkIf cfg.dedupe {
+        beesd = mkIf cfg.dedupe.enable {
           filesystems = mkIf (builtins.length dedupe-filesystems > 0) dedupe-fs-attrset;
         };
       };
 
       systemd.services.cpulimit-bees = {
-        enable = cfg.dedupe;
+        inherit (cfg.dedupe) enable;
         after = [ "sysinit.target" ];
         description = "CPU Limit Bees";
         wantedBy = [ "multi-user.target" ];

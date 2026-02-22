@@ -5,11 +5,13 @@ lib.rebellion.mk-module args {
   config =
     { lib, ... }:
     let
-      inherit (builtins) concatStringsSep map;
+      inherit (builtins) concatStringsSep;
       inherit (lib.strings) fileContents;
-      inherit (lib.rebellion) get-files;
+      inherit (lib.rebellion.fs) get-file;
 
-      configFiles = get-files ./tmux;
+      configFiles = [
+        (get-file ./general.tmux)
+      ];
     in
     {
       programs.tmux = {

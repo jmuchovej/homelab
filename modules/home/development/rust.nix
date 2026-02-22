@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         rust-lang.rust-analyzer
@@ -19,7 +19,7 @@ lib.rebellion.mk-module args {
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/rust
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         extensions = [ ];
         packages = with pkgs; [
           rust-analyzer

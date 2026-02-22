@@ -4,7 +4,7 @@ lib.rebellion.mk-desktop-module args {
   config =
     { lib, pkgs, ... }:
     let
-      inherit (lib.rebellion) get-file;
+      inherit (lib.rebellion.fs) get-file;
       inherit (pkgs.stdenv) isLinux;
 
       catppuccin = import (get-file "modules/home/theme/catppuccin/colors.part.nix");

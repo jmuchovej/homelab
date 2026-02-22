@@ -11,7 +11,7 @@ lib.rebellion.mk-module args {
     let
       inherit (builtins) readFile;
       inherit (lib) mkIf mkMerge;
-      inherit (lib.rebellion.file) get-file get-secret;
+      inherit (lib.rebellion.fs) get-file get-secret;
 
       inherit (config.rebellion.services) traefik;
       sops-opts = {

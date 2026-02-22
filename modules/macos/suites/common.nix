@@ -2,7 +2,7 @@
 lib.rebellion.mk-module args {
   name = "suites.common";
   always-active = true;
-  imports = [ (lib.rebellion.get-file "modules/common/suites/common.nix") ];
+  imports = [ (lib.rebellion.fs.get-file "modules/common/suites/common.nix") ];
   config =
     { lib, pkgs, ... }:
     let

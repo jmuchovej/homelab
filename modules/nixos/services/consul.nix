@@ -12,39 +12,39 @@ lib.rebellion.mk-module args {
         enum
         port
         ;
-      inherit (lib.rebellion) mkopt mkopt-bool;
+      inherit (lib.rebellion.options)
+        mk
+        mk-enable
+        mk-enable'
+        ;
     in
     {
-      server = mkopt-bool false "Run as Consul server (vs client)";
-      bootstrap-expect = mkopt int 3 "Number of servers to wait for before bootstrapping cluster";
-      interface = mkopt str "enp1s0" "Network interface to bind Consul to";
-      ui = mkopt-bool true "Enable Consul web UI";
+      server = mk-enable' "Consul in `server` mode";
+      bootstrap-expect = mk int 3 "Number of servers to wait for before bootstrapping cluster";
+      interface = mk str "enp1s0" "Network interface to bind Consul to";
+      ui = mk-enable "Consul WebUI" true;
 
-      connect = {
-        enable = mkopt-bool true "Enable Consul Connect service mesh";
-      };
+      connect = mk-enable "Consul Connect" true;
 
-      acl = {
-        enable = mkopt-bool true "Enable ACLs";
-        default-policy = mkopt (enum [
+      acl = (mk-enable "ACLs" true) // {
+        default-policy = mk (enum [
           "allow"
           "deny"
         ]) "allow" "Default ACL policy";
       };
 
-      dns = {
-        enable = mkopt-bool true "Enable DNS interface";
-        port = mkopt port 8600 "DNS port";
+      dns = (mk-enable "Consul DNS" true) // {
+        port = mk port 8600 "DNS port";
       };
 
       ports = {
-        http = mkopt port 8500 "HTTP API port";
-        https = mkopt port 8501 "HTTPS API port";
-        grpc = mkopt port 8502 "gRPC API port";
-        grpc-tls = mkopt port 8503 "gRPC TLS API port";
-        serf-lan = mkopt port 8301 "Serf LAN port";
-        serf-wan = mkopt port 8302 "Serf WAN port";
-        server = mkopt port 8300 "Server RPC port";
+        http = mk port 8500 "HTTP API port";
+        https = mk port 8501 "HTTPS API port";
+        grpc = mk port 8502 "gRPC API port";
+        grpc-tls = mk port 8503 "gRPC TLS API port";
+        serf-lan = mk port 8301 "Serf LAN port";
+        serf-wan = mk port 8302 "Serf WAN port";
+        server = mk port 8300 "Server RPC port";
       };
     };
 
@@ -75,7 +75,7 @@ lib.rebellion.mk-module args {
 
         services.consul = {
           enable = true;
-          webUi = cfg.ui;
+          webUi = cfg.ui.enable;
 
           # Use interface-based address detection
           interface = {
@@ -92,9 +92,9 @@ lib.rebellion.mk-module args {
             node_name = hostname;
 
             # Server/Client configuration
-            inherit (cfg) server;
+            server = cfg.server.enable;
           }
-          // (lib.optionalAttrs cfg.server {
+          // (lib.optionalAttrs cfg.server.enable {
             bootstrap_expect = cfg.bootstrap-expect;
           })
           // (lib.optionalAttrs (retry-join-peers != [ ]) {

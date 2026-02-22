@@ -1,7 +1,7 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "system.fonts";
-  imports = [ (lib.rebellion.get-file "modules/common/system/fonts.nix") ];
+  imports = [ (lib.rebellion.fs.get-file "modules/common/system/fonts.nix") ];
   config =
     { config, lib, ... }:
     let

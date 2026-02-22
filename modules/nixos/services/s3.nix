@@ -5,11 +5,11 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     with lib.types;
     let
-      inherit (lib.rebellion) mkopt;
+      inherit (lib.rebellion.options) mk;
     in
     {
-      buckets = mkopt (listOf str) [ "volsync" "postgres" ] "Buckets to create";
-      data-dir = mkopt (listOf (either path str)) [
+      buckets = mk (listOf str) [ "volsync" "postgres" ] "Buckets to create";
+      data-dir = mk (listOf (either path str)) [
         "/var/lib/minio/data"
       ] "A list of data directories or nodes for storing objects.";
     };
@@ -32,7 +32,6 @@ lib.rebellion.mk-module args {
         mk-authentik
         mk-openid-url
         ;
-      inherit (builtins) toString;
 
       svc-addr = 9500;
       web-addr = 9501;

@@ -20,7 +20,7 @@ let
     isType
     types
     ;
-  inherit (lib.rebellion) mkopt enabled disabled;
+  inherit (lib.rebellion) options enabled disabled;
   inherit (pkgs.stdenv) isLinux isDarwin;
 
   cfg = config.rebellion.system.nix;
@@ -45,7 +45,7 @@ let
 in
 {
   options.rebellion.system.nix = {
-    package = mkopt types.package pkgs.lixPackageSets.stable.lix "Which nix package to use.";
+    package = options.mk types.package pkgs.lixPackageSets.stable.lix "Which nix package to use.";
     extra-users = mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];

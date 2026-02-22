@@ -2,7 +2,7 @@
 lib.rebellion.mk-module args {
   name = "system.nix";
   always-active = true;
-  imports = [ (lib.rebellion.get-file "modules/common/system/nix.nix") ];
+  imports = [ (lib.rebellion.fs.get-file "modules/common/system/nix.nix") ];
   config = _: {
     nix = {
       # Enable nix-darwin to manage nix configuration

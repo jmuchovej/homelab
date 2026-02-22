@@ -1,9 +1,13 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "editor.neovim";
-  options = with lib.rebellion; {
-    default = mkopt-enable "neovim as the default $EDITOR";
-  };
+  options =
+    let
+      inherit (lib.rebellion.options) mk-enable';
+    in
+    {
+      default = mk-enable' "`neovim` as the default $EDITOR";
+    };
   config =
     {
       cfg,
@@ -18,7 +22,9 @@ lib.rebellion.mk-module args {
 
       # home.file = mkIf pkgs.stdenv.isDarwin { "Library/Preferences/glow/glow.yml".text = config; };
 
-      home.sessionVariables.EDITOR = mkIf cfg.default (mkForce "nvim");
+      home.sessionVariables = {
+        EDITOR = mkIf cfg.default.enable (mkForce "nvim");
+      };
 
       programs.neovim = enabled;
 
@@ -41,7 +47,7 @@ lib.rebellion.mk-module args {
 
       # sops.secrets = lib.mkIf osConfig.rebellion.security.sops.enable {
       #   wakatime = {
-      #     sopsFile = lib.snowfall.fs.get-file "secrets/khaneliman/default.yaml";
+      #     sopsFile = lib.rebellion.fs.get-file "secrets/khaneliman/default.yaml";
       #     path = "${config.home.homeDirectory}/.wakatime.cfg";
       #   };
       # };

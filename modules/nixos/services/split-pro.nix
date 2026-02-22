@@ -3,10 +3,11 @@ lib.rebellion.mk-module args {
   name = "services.split-pro";
   options =
     let
-      inherit (lib) mkopt' types;
+      inherit (lib) types;
+      inherit (lib.rebellion.options) mk';
     in
     {
-      port = mkopt' types.port 3000;
+      port = mk' types.port 3000;
     };
   config =
     {
@@ -28,8 +29,12 @@ lib.rebellion.mk-module args {
         mk-openid-url
         ;
 
-      dbName = "split-pro";
-      dbUser = "split-pro";
+      get-sp-exe' = name: lib.getExe' pkgs.rebellion.split-pro "sp-${name}";
+
+      db-name = "split-pro";
+      db-user = "split-pro";
+
+      psql = config.services.postgresql;
     in
     lib.mkMerge [
       # Secrets
@@ -42,10 +47,10 @@ lib.rebellion.mk-module args {
       {
         # PostgreSQL database with pg_cron extension for scheduled jobs
         services.postgresql = {
-          ensureDatabases = [ dbName ];
+          ensureDatabases = [ db-name ];
           ensureUsers = [
             {
-              name = dbUser;
+              name = db-user;
               ensureDBOwnership = true;
             }
           ];
@@ -53,7 +58,7 @@ lib.rebellion.mk-module args {
           extensions = ps: [ ps.pg_cron ];
           settings = {
             shared_preload_libraries = "pg_cron";
-            "cron.database_name" = dbName;
+            "cron.database_name" = db-name;
           };
         };
 
@@ -68,7 +73,7 @@ lib.rebellion.mk-module args {
             Type = "oneshot";
             RemainAfterExit = true;
             User = "postgres";
-            ExecStart = "${lib.getExe' pkgs.rebellion.split-pro "sp-db-setup"} ${dbName} ${dbUser}";
+            ExecStart = "${get-sp-exe' "db-setup"} ${db-name} ${db-user}";
           };
         };
 
@@ -92,7 +97,7 @@ lib.rebellion.mk-module args {
             HOME = "%S/%N";
 
             # Database
-            DATABASE_URL = "postgresql://${dbUser}@localhost:${toString config.services.postgresql.settings.port}/${dbName}";
+            DATABASE_URL = "postgresql://${db-user}@localhost:${toString psql.settings.port}/${db-name}";
 
             # NextAuth
             NEXTAUTH_URL = "https://split-pro.${datacenter}.jm0.io";
@@ -113,8 +118,8 @@ lib.rebellion.mk-module args {
             StateDirectory = "split-pro";
             WorkingDirectory = "${pkgs.rebellion.split-pro}/share/split-pro";
 
-            ExecStartPre = lib.getExe' pkgs.rebellion.split-pro "sp-migrate";
-            ExecStart = lib.getExe' pkgs.rebellion.split-pro "sp-server";
+            ExecStartPre = get-sp-exe' "migrate";
+            ExecStart = get-sp-exe' "server";
 
             Restart = "on-failure";
             RestartSec = "5s";

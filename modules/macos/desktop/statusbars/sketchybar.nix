@@ -3,10 +3,10 @@ lib.rebellion.mk-module args {
   name = "desktop.statusbars.sketchybar";
   options =
     { lib, ... }:
+    with lib.rebellion.options;
+    with lib.types;
     {
-      logFile =
-        lib.rebellion.mkopt lib.types.str "/Users/john/Library/Logs/sketchybar.log"
-          "Path to sketchybar's logs.";
+      log-file = mk str "/Users/john/Library/Logs/sketchybar.log" "Path to sketchybar's logs.";
     };
   config =
     { cfg, ... }:

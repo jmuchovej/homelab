@@ -11,8 +11,11 @@ lib.rebellion.mk-module args {
     let
       inherit (builtins) concatStringsSep map;
       inherit (lib.strings) fileContents;
+      inherit (lib.rebellion.fs) get-file;
 
-      configFiles = lib.snowfall.fs.get-files ./config;
+      config-files = [
+        (get-file ./general.tmux)
+      ];
 
       plugins = with pkgs.tmuxPlugins; [
         {
@@ -49,7 +52,7 @@ lib.rebellion.mk-module args {
         prefix = "`";
         sensibleOnTop = true;
         terminal = "xterm-256color";
-        extraConfig = concatStringsSep "\n" (map fileContents configFiles);
+        extraConfig = concatStringsSep "\n" (map fileContents config-files);
 
         inherit plugins;
       };

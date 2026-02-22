@@ -4,18 +4,17 @@ lib.rebellion.mk-module args {
   options =
     let
       inherit (lib.types) str nullOr int;
-      inherit (lib.rebellion) mkopt mkopt-enable;
+      inherit (lib.rebellion.options) mk mk-enable';
     in
     {
       user = {
-        name = mkopt str "john" "The user's account";
-        email = mkopt str "john@jm0.io" "The user's email";
-        full-name = mkopt str "John Muchovej" "The user's full name.";
-        uid = mkopt (nullOr int) 501 "The user's account UID";
+        name = mk str "john" "The user's account";
+        email = mk str "john@jm0.io" "The user's email";
+        full-name = mk str "John Muchovej" "The user's full name.";
+        uid = mk (nullOr int) 501 "The user's account UID";
       };
-      homebrew = {
-        enable = mkopt-enable "homebrew";
-        mas.enable = mkopt-enable "Mac App Store downloads";
+      homebrew = (mk-enable' "homebrew") // {
+        mas = mk-enable' "Mac App Store downloads";
       };
     };
   config =

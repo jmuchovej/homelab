@@ -5,10 +5,10 @@ lib.rebellion.mk-module args {
   options =
     { lib, ... }:
     let
-      inherit (lib.rebellion) mkopt-enable;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
-      default = mkopt-enable "Neovim as the default $EDITOR";
+      default = mk-enable' "Neovim as the default $EDITOR";
     };
   config =
     { cfg, lib, ... }:
@@ -17,7 +17,7 @@ lib.rebellion.mk-module args {
     in
     {
       environment.sessionVariables = {
-        EDITOR = lib.mkIf cfg.default "nvim";
+        EDITOR = lib.mkIf cfg.default.enable "nvim";
       };
 
       programs.neovim = enabled;

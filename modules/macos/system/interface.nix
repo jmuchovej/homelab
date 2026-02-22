@@ -2,7 +2,7 @@
 lib.rebellion.mk-module args {
   name = "system.interface";
   config =
-    { cfg, config, ... }:
+    { config, ... }:
     {
       rebellion.home.file = {
         "Pictures/Screenshots/.keep".text = "";

@@ -14,7 +14,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       python = cfg.package;
       default-python-packages = python.withPackages (
@@ -72,7 +72,7 @@ lib.rebellion.mk-module args {
       };
 
       # https://zed.dev/docs/languages/python
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         extensions = [ ];
         packages = with pkgs; [
           ruff
@@ -99,7 +99,6 @@ lib.rebellion.mk-module args {
       };
     in
     {
-
       home.packages = with pkgs; [
         uv
         ruff

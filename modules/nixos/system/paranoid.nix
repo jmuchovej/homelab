@@ -4,10 +4,10 @@ lib.rebellion.mk-module args {
   options =
     { lib, ... }:
     let
-      inherit (lib.rebellion) mkopt-enable;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
-      paranoid.enable = mkopt-enable "lockdown";
+      paranoid = mk-enable' "lockdown";
     };
   description = "lockdown the system for maximum security";
   config =

@@ -1,18 +1,31 @@
 { lib, pkgs, ... }@args:
 lib.rebellion.mk-module args {
   name = "editor.helix";
-  options = with lib.rebellion; {
-    default = mkopt-enable "helix as the default $EDITOR";
-  };
+  options =
+    let
+      inherit (lib.rebellion.options) mk-enable';
+    in
+    {
+      default = mk-enable' "`helix` as the default $EDITOR";
+    };
   imports = [
     ./helix/languages.part.nix
   ];
   config =
     {
+      cfg,
+      lib,
       pkgs,
       ...
     }:
+    let
+      inherit (lib) mkIf mkForce;
+    in
     {
+      home.sessionVariables = {
+        EDITOR = mkIf cfg.default.enable (mkForce "helix");
+      };
+
       programs.helix = {
         enable = true;
         package = pkgs.helix.overrideAttrs (self: {

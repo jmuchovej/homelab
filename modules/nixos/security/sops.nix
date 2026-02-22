@@ -3,10 +3,11 @@ lib.rebellion.mk-module args {
   name = "security.sops";
   description = "sops";
   options =
-    { lib, host, ... }:
+    { lib, hostname, ... }:
     let
       inherit (lib) mkOption types;
-      default-sops-file = lib.rebellion.file.get-file "secrets/systems/${host}.sops.yaml";
+      inherit (lib.rebellion.fs) get-file;
+      default-sops-file = get-file "secrets/systems/${hostname}.sops.yaml";
     in
     {
       default-sops-file = mkOption {

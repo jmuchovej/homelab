@@ -4,10 +4,10 @@ lib.rebellion.mk-module args {
   options =
     { lib, ... }:
     let
-      inherit (lib.rebellion) mkopt-bool;
+      inherit (lib.rebellion.options) mk-enable';
     in
     {
-      consul-integration = mkopt-bool false "Enable Consul Catalog integration for service discovery";
+      consul-catalog = mk-enable' "Consul Catalog integration (for service discovery)";
     };
 
   config =
@@ -45,8 +45,8 @@ lib.rebellion.mk-module args {
             config.sops.templates."traefik.env".path
           ];
           # When consul integration is enabled, ensure consul is running
-          after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
-          wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-integration [ "consul.service" ];
+          after = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-catalog.enable [ "consul.service" ];
+          wants = [ "tailscaled.service" ] ++ lib.optionals cfg.consul-catalog.enable [ "consul.service" ];
         };
 
         services.tailscale.permitCertUid = mkForce "traefik";
@@ -147,7 +147,7 @@ lib.rebellion.mk-module args {
             };
 
             # Consul Catalog provider for service discovery
-            providers = mkIf cfg.consul-integration {
+            providers = mkIf cfg.consul-catalog {
               consulCatalog = {
                 endpoint = {
                   address = "127.0.0.1:8500";
@@ -175,7 +175,7 @@ lib.rebellion.mk-module args {
       }
       (
         let
-          inherit (lib.rebellion) merge-attrs;
+          inherit (lib.rebellion) attrs;
           inherit (lib.rebellion.network) mk-traefik-service mk-healthcheck with-consul;
           service-base = mk-traefik-service {
             inherit hostname datacenter;
@@ -188,7 +188,7 @@ lib.rebellion.mk-module args {
             "Host(`${datacenter}.jm0.io`)"
             "(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
           ];
-          service = merge-attrs [
+          service = attrs.merge-deep [
             service-base
             {
               pub.config.rule = rule;

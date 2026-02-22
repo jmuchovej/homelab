@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         myriad-dreamin.tinymist
@@ -24,7 +24,7 @@ lib.rebellion.mk-module args {
         };
       };
 
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         # https://github.com/zed-extensions/typst
         extensions = [ "typst" ];
         packages = with pkgs; [

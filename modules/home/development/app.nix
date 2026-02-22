@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mkzed-settings;
+      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         dart-code.dart-code
@@ -23,7 +23,7 @@ lib.rebellion.mk-module args {
       # https://zed.dev/docs/languages/dart
       # https://zed.dev/docs/languages/kotlin
       # https://zed.dev/docs/languages/swift
-      zed = mkzed-settings {
+      zed = mk-zed-settings {
         extensions = [
           # https://github.com/zed-extensions/dart
           "dart"

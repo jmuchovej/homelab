@@ -10,16 +10,16 @@ lib.rebellion.mk-module args {
         str
         port
         ;
-      inherit (lib.rebellion) mkopt mkopt-bool;
+      inherit (lib.rebellion.options) mk;
     in
     {
-      ui = mkopt-bool true "Enable OpenBao web UI";
-      interface = mkopt str "enp1s0" "Network interface to bind OpenBao";
-      data-dir = mkopt str "/var/lib/openbao" "Raft data directory";
+      ui = mk-enable "OpenBao WebUI" true;
+      interface = mk str "enp1s0" "Network interface to bind OpenBao";
+      data-dir = mk str "/var/lib/openbao" "Raft data directory";
 
       ports = {
-        api = mkopt port 8200 "API port";
-        cluster = mkopt port 8201 "Cluster port";
+        api = mk port 8200 "API port";
+        cluster = mk port 8201 "Cluster port";
       };
     };
 
@@ -100,7 +100,7 @@ lib.rebellion.mk-module args {
           package = pkgs.openbao;
 
           settings = {
-            inherit (cfg) ui;
+            ui = cfg.ui.enable;
 
             api_addr = "http://${bind-addr}:${toString cfg.ports.api}";
             cluster_addr = "https://${bind-addr}:${toString cfg.ports.cluster}";
