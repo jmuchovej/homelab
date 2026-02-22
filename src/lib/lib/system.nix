@@ -127,10 +127,12 @@ in
           path:
           let
             name = unsafeDiscardStringContext (baseNameOf path);
-            host = removeSuffix ".nix" name;
+            parsed = split-hostname-and-datacenter name;
           in
           {
-            inherit path host name;
+            inherit (parsed) hostname datacenter nodename;
+            inherit path name;
+            host = parsed.hostname;
             target = unsafeDiscardStringContext (baseNameOf target);
           };
       in
@@ -202,11 +204,14 @@ in
         overlays ? [ ],
         username ? "john",
         home-modules ? [ ],
+        hostname,
+        datacenter,
+        nodename,
       }:
       let
         # Parse datacenter/nodename and derive the real hostname (da@vcx-1 → da-vcx-1)
-        parsed = split-hostname-and-datacenter host;
-        inherit (parsed) datacenter nodename hostname;
+        # parsed = split-hostname-and-datacenter host;
+        # inherit (parsed) datacenter nodename hostname;
 
         # Build home-manager system modules via create-system-homes
         hm-modules = rebellion-lib.home.create-system-homes {

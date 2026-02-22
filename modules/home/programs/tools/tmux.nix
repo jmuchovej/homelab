@@ -9,12 +9,11 @@ lib.rebellion.mk-module args {
       ...
     }:
     let
-      inherit (builtins) concatStringsSep map;
+      inherit (builtins) concatStringsSep;
       inherit (lib.strings) fileContents;
-      inherit (lib.rebellion.fs) get-file;
 
       config-files = [
-        (get-file ./general.tmux)
+        ./general.tmux
       ];
 
       plugins = with pkgs.tmuxPlugins; [

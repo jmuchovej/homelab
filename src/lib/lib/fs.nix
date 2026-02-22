@@ -18,11 +18,11 @@ let
     readDir
     readFile
     readFileType
-    foldl'
     elem
     isList
     ;
   inherit (rebellion-lib) path;
+  inherit (rebellion-lib.attrs) merge-shallow;
 in
 {
   fs = rec {
@@ -146,7 +146,7 @@ in
       else
         readFile path;
 
-    ## Create a sops secret definition for a given secret name and file path.
+    ## Get the secret's path with the target filepath.
     #@ Config -> String -> String -> Attrs
     get-secret = _config: secret: filepath: {
       sops.secrets."${secret}" = {
@@ -154,9 +154,25 @@ in
       };
     };
 
+    ## Create a sops secret definition for a given secret name and filepath.
+    #@ String -> String -> Attrs
+    load-secret = secret: filepath: {
+      sops.secrets."${secret}" = {
+        sopsFile = get-secret filepath;
+      };
+    };
+
     ## Create a sops secret definition using the default "secrets" file.
     #@ Config -> String -> Attrs
     get-secret' = config: secret: get-secret config secret "secrets";
+
+    ## Create a sops secret definition using the default "secrets" file.
+    #@ String -> Attrs
+    load-secret' = secret: load-secret secret "secrets";
+
+    ## Get the module-path by name to load
+    #@ String -> String
+    get-module = platform: filepath: get-file "modules/${platform}/${filepath}.nix";
 
     ## Check if a path exists.
     #@ Path -> Bool
@@ -193,7 +209,7 @@ in
 
     ## Import all .nix files from a directory and merge into a single attrset.
     #@ Path -> Args -> Attrs
-    import-dir = path: args: merge-attrs (import-files path args);
+    import-dir = path: args: merge-shallow (import-files path args);
 
     ## Import all .nix files from a directory without passing args.
     #@ { path, exclude? } -> Attrs
@@ -206,9 +222,11 @@ in
         exclude-list = if isList exclude then exclude else [ ];
         files = filter (f: !(elem (baseNameOf f) exclude-list)) (get-nix-files path);
       in
-      merge-attrs (map (f: load-file f null) files);
+      merge-shallow (map (f: load-file f null) files);
 
-    ## Import all .nix files from subdirectories (depth 1), merging results.
+    ## Import all .nix and .md files from subdirectories (depth 1), merging results.
+    ## .nix files are imported normally (must return attrsets).
+    ## .md files are loaded as { stem = content; } where stem is the filename without extension.
     #@ Path -> { exclude?, args? } -> Attrs
     import-subdirs =
       path:
@@ -217,10 +235,21 @@ in
         args ? null,
       }:
       let
-        files = walk-files { depth = 1; } path;
-        filtered = filter (f: !(elem (baseNameOf f) exclude)) files;
+        nix-files = walk-files { depth = 1; } path;
+        md-files = walk-files {
+          suffix = ".md";
+          depth = 1;
+        } path;
+        all-files = nix-files ++ md-files;
+        filtered = filter (f: !(elem (baseNameOf f) exclude)) all-files;
+        load =
+          f:
+          if hasSuffix ".md" (toString f) then
+            { ${removeSuffix ".md" (baseNameOf f)} = readFile f; }
+          else
+            load-file f args;
       in
-      merge-attrs (map (f: load-file f args) filtered);
+      merge-shallow (map load filtered);
 
     ## Discover flake-parts partitions from a directory.
     ## Each subdirectory is a partition; expects <name>.partition.nix as the module.
@@ -245,8 +274,5 @@ in
           extraInputsFlake = if pathExists (dir + "/flake.nix") then dir else null;
         }
       ) dir-names;
-
-    # Internal helper
-    merge-attrs = foldl' (acc: x: acc // x) { };
   };
 }

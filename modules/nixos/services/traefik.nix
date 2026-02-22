@@ -147,7 +147,7 @@ lib.rebellion.mk-module args {
             };
 
             # Consul Catalog provider for service discovery
-            providers = mkIf cfg.consul-catalog {
+            providers = mkIf cfg.consul-catalog.enable {
               consulCatalog = {
                 endpoint = {
                   address = "127.0.0.1:8500";

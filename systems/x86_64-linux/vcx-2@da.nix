@@ -19,7 +19,7 @@ in
   rebellion = {
     hardware = {
       cpu.intel = enabled;
-      storage = enabled // {
+      storage = {
         ssd = enabled;
         btrfs = enabled;
       };

@@ -10,7 +10,7 @@ lib.rebellion.mk-module args {
         str
         port
         ;
-      inherit (lib.rebellion.options) mk;
+      inherit (lib.rebellion.options) mk mk-enable;
     in
     {
       ui = mk-enable "OpenBao WebUI" true;

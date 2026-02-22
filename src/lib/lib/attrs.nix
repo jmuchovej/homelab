@@ -29,10 +29,6 @@ in
     #@ (String -> a -> [b]) -> Attrs -> [b]
     map-concat-attrs-to-list = f: attrs: flatten (mapAttrsToList f attrs);
 
-    ## Deeply merge a list of attribute sets.
-    #@ [Attrs] -> Attrs
-    merge-attrs = attrs-ls: foldl' (acc: attr: recursiveUpdate acc attr) { } attrs-ls;
-
     ## Recursively merge a list of attribute sets.
     #@ [Attrs] -> Attrs
     merge-deep = foldl' recursiveUpdate { };

@@ -27,7 +27,7 @@ in
     eval-if-func = maybe-fn: args: if isFunction maybe-fn then (maybe-fn args) else maybe-fn;
 
     ## Create a module with common options under the `rebellion` namespace.
-    #@ ModuleArgs -> ModuleSpec -> Module
+    #@ Attrs -> Attrs -> Attrs
     mk-module =
       module-args:
       {

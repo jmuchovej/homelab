@@ -7,10 +7,9 @@ lib.rebellion.mk-module args {
     let
       inherit (builtins) concatStringsSep;
       inherit (lib.strings) fileContents;
-      inherit (lib.rebellion.fs) get-file;
 
       configFiles = [
-        (get-file ./general.tmux)
+        ./general.tmux
       ];
     in
     {

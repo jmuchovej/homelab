@@ -115,7 +115,7 @@ let
         ;
 
       inherit (rebellion-lib.attrs or { })
-        merge-attrs
+        merge-deep
         merge-shallow
         mk-default
         mk-force

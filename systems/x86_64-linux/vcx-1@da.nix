@@ -17,7 +17,7 @@ in
     hardware = {
       cpu.intel = enabled;
       gpu.nvidia = enabled;
-      storage = enabled // {
+      storage = {
         ssd = enabled;
         btrfs = enabled;
         zfs = enabled // {
@@ -99,7 +99,7 @@ in
 
     ##### Service Mesh [for once the other nodes are online] #####
     services.consul = enabled // {
-      server = true;
+      server = enabled;
       connect = enabled;
       dns = enabled;
       acl = enabled;
@@ -110,8 +110,8 @@ in
       interface = "enp12s0";
     };
     services.nomad = enabled // {
-      server = true;
-      client = true;
+      server = enabled;
+      client = enabled;
       bootstrap-expect = 1;
       interface = "enp12s0";
       consul.enable = true;
@@ -125,11 +125,11 @@ in
       vrrp.priority = 242;
       vrrp.preempt = false;
       vrrp.advert-interval = 1;
-      checks.consul = true;
-      checks.traefik = true;
+      checks.consul = enabled;
+      checks.traefik = enabled;
     };
     services.traefik = enabled // {
-      consul-integration = true;
+      consul-catalog = enabled;
     };
     ##### /Service Mesh #####
 

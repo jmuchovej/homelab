@@ -241,8 +241,10 @@ lib.rebellion.mk-module args {
 
         # Ensure Nomad starts after Consul and Podman
         systemd.services.nomad = {
-          after = lib.optional cfg.consul.enable "consul.service" ++ lib.optional cfg.client "podman.socket";
-          wants = lib.optional cfg.consul.enable "consul.service" ++ lib.optional cfg.client "podman.socket";
+          after =
+            lib.optional cfg.consul.enable "consul.service" ++ lib.optional cfg.client.enable "podman.socket";
+          wants =
+            lib.optional cfg.consul.enable "consul.service" ++ lib.optional cfg.client.enable "podman.socket";
         };
       }
 

@@ -61,7 +61,7 @@ in
       authorized-keys = [ ];
     };
 
-    tools.onepassword-cli.ssh-socket = enabled;
+    programs.tools.onepassword-cli.ssh-socket = enabled;
 
     dock.entries = [
       {

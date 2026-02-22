@@ -11,20 +11,19 @@ $ tree src/lib
 ├──   default.nix           # Bootstrap: two-phase lib assembly
 ├──   ai-tools.nix          # AI tool definition parser
 ├──   hcl.nix               # HCL (HashiCorp Config Language) generator
-├──   modules.nix           # Module creation utilities (mk_module, mk_desktop_module)
-├──   module-options.part.nix  # Option schema for mk_module (excluded from auto-discovery)
+├──   modules.nix           # Module creation utilities (mk-module, mk-desktop-module)
 ├──   network.nix            # Traefik/Consul/Authentik service routing
 ├──   nomad.nix              # Nomad job spec generation
-├──   options.nix            # NixOS option creation shortcuts (mk, mk_bool, mk_enable, etc.)
+├──   options.nix            # NixOS option creation shortcuts (mk, mk-bool, mk-enable, etc.)
 ├──   vscode.nix             # VSCode extension/settings option builder
 ├──   zed.nix                # Zed editor settings builder
 └──   lib/                   # Internal builders
-    ├──   attrs.nix          # Attribute set manipulation (mk_default, mk_force, merge_attrs, etc.)
+    ├──   attrs.nix          # Attribute set manipulation (mk-default, mk-force, merge-attrs, etc.)
     ├──   deploy.nix         # deploy-rs node generation
-    ├──   flake.nix          # Top-level mk_flake builder
-    ├──   flake-options.part.nix  # Option schema for mk_flake
+    ├──   flake.nix          # Top-level mk-flake builder
+    ├──   flake-options.part.nix  # Option schema for mk-flake
     ├──   fp.nix             # Functional programming combinators
-    ├──   fs.nix             # Filesystem operations (walk_files, get_file, import_dir, etc.)
+    ├──   fs.nix             # Filesystem operations (walk-files, get-file, import-dir, etc.)
     ├──   home.nix           # Home-manager configuration discovery/building
     ├──   module.nix         # Internal module discovery and wrapping
     ├──   overlay.nix        # Overlay discovery and composition
@@ -35,8 +34,8 @@ $ tree src/lib
 
 ## Naming Convention
 
-All hand-crafted functions use **snake_case** (e.g., `mk_module`, `get_file`,
-`mk_traefik_service`).
+All hand-crafted functions use **kebab-case** (e.g., `mk-module`, `get-file`,
+`mk-traefik-service`).
 
 ## Core Principles
 
@@ -49,45 +48,45 @@ All lib functions must be pure — no side effects, deterministic output.
 - **Phase 1**: Build `rebellion-lib` via `fix` (fixpoint recursion). Each file
   in `src/lib/` and `src/lib/lib/` is auto-discovered, imported, and merged.
 - **Phase 2**: Construct `lib.rebellion.*` namespace with re-exports and curried
-  `mk_flake`.
+  `mk-flake`.
 
 ### 3. Namespaced Exports
 
 Functions are available as `lib.rebellion.{category}.{function}`. Commonly used
 functions are also re-exported to `lib.{function}` for convenience:
 
-- `lib.mk_module`, `lib.mk_desktop_module`
-- `lib.mk`, `lib.mk'`, `lib.mk_bool`, `lib.mk_enable`, `lib.enabled`,
+- `lib.mk-module`, `lib.mk-desktop-module`
+- `lib.mk`, `lib.mk'`, `lib.mk-bool`, `lib.mk-enable`, `lib.enabled`,
   `lib.disabled`
-- `lib.get_file`, `lib.import_dir`, `lib.scan_dir`, `lib.walk_files`, etc.
+- `lib.get-file`, `lib.import-dir`, `lib.scan-dir`, `lib.walk-files`, etc.
 
 ## Library Categories
 
-- **attrs**: Attribute set manipulation (`mk_default`, `mk_force`,
-  `merge_attrs`, `merge_deep`, `merge_shallow`)
-- **fs**: File operations (`get_file`, `import_dir`, `scan_dir`, `walk_files`,
-  `get_secret`, etc.)
-- **fp**: Functional programming (`compose`, `compose_all`, `call`, `apply`)
-- **path**: Path manipulation (`split_file_extension`, `has_file_extension`,
-  `get_parent_directory`)
-- **options**: NixOS option helpers (`mk`, `mk'`, `mk_bool`, `mk_enable`,
+- **attrs**: Attribute set manipulation (`mk-default`, `mk-force`,
+  `merge-attrs`, `merge-deep`, `merge-shallow`)
+- **fs**: File operations (`get-file`, `import-dir`, `scan-dir`, `walk-files`,
+  `get-secret`, etc.)
+- **fp**: Functional programming (`compose`, `compose-all`, `call`, `apply`)
+- **path**: Path manipulation (`split-file-extension`, `has-file-extension`,
+  `get-parent-directory`)
+- **options**: NixOS option helpers (`mk`, `mk'`, `mk-bool`, `mk-enable`,
   `enabled`, `disabled`)
-- **modules**: Module builders (`mk_module`, `mk_desktop_module`,
-  `eval_if_func`, `get_shared`)
-- **network**: Traefik/Consul integration (`mk_traefik_service`, `with_consul`,
-  `mk_healthcheck`, `mk_authentik`)
-- **nomad**: Nomad job generation (`mk_nomad_job`, `mk_docker_nomad_job`,
-  `mk_gpu_nomad_job`)
-- **hcl**: HCL generation (`to_hcl`, `labeled`, `raw`, `write_hcl`)
-- **system**: System builders (`create_system`, `create_systems`, `is_linux`,
-  `is_macos`)
-- **home**: Home-manager builders (`create_home`, `create_homes`,
-  `create_system_homes`)
-- **deploy**: deploy-rs integration (`mk_deploy_nodes`)
-- **overlay**: Overlay discovery (`discover_overlays`, `mk_packages_overlay`,
-  `mk_overlays`)
-- **package**: Package discovery (`mk_packages`)
-- **flake**: Flake builder (`mk_flake`, `without_self`, `without_src`)
+- **modules**: Module builders (`mk-module`, `mk-desktop-module`,
+  `eval-if-func`, `get-shared`)
+- **network**: Traefik/Consul integration (`mk-traefik-service`, `with-consul`,
+  `mk-healthcheck`, `mk-authentik`)
+- **nomad**: Nomad job generation (`mk-nomad-job`, `mk-docker-nomad-job`,
+  `mk-gpu-nomad-job`)
+- **hcl**: HCL generation (`to-hcl`, `labeled`, `raw`, `write-hcl`)
+- **system**: System builders (`create-system`, `create-systems`, `is-linux`,
+  `is-macos`)
+- **home**: Home-manager builders (`create-home`, `create-homes`,
+  `create-system-homes`)
+- **deploy**: deploy-rs integration (`mk-deploy-nodes`)
+- **overlay**: Overlay discovery (`discover-overlays`, `mk-packages-overlay`,
+  `mk-overlays`)
+- **package**: Package discovery (`mk-packages`)
+- **flake**: Flake builder (`mk-flake`, `without-self`, `without-src`)
 
 ## Common Patterns
 
@@ -95,7 +94,7 @@ functions are also re-exported to `lib.{function}` for convenience:
 
 ```nix
 { lib, ... }@args:
-lib.rebellion.mk_module args {
+lib.rebellion.mk-module args {
   name = "services.myservice";
   config = { cfg, lib, config, ... }: {
     # ...
@@ -106,20 +105,20 @@ lib.rebellion.mk_module args {
 ### Option Creation
 
 ```nix
-inherit (lib.rebellion) mk mk_bool mk_enable enabled disabled;
+inherit (lib.rebellion) mk mk-bool mk-enable enabled disabled;
 
 options = {
   port = mk lib.types.int 8080 "Port to listen on";
-  debug = mk_bool false "Enable debug mode";
+  debug = mk-bool false "Enable debug mode";
 };
 ```
 
 ### Service Registration (Traefik + Consul)
 
 ```nix
-inherit (lib.rebellion.network) mk_traefik_service with_consul mk_healthcheck mk_authentik;
+inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck mk-authentik;
 
-service = mk_traefik_service { name = "myapp"; port = 8080; hostname = "da-vcx-1"; datacenter = "da"; };
+service = mk-traefik-service { name = "myapp"; port = 8080; hostname = "da-vcx-1"; datacenter = "da"; };
 ```
 
 ## Testing
@@ -128,9 +127,9 @@ service = mk_traefik_service { name = "myapp"; port = 8080; hostname = "da-vcx-1
 # Test in nix repl
 nix repl
 > :lf .
-> lib.rebellion.fs.get_file "modules"
+> lib.rebellion.fs.get-file "modules"
 /nix/store/.../modules
 
-> lib.rebellion.fs.scan_dir ./src/lib
+> lib.rebellion.fs.scan-dir ./src/lib
 [ "ai-tools.nix" "default.nix" ... ]
 ```

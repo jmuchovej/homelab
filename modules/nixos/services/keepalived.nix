@@ -7,7 +7,7 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     with lib.types;
     let
-      inherit (lib.rebellion) mk mk-bool;
+      inherit (lib.rebellion) mk mk-bool mk-enable;
     in
     {
       interface = mk str "enp1s0" "Network interface for VIP";
