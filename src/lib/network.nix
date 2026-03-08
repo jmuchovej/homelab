@@ -408,13 +408,13 @@ in
         {
           assertions = [
             {
-              assertion = config.rebellion.services.mesh ? enable;
+              assertion = config.rebellion.services.consul ? enable;
               message = ''
                 lib.rebellion.network.with-consul requires rebellion.services.mesh.enable to be explicitly set.
                 Service: ${service.svc.name}
 
                 Please add to your configuration:
-                  rebellion.services.mesh.enable = true;  # or false for fallback mode
+                  rebellion.services.consule.enable = true;  # or false for fallback mode
               '';
             }
           ];
