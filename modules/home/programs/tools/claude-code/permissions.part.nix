@@ -176,9 +176,9 @@ let
 in
 {
   programs.claude-code.settings.permissions = {
-    allow = allow.${cfg.permissions-profile};
-    ask = ask.${cfg.permissions-profile};
+    allow = allow.${cfg.code.permissions-profile};
+    ask = ask.${cfg.code.permissions-profile};
     inherit deny;
-    defaultMode = default-mode.${cfg.permissions-profile} or "default";
+    defaultMode = default-mode.${cfg.code.permissions-profile} or "default";
   };
 }

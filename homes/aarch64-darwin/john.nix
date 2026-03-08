@@ -69,7 +69,10 @@ in
           "${config.home.homeDirectory}/Syncthing"
         ];
       };
-      claude-code = enabled;
+      claude = enabled // {
+        code = enabled;
+        desktop = enabled;
+      };
     };
 
     dock.entries = [
@@ -113,12 +116,6 @@ in
         source = "applications";
         group = "pkm";
         order = 430;
-      }
-      {
-        name = "TablePlus.app";
-        source = "applications";
-        group = "editors";
-        order = 530;
       }
     ];
 
