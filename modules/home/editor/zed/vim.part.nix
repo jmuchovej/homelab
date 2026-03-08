@@ -16,9 +16,9 @@
     }
     {
       command_aliases = {
-        W = "w";
-        Wq = "wq";
-        Q = "q";
+        "W" = "w";
+        "Wq" = "wq";
+        "Q" = "q";
       };
     }
   ];
@@ -28,13 +28,17 @@
       context = "VimControl && !menu";
       bindings = {
         # Put key bindings here if you want them to work in normal & visual mode.
+        "w" = "vim::NextSubwordStart";
+        "b" = "vim::PreviousSubwordStart";
+        "e" = "vim::NextSubwordEnd";
+        "g e" = "vim::PreviousSubwordEnd";
       };
     }
     {
       context = "vim_mode == normal && !menu";
       bindings = {
         # Use neovim's yank behavior: yank to end of line.
-        shift-y = [
+        "shift-y" = [
           "workspace::SendKeystrokes"
           "y $"
         ];
@@ -56,12 +60,18 @@
       };
     }
     {
-      context = "VimControl && !menu && vim_mode != operator";
+      context = "Editor && !menu";
       bindings = {
-        "w" = "vim::NextSubwordStart";
-        "b" = "vim::PreviousSubwordStart";
-        "e" = "vim::NextSubwordEnd";
-        "g e" = "vim::PreviousSubwordEnd";
+        "ctrl-f" = "buffer_search::Deploy"; # vim default: page down
+        "ctrl-c" = "editor::Copy"; # vim default: return to normal mode
+        "ctrl-x" = "editor::Cut"; # vim default: decrement
+        "ctrl-v" = "editor::Paste"; # vim default: visual block mode
+        "ctrl-a" = "editor::SelectAll"; # vim default: increment
+        "ctrl-y" = "editor::Undo"; # vim default: line up
+        "ctrl-t" = "project_symbols::Toggle"; # vim default: go to older tag
+        "ctrl-o" = "workspace::Open"; # vim default: go back
+        "ctrl-s" = "workspace::Save"; # vim default: show signature
+        "ctrl-b" = "workspace::ToggleLeftDock"; # vim default: down
       };
     }
   ];
