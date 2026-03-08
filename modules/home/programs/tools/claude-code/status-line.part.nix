@@ -3,7 +3,7 @@ let
   statusLine = pkgs.writeShellApplication {
     name = "claude-status-line";
     runtimeInputs = with pkgs; [
-      jq
+      yq
       git
       coreutils
       gawk
@@ -11,10 +11,10 @@ let
     text = ''
       input=$(cat)
 
-      cwd=$(echo "$input" | jq -r '.workspace.current_dir')
-      model=$(echo "$input" | jq -r '.model.display_name')
-      used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
-      output_style=$(echo "$input" | jq -r '.output_style.name // empty')
+      cwd=$(echo "$input" | yq -p json -r '.workspace.current_dir')
+      model=$(echo "$input" | yq -p json -r '.model.display_name')
+      used_pct=$(echo "$input" | yq -p json -r '.context_window.used_percentage // empty')
+      output_style=$(echo "$input" | yq -p json -r '.output_style.name // empty')
 
       # Directory: last 2 path segments
       dir_display=$(echo "$cwd" | awk -F/ '{if (NF>1) print $(NF-1)"/"$NF; else print $NF}')

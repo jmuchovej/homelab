@@ -6,7 +6,7 @@ lib.rebellion.mk-module args {
     { lib, ... }:
     let
       inherit (lib.rebellion.options) mk;
-      inherit (lib.types) enum listOf str;
+      inherit (lib.types) enum;
     in
     {
       permissions-profile =
@@ -23,11 +23,6 @@ lib.rebellion.mk-module args {
             - `standard`: Balanced permissions for normal development workflows
             - `autonomous`: Maximum autonomy for trusted environments
           '';
-      mcp-servers = {
-        fs = {
-          directories = mk (listOf str) [ ] "Directories that MCP servers can access.";
-        };
-      };
     };
 
   config =
@@ -40,22 +35,15 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkMerge;
-      inherit (lib.rebellion.fs) get-file import-dir;
+      inherit (lib.rebellion.fs) get-file get-module import-dir;
 
-      ai-tools = import (get-file "modules/common/ai-tools/ai-tools.nix") { inherit lib pkgs; };
+      ai-tools = import (get-module "common" "ai-tools/ai-tools") { inherit lib pkgs; };
       inherit (ai-tools) claude-code;
 
       permissions = import ./claude-code/permissions.part.nix { inherit cfg; };
-      mcp-servers = import ./claude-code/mcp-servers.part.nix {
-        inherit
-          cfg
-          lib
-          pkgs
-          config
-          ;
-      };
+      status-line = import ./claude-code/status-line.part.nix { inherit lib pkgs; };
 
-      statusLine = import ./claude-code/status-line.part.nix { inherit lib pkgs; };
+      mcp-module = config.rebellion.programs.terminal.tools.mcp;
     in
     mkMerge [
       {
@@ -63,6 +51,8 @@ lib.rebellion.mk-module args {
 
         programs.claude-code = {
           enable = true;
+
+          enableMcpIntegration = mcp-module.enable;
 
           inherit (claude-code) agents commands;
 
@@ -73,6 +63,10 @@ lib.rebellion.mk-module args {
 
             verbose = true;
             includeCoAuthoredBy = false;
+
+            env = {
+              USE_BUILTIN_RIPGREP = "0";
+            };
           };
 
           skillsDir = ai-tools.skills;
@@ -81,7 +75,6 @@ lib.rebellion.mk-module args {
         };
       }
       permissions
-      mcp-servers
-      statusLine
+      status-line
     ];
 }

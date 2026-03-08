@@ -166,6 +166,8 @@ let
     "Bash(rm -rf /)"
     "Bash(dd:*)"
     "Bash(mkfs:*)"
+    "Read(./.envrc.local)"
+    "Read(./secrets/**)"
   ];
 
   default-mode = {

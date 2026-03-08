@@ -3,8 +3,8 @@
 let
   inherit (lib.rebellion.ai-tools) load-tools;
 
-  commands = load-tools ./ai-tools/commands;
-  agents = load-tools ./ai-tools/agents;
+  commands = load-tools ./commands;
+  agents = load-tools ./agents;
 
   # Upstream Anthropic skills, fetched from GitHub and pinned to a specific commit.
   # To update: change `rev` and `hash` (run `nix-prefetch-url --unpack` to get new hash).
@@ -16,7 +16,7 @@ let
   };
 
   # Which upstream skills to include (maps local name -> upstream directory name).
-  anthropic-skill-names = [
+  anthropic-skills = map (name: "${anthropic-skills-src}/skills/${name}") [
     "docx"
     "frontend-design"
     "mcp-builder"
@@ -30,10 +30,7 @@ let
   # Combine local skills with selected upstream Anthropic skills into a single directory.
   skills = pkgs.symlinkJoin {
     name = "ai-tools-skills";
-    paths = [
-      ./ai-tools/skills
-    ]
-    ++ map (name: "${anthropic-skills-src}/skills/${name}") anthropic-skill-names;
+    paths = [ ./skills ] ++ anthropic-skills;
   };
 in
 {

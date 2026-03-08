@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   ...
 }:
 let
@@ -62,6 +63,14 @@ in
     };
 
     programs.tools.onepassword-cli.ssh-socket = enabled;
+    programs.terminal.tools = {
+      mcp = enabled // {
+        filesystem.directories = [
+          "${config.home.homeDirectory}/Syncthing"
+        ];
+      };
+      claude-code = enabled;
+    };
 
     dock.entries = [
       {
