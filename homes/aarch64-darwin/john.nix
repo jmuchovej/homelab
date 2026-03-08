@@ -64,6 +64,7 @@ in
 
     programs.tools.onepassword-cli.ssh-socket = enabled;
     programs.terminal.tools = {
+      comma = enabled;
       mcp = enabled // {
         filesystem.directories = [
           "${config.home.homeDirectory}/Syncthing"
@@ -76,6 +77,12 @@ in
     };
 
     dock.entries = [
+      {
+        name = "Claude.app";
+        source = "applications";
+        group = "development";
+        order = 100;
+      }
       {
         name = "System Settings.app";
         source = "system";
