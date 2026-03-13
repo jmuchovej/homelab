@@ -78,6 +78,7 @@ in
         code = enabled;
         desktop = enabled;
       };
+      gemini-cli = enabled;
       jujutsu = enabled;
     };
 
