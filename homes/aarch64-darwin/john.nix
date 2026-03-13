@@ -62,6 +62,10 @@ in
       authorized-keys = [ ];
     };
 
+    programs.desktop = {
+      figma = enabled;
+    };
+
     programs.tools.onepassword-cli.ssh-socket = enabled;
     programs.terminal.tools = {
       comma = enabled;
