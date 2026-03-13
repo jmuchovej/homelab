@@ -66,6 +66,7 @@ lib.rebellion.mk-desktop-module args {
           ++ languages-lsps.extensions;
           userSettings = settings;
           userKeymaps = keybinds;
+          # mutableUserSettings = false;
         };
     };
 }
