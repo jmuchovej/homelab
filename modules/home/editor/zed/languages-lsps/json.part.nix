@@ -29,13 +29,6 @@
         "!json-language-server"
       ];
     };
-    lsp.biome = {
-      binary = {
-        path = "${pkgs.biome}/bin/biome";
-        arguments = [ "lsp-proxy" ];
-      };
-      settings = { };
-    };
     lsp.json-language-server = {
       settings = { };
     };
