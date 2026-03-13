@@ -74,6 +74,7 @@ in
         code = enabled;
         desktop = enabled;
       };
+      jujutsu = enabled;
     };
 
     dock.entries = [
