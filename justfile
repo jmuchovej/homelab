@@ -12,8 +12,19 @@ build-iso disk:
     flake build-install-iso minimal
     fd ".*.iso" ./result/iso -x sudo mv {} ISOs/{/}
 
+[linux]
 switch:
-    nh darwin switch -u -j 8 --cores 8
+    nh os switch . -j 8 --cores 8
+
+[macos]
+switch:
+    nh darwin switch . -j 8 --cores 8
+
+regen:
+    nix run .#write-flake
+
+update:
+    nix flake update
 
 deploy host:
     deploy .#{{ host }}
