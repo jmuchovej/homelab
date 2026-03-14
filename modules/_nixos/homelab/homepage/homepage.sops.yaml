@@ -1,0 +1,53 @@
+homepage: ENC[AES256_GCM,data:K+hGYgDaNWbsLgHJwc7P6WVcem+uq5wMLAO5mgA9XddQK8zvHnadZaeo15p3itrj1u4Np5SzCs+gJWuxyWJGvevsOF4A9eWuB0GosRT9by0wfSjqisCZS8HmXY+Yp+a27YYF+cvEc7+VkD1CxOU1tM4qppTz9azpSEx77UBGcR0URoWzZZT+Qd4pRNr1368VD/0ZhBKa/z1STSMOH2BkP+zphqQWiPuoBuzGKBrwuXk7Gj9GwS14DtzPtznm+5Bdza8NO+GfkCh9ith5cJsGVGIGdzk1CdhT0oR3OC6zjxoJAKg97rjz6sQ1TeWqLTxFHEAGcfRGnDgkqSNYcLPxnpkJcfHLmRdJ0bij0DivmYAhupSnqkpl+vJoTUiULCCgjHX6FYW27K6lBv/a2ux/0HuxeenEHWjmnFTzYo3YmcL7CM65eCIM6y9j9plIEtfXUlcPb/JJ5zHFvH2lp5YaN8Xuv/m4slstt5pFAX6RhcN5Lv/tAuGJDVLlgPFtqOqZBjVq/Hfe5dxN8s2T4Uoq/4P6Fdy7u49BxsIQj7wK0mLQGbtyhZxljqo5WNGr6tGSl7fbMKyJzB5AgMVYSIsuJXzKvWZqMtj/iI+qANvHI3Mm3pKsV1MO9FB56T3G0NdpW/SW0CVHmAmIhu0pCimo8pLPuw06Q8IhUSVOElVa+6M9l3HkLDLcmMMGS2iy/VMilOiH7qMMXe3ciD4j+hH0XdAMKKpLCIXMoICBxElpivoO60oU4fJyiK726PmCyIy2glqvO9AHiQT/jgJpwypFzQQq6G9Quqbv9Frjnw38Bp3zEOyUhV/TTDxApD0zrxlxpVCTgGK3tdYlOVmKegfLazDP4qWeF2vgcA==,iv:0RKdoISthAKnwk292biq/s9ZfhXlWK73/us8Y+wlZZw=,tag:cr0C2r2ARdvaA5dgbULbkQ==,type:str]
+sops:
+  age:
+    - recipient: age1gx0l7q0g2j0dxpg8ta5vcpk24v4ftph4u0qmhdzf6yzgqp5s0chsfm0mza
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIZ1kveVA4N05VUEk5YnlD
+        aG1RVk1ZMTk3bmpZZmlJTnZmL1J2TWZPTEJJCkR0ZkxTYlVFQ0daMWw4UlJJaGp6
+        UVRVa3dMVEVKWVRUb3cyL0Q5Q1lIcDgKLS0tIDlQOWxFNG5XQ0lxWHBOSUc2WDYx
+        SjRxK29HeTkvM1lvbTA0SmNGZGVMaDQKPzBVzrdCOtX/nfKwBSNKtG+Zr7wDArRu
+        N8k+sUNyUh8phY5kTwjLv5BTr1lM+oYEfJ/nm4b2e0CUiNauIPFZuA==
+        -----END AGE ENCRYPTED FILE-----
+    - recipient: age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBubE5vZXFrNGQxc2RKeTVL
+        SHRFNUJlNjFnMTFLUmpVVUFTRWdweUxLVEVvCjFLYzdiQ0pUaURxRDhZQ0lCRHlD
+        RWNYemppZHlpL3pIbHBXQkRWM1pFT2sKLS0tIHJpZzFTZlExZFo1T01iSW5vcEpo
+        VENkZXRQMlhOQkt1RU5VdE9IZ2hVcFEKNsUHKqo0rLOObQTtHFyoHV9mySBv/9ry
+        YILd2oxDXxpYkHPmdIEkwJIJF/EVvOfj3K+YhHMWXvKQTc5wlZnrMQ==
+        -----END AGE ENCRYPTED FILE-----
+    - recipient: age1ux98gnft3k34lpqrqu6ayjvc3zmdltv5wdf3kxnhnd2y6srjjulqllfecm
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB1VHdBOE83T3ErTXQ0eHRl
+        RG16eE1oQ1dYaVA2djBSTTl4U2sxeDNTejFBCkdid3I4SUFEN3pWcWU1RTJXUGVQ
+        UURJL2dKSldIcG5FVmJOYk50WXNmSUUKLS0tIE5KUlJDWFFpK1d5Ylh6SGFCVWJo
+        VkFwZUxjVzVWNnAwVVR6Wjh4a2JuNk0KnIbqgYbmMo8wyN5EhTbOZpB9eY6zXS5N
+        xVlhlBrAg6oUVvA6TpzCsbAOGucWJpFISi3sVbqSSNQ6prSfCvyotQ==
+        -----END AGE ENCRYPTED FILE-----
+    - recipient: age17kz6tccq4sfu07mwuqkmy9sgr4np3g2cdjejj3a3j7qud2nfepdqkyee7y
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3bitKQ1dnKy94VjJVQk5B
+        OTU4VTdlSlA1OFJ6bXpNR1NGd0xmeWNsMGxjCnNCQVdMSXE5d1NOZHdmc3JMbGcw
+        L3JEenNQcncvNnoxb2FqWEs0TmZhc0kKLS0tIHhaY0luRUU2VzZ2OUI2SzIybzQ2
+        Q0JNbkVBQm1tK3djRDkzNDJMa29TSmsKJcYyiQWLprVT9JcNosTA/LilCUIDAznp
+        XeGQWgnr48t4mgkSOKt1t2UlH23JLzPRxcUfC5YnOuFL6bQyG6va5A==
+        -----END AGE ENCRYPTED FILE-----
+    - recipient: age1dhsru3z3hdv2f9h9js43k083gqxaas3vtm8uleq3t9gtkchrcgwsz07px5
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBoWHRBQkxSM1NLMEY3dTBq
+        MmRuaFR1S3gvTXhCR1pzVEVoNnFURnl0UVZrClpBeXQ3ZFJQeWJ3MW5ES1U4QnNm
+        VHRuRHhmTVJDWFNqYTRXYm1WUlpBUG8KLS0tIFJTNmNyK2Z6TjZGSDBFSVRndTlk
+        VDlIL0Q1azd3WlFvNk5xQVNHaUpBQ1EKKcaDlxCCcWOMLxwjzldLvV5yUnGzCQnQ
+        TsXi/zACPM1PuHi+0XqrCunKj62oqDOq2FX1XmB236ieav6zRFFwQw==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-01-15T21:38:57Z"
+  mac: ENC[AES256_GCM,data:9pxujsHslroocbyzaeMut9go8GOeZmLIIuXOThg+XQyoO4NTrB7aJhwpW0yBzhe7WPKKza/68uWiBZgY/3eSCGl1P3LHHrKazjvMu9WZa+8R5lpMsNg/dto9Kxzz0qGgbnjuHjoUBtU6zgRjGYXndSG/iTDeSslWkoBrU0z7ghU=,iv:6Fs6ywhJaIR0Bk7sswhzc+cj9JeDJkM9FW0ITNWYeIk=,tag:hFYEblxUR7ZII/XXZM9bYQ==,type:str]
+  unencrypted_suffix: _unencrypted
+  mac_only_encrypted: true
+  version: 3.11.0
