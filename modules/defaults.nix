@@ -1,4 +1,9 @@
-{ inputs, __findFile, lib, ... }:
+{
+  inputs,
+  __findFile,
+  lib,
+  ...
+}:
 let
   # Build the extended lib with lib.rebellion.* functions
   rebellion-lib = import ../src/lib { inherit inputs; };
@@ -68,12 +73,14 @@ in
       home-manager.sharedModules = hmModules;
     };
 
-    homeManager = { config, lib, ... }: {
-      programs.home-manager.enable = true;
-      home.sessionPath = [ "$HOME/.local/bin" ];
-      home.stateVersion = lib.mkDefault "25.11";
-      rebellion.user.name = lib.mkDefault config.home.username;
-    };
+    homeManager =
+      { config, lib, ... }:
+      {
+        programs.home-manager.enable = true;
+        home.sessionPath = [ "$HOME/.local/bin" ];
+        home.stateVersion = lib.mkDefault "25.11";
+        rebellion.user.name = lib.mkDefault config.home.username;
+      };
   };
 
   # Override instantiate to inject rebellion-lib, underscore modules,
@@ -90,7 +97,7 @@ in
       hostSpecialArgs = {
         inherit datacenter nodename hostname;
         host = hostname; # alias used by some modules (e.g., syncthing)
-        system = config.system; # architecture (e.g., x86_64-linux)
+        inherit (config) system; # architecture (e.g., x86_64-linux)
         peers = [ ]; # TODO: compute from all den hosts
         inherit (inputs) self;
         inputs = rebellion-lib.rebellion.flake.without-src inputs;
@@ -109,7 +116,8 @@ in
       systemFile = ../systems + "/${config.system}/${nodename}@${datacenter}.nix";
 
       # Per-user home config imports from homes/{system}/{user}[@{nodename}].nix
-      userHomeImports = lib.mapAttrs (username: _:
+      userHomeImports = lib.mapAttrs (
+        username: _:
         let
           hostFile = ../homes + "/${config.system}/${username}@${nodename}.nix";
           genericFile = ../homes + "/${config.system}/${username}.nix";
@@ -129,13 +137,16 @@ in
             args
             // {
               lib = rebellion-lib;
-              modules = (args.modules or [ ]) ++ nixosModules ++ [
-                systemFile
-                {
-                  home-manager.extraSpecialArgs = nixosSpecialArgs;
-                  home-manager.users = userHomeImports;
-                }
-              ];
+              modules =
+                (args.modules or [ ])
+                ++ nixosModules
+                ++ [
+                  systemFile
+                  {
+                    home-manager.extraSpecialArgs = nixosSpecialArgs;
+                    home-manager.users = userHomeImports;
+                  }
+                ];
               specialArgs = (args.specialArgs or { }) // nixosSpecialArgs;
             }
           )
@@ -148,13 +159,16 @@ in
             args
             // {
               lib = rebellion-lib;
-              modules = (args.modules or [ ]) ++ darwinModules ++ [
-                systemFile
-                {
-                  home-manager.extraSpecialArgs = darwinSpecialArgs;
-                  home-manager.users = userHomeImports;
-                }
-              ];
+              modules =
+                (args.modules or [ ])
+                ++ darwinModules
+                ++ [
+                  systemFile
+                  {
+                    home-manager.extraSpecialArgs = darwinSpecialArgs;
+                    home-manager.users = userHomeImports;
+                  }
+                ];
               specialArgs = (args.specialArgs or { }) // darwinSpecialArgs;
             }
           )
