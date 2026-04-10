@@ -156,15 +156,13 @@
           TREEFMT_ALLOW_MISSING_FORMATTER = "1";
         };
 
-        shellHook =
-          (lib.optionalString (inputs ? git-hooks-nix) config.pre-commit.installationScript)
-          + ''
+        shellHook = (lib.optionalString (inputs ? git-hooks-nix) config.pre-commit.installationScript) + ''
 
-            # Sync project-specific skills into tool-specific locations.
-            mkdir -p .claude
-            rm -rf .claude/skills
-            ln -snf "$(pwd)/skills" .claude/skills
-          '';
+          # Sync project-specific skills into tool-specific locations.
+          mkdir -p .claude
+          rm -rf .claude/skills
+          ln -snf "$(pwd)/skills" .claude/skills
+        '';
       };
     };
 }

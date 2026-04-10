@@ -10,8 +10,10 @@ lib.rebellion.mk-module args {
 
       username = config.rebellion.user.name;
       default-sops-file =
-        if username != null then get-file "secrets/homes/${username}.sops.yaml"
-        else get-file "secrets/homes/default.sops.yaml";
+        if username != null then
+          get-file "secrets/homes/${username}.sops.yaml"
+        else
+          get-file "secrets/homes/default.sops.yaml";
     in
     {
       default-sops-file = options.mk path default-sops-file "Default sops file.";

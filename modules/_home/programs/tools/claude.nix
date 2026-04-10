@@ -38,7 +38,7 @@ lib.rebellion.mk-module args {
     }:
     let
       inherit (lib) mkIf mkMerge;
-      inherit (lib.rebellion.fs) get-file get-module import-dir;
+      inherit (lib.rebellion.fs) get-file import-dir;
 
       ai-tools = import (get-file "modules/_common/ai-tools/ai-tools.part.nix") { inherit lib pkgs; };
       inherit (ai-tools) claude-code;
