@@ -51,6 +51,8 @@ lib.rebellion.mk-module args {
       programs.git = {
         enable = true;
 
+        signing.format = null;
+
         settings = {
           user.name = "John Muchovej";
           user.email = cfg.email;

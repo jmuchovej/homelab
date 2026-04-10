@@ -57,7 +57,7 @@ lib.rebellion.mk-module args {
         with-consul config (service // { checks = [ healthcheck ]; })
       )
       {
-        services.jellyseerr = {
+        services.seerr = {
           enable = true;
           openFirewall = true;
         };

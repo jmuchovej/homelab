@@ -73,12 +73,14 @@ in
       home-manager.sharedModules = hmModules;
     };
 
-    homeManager = { config, lib, ... }: {
-      programs.home-manager.enable = true;
-      home.sessionPath = [ "$HOME/.local/bin" ];
-      home.stateVersion = lib.mkDefault "25.11";
-      rebellion.user.name = lib.mkDefault config.home.username;
-    };
+    homeManager =
+      { config, lib, ... }:
+      {
+        programs.home-manager.enable = true;
+        home.sessionPath = [ "$HOME/.local/bin" ];
+        home.stateVersion = lib.mkDefault "25.11";
+        rebellion.user.name = lib.mkDefault config.home.username;
+      };
   };
 
   # Override instantiate to inject rebellion-lib, underscore modules,

@@ -31,8 +31,6 @@ lib.rebellion.mk-module args {
           enable = true;
           host = "0.0.0.0";
           mediaLocation = "/impulse/media/Immich";
-          database.enableVectors = false;
-          database.enableVectorChord = true;
           machine-learning.enable = true;
           settings = {
             oauth = {
