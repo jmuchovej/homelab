@@ -4,6 +4,6 @@
 _final: prev: {
   unstable = import inputs.nixpkgs {
     inherit (prev.stdenv.hostPlatform) system;
-    config = prev.config;
+    inherit (prev) config;
   };
 }
