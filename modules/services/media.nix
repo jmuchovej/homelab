@@ -1,4 +1,4 @@
-{ __findFile, ... }:
+{ __findFile, den, ... }:
 {
   rbn.services._.media = {
     nixos = {
@@ -28,6 +28,7 @@
     };
 
     includes = [
+      (den.provides.unfree [ "plexmediaserver" ])
       (<rbn/mesh/register> {
         name = "plex";
         port = 32400;
