@@ -3,7 +3,7 @@
   den.aspects.da-vcx-3 = {
     includes = [
       <rbn/suite/server>
-      <rbn/security/sops>
+      <rbn/programs/security/sops>
     ];
 
     nixos = {

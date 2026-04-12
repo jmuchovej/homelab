@@ -1,6 +1,6 @@
 # Security lockdown mode — not currently included by any host.
 _: {
-  rbn.security._.paranoid.nixos =
+  rbn.system._.security._.paranoid.nixos =
     { lib, pkgs, ... }:
     {
       nix.allowedUsers = [ "@wheel" ];

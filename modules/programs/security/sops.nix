@@ -3,7 +3,7 @@ let
   sops-file = kind: name: "${inputs.self}/secrets/${kind}/${name}.sops.yaml";
 in
 {
-  rbn.security._.sops = {
+  rbn.programs._.security._.sops = {
     nixos =
       { host, pkgs, ... }:
       let

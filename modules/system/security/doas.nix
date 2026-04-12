@@ -1,5 +1,5 @@
 _: {
-  rbn.security._.doas.nixos =
+  rbn.system._.security._.doas.nixos =
     {
       host,
       lib,
