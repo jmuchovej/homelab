@@ -1,10 +1,12 @@
-_: {
+{ den, ... }: {
   rbn.programs._.ai-tools._.claude = {
     provides.code =
       let
         permission-profiles = import ./_claude/permissions.nix;
       in
       {
+        includes = [ (den.provides.unfree [ "claude-code" ]) ];
+
         homeManager =
           {
             config,
@@ -47,8 +49,6 @@ _: {
 
             config = lib.mkMerge [
               {
-                nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "claude-code" ];
-
                 xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
 
                 programs.claude-code = {
@@ -71,9 +71,12 @@ _: {
                     };
                   };
 
-                  skillsDir = ai-tools.skills;
+                  # Use outPath to pass a plain path, not the derivation attrset.
+                  # The HM module's `builtins.isAttrs` check would otherwise iterate
+                  # derivation attrs like __darwinAllowLocalNetworking as "skills".
+                  skills = "${ai-tools.skills}";
 
-                  memory.source = ./_ai-tools/BASE.md;
+                  context = ./_ai-tools/BASE.md;
                 };
               }
               status-line
