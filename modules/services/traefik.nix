@@ -20,13 +20,13 @@ _: {
     }:
     let
       inherit (lib) mkForce mkIf optionals;
-      inherit (lib.rebellion.file) get-secret';
-      inherit (lib.rebellion.network)
+      inherit (lib.rbn)
+        get-secret'
         mk-traefik-service
         mk-healthcheck
         with-consul
+        merge-deep
         ;
-      inherit (lib.rebellion) attrs;
       inherit (host) hostname datacenter;
 
       cfg = host.traefik;
@@ -176,7 +176,7 @@ _: {
               "Host(`${datacenter}.jm0.io`)"
               "(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
             ];
-            service = attrs.merge-deep [
+            service = merge-deep [
               service-base
               { pub.config.rule = rule; }
             ];

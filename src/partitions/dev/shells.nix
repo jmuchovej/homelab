@@ -53,8 +53,8 @@
           # TODO(jmuchovej): This only supports Claude Code, which has native skill
           # discovery via `.claude/skills/`. Gemini CLI and OpenCode don't have an
           # equivalent mechanism — supporting them would require running skills through
-          # the Nix rendering pipeline (`lib.rebellion.ai-tools`) to transform them
-          # into each tool's format (e.g., Gemini commands, OpenCode agents).
+          # the Nix rendering pipeline (`modules/ai-tools/_ai-tools/lib.nix`) to transform
+          # them into each tool's format (e.g., Gemini commands, OpenCode agents).
           mkdir -p .claude
           rm -rf .claude/skills
           ln -snf "$(pwd)/skills" .claude/skills

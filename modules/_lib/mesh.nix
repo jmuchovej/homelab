@@ -1,8 +1,8 @@
-{
-  lib,
-  rebellion-lib ? { },
-  inputs,
-}:
+## Service-mesh helpers — consul registration, traefik service builders,
+## healthcheck/authentik tag generators. Used by `modules/mesh.nix` (the
+## `<rbn/mesh/register>` provider) and the infra services that need custom
+## registration (consul, traefik, nomad, openbao, authentik, home-assistant).
+{ lib, ... }:
 let
   inherit (lib)
     mkDefault
@@ -13,18 +13,18 @@ let
     mkIf
     ;
   inherit (builtins) isList;
-  inherit (lib.strings) concatStringsSep splitString replaceStrings;
+  inherit (lib.strings)
+    concatStringsSep
+    splitString
+    replaceStrings
+    removePrefix
+    ;
   inherit (builtins) head filter;
-in
-{
-  network = rec {
+
+  mesh = rec {
     dynamic-http = http: {
       services.traefik.dynamicConfigOptions.http = http;
     };
-
-    mk-openid-url =
-      client-id: datacenter:
-      "https://id.${datacenter}.jm0.io/application/o/${client-id}-oauth/.well-known/openid-configuration";
 
     # Helper to merge service config into Traefik dynamicConfigOptions.http
     # Usage: services.traefik.dynamicConfigOptions.http = apply-service (mk-traefik-service {...});
@@ -67,12 +67,6 @@ in
     # - public = false: Creates ONLY local router (e.g., radarr.da-vcx-1.lab)
     #
     # Both routers (when present) point to the same backend service.
-    #
-    # Usage: services.traefik.dynamicConfigOptions.http = lib.rebellion.network.mk-traefik-service {
-    #   name = "plex";
-    #   port = 32400;
-    #   public = true;  # Optional, defaults to true
-    # };
     mk-traefik-service =
       {
         name,
@@ -101,12 +95,8 @@ in
 
         service-config = {
           loadBalancer.server.port = mkDefault (toString port);
-          # loadBalancer.servers = mkDefault [
-          #   { url = "http://localhost:${toString port}"; }
-          # ];
         };
       in
-      # Return a structured result with accessors
       {
         pub = {
           inherit name;
@@ -191,14 +181,6 @@ in
 
     # Convenience wrapper that restricts access to local networks only
     # Perfect for *arr apps, admin panels, and other internal-only services
-    #
-    # Usage: mk-local-only-service {
-    #   name = "sonarr";
-    #   port = 8989;
-    #   hostname = "da-vcx-1";
-    #   datacenter = "da";
-    #   restriction = "local-only";  # or "admin-only" or "homelab-only"
-    # }
     mk-local-only-service =
       {
         name,
@@ -365,16 +347,6 @@ in
     # Usage: with-consul config (mk-traefik-service {...})
     # When Consul is enabled: Only creates Consul registration (Traefik reads from Consul)
     # When Consul is disabled: Falls back to direct Traefik configuration
-    #
-    # For services with secrets in healthchecks, pass the template name:
-    #   with-consul config (service // {
-    #     checks = [ healthcheck ];
-    #     template = "consul-hass";
-    #   })
-    # This will automatically create `sops.templates.<template>.content` with the JSON.
-    #
-    # To mark a service as publicly accessible (creates Cloudflare DNS via Terraform):
-    #   with-consul config (service // { public = true; })
     with-consul =
       config: service:
       let
@@ -404,22 +376,21 @@ in
         service-file = "consul.d/${service.svc.name}.json";
       in
       mkMerge [
-        # Assert that mesh.enable exists and is explicitly set (not undefined)
         {
           assertions = [
             {
-              assertion = config.rebellion.services.consul ? enable;
+              assertion =
+                (config.rebellion.services.consul.enable or false) || (config.services.consul.enable or false);
               message = ''
-                lib.rebellion.network.with-consul requires rebellion.services.mesh.enable to be explicitly set.
+                lib.rbn.with-consul requires consul to be enabled.
                 Service: ${service.svc.name}
 
-                Please add to your configuration:
-                  rebellion.services.consule.enable = true;  # or false for fallback mode
+                Enable consul on this host (e.g. via `host.consul.enable = true;`
+                or by including the consul service aspect).
               '';
             }
           ];
         }
-        # If using a sops template, create the template and use it as source
         (mkIf write-template {
           sops.templates."${service-file}" = {
             content = consul-json;
@@ -429,7 +400,6 @@ in
           };
           services.consul.extraConfigFiles = [ config.sops.templates.${service-file}.path ];
         })
-        # Otherwise write JSON directly
         (mkIf (!write-template) {
           environment.etc."${service-file}".text = consul-json;
         })
@@ -450,8 +420,6 @@ in
         method ? "GET",
       }:
       let
-        inherit (inputs.nixpkgs.lib.strings) removePrefix;
-
         healthcheck-base = {
           inherit
             id
@@ -468,4 +436,7 @@ in
       in
       healthcheck;
   };
+in
+{
+  _rbn-lib = mesh;
 }
