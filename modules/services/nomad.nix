@@ -1,4 +1,4 @@
-_: {
+{ den, ... }: {
   # ── Host schema: nomad options ─────────────────────────────────────
   den.schema.host =
     { lib, ... }:
@@ -75,7 +75,10 @@ _: {
     };
 
   # ── Aspect ─────────────────────────────────────────────────────────
-  rbn.services._.nomad.nixos =
+  rbn.services._.nomad = {
+    includes = [ (den.provides.unfree [ "nomad" ]) ];
+
+    nixos =
     {
       host,
       config,
@@ -304,4 +307,5 @@ _: {
         )
       ]
     );
+  };
 }
