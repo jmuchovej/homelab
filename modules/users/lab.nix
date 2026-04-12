@@ -20,7 +20,7 @@
       # Core
       <rbn/programs/vcs/git>
       <rbn/programs/terminal/ssh>
-      <rbn/security/sops>
+      <rbn/programs/security/sops>
 
       # Editors
       <rbn/programs/editors/neovim>

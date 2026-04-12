@@ -6,26 +6,22 @@
 
   den.default = {
     nixos =
-      { host, ... }:
+      { host, lib, ... }:
       {
-        imports = [
-          inputs.sops-nix.nixosModules.sops
-        ];
+        imports = [ inputs.sops-nix.nixosModules.sops ];
         sops = {
-          defaultSopsFile = ./hosts/${host}.sops.yaml;
+          defaultSopsFile = lib.mkDefault ./hosts/${host.name}.sops.yaml;
           defaultSopsFormat = "yaml";
           age.keyFile = "/var/lib/secrets/sops/age/keys.txt";
         };
       };
 
     darwin =
-      { host, ... }:
+      { host, lib, ... }:
       {
-        imports = [
-          inputs.sops-nix.darwinModules.sops
-        ];
+        imports = [ inputs.sops-nix.darwinModules.sops ];
         sops = {
-          defaultSopsFile = ./hosts/${host}.sops.yaml;
+          defaultSopsFile = lib.mkDefault ./hosts/${host.name}.sops.yaml;
           defaultSopsFormat = "yaml";
           age.keyFile = "/var/lib/secrets/sops/age/keys.txt";
         };
@@ -34,9 +30,7 @@
     homeManager =
       { host, lib, ... }:
       {
-        imports = [
-          inputs.sops-nix.homeManagerModules.sops
-        ];
+        imports = [ inputs.sops-nix.homeManagerModules.sops ];
         sops = {
           defaultSopsFile = lib.mkDefault ./users/${host.user.name}.sops.yaml;
           defaultSopsFormat = "yaml";
