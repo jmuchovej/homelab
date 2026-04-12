@@ -32,6 +32,9 @@
           { host, lib, ... }:
           lib.mkIf host.homebrew.enable {
             homebrew.casks = [ "1password" ];
+            homebrew.masApps = {
+              "1Password for Safari"= 1569813296;
+            };
           };
       };
     };
