@@ -1,5 +1,61 @@
 { __findFile, lib, ... }:
 {
+  # ── Dock placement for john's programs ──────────────────────────────
+  # Each sets dock.{group,order} on the aspect. The dock builder walks rbn.*
+  # to find aspects with dock.group set and reads meta.dock.app for the name.
+  rbn.programs._.ai-tools._.claude.provides.desktop.dock = {
+    group = "development";
+    order = 100;
+  };
+  rbn.programs._.social.provides.beeper.dock = {
+    group = "communication";
+    order = 220;
+  };
+  rbn.programs._.media.provides.spotify.dock = {
+    group = "media";
+    order = 230;
+  };
+  rbn.programs._.browsers._.brave.dock = {
+    group = "browsers";
+    order = 310;
+  };
+  rbn.programs._.browsers._.firefox.dock = {
+    group = "browsers";
+    order = 320;
+  };
+  rbn.programs._.documents._.obsidian.dock = {
+    group = "pkm";
+    order = 410;
+  };
+  rbn.programs._.documents._.notion.dock = {
+    group = "pkm";
+    order = 420;
+  };
+  rbn.programs._.documents._.logseq.dock = {
+    group = "pkm";
+    order = 440;
+  };
+  rbn.programs._.documents._.appflowy.dock = {
+    group = "pkm";
+    order = 450;
+  };
+  rbn.programs._.editors._.zed.dock = {
+    group = "editors";
+    order = 510;
+  };
+  rbn.programs._.toolchains._.api.provides.bruno.dock = {
+    group = "editors";
+    order = 520;
+  };
+  rbn.programs._.emulators._.wezterm.dock = {
+    group = "terminals";
+    order = 610;
+  };
+  rbn.programs._.emulators._.ghostty.dock = {
+    group = "terminals";
+    order = 620;
+  };
+
   den.aspects.john = {
     includes = [
       <den/primary-user>
@@ -104,7 +160,21 @@
         identityFile = "~/.ssh/1p-%h.pub";
       };
 
-      rebellion.dock.entries = [
+    };
+
+    nixos.users.users.john = { };
+  };
+
+  den.hosts.x86_64-linux.da-vcx-1.users.john = { };
+  den.hosts.x86_64-linux.da-vcx-2.users.john = { };
+  den.hosts.x86_64-linux.da-vcx-3.users.john = { };
+  den.hosts.aarch64-darwin.da-n1x = {
+    desktop = true;
+    users.john = {
+      # Dock layout — explicit entries for now.
+      # When den's fx pipeline releases, aspect-backed entries will auto-resolve
+      # from dock.{app,group,order} set on rbn.* aspects. See memory/dock-class-design.md.
+      dock = [
         {
           name = "Claude.app";
           source = "applications";
@@ -135,10 +205,28 @@
           order = 220;
         }
         {
+          name = "Spotify.app";
+          source = "applications";
+          group = "media";
+          order = 230;
+        }
+        {
           name = "Things3.app";
           source = "applications";
           group = "communication";
           order = 240;
+        }
+        {
+          name = "Brave Browser.app";
+          source = "applications";
+          group = "browsers";
+          order = 310;
+        }
+        {
+          name = "Firefox Developer Edition.app";
+          source = "applications";
+          group = "browsers";
+          order = 320;
         }
         {
           name = "Safari.app";
@@ -147,23 +235,61 @@
           order = 330;
         }
         {
+          name = "Obsidian.app";
+          source = "applications";
+          group = "pkm";
+          order = 410;
+        }
+        {
+          name = "Notion.app";
+          source = "applications";
+          group = "pkm";
+          order = 420;
+        }
+        {
           name = "Notion Calendar.app";
           source = "applications";
           group = "pkm";
           order = 430;
         }
+        {
+          name = "Logseq.app";
+          source = "applications";
+          group = "pkm";
+          order = 440;
+        }
+        {
+          name = "AppFlowy.app";
+          source = "applications";
+          group = "pkm";
+          order = 450;
+        }
+        {
+          name = "Zed.app";
+          source = "hm";
+          group = "editors";
+          order = 510;
+        }
+        {
+          name = "Bruno.app";
+          source = "hm";
+          group = "editors";
+          order = 520;
+        }
+        {
+          name = "WezTerm.app";
+          source = "applications";
+          group = "terminals";
+          order = 610;
+        }
+        {
+          name = "Ghostty.app";
+          source = "applications";
+          group = "terminals";
+          order = 620;
+        }
       ];
     };
-
-    nixos.users.users.john = { };
-  };
-
-  den.hosts.x86_64-linux.da-vcx-1.users.john = { };
-  den.hosts.x86_64-linux.da-vcx-2.users.john = { };
-  den.hosts.x86_64-linux.da-vcx-3.users.john = { };
-  den.hosts.aarch64-darwin.da-n1x = {
-    desktop = true;
-    users.john = { };
   };
 
   den.hosts.x86_64-linux.en-t65-1.users.john = { };

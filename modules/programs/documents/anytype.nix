@@ -1,5 +1,7 @@
 _: {
   rbn.programs._.documents._.anytype = {
+    dock.app = "AnyType.app";
+
     homeManager =
       { pkgs, lib, ... }:
       lib.mkIf pkgs.stdenv.isLinux {

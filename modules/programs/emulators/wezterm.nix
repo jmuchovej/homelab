@@ -1,5 +1,7 @@
 _: {
   rbn.programs._.emulators._.wezterm = {
+    dock.app = "WezTerm.app";
+
     darwin =
       { host, lib, ... }:
       lib.mkIf host.homebrew.enable {
@@ -12,15 +14,6 @@ _: {
         inherit (pkgs.stdenv) isLinux;
       in
       {
-        rebellion.dock.entries = [
-          {
-            name = "WezTerm.app";
-            source = "applications";
-            group = "terminals";
-            order = 610;
-          }
-        ];
-
         programs.wezterm = lib.mkIf isLinux {
           enable = true;
           package = pkgs.wezterm;
