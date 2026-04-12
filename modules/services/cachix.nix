@@ -1,5 +1,5 @@
 {
-  rbn.cachix.nixos =
+  rbn.services._.cachix.nixos =
     { config, ... }:
     {
       sops.secrets."cachix/token" = { };
