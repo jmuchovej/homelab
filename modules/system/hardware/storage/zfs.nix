@@ -1,7 +1,7 @@
 _: {
   rbn.system._.hardware._.storage._.zfs = {
     nixos =
-      { pkgs, ... }:
+      { lib, pkgs, ... }:
       {
         environment.systemPackages = [ pkgs.zfs ];
         boot.supportedFilesystems = [ "zfs" ];
@@ -13,7 +13,7 @@ _: {
         # https://nixos.org/manual/nixos/unstable/index.html#sec-kernel-config
         # kernelPackages = pkgs.linuxKernels.packages.linux_6_12;
         # https://nixos.org/manual/nixos/unstable/index.html#sec-linux-zfs
-        boot.kernelPackages = pkgs.linuxPackages;
+        boot.kernelPackages = lib.mkDefault pkgs.linuxPackages;
       };
 
     # Auto-snapshot + scrub + trim — include via <rbn/system/hardware/storage/zfs/managed>
