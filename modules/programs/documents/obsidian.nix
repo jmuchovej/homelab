@@ -1,18 +1,11 @@
 _: {
   rbn.programs._.documents._.obsidian = {
+    dock.app = "Obsidian.app";
+
     homeManager =
       { pkgs, lib, ... }:
       {
         home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.obsidian ];
-
-        rebellion.dock.entries = [
-          {
-            name = "Obsidian.app";
-            source = "applications";
-            group = "pkm";
-            order = 410;
-          }
-        ];
       };
 
     darwin =
