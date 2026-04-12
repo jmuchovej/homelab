@@ -6,7 +6,7 @@
 { inputs, lib, ... }:
 let
   inherit (builtins) pathExists;
-  import-tree = inputs.import-tree;
+  inherit (inputs) import-tree;
 
   # Discover overlay files from _overlays/
   # import-tree skips _-prefixed dirs, so _packages/ is excluded.
@@ -19,9 +19,7 @@ let
   ];
 
   # Each overlay file is either a function { inputs }: overlay or a raw overlay.
-  discoveredOverlays = map (
-    f: if lib.isFunction f then f { inherit inputs; } else f
-  ) rawOverlays;
+  discoveredOverlays = map (f: if lib.isFunction f then f { inherit inputs; } else f) rawOverlays;
 
   # packages-contrib overlay: creates pkgs.contrib.*
   contribDir = ./_overlays/_packages/contrib;
@@ -30,7 +28,7 @@ let
       final: _prev: {
         contrib = _prev.lib.filesystem.packagesFromDirectoryRecursive {
           directory = contribDir;
-          callPackage = final.callPackage;
+          inherit (final) callPackage;
         };
       }
     else
