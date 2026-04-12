@@ -1,6 +1,6 @@
 _:
 let
-  syncthing-network = import ./_syncthing-network.nix;
+  syncthing-network = import ./_network.nix;
 in
 {
   rbn.services._.syncthing = {
@@ -66,6 +66,7 @@ in
           };
         };
       };
+
     homeManager =
       { config, ... }:
       {
