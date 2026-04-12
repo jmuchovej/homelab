@@ -1,18 +1,11 @@
 _: {
   rbn.programs._.documents._.notion = {
+    dock.app = "Notion.app";
+
     homeManager =
       { pkgs, lib, ... }:
       {
         home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.notion-app ];
-
-        rebellion.dock.entries = [
-          {
-            name = "Notion.app";
-            source = "applications";
-            group = "pkm";
-            order = 420;
-          }
-        ];
       };
 
     darwin =
