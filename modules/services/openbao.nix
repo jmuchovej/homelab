@@ -107,7 +107,7 @@ _: {
           package = pkgs.openbao;
 
           settings = {
-            inherit (cfg) ui;
+            ui = cfg.ui;
 
             api_addr = "http://${bind-addr}:${toString cfg.ports.api}";
             cluster_addr = "https://${bind-addr}:${toString cfg.ports.cluster}";
