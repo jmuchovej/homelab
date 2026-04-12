@@ -1,7 +1,7 @@
 { lib, anthropic-skills-src }:
 
 let
-  inherit (lib.rebellion.ai-tools) load-tools;
+  inherit (import ./lib.nix { inherit lib; }) load-tools;
 
   commands = load-tools ./commands;
   agents = load-tools ./agents;
