@@ -3,7 +3,7 @@
   den.aspects.en-t65-1 = {
     includes = [
       <rbn/suite/server>
-      <rbn/security/sops>
+      <rbn/programs/security/sops>
     ];
 
     nixos = {

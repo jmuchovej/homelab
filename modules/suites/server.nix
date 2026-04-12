@@ -4,7 +4,7 @@
     includes = [
       <rbn/suite/common>
       <rbn/suite/development>
-      <rbn/security/doas>
+      <rbn/system/security/doas>
     ];
 
     nixos =

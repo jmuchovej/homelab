@@ -113,7 +113,7 @@
       <rbn/system/virtualization>
 
       # Security
-      <rbn/security/sudo>
+      <rbn/system/security/sudo>
 
       # Networking (base via suite-common, dns/manager selected here)
       <rbn/system/networking/dns/dnsmasq>
