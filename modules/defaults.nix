@@ -7,14 +7,6 @@
 let
   # Build the extended lib with lib.rebellion.* functions
   rebellion-lib = import ../src/lib { inherit inputs; };
-
-  # Build overlays (pkgs.rebellion.* + overlays/ directory)
-  overlay-config = rebellion-lib.rebellion.overlay.mk-overlays {
-    paths = {
-      packages = ../packages;
-      overlays = ../overlays;
-    };
-  };
 in
 {
   den.default = {
@@ -27,18 +19,23 @@ in
         }
       )
     ];
-
-    nixos.nixpkgs.overlays = overlay-config.all-overlays;
-    darwin.nixpkgs.overlays = overlay-config.all-overlays;
   };
 
   # Override instantiate to inject rebellion-lib and specialArgs into OS evaluation.
   den.schema.host =
     { config, ... }:
     let
+      # Parse datacenter/nodename from host name (e.g., "da-vcx-1" -> datacenter="da", nodename="vcx-1")
+      parts = lib.splitString "-" config.name;
+      datacenter = builtins.elemAt parts 0;
+      nodename = lib.concatStringsSep "-" (lib.drop 1 parts);
+      hostname = config.name;
+
       hostSpecialArgs = {
         host = config;
-        inherit (config) system; # required by nixpkgs for hostPlatform resolution
+        inherit datacenter nodename hostname;
+        inherit (config) system;
+        peers = [ ]; # TODO: compute from all den hosts in same datacenter
         inherit (inputs) self;
         inputs = rebellion-lib.rebellion.flake.without-src inputs;
       };
