@@ -10,7 +10,6 @@
         ...
       }:
       let
-        inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
         split-pro = pkgs.callPackage ./_package.nix { };
@@ -105,7 +104,7 @@
         sops.templates."split-pro.env" =
           let
             client-id = config.sops.placeholder."split-pro/client-id";
-            issuer-url = mk-openid-url client-id datacenter;
+            issuer-url = <rbn/authentik/openid-url> client-id datacenter;
           in
           {
             content = ''
