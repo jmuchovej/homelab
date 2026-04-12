@@ -22,7 +22,7 @@ _: {
                   marksman
                   nil
                   nixd
-                  nixfmt-rfc-style
+                  nixfmt
                   bash-language-server
                   vscode-langservers-extracted
                   prettierd

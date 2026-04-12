@@ -22,7 +22,6 @@ _: {
           gopls
           golangci-lint
           gotestsum
-          gotools
         ];
         settings = {
           lsp.gopls = {
@@ -50,7 +49,6 @@ _: {
       home.packages = with pkgs; [
         go
         air
-        gotools
         golangci-lint
         gotestsum
         gopls
