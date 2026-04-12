@@ -20,7 +20,8 @@ _: {
           packages = [
             brandon-text
             monolisa
-          ] ++ (with pkgs; [
+          ]
+          ++ (with pkgs; [
             # Desktop Fonts
             # input-fonts
             hack-font

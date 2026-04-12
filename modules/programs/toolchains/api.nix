@@ -1,14 +1,15 @@
-{ den, ... }: {
+{ den, ... }:
+{
   rbn.programs._.toolchains._.api = {
     provides.bruno = {
-        dock.app = "Bruno.app";
+      dock.app = "Bruno.app";
 
-        homeManager =
-          { pkgs, ... }:
-          {
-            home.packages = [ pkgs.bruno ];
-          };
-      };
+      homeManager =
+        { pkgs, ... }:
+        {
+          home.packages = [ pkgs.bruno ];
+        };
+    };
     provides.postman = {
       includes = [ (den.provides.unfree [ "postman" ]) ];
 
