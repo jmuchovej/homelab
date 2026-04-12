@@ -1,5 +1,7 @@
 _: {
   rbn.programs._.emulators._.ghostty = {
+    dock.app = "Ghostty.app";
+
     homeManager =
       { pkgs, lib, ... }:
       {
@@ -7,15 +9,6 @@ _: {
           enable = true;
           package = pkgs.ghostty;
         };
-
-        rebellion.dock.entries = [
-          {
-            name = "Ghostty.app";
-            source = "applications";
-            group = "terminals";
-            order = 620;
-          }
-        ];
       };
 
     darwin =
