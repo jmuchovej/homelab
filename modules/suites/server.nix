@@ -10,7 +10,7 @@
     nixos =
       { config, lib, ... }:
       let
-        inherit (lib.rebellion.file) get-secret';
+        inherit (lib.rbn) get-secret';
       in
       lib.mkMerge [
         (get-secret' config "lab/password")

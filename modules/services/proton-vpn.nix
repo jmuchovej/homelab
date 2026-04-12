@@ -9,7 +9,7 @@
     }:
     let
       inherit (lib) getExe getExe';
-      inherit (lib.rebellion) attrs;
+      inherit (lib.rbn) merge-deep;
 
       ip = getExe' pkgs.iproute2 "ip";
       ip4t = getExe' pkgs.iptables "iptables";
@@ -51,7 +51,7 @@
 
       users.groups.proton = { };
 
-      networking.wg-quick.interfaces.proton0 = attrs.merge-deep [
+      networking.wg-quick.interfaces.proton0 = merge-deep [
         {
           address = [ "10.2.0.2/32" ];
           dns = [ "10.2.0.1" ];

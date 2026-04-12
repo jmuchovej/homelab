@@ -9,7 +9,7 @@ _: {
       }:
       let
         inherit (lib) optionals;
-        inherit (lib.rebellion) enabled;
+        inherit (lib.rbn) enabled;
         inherit (pkgs.stdenv) isLinux isDarwin;
       in
       {

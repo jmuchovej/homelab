@@ -15,6 +15,14 @@
       options.authentik.enable = lib.mkEnableOption "Authentik authentication platform";
     };
 
+  # OIDC discovery URL helper, reachable as `<rbn/authentik/openid-url>`.
+  # Usage: <rbn/authentik/openid-url> "homebox" "da"
+  rbn.authentik.provides.openid-url = {
+    __functor =
+      _self: client-id: datacenter:
+      "https://id.${datacenter}.jm0.io/application/o/${client-id}-oauth/.well-known/openid-configuration";
+  };
+
   # ── Aspect ─────────────────────────────────────────────────────────
   rbn.services._.authentik.nixos =
     {
@@ -26,10 +34,15 @@
     }:
     let
       inherit (lib) mkIf mkMerge;
-      inherit (lib.rebellion) enabled;
-      inherit (lib.rebellion.file) get-secret get-secret';
-      inherit (lib.rebellion) attrs;
-      inherit (lib.rebellion.network) mk-traefik-service with-consul mk-healthcheck;
+      inherit (lib.rbn)
+        enabled
+        get-secret
+        get-secret'
+        merge-deep
+        mk-traefik-service
+        with-consul
+        mk-healthcheck
+        ;
       inherit (host) hostname datacenter;
 
       cfg = host.authentik;
@@ -137,7 +150,7 @@
             "Host(`id.jm0.io`)"
             "Host(`id.${datacenter}.jm0.io`)"
           ];
-          service = attrs.merge-deep [
+          service = merge-deep [
             service-base
             { pub.config.rule = rule; }
           ];

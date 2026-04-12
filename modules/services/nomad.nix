@@ -1,4 +1,5 @@
-{ den, ... }: {
+{ den, ... }:
+{
   # ── Host schema: nomad options ─────────────────────────────────────
   den.schema.host =
     { lib, ... }:
@@ -90,7 +91,7 @@
       let
         inherit (lib) mkIf optional;
         inherit (lib.strings) concatMapStringsSep;
-        inherit (lib.rebellion.network)
+        inherit (lib.rbn)
           with-consul
           mk-traefik-service
           mk-healthcheck

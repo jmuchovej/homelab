@@ -5,11 +5,11 @@ _: {
     homeManager =
       { lib, pkgs, ... }:
       let
-        inherit (lib.rebellion) import-dir attrs;
+        inherit (lib.rbn) import-dir merge-deep;
 
         languages-lsps = import-dir ./zed/languages-lsps { inherit lib pkgs; };
         zed = import-dir ./zed { inherit lib; };
-        settings = attrs.merge-deep [
+        settings = merge-deep [
           zed.settings
           languages-lsps.settings
         ];

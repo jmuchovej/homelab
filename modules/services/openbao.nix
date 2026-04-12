@@ -46,8 +46,8 @@ _: {
     }:
     let
       inherit (lib) mkForce mkMerge optionalAttrs;
-      inherit (lib.rebellion.file) get-secret;
-      inherit (lib.rebellion.network)
+      inherit (lib.rbn)
+        get-secret
         mk-traefik-service
         with-consul
         mk-healthcheck

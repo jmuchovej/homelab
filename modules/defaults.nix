@@ -5,8 +5,21 @@
   ...
 }:
 let
-  # Build the extended lib with lib.rebellion.* functions
-  rebellion-lib = import ../src/lib { inherit inputs; };
+  # Auto-discovered helper modules from ./_lib/*.nix.
+  # The `_`-prefixed dir is skipped by import-tree's auto-discovery at the
+  # flake level; we invoke import-tree explicitly on that path here. Each
+  # helper file is a function taking `{ lib, inputs }` and returning
+  # `{ _rbn-lib = { ... }; }`; contributions merge into `lib.rbn` by
+  # extending nixpkgs.lib. Lib extension propagates everywhere nixosSystem's
+  # `lib` arg reaches — including den aspect inner functions — which the
+  # specialArgs/`_module.args` route does not.
+  helpers = lib.pipe inputs.import-tree [
+    (i: i.map (path: (import path) { inherit lib inputs; }))
+    (i: i.withLib lib)
+    (i: i.leafs ./_lib)
+  ];
+  rbn-lib = lib.foldl' (acc: h: acc // (h._rbn-lib or { })) { } helpers;
+  extended-lib = lib.extend (_: _: { rbn = rbn-lib; });
 in
 {
   den.default = {
@@ -21,7 +34,8 @@ in
     ];
   };
 
-  # Override instantiate to inject rebellion-lib and specialArgs into OS evaluation.
+  # Override instantiate to inject our extended lib (with `lib.rbn`) and
+  # other host-derived args into OS evaluation.
   den.schema.host =
     { config, ... }:
     let
@@ -37,7 +51,7 @@ in
         inherit (config) system;
         peers = [ ]; # TODO: compute from all den hosts in same datacenter
         inherit (inputs) self;
-        inputs = rebellion-lib.rebellion.flake.without-src inputs;
+        inputs = removeAttrs inputs [ "src" ];
       };
 
       nixosSpecialArgs = hostSpecialArgs // {
@@ -56,7 +70,7 @@ in
           inputs.nixpkgs.lib.nixosSystem (
             args
             // {
-              lib = rebellion-lib;
+              lib = extended-lib;
               modules = args.modules or [ ];
               specialArgs = (args.specialArgs or { }) // nixosSpecialArgs;
             }
@@ -69,7 +83,7 @@ in
           inputs.nix-darwin.lib.darwinSystem (
             args
             // {
-              lib = rebellion-lib;
+              lib = extended-lib;
               modules = args.modules or [ ];
               specialArgs = (args.specialArgs or { }) // darwinSpecialArgs;
             }
