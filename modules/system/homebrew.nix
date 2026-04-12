@@ -17,8 +17,11 @@
 
   rbn.system._.homebrew.darwin =
     { host, lib, ... }:
-    lib.mkIf host.homebrew.enable {
-      homebrew = {
+    {
+      imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
+      environment.systemPath = [ "/opt/homebrew/bin" ];
+
+      homebrew = lib.mkIf host.homebrew.enable {
         enable = true;
 
         global = {
@@ -35,7 +38,7 @@
         brews = [ ];
       };
 
-      nix-homebrew = {
+      nix-homebrew = lib.mkIf host.homebrew.enable {
         enable = true;
         user = host.user.name;
 
