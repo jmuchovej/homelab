@@ -1,7 +1,7 @@
 _: {
   rbn.programs._.desktop._.utils._.stats.darwin =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = [ pkgs.stats ];
+    { host, lib, ... }:
+    lib.mkIf host.homebrew.enable {
+      homebrew.casks = [ "stats" ];
     };
 }

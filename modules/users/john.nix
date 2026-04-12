@@ -137,17 +137,29 @@
             <rbn/programs/browsers/arc>
             <rbn/programs/media/ferium>
             <rbn/programs/desktop/openconnect>
+            <rbn/programs/desktop/setapp>
             <rbn/programs/documents/waypoints>
             <rbn/programs/emulators/alacritty>
             <rbn/programs/emulators/ghostty>
             <rbn/programs/emulators/kitty>
             <rbn/programs/emulators/rio>
+            <rbn/programs/emulators/wezterm>
             <rbn/services/ssh-agent>
             <rbn/programs/editors/zed>
             <rbn/programs/toolchains/api/bruno>
             <rbn/programs/toolchains/api/postman>
             <rbn/programs/databases/beekeeper>
             <rbn/programs/databases/dbeaver>
+
+            # macOS desktop utilities
+            <rbn/programs/desktop/utils/alt-tab>
+            <rbn/programs/desktop/utils/appcleaner>
+            <rbn/programs/desktop/utils/bartender>
+            <rbn/programs/desktop/utils/blueutil>
+            <rbn/programs/desktop/utils/monitorcontrol>
+            <rbn/programs/desktop/utils/raycast>
+            <rbn/programs/desktop/utils/switchaudio>
+            <rbn/programs/desktop/utils/stats>
           ];
         }
       )
