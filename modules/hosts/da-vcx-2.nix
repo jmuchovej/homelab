@@ -26,5 +26,13 @@
       <rbn/services/avahi>
       <rbn/services/ldap>
     ];
+
+    nixos = {
+      imports = [
+        ./_da-vcx-2/hardware.nix
+        ./_da-vcx-2/disks.nix
+      ];
+      system.stateVersion = "24.11";
+    };
   };
 }

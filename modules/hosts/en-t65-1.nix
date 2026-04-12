@@ -2,7 +2,15 @@
 {
   den.aspects.en-t65-1 = {
     includes = [
-      # Phase 2: converted aspects go here
+      <rbn/suite/server>
+      <rbn/security/sops>
     ];
+
+    nixos = {
+      imports = [
+        ./_en-t65-1/hardware.nix
+      ];
+      system.stateVersion = "24.05";
+    };
   };
 }
