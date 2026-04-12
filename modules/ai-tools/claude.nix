@@ -22,7 +22,7 @@
           }:
           let
             inherit (lib) mkOption;
-            inherit (lib.rebellion.fs) import-dir;
+            inherit (lib.rbn) import-dir;
 
             ai-tools = import ./_ai-tools {
               inherit lib;
