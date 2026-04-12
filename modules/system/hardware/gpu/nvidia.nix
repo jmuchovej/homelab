@@ -1,5 +1,8 @@
-_: {
-  rbn.system._.hardware._.gpu._.nvidia.nixos =
+{ den, ... }: {
+  rbn.system._.hardware._.gpu._.nvidia = {
+    includes = [ (den.provides.unfree [ "nvidia-x11" "nvidia-settings" ]) ];
+
+    nixos =
     {
       lib,
       pkgs,
@@ -60,4 +63,5 @@ _: {
         };
       };
     };
+  };
 }
