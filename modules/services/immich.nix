@@ -9,7 +9,6 @@
         ...
       }:
       let
-        inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
       in
@@ -20,7 +19,7 @@
         sops.secrets."mailgun/smtp-token".sopsFile = sops-file "secrets";
 
         sops.templates."immich/issuer-url".content =
-          mk-openid-url config.sops.placeholder."immich/client-id"
+          <rbn/authentik/openid-url> config.sops.placeholder."immich/client-id"
             datacenter;
 
         services.immich = {

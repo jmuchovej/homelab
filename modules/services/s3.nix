@@ -37,7 +37,6 @@
       }:
       let
         inherit (lib) concatMapStringsSep;
-        inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
 
@@ -65,7 +64,7 @@
             content = ''
               MINIO_ROOT_USER=${config.sops.placeholder."s3/root/user"}
               MINIO_ROOT_PASSWORD=${config.sops.placeholder."s3/root/pass"}
-              MINIO_IDENTITY_OPENID_CONFIG_URL=${mk-openid-url client-id datacenter}
+              MINIO_IDENTITY_OPENID_CONFIG_URL=${<rbn/authentik/openid-url> client-id datacenter}
               MINIO_IDENTITY_OPENID_CLIENT_ID=${client-id}
               MINIO_IDENTITY_OPENID_CLIENT_SECRET=${config.sops.placeholder."minio/client-secret"}
               MINIO_IDENTITY_OPENID_SCOPES="openid profile email entitlements"
