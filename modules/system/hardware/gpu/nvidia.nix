@@ -1,4 +1,5 @@
-{ den, ... }: {
+{ den, ... }:
+{
   rbn.system._.hardware._.gpu._.nvidia = {
     includes = [
       (den.provides.unfree [

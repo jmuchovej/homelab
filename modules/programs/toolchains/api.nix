@@ -1,4 +1,5 @@
-{ den, ... }: {
+{ den, ... }:
+{
   rbn.programs._.toolchains._.api = {
     provides.bruno = {
       dock.app = "Bruno.app";
