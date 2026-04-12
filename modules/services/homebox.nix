@@ -10,7 +10,6 @@
         ...
       }:
       let
-        inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
       in
@@ -54,7 +53,7 @@
           let
             inherit (lib) replaceString;
             client-id = config.sops.placeholder."homebox/client-id";
-            openid-url = mk-openid-url client-id datacenter;
+            openid-url = <rbn/authentik/openid-url> client-id datacenter;
             issuer-url = replaceString ".well-known/openid-configuration" "" openid-url;
           in
           {
