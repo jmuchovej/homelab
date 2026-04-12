@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ den, inputs, ... }:
 {
   flake-file.inputs = {
     homebrew-fvm.url = "github:leoafarias/fvm";
@@ -6,6 +6,7 @@
   };
 
   rbn.programs._.development._.apps = {
+    includes = [ (den.provides.unfree [ "android-studio" ]) ];
     homeManager =
       {
         pkgs,
