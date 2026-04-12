@@ -16,7 +16,6 @@
       }:
       let
         inherit (lib) mkIf;
-        inherit (lib.rebellion.zed) mk-zed-settings;
 
         vsc-extensions = with pkgs.open-vsx; [
           dart-code.dart-code
@@ -29,20 +28,20 @@
         # https://zed.dev/docs/languages/dart
         # https://zed.dev/docs/languages/kotlin
         # https://zed.dev/docs/languages/swift
-        zed = mk-zed-settings {
+        zed = {
           extensions = [
             "dart"
             "swift"
             "kotlin"
           ];
-          packages = with pkgs; [
+          extraPackages = with pkgs; [
             flutter
             # TODO: migrate to `kotlin-lsp` once on nixpkgs
             kotlin-language-server
             swiftlint
             swift-format
           ];
-          settings = {
+          userSettings = {
             languages.Dart = {
               tab_size = 2;
               formatter = "auto";

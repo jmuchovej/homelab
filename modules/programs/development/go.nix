@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         golang.go
@@ -16,14 +15,14 @@ _: {
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/go
-      zed = mk-zed-settings {
+      zed = {
         extensions = [ ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           gopls
           golangci-lint
           gotestsum
         ];
-        settings = {
+        userSettings = {
           lsp.gopls = {
             initialization_options = {
               hints = {
