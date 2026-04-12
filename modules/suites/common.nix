@@ -6,10 +6,10 @@
       <rbn/system/nix>
       <rbn/system/environment>
       <rbn/services/openssh>
-      <rbn/security/sops>
+      <rbn/programs/security/sops>
       <rbn/services/tailscale>
       <rbn/system/fonts>
-      <rbn/security/certificates>
+      <rbn/system/security/certificates>
       <rbn/system/networking>
       <rbn/system/home-manager>
       <rbn/system/dock>
