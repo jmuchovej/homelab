@@ -26,9 +26,8 @@
     ];
   };
 
-  def.default.darwin = {
+  den.default.darwin = {
     imports = [
-      inputs.nix-darwin.nixosModules.darwin
     ];
   };
 
