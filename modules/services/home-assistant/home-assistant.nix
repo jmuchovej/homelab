@@ -76,12 +76,12 @@
             };
           };
           customComponents =
-            with pkgs.home-assistant-custom-components;
-            with pkgs.rebellion.home-assistant.components;
-            [
+            (with pkgs.home-assistant-custom-components; [
               auth_oidc
               adaptive_lighting
-              hacs
+            ])
+            ++ [
+              (pkgs.home-assistant.python.pkgs.callPackage ./_packages/hacs.nix { })
             ];
           extraPackages =
             python3Packages: with python3Packages; [
