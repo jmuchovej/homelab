@@ -1,5 +1,10 @@
 { inputs, ... }:
 {
+  flake-file.inputs = {
+    homebrew-fvm.url = "github:leoafarias/fvm";
+    homebrew-fvm.flake = false;
+  };
+
   rbn.programs._.development._.apps = {
     homeManager =
       {
@@ -64,6 +69,7 @@
             flutter
             kotlin
             swift
+            android-studio
           ]
         );
 
@@ -87,7 +93,10 @@
             "xcodes"
             "leoafarias/fvm/fvm"
           ];
-          casks = [ "flutter" ];
+          casks = [
+            "flutter"
+            "android-studio"
+          ];
         };
 
         nix-homebrew.taps."leoafarias/fvm" = inputs.homebrew-fvm;
