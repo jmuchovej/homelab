@@ -1,10 +1,159 @@
-{ __findFile, ... }:
+{ __findFile, lib, ... }:
 {
   den.aspects.john = {
     includes = [
       <den/primary-user>
-      # <rbn/shell>
+
+      # Terminal programs
+      <rbn/programs/terminal/eza>
+      <rbn/programs/terminal/ripgrep>
+      <rbn/programs/terminal/starship>
+      <rbn/programs/terminal/zoxide>
+      <rbn/programs/vcs/gh>
+      <rbn/programs/terminal/fzf>
+      <rbn/programs/terminal/readline>
+      <rbn/programs/terminal/tmux>
+      <rbn/programs/terminal/bottom>
+      <rbn/programs/terminal/bacon>
+      <rbn/programs/terminal/rclone>
+      <rbn/programs/terminal/topgrade>
+      <rbn/programs/terminal/bat>
+      <rbn/programs/terminal/k9s>
+      <rbn/programs/vcs/lazygit>
+      <rbn/programs/vcs/jujutsu>
+      <rbn/programs/terminal/zellij>
+      <rbn/programs/ai-tools/gemini>
+      <rbn/programs/baseline>
+      <rbn/programs/toolchains/development>
+      <rbn/programs/ai-tools/claude/code>
+      <rbn/programs/ai-tools/mcp>
+      <rbn/programs/security/onepassword>
+
+      # Shells
+      <rbn/shells/zsh>
+      <rbn/shells/bash>
+      <rbn/shells/nushell>
+
+      # Core
+      <rbn/programs/vcs/git>
+      <rbn/programs/terminal/ssh>
+      <rbn/security/sops>
+
+      # Editors
+      <rbn/programs/editors/neovim>
+      <rbn/programs/editors/helix>
+      <rbn/programs/editors/micro>
+
+      # Development
+      <rbn/programs/development/go>
+      <rbn/programs/development/python>
+      <rbn/programs/development/web>
+      <rbn/programs/development/nix>
+      <rbn/programs/development/rust>
+      <rbn/programs/development/julia>
+      <rbn/programs/development/typst>
+      <rbn/programs/development/rlang>
+      <rbn/programs/development/apps>
+      <rbn/programs/development/homelab>
+
+      # Services
+      <rbn/services/syncthing>
+
+      # Desktop (only on hosts with desktop = true)
+      (
+        { host, ... }:
+        lib.optionalAttrs (host.desktop or false) {
+          includes = [
+            <rbn/programs/ai-tools/claude/desktop>
+            # (<rbn/programs/ai-tools/mcp/filesystem> {
+            #   directions = [ "${user.home.homeDirectory}/Syncthing" ];
+            # })
+            <rbn/programs/browsers/brave>
+            <rbn/programs/media/spotify>
+            <rbn/programs/documents/obsidian>
+            <rbn/programs/documents/logseq>
+            <rbn/programs/documents/appflowy>
+            <rbn/programs/documents/notion>
+            <rbn/programs/documents/anytype>
+            <rbn/programs/communication/beeper>
+            <rbn/programs/communication/zoom>
+            <rbn/programs/communication/zulip>
+            <rbn/programs/browsers/arc>
+            <rbn/programs/media/ferium>
+            <rbn/programs/desktop/openconnect>
+            <rbn/programs/documents/waypoints>
+            <rbn/programs/emulators/alacritty>
+            <rbn/programs/emulators/ghostty>
+            <rbn/programs/emulators/kitty>
+            <rbn/programs/emulators/rio>
+            <rbn/services/ssh-agent>
+            <rbn/programs/editors/zed>
+            <rbn/programs/toolchains/api/bruno>
+            <rbn/programs/toolchains/api/postman>
+            <rbn/programs/databases/beekeeper>
+            <rbn/programs/databases/dbeaver>
+          ];
+        }
+      )
     ];
+
+    homeManager = {
+      programs.ssh.matchBlocks.git = {
+        host = "git*";
+        identitiesOnly = true;
+        identityFile = "~/.ssh/1p-%h.pub";
+      };
+
+      rebellion.dock.entries = [
+        {
+          name = "Claude.app";
+          source = "applications";
+          group = "development";
+          order = 100;
+        }
+        {
+          name = "System Settings.app";
+          source = "system";
+          group = "system";
+          order = 110;
+        }
+        {
+          path = "/System/Applications/Utilities/Activity Monitor.app";
+          group = "system";
+          order = 120;
+        }
+        {
+          name = "Messages.app";
+          source = "system";
+          group = "communication";
+          order = 210;
+        }
+        {
+          name = "Beeper Desktop.app";
+          source = "applications";
+          group = "communication";
+          order = 220;
+        }
+        {
+          name = "Things3.app";
+          source = "applications";
+          group = "communication";
+          order = 240;
+        }
+        {
+          name = "Safari.app";
+          source = "applications";
+          group = "browsers";
+          order = 330;
+        }
+        {
+          name = "Notion Calendar.app";
+          source = "applications";
+          group = "pkm";
+          order = 430;
+        }
+      ];
+    };
 
     nixos.users.users.john = { };
   };
@@ -12,7 +161,10 @@
   den.hosts.x86_64-linux.da-vcx-1.users.john = { };
   den.hosts.x86_64-linux.da-vcx-2.users.john = { };
   den.hosts.x86_64-linux.da-vcx-3.users.john = { };
-  den.hosts.aarch64-darwin.da-n1x.users.john = { };
+  den.hosts.aarch64-darwin.da-n1x = {
+    desktop = true;
+    users.john = { };
+  };
 
   den.hosts.x86_64-linux.en-t65-1.users.john = { };
 }
