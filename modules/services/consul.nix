@@ -1,4 +1,4 @@
-_: {
+{ den, ... }: {
   den.schema.host =
     { lib, ... }:
     let
@@ -97,6 +97,7 @@ _: {
     };
 
   rbn.services._.consul = {
+    includes = [ (den.provides.unfree [ "consul" ]) ];
     nixos =
       {
         host,
@@ -147,7 +148,7 @@ _: {
               retry_max = 0;
             }
             // {
-              connect = mkIf cfg.connect {
+              connect = {
                 enabled = true;
                 ca_config.rotation_period = "2160h";
               };
