@@ -1,0 +1,119 @@
+_: {
+  rbn.programs._.editors._.helix.homeManager =
+    { lib, pkgs, ... }:
+    let
+      languages = import ./_helix-languages.nix { inherit pkgs lib; };
+    in
+    lib.mkMerge [
+      languages
+      {
+        programs.helix = {
+          enable = true;
+          package = pkgs.helix.overrideAttrs (self: {
+            makeWrapperArgs =
+              with pkgs;
+              self.makeWrapperArgs or [ ]
+              ++ [
+                "--suffix"
+                "PATH"
+                ":"
+                (lib.makeBinPath [
+                  clang-tools
+                  marksman
+                  nil
+                  nixd
+                  nixfmt-rfc-style
+                  bash-language-server
+                  vscode-langservers-extracted
+                  prettierd
+                  rustfmt
+                  rust-analyzer
+                  shellcheck
+                ])
+              ];
+          });
+
+          settings = {
+            editor = {
+              bufferline = "always";
+              color-modes = true;
+              completion-replace = true;
+              cursorline = true;
+
+              cursor-shape = {
+                insert = "bar";
+                normal = "block";
+                select = "block";
+              };
+
+              gutters = [
+                "diagnostics"
+                "line-numbers"
+                "spacer"
+                "diff"
+              ];
+
+              idle-timeout = 1;
+
+              indent-guides = {
+                render = true;
+                rainbow-option = "dim";
+              };
+
+              line-number = "relative";
+
+              lsp = {
+                display-messages = true;
+                display-inlay-hints = true;
+              };
+
+              mouse = true;
+              rulers = [ 80 ];
+              scrolloff = 5;
+
+              statusline = {
+                separator = "";
+                left = [
+                  "mode"
+                  "selections"
+                  "spinner"
+                  "file-name"
+                  "total-line-numbers"
+                ];
+                center = [ ];
+                right = [
+                  "diagnostics"
+                  "file-encoding"
+                  "file-line-ending"
+                  "file-type"
+                  "position-percentage"
+                  "position"
+                ];
+                mode = {
+                  normal = "NORMAL";
+                  insert = "INSERT";
+                  select = "SELECT";
+                };
+              };
+
+              whitespace.characters = {
+                space = "·";
+                nbsp = "⍽";
+                tab = "→";
+                newline = "⤶";
+              };
+
+              soft-wrap.enable = true;
+              true-color = true;
+            };
+
+            keys.normal.space.u = {
+              f = ":format";
+              w = ":set whitespace.render all";
+              W = ":set whitespace.render none";
+            };
+          };
+        };
+      }
+    ];
+}

@@ -1,7 +1,7 @@
 { lib, ... }@args:
 lib.rebellion.mk-module args {
   name = "security.roles";
-  description = "RBAC";
+  # Option definitions kept — rebellion.security.roles.{definitions,user-roles}
   options =
     { lib, ... }:
     let
@@ -15,45 +15,32 @@ lib.rebellion.mk-module args {
               groups = mkOption {
                 type = types.listOf types.str;
                 default = [ ];
-                description = "Groups associated with this role";
               };
               capabilities = mkOption {
                 type = types.listOf types.str;
                 default = [ ];
-                description = "Capabilities granted by this role";
               };
             };
           }
         );
         default = {
-          operator = {
-            groups = [ "wheel" ];
-            capabilities = [ "system-management" ];
-          };
-          developer = {
-            groups = [
-              "docker"
-              "libvirtd"
-            ];
-            capabilities = [ "container-management" ];
-          };
-          cluster-admin = {
-            groups = [ "k3s" ];
-            capabilities = [ "cluster-management" ];
-          };
+          operator.groups = [ "wheel" ];
+          developer.groups = [
+            "docker"
+            "libvirtd"
+          ];
+          cluster-admin.groups = [ "k3s" ];
         };
       };
-
       user-roles = mkOption {
         type = types.attrsOf (types.listOf types.str);
         default = { };
-        description = "Map users to roles";
       };
     };
+  # Config extracted — role-to-group mapping applied via users.users
   config =
     { cfg, lib, ... }:
     {
-      # Apply roles to users without exposing what services exist
       users.users = lib.mapAttrs (
         _userName: roles:
         let
