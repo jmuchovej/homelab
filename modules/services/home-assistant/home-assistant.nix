@@ -10,7 +10,6 @@
         ...
       }:
       let
-        inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
       in
@@ -34,7 +33,7 @@
               logger: debug
               ak-client-id: ${client-id}
               ak-client-secret: ${config.sops.placeholder."home-assistant/client-secret"}
-              ak-provider-url: ${mk-openid-url client-id datacenter}
+              ak-provider-url: ${<rbn/authentik/openid-url> client-id datacenter}
             '';
             path = config.services.home-assistant.configDir + "/secrets.yaml";
             owner = ha-service.User;
