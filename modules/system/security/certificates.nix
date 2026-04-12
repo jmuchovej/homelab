@@ -14,7 +14,7 @@ let
     };
 in
 {
-  rbn.security._.certificates = {
+  rbn.system._.security._.certificates = {
     nixos =
       {
         host,

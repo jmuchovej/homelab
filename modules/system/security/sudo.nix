@@ -1,5 +1,5 @@
 _: {
-  rbn.security._.sudo.nixos =
+  rbn.system._.security._.sudo.nixos =
     { lib, pkgs, ... }:
     let
       inherit (lib) mkForce mkDefault getExe';
