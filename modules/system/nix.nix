@@ -15,7 +15,6 @@
 
   den.default.darwin = {
     imports = [ inputs.nix-index-database.darwinModules.nix-index ];
-    nixpkgs.config.allowUnfree = true;
     programs.nix-index-database.comma.enable = true;
   };
 
