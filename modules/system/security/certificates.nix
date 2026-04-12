@@ -2,10 +2,10 @@
 _:
 let
   mkCertConfig =
-    { lib, host, ... }:
+    { host, lib, ... }:
     let
       inherit (builtins) readFile;
-      inherit (lib.rebellion.fs) get-file;
+      inherit (lib.rbn) get-file;
     in
     {
       security.pki.certificates = [
@@ -24,7 +24,7 @@ in
       }@args:
       let
         inherit (lib) mkIf mkMerge;
-        inherit (lib.rebellion.fs) get-file;
+        inherit (lib.rbn) get-file;
 
         traefik = host.traefik or { enable = false; };
         sopsFile = get-file "secrets/${host.datacenter}.sops.yaml";
