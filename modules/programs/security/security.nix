@@ -39,8 +39,7 @@
             # to ~/.1password/agent.sock so the same SSH_AUTH_SOCK works on
             # both platforms. Linux's 1Password writes there directly.
             home.file.".1password/agent.sock" = lib.mkIf pkgs.stdenv.isDarwin {
-              source = config.lib.file.mkOutOfStoreSymlink
-                "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
             };
           };
 

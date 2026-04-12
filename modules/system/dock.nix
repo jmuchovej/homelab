@@ -11,13 +11,27 @@
     { lib, ... }:
     let
       inherit (lib) mkOption;
-      inherit (lib.types) int listOf str submodule;
+      inherit (lib.types)
+        int
+        listOf
+        str
+        submodule
+        ;
 
       dockEntry = submodule {
         options = {
-          name = mkOption { type = str; default = ""; };
-          path = mkOption { type = str; default = ""; };
-          source = mkOption { type = str; default = "applications"; };
+          name = mkOption {
+            type = str;
+            default = "";
+          };
+          path = mkOption {
+            type = str;
+            default = "";
+          };
+          source = mkOption {
+            type = str;
+            default = "applications";
+          };
           group = mkOption { type = str; };
           order = mkOption { type = int; };
         };
