@@ -7,11 +7,23 @@
     homebrew-core.flake = false;
     homebrew-cask.url = "github:homebrew/homebrew-cask";
     homebrew-cask.flake = false;
-    homebrew-bundle.url = "github:homebrew/homebrew-bundle";
-    homebrew-bundle.flake = false;
+    # homebrew-bundle was archived 2025-04-22; functionality moved into homebrew core.
+    # Don't tap it — the archived version conflicts with the built-in bundle command.
     homebrew-services.url = "github:homebrew/homebrew-services";
     homebrew-services.flake = false;
   };
+
+  # # nixpkgs.mas is 6.0.1 but homebrew installs 7.0.0+; the activation PATH
+  # # puts the nix `mas` first which confuses `brew bundle` into re-installing
+  # # `mas` forever. Override to use homebrew's `mas` directly.
+  # den.default.darwin.nixpkgs.overlays = [
+  #   (_final: prev: {
+  #     mas = prev.runCommand "mas-homebrew-wrapper" { } ''
+  #       mkdir -p $out/bin
+  #       ln -s /opt/homebrew/bin/mas $out/bin/mas
+  #     '';
+  #   })
+  # ];
 
   rbn.system._.homebrew.darwin =
     { host, lib, ... }:
@@ -27,6 +39,11 @@
           autoUpdate = true;
         };
 
+        caskArgs = {
+          appdir = "~/Applications";
+          require_sha = true;
+        };
+
         onActivation = {
           autoUpdate = true;
           cleanup = "uninstall";
@@ -40,10 +57,11 @@
         enable = true;
         user = host.user.name;
 
+        enableRosetta = false;
+
         taps = {
           "homebrew/core" = inputs.homebrew-core;
           "homebrew/cask" = inputs.homebrew-cask;
-          "homebrew/bundle" = inputs.homebrew-bundle;
           "homebrew/services" = inputs.homebrew-services;
         };
       };
