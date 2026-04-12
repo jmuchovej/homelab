@@ -6,6 +6,14 @@ _: {
         environment.systemPackages = [ pkgs.zfs ];
         boot.supportedFilesystems = [ "zfs" ];
         boot.zfs.allowHibernation = false;
+        # TODO ZFS 2.3 only supports up to 6.17!
+        # https://github.com/NixOS/nixpkgs/blob/nixos-25.11/pkgs/os-specific/linux/zfs/2_3.nix
+        # Latest from https://kernel.org
+        # kernelPackages = pkgs.linuxPackages_latest;
+        # https://nixos.org/manual/nixos/unstable/index.html#sec-kernel-config
+        # kernelPackages = pkgs.linuxKernels.packages.linux_6_12;
+        # https://nixos.org/manual/nixos/unstable/index.html#sec-linux-zfs
+        boot.kernelPackages = pkgs.linuxPackages;
       };
 
     # Auto-snapshot + scrub + trim — include via <rbn/system/hardware/storage/zfs/managed>

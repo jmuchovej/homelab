@@ -20,5 +20,25 @@
       <rbn/suite/development>
       <rbn/programs/media/spotify>
     ];
+
+    darwin = {
+      networking = {
+        computerName = "John's Macbook Pro";
+        hostName = "da-n1x";
+        localHostName = "da-n1x";
+        knownNetworkServices = [
+          "Anker 563"
+          "Anker 564"
+          "UGreen 50737"
+          "Wi-Fi"
+          "Thunderbolt Bridge"
+        ];
+      };
+
+      security.pam.services.sudo_local.touchIdAuth = true;
+
+      system.startup.chime = false;
+      system.stateVersion = 5;
+    };
   };
 }
