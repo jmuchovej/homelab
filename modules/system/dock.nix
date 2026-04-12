@@ -1,92 +1,40 @@
-# macOS dock layout via custom den class.
+# macOS dock layout.
 #
-# Program aspects declare dock entries as a `dock` class key:
-#   rbn.programs._.media._.spotify.dock = {
-#     name = "Spotify.app"; source = "applications"; group = "comm"; order = 230;
-#   };
-#
-# The `dock` class forwards into homeManager's `rebellion.dock.entries`.
-# The darwin aspect reads entries and builds `system.defaults.dock.persistent-apps`.
+# Currently: explicit entries on den.schema.user.dock (name, source, group, order).
+# Future: den fx pipeline will enable aspect-driven resolution where programs
+# declare dock.app and users set dock.{group,order} on the aspect.
+# See memory/dock-class-design.md for implementation plan.
 { den, lib, ... }:
-let
-  # Forward `dock` class → homeManager `rebellion.dock.entries`
-  dockClass =
-    { class, aspect-chain, ... }:
-    den._.forward {
-      each = lib.singleton true;
-      fromClass = _: "dock";
-      intoClass = _: "homeManager";
-      intoPath = _: [
-        "rebellion"
-        "dock"
-        "entries"
-      ];
-      fromAspect = _: lib.head aspect-chain;
-    };
-in
 {
-  # Register the dock class in the user context pipeline
-  den.ctx.user.includes = [ dockClass ];
-
-  # Define the HM-level collection option
-  den.default.homeManager =
+  # ── User schema: dock entries ──────────────────────────────────────
+  den.schema.user =
     { lib, ... }:
     let
       inherit (lib) mkOption;
-      inherit (lib.types)
-        enum
-        int
-        listOf
-        nullOr
-        str
-        submodule
-        ;
+      inherit (lib.types) int listOf str submodule;
 
-      entryType = submodule {
+      dockEntry = submodule {
         options = {
-          path = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "Absolute path to the .app bundle.";
-          };
-          name = mkOption {
-            type = nullOr str;
-            default = null;
-            description = "App bundle name (e.g. \"Foo.app\").";
-          };
-          source = mkOption {
-            type = enum [
-              "hm"
-              "system"
-              "applications"
-            ];
-            default = "hm";
-            description = "Path prefix for name resolution.";
-          };
-          group = mkOption {
-            type = str;
-            description = "Grouping key.";
-          };
-          order = mkOption {
-            type = int;
-            description = "Sort order within and across groups.";
-          };
+          name = mkOption { type = str; default = ""; };
+          path = mkOption { type = str; default = ""; };
+          source = mkOption { type = str; default = "applications"; };
+          group = mkOption { type = str; };
+          order = mkOption { type = int; };
         };
       };
     in
     {
-      options.rebellion.dock.entries = mkOption {
-        type = listOf entryType;
+      options.dock = mkOption {
+        type = listOf dockEntry;
         default = [ ];
-        description = "Dock entries collected from all aspects.";
+        description = "Dock entries for this user.";
       };
     };
 
-  # Darwin aspect: read entries and build dock layout
+  # ── Darwin aspect: build dock layout ───────────────────────────────
   rbn.system._.dock.darwin =
     {
       host,
-      config,
       lib,
       ...
     }:
@@ -103,14 +51,13 @@ in
         ;
 
       primaryUser = host.user.name;
-      hmUsers = config.home-manager.users;
-
-      dockEntries = hmUsers.${primaryUser}.rebellion.dock.entries or [ ];
       hmAppsDir = "/Users/${primaryUser}/Applications/Home Manager Apps";
+
+      allEntries = host.users.${primaryUser}.dock or [ ];
 
       resolve =
         entry:
-        if entry.path != null then
+        if entry.path != "" then
           entry.path
         else if entry.source == "hm" then
           "${hmAppsDir}/${entry.name}"
@@ -119,7 +66,7 @@ in
         else
           "/Applications/${entry.name}";
 
-      grouped = groupBy (e: e.group) dockEntries;
+      grouped = groupBy (e: e.group) allEntries;
       minOrder = name: foldl' min 9999 (map (e: e.order) grouped.${name});
       sortedGroupNames = sort (a: b: minOrder a < minOrder b) (attrNames grouped);
 

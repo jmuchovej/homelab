@@ -1,6 +1,9 @@
 _:
 {
-  rbn.programs._.editors._.zed.homeManager =
+  rbn.programs._.editors._.zed = {
+    dock.app = "Zed.app";
+
+    homeManager =
     { lib, pkgs, ... }:
     let
       inherit (lib.rebellion) import-dir attrs;
@@ -13,15 +16,6 @@ _:
       ];
     in
     {
-      rebellion.dock.entries = [
-        {
-          name = "Zed.app";
-          source = "hm";
-          group = "editors";
-          order = 510;
-        }
-      ];
-
       home.shellAliases.zed = "zeditor";
 
       programs.zed-editor = {
@@ -47,4 +41,5 @@ _:
         userKeymaps = [ ];
       };
     };
+  };
 }

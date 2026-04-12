@@ -105,6 +105,7 @@ _: {
         };
       };
 
+    provides.desktop.dock.app = "Claude.app";
     provides.desktop.darwin =
       { host, lib, ... }:
       lib.mkIf host.homebrew.enable {
