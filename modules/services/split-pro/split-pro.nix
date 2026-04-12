@@ -13,7 +13,8 @@
         inherit (lib.rebellion.network) mk-openid-url;
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
-        get-sp-exe' = name: lib.getExe' pkgs.rebellion.split-pro "sp-${name}";
+        split-pro = pkgs.callPackage ./_package.nix { };
+        get-sp-exe' = name: lib.getExe' split-pro "sp-${name}";
 
         port = 7548;
         db-name = "split-pro";
@@ -81,7 +82,7 @@
             Type = "simple";
             DynamicUser = true;
             StateDirectory = "split-pro";
-            WorkingDirectory = "${pkgs.rebellion.split-pro}/share/split-pro";
+            WorkingDirectory = "${split-pro}/share/split-pro";
             ExecStartPre = get-sp-exe' "migrate";
             ExecStart = get-sp-exe' "server";
             Restart = "on-failure";
