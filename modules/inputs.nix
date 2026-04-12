@@ -4,7 +4,7 @@
     nixpkgs.url = lib.mkForce "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-file.url = lib.mkForce "github:vic/flake-file/v0.5.0";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    den.url = lib.mkForce "github:vic/den/v0.12.0";
+    den.url = lib.mkForce "github:vic/den/v0.16.0";
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
