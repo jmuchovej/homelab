@@ -75,9 +75,9 @@
             <rbn/programs/documents/appflowy>
             <rbn/programs/documents/notion>
             <rbn/programs/documents/anytype>
-            <rbn/programs/communication/beeper>
-            <rbn/programs/communication/zoom>
-            <rbn/programs/communication/zulip>
+            <rbn/programs/social/beeper>
+            <rbn/programs/social/zoom>
+            <rbn/programs/social/zulip>
             <rbn/programs/browsers/arc>
             <rbn/programs/media/ferium>
             <rbn/programs/desktop/openconnect>
