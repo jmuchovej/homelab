@@ -2,7 +2,15 @@
 {
   den.aspects.da-vcx-3 = {
     includes = [
-      # Phase 2: converted aspects go here
+      <rbn/suite/server>
+      <rbn/security/sops>
     ];
+
+    nixos = {
+      imports = [
+        ./_da-vcx-3/hardware.nix
+      ];
+      system.stateVersion = "24.05";
+    };
   };
 }

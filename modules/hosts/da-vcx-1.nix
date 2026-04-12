@@ -35,10 +35,61 @@
       interface = "enp12s0";
       consul.enable = true;
     };
-    s3.buckets = [
-      "volsync"
-      "postgres"
-      "authentik"
+    s3 = {
+      buckets = [
+        "volsync"
+        "postgres"
+        "authentik"
+      ];
+      data-dir = [ "/impulse/s3" ];
+    };
+    local-llms.ollama.models = [
+      "all-minilm"
+      "codegemma"
+      "codellama"
+      "cogito"
+      "deepseek-coder"
+      "deepseek-r1"
+      "deepseek-v3"
+      "deepseek-v3.1"
+      "devstral"
+      "devstral-2"
+      "dolphin3"
+      "falcon3"
+      "gemma"
+      "gemma2"
+      "gemma3"
+      "gpt-oss"
+      "llama3"
+      "llama3.1"
+      "llama3.2"
+      "llama3.2-vision"
+      "llama3.3"
+      "llama4"
+      "llava"
+      "magistral"
+      "ministral-3"
+      "mistral"
+      "mixtral"
+      "mxbai-embed-large"
+      "nemotron-3-nano"
+      "nomic-embed-text"
+      "olmo-3"
+      "olmo2"
+      "phi"
+      "phi3"
+      "phi3.5"
+      "phi4-reasoning"
+      "qwen"
+      "qwen2"
+      "qwen2.5"
+      "qwen2.5-coder"
+      "qwen2.5vl"
+      "qwen3"
+      "qwen3-embedding"
+      "qwen3-vl"
+      "qwq"
+      "embeddinggemma"
     ];
     authentik.enable = true;
     tailscale.enable = true;
@@ -94,13 +145,20 @@
       <rbn/services/s3>
       <rbn/services/split-pro>
       <rbn/services/arr>
+      <rbn/services/local-llms/ollama>
+      <rbn/services/local-llms/open-webui>
     ];
 
     nixos = {
+      imports = [
+        ./_da-vcx-1/hardware.nix
+        ./_da-vcx-1/disks.nix
+      ];
       boot.zfs.extraPools = [
         "impulse"
         "warp"
       ];
+      system.stateVersion = "24.11";
     };
   };
 }
