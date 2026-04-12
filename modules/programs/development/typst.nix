@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         myriad-dreamin.tinymist
@@ -22,15 +21,15 @@ _: {
         };
       };
 
-      zed = mk-zed-settings {
+      zed = {
         # https://github.com/zed-extensions/typst
         extensions = [ "typst" ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           typst
           tinymist
           typstyle
         ];
-        settings = {
+        userSettings = {
           languages.Typst = {
             tab_size = 2;
             language_servers = [ "tinymist" ];

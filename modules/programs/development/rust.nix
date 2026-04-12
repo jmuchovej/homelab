@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         rust-lang.rust-analyzer
@@ -17,12 +16,12 @@ _: {
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/rust
-      zed = mk-zed-settings {
+      zed = {
         extensions = [ ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           rust-analyzer
         ];
-        settings = {
+        userSettings = {
           languages.Rust = {
             tab_size = 2;
           };

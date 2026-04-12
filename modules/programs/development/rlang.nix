@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       default-packages = with pkgs.rPackages; [
         # Tidyverse and friends
@@ -30,12 +29,12 @@ _: {
       vsc-user-settings = { };
 
       # https://zed.dev/docs/languages/r
-      zed = mk-zed-settings {
+      zed = {
         extensions = [
           "r"
           "air"
         ];
-        packages = [
+        extraPackages = [
           pkgs.air-formatter
           (pkgs.rWrapper.override {
             packages = with pkgs.rPackages; [
@@ -45,7 +44,7 @@ _: {
             ];
           })
         ];
-        settings = {
+        userSettings = {
           lsp.air = {
           };
           languages.R = {
