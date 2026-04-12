@@ -22,8 +22,6 @@
             nixos.enable = lib.mkForce false;
           };
 
-          fonts.fontconfig.enable = lib.mkForce false;
-
           users.mutableUsers = false;
 
           sops.secrets."lab/password".neededForUsers = true;

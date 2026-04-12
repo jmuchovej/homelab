@@ -5,16 +5,22 @@ _: {
       { lib, pkgs, ... }:
       let
         inherit (lib) mapAttrs;
+
+        # Private fonts — colocated packages
+        brandon-text = pkgs.callPackage ./_packages/brandon-text.nix { };
+        monolisa = pkgs.callPackage ./_packages/monolisa.nix { };
       in
       {
         nixpkgs.config.input-fonts.acceptLicense = true;
-        # Enable icons in tooling since we have nerdfonts.
         environment.variables.LOG_ICONS = "true";
         environment.systemPackages = [ pkgs.font-manager ];
 
         fonts = {
           enableDefaultPackages = true;
-          packages = with pkgs; [
+          packages = [
+            brandon-text
+            monolisa
+          ] ++ (with pkgs; [
             # Desktop Fonts
             # input-fonts
             hack-font
@@ -49,7 +55,7 @@ _: {
             noto-fonts-cjk-serif
             noto-fonts-color-emoji
             nerd-fonts.jetbrains-mono
-          ];
+          ]);
 
           fontconfig = {
             antialias = true;
