@@ -135,7 +135,7 @@ in
       nil = {
         command = getExe pkgs.nil;
         config.nil.formatting.command = [
-          "${getExe pkgs.nixfmt-rfc-style}"
+          "${getExe pkgs.nixfmt}"
           "-q"
         ];
       };
