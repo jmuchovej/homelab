@@ -1,4 +1,5 @@
-{ den, ... }: {
+{ den, ... }:
+{
   den.schema.host =
     { lib, ... }:
     let
@@ -109,7 +110,7 @@
       }:
       let
         inherit (lib) mkIf optional optionalAttrs;
-        inherit (lib.rebellion.network)
+        inherit (lib.rbn)
           with-consul
           mk-traefik-service
           mk-healthcheck

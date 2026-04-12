@@ -1,4 +1,9 @@
-{ __findFile, den, inputs, ... }:
+{
+  __findFile,
+  den,
+  inputs,
+  ...
+}:
 {
   den.schema.host =
     { lib, ... }:
@@ -44,7 +49,7 @@
             ...
           }:
           let
-            inherit (lib.rebellion) enabled;
+            inherit (lib.rbn) enabled;
           in
           {
             services.ollama = enabled // {
@@ -63,9 +68,7 @@
             ...
           }:
           let
-            inherit (lib.rebellion) enabled;
-            inherit (lib.rebellion.file) get-secret' get-secret;
-            inherit (lib.rebellion.network) mk-openid-url;
+            inherit (lib.rbn) enabled get-secret' get-secret;
             inherit (host) datacenter;
             inherit (config.services) ollama;
           in
@@ -82,7 +85,7 @@
                   WEBUI_SECRET_KEY=${config.sops.placeholder."open-webui/secret-key"}
                   OAUTH_CLIENT_ID=${client-id}
                   OAUTH_CLIENT_SECRET=${config.sops.placeholder."open-webui/client-secret"}
-                  OPENID_PROVIDER_URL=${mk-openid-url client-id datacenter}
+                  OPENID_PROVIDER_URL=${<rbn/authentik/openid-url> client-id datacenter}
                 '';
               services.open-webui = enabled // {
                 inherit (ollama) host;

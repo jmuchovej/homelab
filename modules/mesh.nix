@@ -44,7 +44,7 @@ _: {
               ...
             }:
             let
-              inherit (lib.rebellion.network)
+              inherit (lib.rbn)
                 mk-traefik-service
                 mk-authd-traefik-service
                 mk-healthcheck

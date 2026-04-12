@@ -46,8 +46,8 @@ _: {
     }:
     let
       inherit (lib) mkForce mkMerge optionalAttrs;
-      inherit (lib.rebellion.file) get-secret;
-      inherit (lib.rebellion.network)
+      inherit (lib.rbn)
+        get-secret
         mk-traefik-service
         with-consul
         mk-healthcheck
@@ -107,7 +107,7 @@ _: {
           package = pkgs.openbao;
 
           settings = {
-            ui = cfg.ui;
+            inherit (cfg) ui;
 
             api_addr = "http://${bind-addr}:${toString cfg.ports.api}";
             cluster_addr = "https://${bind-addr}:${toString cfg.ports.cluster}";
