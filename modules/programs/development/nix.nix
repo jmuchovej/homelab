@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         jnoortheen.nix-ide
@@ -16,15 +15,15 @@ _: {
       ];
       vsc-user-settings = { };
 
-      zed = mk-zed-settings {
+      zed = {
         # https://github.com/zed-extensions/nix
         extensions = [ "nix" ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           nixd
           nixfmt
           nix-output-monitor
         ];
-        settings = {
+        userSettings = {
           languages.Nix = {
             tab_size = 2;
             language_servers = [
