@@ -6,10 +6,9 @@
 
   inputs = {
     authentik-nix.url = "github:nix-community/authentik-nix";
-    den.url = "github:vic/den/v0.12.0";
+    den.url = "github:vic/den/v0.16.0";
     deploy.url = "github:serokell/deploy-rs";
     disko.url = "github:nix-community/disko";
-    flake-aspects.url = "github:vic/flake-aspects";
     flake-file.url = "github:vic/flake-file/v0.5.0";
     flake-parts = {
       inputs.nixpkgs-lib.follows = "nixpkgs-lib";
@@ -19,10 +18,6 @@
     home-manager = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:nix-community/home-manager";
-    };
-    homebrew-bundle = {
-      flake = false;
-      url = "github:homebrew/homebrew-bundle";
     };
     homebrew-cask = {
       flake = false;
@@ -44,7 +39,7 @@
     import-tree.url = "github:vic/import-tree";
     lanzaboote.url = "github:nix-community/lanzaboote";
     llm-agents.url = "github:numtide/llm-agents.nix";
-    mcp-servers-nix.url = "github:natsukium/mcp-servers-nix";
+    mcp-servers.url = "github:natsukium/mcp-servers-nix";
     nh.url = "github:nix-community/nh";
     nix-darwin = {
       inputs.nixpkgs.follows = "nixpkgs";
