@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         # astro-build.astro-vscode
@@ -26,7 +25,7 @@ _: {
         # "[astro]"
       };
 
-      zed = mk-zed-settings {
+      zed = {
         extensions = [
           # https://github.com/zed-extensions/astro
           "astro"
@@ -35,8 +34,8 @@ _: {
           # https://github.com/zed-extensions/vue
           "vue"
         ];
-        packages = [ pkgs.biome ];
-        settings = {
+        extraPackages = [ pkgs.biome ];
+        userSettings = {
           languages.JavaScript = {
             tab_size = 2;
             formatter = "auto";

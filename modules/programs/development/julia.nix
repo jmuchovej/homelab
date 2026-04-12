@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       vsc-extensions = with pkgs.open-vsx; [
         julialang.language-julia
@@ -22,10 +21,10 @@ _: {
 
       # https://zed.dev/docs/languages/julia
       # https://github.com/JuliaEditorSupport/zed-julia
-      zed = mk-zed-settings {
+      zed = {
         extensions = [ "julia" ];
-        packages = with pkgs; [ julia-bin ];
-        settings = {
+        extraPackages = with pkgs; [ julia-bin ];
+        userSettings = {
 
           lsp.julia = {
           };
