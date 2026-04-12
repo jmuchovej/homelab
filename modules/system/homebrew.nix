@@ -11,8 +11,6 @@
     homebrew-bundle.flake = false;
     homebrew-services.url = "github:homebrew/homebrew-services";
     homebrew-services.flake = false;
-    homebrew-fvm.url = "github:leoafarias/fvm";
-    homebrew-fvm.flake = false;
   };
 
   rbn.system._.homebrew.darwin =
