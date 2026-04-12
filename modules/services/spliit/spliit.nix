@@ -9,6 +9,7 @@
         ...
       }:
       let
+        spliit = pkgs.callPackage ./_package.nix { };
         port = 3000;
         dbName = "spliit";
         dbUser = "spliit";
@@ -45,9 +46,9 @@
             User = "spliit";
             Group = "spliit";
             StateDirectory = "spliit";
-            WorkingDirectory = "${pkgs.rebellion.spliit}/share/spliit";
-            ExecStartPre = "${pkgs.rebellion.spliit}/bin/spliit-migrate";
-            ExecStart = "${pkgs.rebellion.spliit}/bin/spliit";
+            WorkingDirectory = "${spliit}/share/spliit";
+            ExecStartPre = "${spliit}/bin/spliit-migrate";
+            ExecStart = "${spliit}/bin/spliit";
             Restart = "on-failure";
             RestartSec = "5s";
             NoNewPrivileges = true;
