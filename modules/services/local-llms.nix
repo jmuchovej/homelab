@@ -1,4 +1,9 @@
-{ __findFile, inputs, ... }:
+{
+  __findFile,
+  den,
+  inputs,
+  ...
+}:
 {
   den.schema.host =
     { lib, ... }:
@@ -19,25 +24,8 @@
   rbn.services._.local-llms = {
     provides = {
       ollama = {
-        nixos =
-          {
-            host,
-            config,
-            lib,
-            pkgs,
-            ...
-          }:
-          let
-            inherit (lib.rebellion) enabled;
-          in
-          {
-            services.ollama = enabled // {
-              syncModels = true;
-              loadModels = host.local-llms.ollama.models;
-            };
-          };
-
         includes = [
+          (den.provides.unfree [ "ollama" ])
           (<rbn/mesh/register> {
             name = "ollama";
             port = 11434;
@@ -53,6 +41,22 @@
             };
           })
         ];
+
+        nixos =
+          {
+            host,
+            lib,
+            ...
+          }:
+          let
+            inherit (lib.rebellion) enabled;
+          in
+          {
+            services.ollama = enabled // {
+              syncModels = true;
+              loadModels = host.local-llms.ollama.models;
+            };
+          };
       };
 
       open-webui = {
@@ -134,6 +138,7 @@
           ];
 
         includes = [
+          (den.provides.unfree [ "open-webui" ])
           (<rbn/mesh/register> {
             name = "open-webui";
             port = 11435;
