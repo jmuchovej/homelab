@@ -8,18 +8,17 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       # https://zed.dev/docs/languages/go
-      zed = mk-zed-settings {
+      zed = {
         extensions = [
           "opentofu"
         ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           opentofu
           tofu-ls
         ];
-        settings = {
+        userSettings = {
           file_types = {
             OpenTofu = [
               "tf"

@@ -8,7 +8,6 @@ _: {
     }:
     let
       inherit (lib) mkIf;
-      inherit (lib.rebellion.zed) mk-zed-settings;
 
       python = pkgs.python3;
       default-python-packages = python.withPackages (
@@ -66,14 +65,14 @@ _: {
       };
 
       # https://zed.dev/docs/languages/python
-      zed = mk-zed-settings {
+      zed = {
         extensions = [ ];
-        packages = with pkgs; [
+        extraPackages = with pkgs; [
           ruff
           ty
           basedpyright
         ];
-        settings = {
+        userSettings = {
           languages.Python = {
             tab_size = 4;
             formatter = "auto";
