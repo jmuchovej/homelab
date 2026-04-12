@@ -1,5 +1,7 @@
 _: {
   rbn.programs._.browsers._.firefox = {
+    dock.app = "Firefox Developer Edition.app";
+
     homeManager =
       {
         config,
@@ -120,15 +122,6 @@ _: {
         inherit (config.home) username;
       in
       {
-        rebellion.dock.entries = [
-          {
-            name = "Firefox Developer Edition.app";
-            source = "applications";
-            group = "browsers";
-            order = 320;
-          }
-        ];
-
         programs.firefox = {
           enable = true;
           package = if isLinux then pkgs.firefox-devedition else null;
