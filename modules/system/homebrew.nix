@@ -15,12 +15,6 @@
     homebrew-fvm.flake = false;
   };
 
-  den.defaults.darwin = {
-    imports = [
-      inputs.nix-homebrew.darwinModules.nix-homebrew
-    ];
-  };
-
   rbn.system._.homebrew.darwin =
     { host, lib, ... }:
     lib.mkIf host.homebrew.enable {
