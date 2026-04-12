@@ -1,7 +1,7 @@
 _: {
   rbn.programs._.desktop._.utils._.monitorcontrol.darwin =
-    { pkgs, ... }:
-    {
-      environment.systemPackages = [ pkgs.monitorcontrol ];
+    { host, lib, ... }:
+    lib.mkIf host.homebrew.enable {
+      homebrew.casks = [ "monitorcontrol" ];
     };
 }
