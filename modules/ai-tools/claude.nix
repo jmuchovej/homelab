@@ -1,4 +1,10 @@
-{ den, ... }: {
+{ den, inputs, ... }:
+{
+  flake-file.inputs.anthropic-skills = {
+    flake = false;
+    url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
+  };
+
   rbn.programs._.ai-tools._.claude = {
     provides.code =
       let
@@ -18,7 +24,10 @@
             inherit (lib) mkOption;
             inherit (lib.rebellion.fs) import-dir;
 
-            ai-tools = import ./_ai-tools { inherit lib pkgs; };
+            ai-tools = import ./_ai-tools {
+              inherit lib;
+              anthropic-skills-src = inputs.anthropic-skills;
+            };
             inherit (ai-tools) claude-code;
 
             hooks-dir = ./_claude/hooks;
@@ -71,10 +80,7 @@
                     };
                   };
 
-                  # Use outPath to pass a plain path, not the derivation attrset.
-                  # The HM module's `builtins.isAttrs` check would otherwise iterate
-                  # derivation attrs like __darwinAllowLocalNetworking as "skills".
-                  skills = "${ai-tools.skills}";
+                  inherit (ai-tools) skills;
 
                   context = ./_ai-tools/BASE.md;
                 };
