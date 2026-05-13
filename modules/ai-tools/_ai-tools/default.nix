@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, anthropic-skills-src }:
 
 let
   inherit (lib.rebellion.ai-tools) load-tools;
@@ -6,17 +6,13 @@ let
   commands = load-tools ./commands;
   agents = load-tools ./agents;
 
-  # Upstream Anthropic skills, fetched from GitHub and pinned to a specific commit.
-  # To update: change `rev` and `hash` (run `nix-prefetch-url --unpack` to get new hash).
-  anthropic-skills-src = pkgs.fetchFromGitHub {
-    owner = "anthropics";
-    repo = "skills";
-    rev = "1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
-    hash = "sha256-9FGubcwHcGBJcKl02aJ+YsTMiwDOdgU/FHALjARG51c=";
-  };
+  # Local skills — each subdir of ./skills/ is one skill.
+  local-skills = lib.mapAttrs' (name: _: lib.nameValuePair name (./skills + "/${name}")) (
+    builtins.readDir ./skills
+  );
 
-  # Which upstream skills to include (maps local name -> upstream directory name).
-  anthropic-skills = map (name: "${anthropic-skills-src}/skills/${name}") [
+  # Upstream Anthropic skills (subset; rev pinned via flake input).
+  upstream-skill-names = [
     "docx"
     "frontend-design"
     "mcp-builder"
@@ -26,12 +22,13 @@ let
     "webapp-testing"
     "xlsx"
   ];
+  upstream-skills = lib.listToAttrs (
+    map (name: lib.nameValuePair name (anthropic-skills-src + "/skills/${name}")) upstream-skill-names
+  );
 
-  # Combine local skills with selected upstream Anthropic skills into a single directory.
-  skills = pkgs.symlinkJoin {
-    name = "ai-tools-skills";
-    paths = [ ./skills ] ++ anthropic-skills;
-  };
+  # name -> path attrset; consumed directly by the claude-code HM module.
+  # No symlinkJoin = no derivation = no IFD = no cross-arch build needed.
+  skills = local-skills // upstream-skills;
 in
 {
   inherit skills;

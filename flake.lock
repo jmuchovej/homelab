@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "anthropic-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1770412772,
+        "narHash": "sha256-9FGubcwHcGBJcKl02aJ+YsTMiwDOdgU/FHALjARG51c=",
+        "owner": "anthropics",
+        "repo": "skills",
+        "rev": "1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "skills",
+        "rev": "1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563",
+        "type": "github"
+      }
+    },
     "authentik-go": {
       "flake": false,
       "locked": {
@@ -1111,6 +1128,7 @@
     },
     "root": {
       "inputs": {
+        "anthropic-skills": "anthropic-skills",
         "authentik-nix": "authentik-nix",
         "den": "den",
         "deploy": "deploy",

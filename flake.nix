@@ -5,6 +5,10 @@
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
   inputs = {
+    anthropic-skills = {
+      flake = false;
+      url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
+    };
     authentik-nix.url = "github:nix-community/authentik-nix";
     den.url = "github:vic/den/v0.16.0";
     deploy.url = "github:serokell/deploy-rs";
