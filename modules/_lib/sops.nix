@@ -17,11 +17,10 @@ in
       };
     };
 
-    get-secret' = config: secret:
-      {
-        sops.secrets.${secret} = {
-          sopsFile = get-file "secrets/secrets.sops.yaml";
-        };
+    get-secret' = _config: secret: {
+      sops.secrets.${secret} = {
+        sopsFile = get-file "secrets/secrets.sops.yaml";
       };
+    };
   };
 }

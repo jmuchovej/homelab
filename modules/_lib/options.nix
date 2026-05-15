@@ -2,7 +2,11 @@
 ## reads slightly more naturally at call sites.
 _: {
   _rbn-lib = {
-    enabled = { enable = true; };
-    disabled = { enable = false; };
+    enabled = {
+      enable = true;
+    };
+    disabled = {
+      enable = false;
+    };
   };
 }

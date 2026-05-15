@@ -1,11 +1,11 @@
-{ inputs, lib, ... }:
+{ inputs, ... }:
 {
-  imports = lib.optional (inputs ? treefmt-nix) inputs.treefmt-nix.flakeModule;
+  imports = [ inputs.treefmt-nix.flakeModule ];
 
   perSystem =
     { pkgs, ... }:
     {
-      treefmt = lib.mkIf (inputs ? treefmt-nix) {
+      treefmt = {
         flakeCheck = true;
         flakeFormatter = true;
         projectRootFile = "flake.nix";
