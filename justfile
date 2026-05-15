@@ -3,7 +3,6 @@ default:
 
 setup:
     nix profile install nixpkgs#cachix
-    nix profile install nixpkgs#devenv
 
 format disk:
     diskutil eraseDisk MS-DOS GPT {{ disk }}

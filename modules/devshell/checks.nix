@@ -5,12 +5,12 @@
   ...
 }:
 {
-  imports = lib.optional (inputs ? git-hooks-nix) inputs.git-hooks-nix.flakeModule;
+  imports = [ inputs.git-hooks-nix.flakeModule ];
 
   perSystem =
     { pkgs, ... }:
     {
-      pre-commit = lib.mkIf (inputs ? git-hooks-nix) {
+      pre-commit = {
         check.enable = false;
 
         settings.hooks = {
@@ -24,7 +24,7 @@
         };
       };
 
-      # deploy-rs checks (linux-only, moved from flake/deploy.nix)
+      # deploy-rs checks (linux-only)
       checks = lib.optionalAttrs pkgs.stdenv.isLinux (
         self.inputs.deploy.lib.${pkgs.stdenv.hostPlatform.system}.deployChecks self.deploy
       );

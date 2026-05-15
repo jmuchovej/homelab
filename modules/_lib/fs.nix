@@ -17,7 +17,6 @@ let
     elem
     filter
     foldl'
-    isList
     match
     pathExists
     readDir
