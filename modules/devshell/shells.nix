@@ -22,22 +22,49 @@
     {
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
-          nixos-render-docs
-          d2
+          # Nix workflows
+          nh
+          cachix
+          nix-output-monitor
+          nix-tree
+          nix-diff
+
+          # VCS / repo tooling
           git
+          jujutsu
+          just
+
+          # Formatting / pre-commit
+          config.treefmt.build.wrapper
+          prek
+
+          # Secrets
           sops
-          tmux
+          age
           ssh-to-age
           ssh-to-pgp
-          age
-          python3
-          opentofu
-          prek
+          mkpasswd
+
+          # Service mesh
           consul
           nomad
           openbao
-          mkpasswd
-          config.treefmt.build.wrapper
+
+          # IaC / deploy
+          opentofu
+          deploy-rs
+
+          # Python (homelab CLI + docs via `uv run`)
+          python313
+          uv
+
+          # Diagrams / docs
+          d2
+          nixos-render-docs
+
+          # Misc
+          tmux
+          fd
         ];
 
         env = {
