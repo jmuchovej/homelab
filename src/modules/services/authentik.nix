@@ -66,12 +66,6 @@
       (get-secret config "outposts/ldap-token" "authentik")
       (get-secret config "outposts/radius-token" "authentik")
       {
-        environment.systemPackages = with pkgs; [
-          authentik
-          authentik-outposts.ldap
-          authentik-outposts.proxy
-        ];
-
         sops.templates."authentik/env".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
