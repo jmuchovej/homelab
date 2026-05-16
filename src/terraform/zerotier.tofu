@@ -24,11 +24,8 @@ resource "zerotier_network" "holonet" {
     sixplane = false
   }
 
-  dynamic "route" {
-    for_each = local.topology.subnets
-    content {
-      target = route.value
-    }
+  route {
+    target = local.topology.zerotier.overlay
   }
 
   flow_rules = <<-EOT
