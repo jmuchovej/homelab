@@ -1,27 +1,32 @@
 _: {
-  rbn.shells._.bash.homeManager =
-    { pkgs, ... }:
-    {
-      programs.bash = {
-        enable = true;
-        enableCompletion = true;
+  rbn.shells._.bash = {
+    os = { pkgs, ... }: {
+      environment.shells = [ pkgs.bash ];
+    };
+    homeManager =
+      { pkgs, ... }:
+      {
+        programs.bash = {
+          enable = true;
+          enableCompletion = true;
 
-        historyControl = [ "ignoredups" ];
-        historyFileSize = 100000;
+          historyControl = [ "ignoredups" ];
+          historyFileSize = 100000;
 
-        shellOptions = [
-          "autocd"
-          "histappend"
-          "direxpand"
-          "checkwinsize"
-          "extglob"
-          "globstar"
-          "checkjobs"
+          shellOptions = [
+            "autocd"
+            "histappend"
+            "direxpand"
+            "checkwinsize"
+            "extglob"
+            "globstar"
+            "checkjobs"
+          ];
+        };
+
+        home.packages = with pkgs; [
+          nix-bash-completions
         ];
       };
-
-      home.packages = with pkgs; [
-        nix-bash-completions
-      ];
-    };
+  };
 }
