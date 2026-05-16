@@ -50,7 +50,7 @@
           };
 
           search = [
-            "da"
+            host.datacenter
             "lab"
           ];
 
