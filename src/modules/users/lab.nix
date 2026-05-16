@@ -1,43 +1,24 @@
-{ __findFile, ... }:
+{ __findFile, den, ... }:
 {
   den.aspects.lab = {
     includes = [
-      # Baseline (nix-your-shell, nix-index, etc.)
-      <rbn/programs/baseline>
+      <rbn/suite/common>
+      (den.batteries.user-shell "zsh")
 
       # Terminal programs
-      <rbn/programs/terminal/bat>
-      <rbn/programs/terminal/eza>
-      <rbn/programs/terminal/ripgrep>
-      <rbn/programs/terminal/starship>
-      <rbn/programs/terminal/zoxide>
       <rbn/programs/vcs/gh>
-      <rbn/programs/terminal/fzf>
-      <rbn/programs/terminal/readline>
-      <rbn/programs/terminal/tmux>
       <rbn/programs/terminal/zellij>
-      <rbn/programs/terminal/bottom>
       <rbn/programs/terminal/bacon>
       <rbn/programs/terminal/k9s>
       <rbn/programs/toolchains/development>
-      <rbn/programs/terminal/rclone>
       <rbn/programs/terminal/topgrade>
 
       # Core
-      <rbn/programs/vcs/git>
       <rbn/programs/vcs/lazygit>
-      <rbn/programs/vcs/jujutsu>
-      <rbn/programs/terminal/ssh>
-      <rbn/programs/security/sops>
 
       # Editors
-      <rbn/programs/editors/neovim>
       <rbn/programs/editors/helix>
       <rbn/programs/editors/micro>
-
-      # Shells
-      <rbn/shells/zsh>
-      <rbn/shells/bash>
     ];
 
     nixos.users.users.lab = {
