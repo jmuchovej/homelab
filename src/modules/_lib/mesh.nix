@@ -11,15 +11,27 @@ let
     mapAttrsToList
     flatten
     mkIf
+    optionals
+    hasInfix
     ;
-  inherit (builtins) isList;
+  inherit (builtins)
+    toJSON
+    isList
+    isAttrs
+    head
+    filter
+    elem
+    genList
+    elemAt
+    length
+    isBool
+    ;
   inherit (lib.strings)
     concatStringsSep
     splitString
     replaceStrings
     removePrefix
     ;
-  inherit (builtins) head filter;
 
   mesh = rec {
     dynamic-http = http: {
@@ -83,12 +95,12 @@ let
         route ? null,
       }:
       let
-
         pub-rule =
           let
             host-rule = mk-rule subdomain domain;
           in
           if route != null then "(${host-rule}) && PathPrefix(`${route}`)" else host-rule;
+
         rule-parts = splitString "||" pub-rule;
         no-hosts = map (s: replaceStrings [ "Host(`" "`)" " " ] [ "" "" "" ] s) rule-parts;
         base-url = head no-hosts;
@@ -111,7 +123,7 @@ let
         };
 
         auth =
-          if (builtins.elem "authentik@file" middlewares) then
+          if (elem "authentik@file" middlewares) then
             {
               name = "${name}-auth";
               config = {
@@ -221,7 +233,7 @@ let
         # Helper to unwrap mkDefault/mkOverride values
         unwrap-value =
           value:
-          if builtins.isAttrs value && value ? _type then
+          if isAttrs value && value ? _type then
             # This is a wrapped value (mkDefault, mkOverride, etc.)
             if value._type == "override" && value ? content then unwrap-value value.content else value
           else
@@ -234,15 +246,6 @@ let
             to-tag =
               name: value:
               let
-                inherit (builtins)
-                  isAttrs
-                  isList
-                  genList
-                  head
-                  elemAt
-                  length
-                  isBool
-                  ;
                 unwrapped = unwrap-value value;
               in
               if isAttrs unwrapped && !(unwrapped ? _type) then
@@ -291,8 +294,30 @@ let
         icon ? service.svc.name,
         skip-paths ? null,
         basic-auth ? false,
+        # List of redirect-uri templates. `{{ domain }}` expands to each origin
+        # this service is registered on (`https://<sub>.<domain>` for every
+        # subdomain in the mesh registration). Non-templated entries pass
+        # through verbatim. Output is joined by `;` for the consul tag.
+        redirect-uris ? [ ],
       }:
       let
+        # Build the full origin list (scheme + host) from the mesh service's
+        # subdomain + domain. Mirrors `mk-rule`'s subdomain handling.
+        subdomain-ls = if isList service.subdomain then service.subdomain else [ service.subdomain ];
+        origins =
+          if service.subdomain == null || service.subdomain == "" then
+            [ "https://${service.domain}" ]
+          else
+            map (s: "https://${s}.${service.domain}") subdomain-ls;
+
+        expand-uri =
+          uri:
+          if hasInfix "{{ domain }}" uri then
+            map (o: lib.replaceStrings [ "{{ domain }}" ] [ o ] uri) origins
+          else
+            [ uri ];
+        expanded-redirect-uris = lib.flatten (map expand-uri redirect-uris);
+
         tags = [
           "authentik.name=${name}"
           "authentik.group=${group}"
@@ -300,10 +325,13 @@ let
           "authentik.url.ext=https://${service.url.ext}"
           "authentik.url.int=https://${service.url.int}"
         ]
-        ++ lib.optionals (icon != null) [ "authentik.icon=${icon}" ]
-        ++ lib.optionals (access != [ ]) [ "authentik.access=${lib.concatStringsSep "," access}" ]
-        ++ lib.optionals (skip-paths != null) [ "authentik.skip-paths=${skip-paths}" ]
-        ++ lib.optionals (basic-auth != { } || basic-auth || basic-auth.enabled) [
+        ++ optionals (icon != null) [ "authentik.icon=${icon}" ]
+        ++ optionals (access != [ ]) [ "authentik.access=${lib.concatStringsSep "," access}" ]
+        ++ optionals (skip-paths != null) [ "authentik.skip-paths=${skip-paths}" ]
+        ++ optionals (expanded-redirect-uris != [ ]) [
+          "authentik.redirect-uris=${lib.concatStringsSep ";" expanded-redirect-uris}"
+        ]
+        ++ optionals (basic-auth != { } || basic-auth || basic-auth.enabled) [
           "authentik.basic-auth.enabled=${lib.boolToString true}"
           "authentik.basic-auth.username=${basic-auth.username or "username"}"
           "authentik.basic-auth.password=${basic-auth.password or "password"}"
@@ -402,6 +430,10 @@ let
         })
         (mkIf (!write-template) {
           environment.etc."${service-file}".text = consul-json;
+          # NixOS only writes the file; consul needs SIGHUP / `consul reload`
+          # to re-read /etc/consul.d/*. Pin the file path into reloadTriggers
+          # so any content change forces a `systemctl reload consul`.
+          systemd.services.consul.reloadTriggers = [ consul-json ];
         })
       ];
 
@@ -432,7 +464,7 @@ let
         };
 
         healthcheck =
-          if method == "POST" then healthcheck-base // { body = builtins.toJSON body; } else healthcheck-base;
+          if method == "POST" then healthcheck-base // { body = toJSON body; } else healthcheck-base;
       in
       healthcheck;
   };
