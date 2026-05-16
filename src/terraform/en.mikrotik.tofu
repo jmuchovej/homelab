@@ -45,4 +45,16 @@ module "en-relay01" {
   enable-hairpin  = true
 
   ports = local.en-ports.relay01
+
+  static-leases = merge({
+    for addr, device in {
+      "10.69.11.1" = "t65-1.eth1",
+      "10.69.4.2"  = "hubitat-c8.eth1",
+      } : device => {
+      address  = addr
+      mac-addr = data.sops_file.topology.data["devices.en-${device}"]
+      server   = local.vlans.lab.dhcp
+    }
+    },
+  )
 }

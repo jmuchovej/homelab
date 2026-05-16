@@ -65,7 +65,10 @@ module "da-relay01" {
   bgp = {
     asn          = 64512
     lb-pool-cidr = "10.69.1.0/24"
-    peers        = { da-vcx-1 = "10.69.11.1" }
+    peers = {
+      da-vcx-1 = "10.69.11.1"
+      da-vcx-2 = "10.69.12.1"
+    }
   }
 
   bridge-mac = data.sops_file.da-relay01.data["bridge-mac"]
@@ -139,13 +142,14 @@ module "da-relay01" {
   # pool.
   static-leases = merge({
     for addr, device in {
-      "10.69.11.1" = "vcx-1",
-      # "10.69.12.1" = "vcx-2",
-      # "10.69.13.1" = "vcx-3",
-      "10.69.4.2" = "hubitat-c8",
-      } : device => {
+      "10.69.10.1" = "gr75.eth1",
+      "10.69.11.1" = "vcx-1.eth1",
+      "10.69.12.1" = "vcx-2.eth1",
+      # "10.69.13.1" = "vcx-3.eth1",
+      "10.69.4.2" = "hubitat-c8.eth1",
+      } : "da-${device}" => {
       address  = addr
-      mac-addr = data.sops_file.da.data["devices.${device}"]
+      mac-addr = data.sops_file.topology.data["devices.da-${device}"]
       server   = local.vlans.lab.dhcp
     }
     }, {
