@@ -59,7 +59,22 @@ in
                   mountpoint = "/nix";
                   mountOptions = btrfs-defaults;
                 };
+                "@persist" = {
+                  mountpoint = "/persist";
+                  mountOptions = btrfs-defaults;
+                };
               };
+
+              # Seed `@-blank` as a read-only snapshot of the just-created,
+              # empty `@`. The impermanence rollback service in initrd reads
+              # this on every boot to recreate `@` — without it, the first
+              # boot deletes `@` and can't restore it, dropping to emergency.
+              postCreateHook = ''
+                MNT=$(mktemp -d)
+                mount -t btrfs -o subvol=/ /dev/disk/by-partlabel/NixOS "$MNT"
+                trap 'umount "$MNT"; rmdir "$MNT"' EXIT
+                btrfs subvolume snapshot -r "$MNT/@" "$MNT/@-blank"
+              '';
             };
           };
           swap = {
