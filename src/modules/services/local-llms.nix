@@ -149,6 +149,9 @@
             name = "open-webui";
             port = 11435;
             healthcheck = "/health";
+            subdomain = [
+              "chat"
+            ];
             authentik = {
               name = "Open WebUI";
               icon = "open-webui";
@@ -157,6 +160,9 @@
               access = [
                 "compute"
                 "compute-managers"
+              ];
+              redirect-uris = [
+                "{{ domain }}/oauth/oidc/callback"
               ];
             };
           })

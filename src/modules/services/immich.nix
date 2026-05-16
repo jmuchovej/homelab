@@ -101,6 +101,9 @@
           access = [ "family" ];
           icon = "di:immich";
           skip-paths = "/api/*";
+          redirect-uris = [
+            "{{ domain }}/auth/login"
+          ];
         };
       })
       (<rbn/mesh/register> {

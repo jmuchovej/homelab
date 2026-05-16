@@ -75,6 +75,11 @@
             NEXTAUTH_URL = "https://split-pro.${datacenter}.jm0.io";
             DEFAULT_HOMEPAGE = "/balances";
             DISABLE_EMAIL_SIGNUP = "true";
+            OIDC_ALLOW_DANGEROUS_EMAIL_LINKING = "true";
+            OIDC_NAME = "The Rebellion";
+            FROM_EMAIL = "homelab@jm0.io";
+            EMAIL_SERVER_HOST = "smtp.mailgun.org";
+            EMAIL_SERVER_PORT = "587";
           };
 
           serviceConfig = {
@@ -110,14 +115,10 @@
             content = ''
               NEXTAUTH_SECRET=${config.sops.placeholder."split-pro/nextauth-secret"}
 
-              OIDC_NAME="The Rebellion"
               OIDC_CLIENT_ID=${client-id}
               OIDC_CLIENT_SECRET=${config.sops.placeholder."split-pro/client-secret"}
               OIDC_WELL_KNOWN_URL=${issuer-url}
 
-              FROM_EMAIL="homelab@jm0.io"
-              EMAIL_SERVER_HOST="smtp.mailgun.org"
-              EMAIL_SERVER_PORT="587"
               EMAIL_SERVER_USER=${config.sops.placeholder."mailgun/username"}
               EMAIL_SERVER_PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
             '';
@@ -135,6 +136,9 @@
           group = "Home";
           access = [ "home" ];
           icon = "di:spliit";
+          redirect-uris = [
+            "{{ domain }}/api/auth/callback/the rebellion"
+          ];
         };
       })
     ];

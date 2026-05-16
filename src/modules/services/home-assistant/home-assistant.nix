@@ -156,6 +156,9 @@
           group = "Home";
           access = [ "home" ];
           skip-paths = "/api/*";
+          redirect-uris = [
+            "{{ domain }}/auth/oidc/callback"
+          ];
         };
       })
     ];
