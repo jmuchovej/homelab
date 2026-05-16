@@ -1,0 +1,62 @@
+# Cilium CNI — k3s HelmChart CR. k3s' helm-controller pulls the chart from
+# helm.cilium.io at runtime (no Nix build-time fetch). `bootstrap: true` installs
+# it during cluster bring-up, before the node can go Ready (k3s ships no CNI;
+# started with --flannel-backend=none --disable-kube-proxy).
+#
+# Single-node values trimmed from the home-ops reference: dropped netkit
+# datapath (kernel-dependent), prometheus/serviceMonitor + dashboards (no o11y
+# CRDs day 1), bonded `devices`, maglev/DSR. Contains NO secrets.
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  repo: https://helm.cilium.io
+  chart: cilium
+  version: 1.19.5
+  targetNamespace: kube-system
+  bootstrap: true
+  valuesContent: |-
+    # Replace flannel + kube-proxy. Cilium reaches the k3s apiserver via the
+    # supervisor loopback LB on 127.0.0.1:7445 (NOT 6443).
+    kubeProxyReplacement: true
+    k8sServiceHost: 127.0.0.1
+    k8sServicePort: 7445
+
+    ipam:
+      mode: kubernetes
+    routingMode: native
+    autoDirectNodeRoutes: true
+    # Pod CIDR — traffic within it is natively routed; outside it is masqueraded.
+    ipv4NativeRoutingCIDR: 10.244.0.0/16
+    endpointRoutes:
+      enabled: true
+
+    # BGP control plane advertises LoadBalancer IPs to MikroTik. The BGP CRs
+    # (peer, cluster config, LB IP pool) live in the Flux tree under
+    # src/kubernetes/apps/network/cilium-bgp/, not here.
+    bgpControlPlane:
+      enabled: true
+    l2announcements:
+      enabled: false
+
+    # Don't let Cilium's embedded Envoy bind host ports — ingress is Envoy Gateway.
+    envoy:
+      enabled: false
+    hubble:
+      enabled: false
+
+    # Coexist politely with any other CNI conflists on the host.
+    cni:
+      exclusive: false
+
+    socketLB:
+      enabled: true
+      hostNamespaceOnly: true
+
+    operator:
+      replicas: 1
+      rollOutPods: true
+    rollOutCiliumPods: true
