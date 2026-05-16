@@ -40,8 +40,12 @@ locals {
 provider "sops" {
 }
 
-data "sops_file" "dc" {
-  source_file = "${path.root}/secrets/${local.datacenter}.sops.yaml"
+data "sops_file" "da" {
+  source_file = "${path.root}/secrets/da.sops.yaml"
+}
+
+data "sops_file" "en" {
+  source_file = "${path.root}/secrets/en.sops.yaml"
 }
 
 data "sops_file" "secrets" {
