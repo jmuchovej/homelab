@@ -1,5 +1,8 @@
 listen-port: 51820
 
+zerotier:
+  network: "93afae596391633f"
+
 macs:
   UGreen CM199: c8:a3:62:10:4f:76
 
@@ -33,6 +36,7 @@ clients:
   da-n1x:
     ip: 10.42.69.10
     public: h6/JHmWbCs5hoWi+h5sF+/I/TGLn+JdPZDKHQQTh5Tw=
+    zerotier: ec0c4b18cc
 
 vlans:
   mgmt:
