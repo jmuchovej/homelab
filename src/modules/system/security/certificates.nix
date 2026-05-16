@@ -1,15 +1,15 @@
 # Consolidated CA certificate installation across NixOS and darwin.
 _:
 let
-  mkCertConfig =
-    { host, lib, ... }:
+  mk-cert-config =
+    { lib, ... }:
     let
       inherit (builtins) readFile;
       inherit (lib.rbn) get-file;
     in
     {
       security.pki.certificates = [
-        (readFile (get-file "secrets/certificates/${host.datacenter}/ca.crt"))
+        (readFile (get-file "secrets/certificates/root.crt"))
       ];
     };
 in
@@ -30,7 +30,7 @@ in
         sopsFile = get-file "secrets/${host.datacenter}.sops.yaml";
       in
       mkMerge [
-        (mkCertConfig args)
+        (mk-cert-config args)
         (mkIf (traefik.enable or false) {
           sops.secrets."certs/lab.key" = {
             inherit sopsFile;
@@ -47,7 +47,7 @@ in
 
     darwin =
       args:
-      (mkCertConfig args)
+      (mk-cert-config args)
       // {
         security.pki.installCACerts = true;
       };
