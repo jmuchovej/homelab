@@ -1,0 +1,13 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name cloudnative-pg
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    crds:
+      create: true
