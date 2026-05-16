@@ -5,6 +5,7 @@
       (den.provides.unfree [
         "nvidia-x11"
         "nvidia-settings"
+        "nvidia-kernel-modules"
       ])
     ];
 
