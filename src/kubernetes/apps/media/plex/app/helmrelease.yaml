@@ -19,7 +19,7 @@ spec:
               tag: 1.43.3.10828@sha256:0c0b6899339503af17cb190b25af6acf10f0030e2820985e16ee14ef428f49d7
             env:
               TZ: America/New_York
-              PLEX_ADVERTISE_URL: https://plex.${DATACENTER}.${ROOT_DOMAIN}:443,http://10.69.1.32:32400
+              PLEX_ADVERTISE_URL: https://plex.${DC_DOMAIN}:443,http://10.69.1.32:32400
             probes:
               liveness:
                 enabled: true
@@ -74,8 +74,8 @@ spec:
     route:
       app:
         hostnames:
-          - plex.${DATACENTER}.${ROOT_DOMAIN}
-          - play.${DATACENTER}.${ROOT_DOMAIN}
+          - plex.${DC_DOMAIN}
+          - play.${DC_DOMAIN}
         parentRefs:
           - name: envoy-external
             namespace: network

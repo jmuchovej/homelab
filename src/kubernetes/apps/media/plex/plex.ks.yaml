@@ -19,6 +19,6 @@ spec:
   targetNamespace: media
   postBuild:
     substituteFrom:
-      - kind: ConfigMap
+      - kind: Secret
         name: cluster-settings
   wait: true
