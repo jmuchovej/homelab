@@ -1,0 +1,91 @@
+listen-port: 51820
+
+macs:
+  UGreen CM199: c8:a3:62:10:4f:76
+
+subnets:
+  da: 10.42.32.0/24
+  en: 10.42.36.0/24
+  clients: 10.42.69.0/24
+
+network:
+  da-relay01:
+    role: router
+    trunks: [ether5]
+    ip: 10.42.32.1
+    ddns: hgs0ach20gx.sn.mynetname.net
+    public: yzPvixlHxHdPPr3BfdgpZtAGEbQWAk/WmhSCo1DmEl0=
+
+  da-relay02:
+    role: switch
+    ip: 10.42.32.2
+    ddns: hg409j7jsk1.sn.mynetname.net
+    public: T50zkiBdLOMRvx58wJ+iKLdJ+kuVRbeiiWj/3Tez+C8=
+
+  en-relay01:
+    role: router
+    # trunks: [ether5]
+    ip: 10.42.36.1
+    ddns: hmb0b2zpmv1.sn.mynetname.net
+    public: fP71NAtYMkYxc4dEbJHoUQv5pvaVbxIRxHK090hI5B0=
+
+clients:
+  da-n1x:
+    ip: 10.42.69.10
+    public: h6/JHmWbCs5hoWi+h5sF+/I/TGLn+JdPZDKHQQTh5Tw=
+
+vlans:
+  mgmt:
+    id: 1
+    vlan_id: 42
+    name: "mgmt"
+    cidr: "10.42.0.0/24"
+    gateway: "10.42.0.1"
+    ranges: ["10.42.0.20-10.42.0.254"]
+    comment: "Management"
+    dhcp: "dhcp1"
+    pool: "pool1"
+
+  lab:
+    id: 2
+    vlan_id: 69
+    name: "lab"
+    cidr: "10.69.0.0/16"
+    gateway: "10.69.0.1"
+    ranges: ["10.69.0.20-10.69.255.254"]
+    comment: "Homelab"
+    dhcp: "dhcp2"
+    pool: "pool2"
+
+  trusted:
+    id: 3
+    vlan_id: 99
+    name: "trusted"
+    cidr: "10.99.0.0/16"
+    gateway: "10.99.0.1"
+    ranges: ["10.99.0.20-10.99.255.254"]
+    comment: "Trusted"
+    dhcp: "dhcp3"
+    pool: "pool3"
+
+  guest:
+    id: 4
+    vlan_id: 94
+    name: "guest"
+    cidr: "10.94.0.0/16"
+    gateway: "10.94.0.1"
+    ranges: ["10.94.0.20-10.94.255.254"]
+    comment: "Guest"
+    dhcp: "dhcp4"
+    pool: "pool4"
+
+  iot:
+    id: 5
+    vlan_id: 66
+    name: "iot"
+    cidr: "10.66.0.0/16"
+    gateway: "10.66.0.1"
+    ranges: ["10.66.0.20-10.66.255.254"]
+    comment: "IoT"
+    dhcp: "dhcp5"
+    pool: "pool5"
