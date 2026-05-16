@@ -167,10 +167,8 @@
     };
 
     nixos = {
-      imports = [
-        ./_hardware.nix
-        ./_disks.nix
-      ];
+      networking.hostId = "fe4ccbf4";
+
       boot.zfs.extraPools = [
         "impulse"
         "warp"
