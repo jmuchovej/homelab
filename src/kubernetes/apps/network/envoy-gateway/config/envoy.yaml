@@ -43,7 +43,7 @@ spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      lbipam.cilium.io/ips: 10.69.1.10
+      lbipam.cilium.io/ips: 10.69.1.1
   listeners:
     - name: http
       protocol: HTTP
@@ -62,7 +62,35 @@ spec:
           - kind: Secret
             name: da-jm0-io-tls
 ---
-# Redirect plain HTTP → HTTPS on the gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-internal
+  namespace: network
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: 10.69.1.2
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: da-jm0-io-tls
+---
+# Redirect plain HTTP → HTTPS on both gateways.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -73,6 +101,9 @@ metadata:
 spec:
   parentRefs:
     - name: envoy-external
+      namespace: network
+      sectionName: http
+    - name: envoy-internal
       namespace: network
       sectionName: http
   rules:
