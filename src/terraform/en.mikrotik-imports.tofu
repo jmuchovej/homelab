@@ -100,3 +100,9 @@ import {
   to = module.en-relay01.routeros_ip_firewall_filter.r11_input_drop_not_lan
   id = "*4"
 }
+
+# --- ZeroTier ------------------------------------------------------------------
+import {
+  to = module.en-relay01.routeros_zerotier.zt1
+  id = "name=zt1"
+}

@@ -30,6 +30,11 @@ terraform {
       source  = "terraform-routeros/routeros"
       version = ">= 1.86.0"
     }
+    # https://registry.terraform.io/providers/zerotier/zerotier/latest
+    zerotier = {
+      source  = "zerotier/zerotier"
+      version = "~> 1.6.0"
+    }
   }
 }
 
