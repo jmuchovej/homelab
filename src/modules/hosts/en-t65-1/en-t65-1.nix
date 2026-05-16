@@ -70,7 +70,7 @@
 
     nixos = {
       imports = [
-        ./_en-t65-1/hardware.nix
+        ./_hardware.nix
       ];
       system.stateVersion = "24.05";
     };
