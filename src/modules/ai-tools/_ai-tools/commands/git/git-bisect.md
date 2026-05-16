@@ -33,6 +33,7 @@ Use git bisect to efficiently find the commit that introduced a regression.
    - Reset with `git bisect reset`
 
 **Command Arguments:**
+
 - `<good-ref>`: Known good commit (before the bug existed)
 - `<bad-ref>`: Known bad commit (where the bug exists)
 - `--test=command`: Automated test command (exit 0 = good, non-zero = bad)
@@ -72,12 +73,14 @@ make build && ./run-specific-test
 ```
 
 **Tips:**
+
 - If a commit can't be tested, use `git bisect skip`
 - Save progress with `git bisect log > bisect.log`
 - Replay bisect with `git bisect replay bisect.log`
 - For build failures, script should exit 125 to skip
 
 **Important Limitations:**
+
 - Bisect works best with linear history
 - With merge commits, bisect may check commits from merged branches
 - Consider using `git bisect --first-parent` to stay on main branch

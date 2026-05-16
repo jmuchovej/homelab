@@ -33,6 +33,7 @@ Intelligently add files to git staging with formatting and validation.
    - If available, run basic pre-commit hooks to validate staged changes
 
 **Command Arguments:**
+
 - [files...]: If provided, only process these specific files
 - --all: Process all modified/new files with formatting
 - --check: Dry run mode - show what would be done without making changes

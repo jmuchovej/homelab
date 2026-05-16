@@ -32,11 +32,13 @@ Identify and clean stale branches to keep the repository organized.
    - Report what was cleaned
 
 **Command Arguments:**
+
 - `--dry-run`: Only report what would be cleaned, don't delete
 - `--remote`: Include remote branch analysis
 - `--age=days`: Consider branches stale if no commits in N days (default: 30)
 
 **Safety Rules:**
+
 - NEVER delete `main`, `master`, or `develop` branches
 - NEVER delete the currently checked out branch
 - Always confirm with user before deleting unmerged branches

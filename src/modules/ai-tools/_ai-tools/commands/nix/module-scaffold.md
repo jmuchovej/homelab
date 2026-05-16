@@ -37,7 +37,7 @@ ALWAYS START - Understand the project structure and conventions
 IF path contains "modules/home/" OR "home-manager/":
     Default type = "home"
 ELSE IF path contains "modules/nixos/" OR "nixos/":
-    Default type = "nixos"  
+    Default type = "nixos"
 ELSE IF path contains "modules/macos/" OR "macos/":
     Default type = "macos"
 ELSE:
@@ -168,7 +168,7 @@ IF project uses inherit pattern:
 
 ELSE IF project uses inline pattern:
     Use lib.mkIf, lib.mkOption, etc. throughout
-    
+
 ELSE (mixed usage based on frequency):
     Apply mixed pattern per project analysis
 ```
@@ -178,7 +178,7 @@ ELSE (mixed usage based on frequency):
 ```
 Basic template options:
   enable = mkEnableOption "description";
-  
+
 Advanced template options:
   enable = mkEnableOption "description";
   package = mkOption { type = types.package; default = pkgs.default; };
@@ -213,7 +213,7 @@ IF --with-options flag:
     Add comprehensive option descriptions
     Include usage examples in comments
     Add common configuration patterns as comments
-    
+
 ALWAYS:
     Add module purpose comment at top
     Include basic usage example
@@ -241,10 +241,10 @@ This applies project formatting standards (`treefmt`/`nixfmt`)
 ```
 1. Syntax validation:
    nix-instantiate --parse <module-path>
-   
+
 2. Basic evaluation test:
    nix eval --file <module-path>
-   
+
 3. Integration verification:
    Check that module can be imported without errors
 ```
@@ -271,7 +271,7 @@ in {
   options.[namespace].[module-name] = {
     enable = lib.mkEnableOption "[description]";
   };
-  
+
   config = lib.mkIf cfg.enable {
     # Basic configuration here
   };
@@ -299,7 +299,7 @@ in {
       description = "Configuration settings";
     };
   };
-  
+
   config = mkIf cfg.enable {
     # Comprehensive configuration
   };

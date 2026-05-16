@@ -35,6 +35,7 @@ Extract clean interfaces and type definitions from implementation code.
 **Extraction Patterns:**
 
 - **TypeScript Interface**:
+
   ```typescript
   export interface IServiceName {
     methodName(param: ParamType): ReturnType;
@@ -43,6 +44,7 @@ Extract clean interfaces and type definitions from implementation code.
   ```
 
 - **TypeScript Types**:
+
   ```typescript
   export type ServiceConfig = {
     option1: string;
@@ -56,6 +58,7 @@ Extract clean interfaces and type definitions from implementation code.
   ```
 
 - **Rust Trait**:
+
   ```rust
   pub trait ServiceTrait {
       fn method_name(&self, param: ParamType) -> ReturnType;
@@ -63,6 +66,7 @@ Extract clean interfaces and type definitions from implementation code.
   ```
 
 - **Python Protocol**:
+
   ```python
   from typing import Protocol
 
@@ -72,26 +76,32 @@ Extract clean interfaces and type definitions from implementation code.
 
 **Output Format:**
 
-```markdown
+````markdown
 # Extracted Interface for [ClassName]
 
 ## Interface Definition
+
 ```[language]
 [Generated interface code]
 ```
+````
 
 ## Supporting Types
+
 ```[language]
 [Related type definitions]
 ```
 
 ## Usage Example
+
 ```[language]
 [How to use the interface]
 ```
 
 ## Notes
+
 - [Any important considerations]
+
 ```
 
 **Command Arguments:**
@@ -102,3 +112,4 @@ Extract clean interfaces and type definitions from implementation code.
 - `--style=abstract`: Generate abstract class
 
 Extract interfaces that are stable, minimal, and represent the essential contract.
+```

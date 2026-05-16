@@ -46,12 +46,14 @@ Audit the codebase for style violations and report or fix them based on options.
    - Identify opportunities for better abstraction and code reuse
 
 **Execution Based on Arguments:**
+
 - If --fix is specified: Automatically correct violations where safe to do so
 - If --report is specified: Generate a detailed compliance report with file:line references
 - If --focus is specified: Concentrate only on that aspect (naming, structure, imports, etc.)
 - Use [path] to limit scope to specific directory or file
 
 **Command Arguments:**
+
 - [path]: Directory or file to audit (defaults to current directory)
 - --fix: Automatically fix violations that can be safely corrected
 - --report: Generate detailed compliance report with specific locations

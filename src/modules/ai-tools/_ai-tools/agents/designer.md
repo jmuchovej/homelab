@@ -29,7 +29,7 @@ When producing code mockups:
 
 - **Default to Vue SFCs** — `<script setup lang="ts">`, `<template>`, `<style scoped>`. These are the closest to the actual web stack and readable by both web and app developers as visual specs.
 - **Use Tailwind classes for speed** — The mockup isn't production code; Tailwind communicates spacing/color/typography intent faster than hand-written CSS. Don't worry about UnoCSS compatibility — that's the dev agent's concern.
-- **Annotate intent, not implementation** — Use HTML comments to explain *why*: `<!-- primary CTA pinned to viewport bottom on mobile -->`, `<!-- progressive disclosure: expand on click -->`.
+- **Annotate intent, not implementation** — Use HTML comments to explain _why_: `<!-- primary CTA pinned to viewport bottom on mobile -->`, `<!-- progressive disclosure: expand on click -->`.
 - **Show states** — A single mockup should demonstrate default, hover/active, loading, error, and empty states where relevant. Use separate `<template>` blocks or a simple state toggle.
 - **Keep it flat** — No component abstraction, no props drilling, no composables. The mockup is a single file that someone can paste into a Vue playground and see the design.
 

@@ -43,26 +43,32 @@ Comprehensively find and categorize all usages of a given symbol.
 ## By Category
 
 ### Imports (N)
+
 - `path/to/file1.ts:1` - `import { symbol } from '...'`
 
 ### Function Calls (N)
+
 - `path/to/file2.ts:25` - `symbol(args)`
 - `path/to/file3.ts:100` - `await symbol()`
 
 ### Type Annotations (N)
+
 - `path/to/types.ts:10` - `const x: SymbolType = ...`
 
 ## Usage Patterns
+
 - [Pattern 1]: [description and examples]
 - [Pattern 2]: [description and examples]
 
 ## Files Affected
-| File | Usage Count |
-|------|-------------|
-| `path/to/file1.ts` | 5 |
+
+| File               | Usage Count |
+| ------------------ | ----------- |
+| `path/to/file1.ts` | 5           |
 ```
 
 **Command Arguments:**
+
 - `<symbol>`: Name of function, type, variable, or class to find
 - `--type=function`: Filter to function calls only
 - `--type=type`: Filter to type annotations only
@@ -72,6 +78,7 @@ Comprehensively find and categorize all usages of a given symbol.
 - `--regex`: Treat symbol as regex pattern for complex searches (e.g., `handle.*Error`)
 
 **Advanced Search Examples:**
+
 - `--regex` for patterns: `find-usages "handle.*Error" --regex`
 - Multiple word symbols: `find-usages "MyClass.method"`
 - Destructured imports: Will find `import { symbol }` patterns

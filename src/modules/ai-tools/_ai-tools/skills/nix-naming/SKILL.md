@@ -7,11 +7,11 @@ description: "Nix naming conventions and code style. Use when naming variables, 
 
 ## Quick Reference
 
-| Element     | Style      | Examples                              |
-| ----------- | ---------- | ------------------------------------- |
-| Variables   | kebab-case | `cfg`, `user-name`, `enable-feature`  |
-| Files/dirs  | kebab-case | `my-module.nix`, `window-managers/`   |
-| Constants   | UPPER_CASE | `MAX_RETRIES`, `DEFAULT_PORT`         |
+| Element    | Style      | Examples                             |
+| ---------- | ---------- | ------------------------------------ |
+| Variables  | kebab-case | `cfg`, `user-name`, `enable-feature` |
+| Files/dirs | kebab-case | `my-module.nix`, `window-managers/`  |
+| Constants  | UPPER_CASE | `MAX_RETRIES`, `DEFAULT_PORT`        |
 
 ## Variables
 

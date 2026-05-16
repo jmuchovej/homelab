@@ -53,6 +53,7 @@ You think in layers: Rust core (data, logic, ML) → Tauri commands → TypeScri
 ## Project Context
 
 You may be working on:
+
 - **Waypoints** — Block-based editor and PKM tool. Combines Notion/Bear-style editing with Logseq/AnyType-style knowledge graphs. Local-first with on-device LLMs that have structured access to blocks.
 - **Waypoints Atlas** — Task management, scheduling, and time-tracking. A focused subset of Waypoints.
 - **Larder** — Grocery/pantry app that aggregates and democratizes pricing data across grocers. Public-facing, data-driven.

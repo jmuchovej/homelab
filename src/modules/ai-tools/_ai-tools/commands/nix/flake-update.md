@@ -33,6 +33,7 @@ Safely update flake inputs while maintaining system stability.
    - If --interactive is specified, ask for confirmation before each major step
 
 **Command Arguments:**
+
 - [input...]: Update only these specific inputs (e.g., nixpkgs, home-manager)
 - --commit: Automatically commit the update with a descriptive message
 - --test: Run comprehensive tests including template builds

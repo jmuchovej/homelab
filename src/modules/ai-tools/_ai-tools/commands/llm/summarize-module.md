@@ -34,38 +34,45 @@ Produce concise, actionable summaries of code modules.
 
 **Output Format:**
 
-```markdown
+````markdown
 # [Module Name]
 
 > [One-line description]
 
 ## Quick Start
+
 ```[language]
 [Minimal usage example]
 ```
+````
 
 ## API Reference
 
 ### Functions
-| Function | Description |
-|----------|-------------|
+
+| Function             | Description  |
+| -------------------- | ------------ |
 | `functionName(args)` | What it does |
 
 ### Types
-| Type | Description |
-|------|-------------|
+
+| Type       | Description        |
+| ---------- | ------------------ |
 | `TypeName` | What it represents |
 
 ## Examples
 
 ### [Use Case 1]
+
 ```[language]
 [Example code]
 ```
 
 ## Notes
+
 - [Important consideration 1]
 - [Important consideration 2]
+
 ```
 
 **Command Arguments:**
@@ -74,3 +81,4 @@ Produce concise, actionable summaries of code modules.
 - `--with-examples`: Include more detailed usage examples
 
 Focus on what developers need to USE the module, not how it's implemented internally.
+```

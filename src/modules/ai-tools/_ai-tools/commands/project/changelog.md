@@ -9,6 +9,7 @@ Generate and maintain project changelogs that follow established conventions.
 ## **WORKFLOW OVERVIEW**
 
 This command follows a 4-phase systematic approach:
+
 1. **Analysis** - Examine project changelog patterns and git history
 2. **Classification** - Categorize commits and changes by type and impact
 3. **Generation** - Create changelog entries following detected conventions
@@ -17,11 +18,13 @@ This command follows a 4-phase systematic approach:
 ## **PHASE 1: PROJECT AND CHANGELOG ANALYSIS**
 
 ### **Step 1.1: Existing Changelog Analysis**
+
 ```
 ALWAYS START - Understand current changelog structure and conventions
 ```
 
 **Changelog detection and analysis:**
+
 ```
 Check for existing changelog files:
   - CHANGELOG.md (most common)
@@ -40,6 +43,7 @@ IF changelog exists:
 ```
 
 ### **Step 1.2: Project Convention Detection**
+
 ```
 Analyze project patterns:
   - Git commit message conventions (from recent history)
@@ -50,21 +54,22 @@ Analyze project patterns:
 ```
 
 ### **Step 1.3: Change Scope Determination**
+
 ```
 Determine what changes to include:
 
 IF version specified:
     Generate entry for that specific version
-    
+
 IF --since flag provided:
     Include changes since specified tag/date
-    
+
 IF --auto flag:
     Automatically determine scope:
       - Since last tagged version
       - Since last changelog entry
       - All unreleased changes
-      
+
 ELSE:
     Include all changes since last changelog update
 ```
@@ -72,12 +77,13 @@ ELSE:
 ## **PHASE 2: COMMIT ANALYSIS AND CLASSIFICATION**
 
 ### **Step 2.1: Git History Analysis**
+
 ```
 Systematic commit analysis:
 
 1. Get relevant commit range:
    git log --oneline --reverse <since>..<until>
-   
+
 2. For each commit, extract:
    - Commit hash and date
    - Commit message and body
@@ -87,33 +93,34 @@ Systematic commit analysis:
 ```
 
 ### **Step 2.2: Conventional Commit Classification**
+
 ```
 Classify commits by type:
 
 ADDED (Features and enhancements):
   - feat: new features
   - enhancement: improvements to existing features
-  
+
 CHANGED (Modifications to existing functionality):
   - refactor: code restructuring
   - perf: performance improvements
   - update: dependency updates, non-breaking changes
-  
+
 FIXED (Bug fixes and corrections):
   - fix: bug fixes
   - security: security patches
   - hotfix: critical fixes
-  
+
 DEPRECATED (Features marked for removal):
   - deprecate: deprecated functionality
-  
+
 REMOVED (Deleted features):
   - remove: removed features
   - breaking: breaking changes
-  
+
 SECURITY (Security-related changes):
   - security: security improvements
-  
+
 INTERNAL (Development changes):
   - docs: documentation changes
   - test: test additions/changes
@@ -123,10 +130,11 @@ INTERNAL (Development changes):
 ```
 
 ### **Step 2.3: Impact Assessment**
+
 ```
 For each change, assess:
   - Breaking changes (MAJOR version impact)
-  - New features (MINOR version impact)  
+  - New features (MINOR version impact)
   - Bug fixes (PATCH version impact)
   - User-facing vs internal changes
   - Migration requirements or notes
@@ -135,18 +143,19 @@ For each change, assess:
 ## **PHASE 3: CHANGELOG ENTRY GENERATION**
 
 ### **Step 3.1: Version and Date Handling**
+
 ```
 Version determination:
 
 IF version provided as argument:
     Use specified version
-    
+
 IF --auto flag:
     Determine next version based on changes:
       - Breaking changes → increment MAJOR
-      - New features → increment MINOR  
+      - New features → increment MINOR
       - Only fixes → increment PATCH
-      
+
 ELSE:
     Use "Unreleased" as version placeholder
 
@@ -156,6 +165,7 @@ Date handling:
 ```
 
 ### **Step 3.2: Entry Formatting**
+
 ```
 Format based on detected convention:
 
@@ -163,7 +173,7 @@ KEEP A CHANGELOG format:
 ## [Version] - YYYY-MM-DD
 ### Added
 - New feature descriptions
-### Changed  
+### Changed
 - Changed functionality descriptions
 ### Fixed
 - Bug fix descriptions
@@ -174,13 +184,14 @@ CONVENTIONAL format:
 # Version (YYYY-MM-DD)
 ## Features
 - feat: new feature descriptions
-## Bug Fixes  
+## Bug Fixes
 - fix: bug fix descriptions
 ## Performance
 - perf: performance improvements
 ```
 
 ### **Step 3.3: Content Enhancement**
+
 ```
 For each changelog entry:
   - Write clear, user-focused descriptions
@@ -194,13 +205,14 @@ For each changelog entry:
 ## **PHASE 4: CHANGELOG INTEGRATION**
 
 ### **Step 4.1: File Update Strategy**
+
 ```
 Changelog file handling:
 
 IF CHANGELOG.md exists:
     Insert new entry at top (after title/intro)
     Preserve existing formatting and structure
-    
+
 ELSE:
     Create new CHANGELOG.md with:
       - Appropriate title and introduction
@@ -209,6 +221,7 @@ ELSE:
 ```
 
 ### **Step 4.2: Content Integration**
+
 ```
 Integration process:
   1. Read existing changelog content
@@ -220,6 +233,7 @@ Integration process:
 ```
 
 ### **Step 4.3: Validation and Quality Check**
+
 ```
 Quality assurance:
   - Verify all significant changes are included
@@ -233,6 +247,7 @@ Quality assurance:
 ## **COMMAND FLAGS AND BEHAVIOR**
 
 **Flag-specific execution:**
+
 ```
 [version]: Generate entry for specific version (e.g., "1.2.0")
 --auto: Automatically determine version and scope from git history
@@ -244,28 +259,42 @@ No flags: Generate "Unreleased" entry with all changes since last update
 ## **OUTPUT EXAMPLES**
 
 **Keep a Changelog format:**
+
 ```markdown
 ## [1.2.0] - 2024-03-15
+
 ### Added
+
 - New user authentication system with OAuth2 support
 - Dark mode toggle in application settings
+
 ### Changed
+
 - Improved performance of data loading by 40%
 - Updated user interface with modern design system
+
 ### Fixed
+
 - Fixed memory leak in background processing
 - Resolved issue with file upload progress indicators
 ```
 
 **Conventional format:**
+
 ```markdown
 # 1.2.0 (2024-03-15)
+
 ## Features
+
 - **auth:** add OAuth2 integration for external providers
 - **ui:** implement dark mode toggle with user preferences
-## Performance Improvements  
+
+## Performance Improvements
+
 - **data:** optimize query performance reducing load time by 40%
+
 ## Bug Fixes
+
 - **memory:** fix background process memory leak (#123)
 - **upload:** resolve file upload progress indicator issues
 ```
@@ -276,7 +305,7 @@ No flags: Generate "Unreleased" entry with all changes since last update
 # Generate unreleased changes entry
 /changelog
 
-# Create entry for specific version  
+# Create entry for specific version
 /changelog 1.2.0
 
 # Auto-generate next version based on changes

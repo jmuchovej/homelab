@@ -16,15 +16,15 @@ Review the staged changes for quality, security, and maintainability issues.
 
 2. **Security Review** (Critical):
 
-   | Issue | What to Look For |
-   |-------|------------------|
-   | Secrets | API keys, passwords, tokens in code |
-   | Injection | Unsanitized user input in SQL/commands |
-   | XSS | Unescaped output in HTML/templates |
-   | Auth | Broken access control, missing checks |
-   | Crypto | Weak algorithms, hardcoded keys |
-   | Path traversal | User input in file paths |
-   | Deserialization | Unsafe parsing of untrusted data |
+   | Issue           | What to Look For                       |
+   | --------------- | -------------------------------------- |
+   | Secrets         | API keys, passwords, tokens in code    |
+   | Injection       | Unsanitized user input in SQL/commands |
+   | XSS             | Unescaped output in HTML/templates     |
+   | Auth            | Broken access control, missing checks  |
+   | Crypto          | Weak algorithms, hardcoded keys        |
+   | Path traversal  | User input in file paths               |
+   | Deserialization | Unsafe parsing of untrusted data       |
 
    ```bash
    # Check for potential secrets
@@ -33,25 +33,25 @@ Review the staged changes for quality, security, and maintainability issues.
 
 3. **Code Quality Review**:
 
-   | Aspect | Check For |
-   |--------|-----------|
-   | Complexity | Deep nesting, long functions (>50 lines) |
-   | Duplication | Copy-pasted code, repeated patterns |
-   | Naming | Clear, descriptive variable/function names |
-   | Single responsibility | Functions doing one thing |
-   | Error handling | Missing try/catch, unhandled promises |
-   | Edge cases | Null checks, bounds checking |
-   | Magic numbers | Unexplained literal values |
+   | Aspect                | Check For                                  |
+   | --------------------- | ------------------------------------------ |
+   | Complexity            | Deep nesting, long functions (>50 lines)   |
+   | Duplication           | Copy-pasted code, repeated patterns        |
+   | Naming                | Clear, descriptive variable/function names |
+   | Single responsibility | Functions doing one thing                  |
+   | Error handling        | Missing try/catch, unhandled promises      |
+   | Edge cases            | Null checks, bounds checking               |
+   | Magic numbers         | Unexplained literal values                 |
 
 4. **Performance Review**:
 
-   | Issue | What to Look For |
-   |-------|------------------|
-   | N+1 queries | Loops with database calls |
-   | Memory leaks | Unclosed resources, growing collections |
-   | Inefficient algorithms | O(n^2) when O(n) possible |
-   | Unnecessary work | Redundant calculations, over-fetching |
-   | Missing caching | Repeated expensive operations |
+   | Issue                  | What to Look For                        |
+   | ---------------------- | --------------------------------------- |
+   | N+1 queries            | Loops with database calls               |
+   | Memory leaks           | Unclosed resources, growing collections |
+   | Inefficient algorithms | O(n^2) when O(n) possible               |
+   | Unnecessary work       | Redundant calculations, over-fetching   |
+   | Missing caching        | Repeated expensive operations           |
 
 5. **API/Interface Changes**:
    - Breaking changes to public APIs
@@ -71,35 +71,41 @@ Structure your review as:
 
 ```markdown
 ## Summary
+
 Brief overview of what the changes do and overall assessment.
 
 ## Security Issues
+
 Critical / Warning / None found
 
 ## Code Quality
+
 - **Issue**: [description]
   **Location**: `file:line`
   **Suggestion**: [how to fix]
 
 ## Performance Concerns
+
 [Any performance issues found]
 
 ## Suggestions
+
 - [Improvement opportunities]
 - [Refactoring ideas]
 
 ## Questions
+
 - [Clarifications needed]
 ```
 
 **Severity Levels:**
 
-| Level | Meaning | Action |
-|-------|---------|--------|
-| Critical | Security flaw, data loss risk | Must fix before merge |
-| Major | Significant bug, poor design | Should fix |
-| Minor | Style, minor improvement | Consider fixing |
-| Suggestion | Enhancement opportunity | Optional |
+| Level      | Meaning                       | Action                |
+| ---------- | ----------------------------- | --------------------- |
+| Critical   | Security flaw, data loss risk | Must fix before merge |
+| Major      | Significant bug, poor design  | Should fix            |
+| Minor      | Style, minor improvement      | Consider fixing       |
+| Suggestion | Enhancement opportunity       | Optional              |
 
 **Review Checklist:**
 

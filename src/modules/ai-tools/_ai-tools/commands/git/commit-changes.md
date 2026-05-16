@@ -18,6 +18,7 @@ Create **minimal, atomic commits** where each represents a single logical change
 - Someone reading `git log --oneline` should understand WHAT changed and WHY
 
 **THE BUILDABILITY RULE:**
+
 - Every commit MUST compile/build successfully
 - Every commit MUST pass basic validation (e.g., `nix flake check`)
 - If change A depends on change B, they go in the SAME commit or B comes FIRST
@@ -25,12 +26,14 @@ Create **minimal, atomic commits** where each represents a single logical change
 - Think: "Can someone check out THIS commit and have a working system?"
 
 **Why this matters:**
+
 - `git bisect` requires every commit to be testable
 - Cherry-picking any commit should work
 - Reverting any commit should leave a working state
 - Code review at any commit should be possible
 
 **ANTI-PATTERNS TO AVOID:**
+
 - Committing a function call before committing the function definition
 - Committing an import before the imported module exists
 - Committing an option usage before the option is defined
@@ -50,6 +53,7 @@ Create **minimal, atomic commits** where each represents a single logical change
 ## **PHASE 1: GRANULAR CHANGE ANALYSIS**
 
 ### **Step 1.1: Hunk-Level Examination**
+
 ```bash
 # See all changes with context
 git diff
@@ -61,12 +65,14 @@ git diff -U5 <file>  # More context lines for understanding
 ```
 
 **For each hunk, ask:**
+
 - What single thing does this hunk accomplish?
 - Is this hunk independent of other hunks in the same file?
 - Could this hunk be committed alone and leave the codebase working?
 - Does this hunk belong with hunks in OTHER files?
 
 ### **Step 1.2: Change Decomposition**
+
 ```
 FOR each modified file:
     FOR each hunk in file:
@@ -81,6 +87,7 @@ FOR each modified file:
 ```
 
 **Example decomposition:**
+
 ```
 File: modules/home/programs/git/default.nix
 
@@ -97,6 +104,7 @@ These are THREE commits, not one "update git module" commit!
 ```
 
 ### **Step 1.3: Convention Detection**
+
 ```bash
 # Analyze recent commit patterns
 git log --oneline -20
@@ -108,6 +116,7 @@ git log --pretty=format:"%s" -50
 ## **PHASE 2: SELECTIVE STAGING WITH GIT ADD -P**
 
 ### **Step 2.1: Interactive Patch Mode**
+
 ```bash
 # Stage hunks interactively
 git add -p <file>
@@ -117,6 +126,7 @@ git add -p
 ```
 
 **Patch mode commands:**
+
 ```
 y - stage this hunk
 n - do not stage this hunk
@@ -127,6 +137,7 @@ e - manually edit the hunk (for line-level control)
 ```
 
 ### **Step 2.2: Line-Level Staging**
+
 When a hunk contains multiple unrelated changes, use **split (s)** or **edit (e)**:
 
 ```bash
@@ -138,6 +149,7 @@ When a hunk contains multiple unrelated changes, use **split (s)** or **edit (e)
 ```
 
 ### **Step 2.3: Staging Strategy Per Commit**
+
 ```
 FOR each logical change identified:
     1. Reset staging area if needed:
@@ -162,6 +174,7 @@ FOR each logical change identified:
 ## **PHASE 3: ATOMIC COMMIT EXECUTION**
 
 ### **Step 3.1: Pre-Commit Verification**
+
 ```bash
 # ALWAYS verify before committing
 git diff --cached
@@ -173,6 +186,7 @@ git diff --cached
 ```
 
 ### **Step 3.2: Commit with Precise Message**
+
 ```bash
 git commit -m "type(scope): precise description of single change"
 ```
@@ -180,6 +194,7 @@ git commit -m "type(scope): precise description of single change"
 **Message must describe exactly what's staged - nothing more, nothing less**
 
 ### **Step 3.3: Repeat for Remaining Changes**
+
 ```
 WHILE unstaged changes remain:
     1. Identify next logical change
@@ -192,6 +207,7 @@ WHILE unstaged changes remain:
 ## **PHASE 4: COMMIT ORDERING**
 
 ### **Logical Commit Sequence**
+
 Order commits so the git history tells a coherent story:
 
 ```
@@ -205,6 +221,7 @@ PREFERRED ORDER:
 ```
 
 ### **Dependency Awareness**
+
 ```
 IF change B depends on change A:
     Option 1: Commit A first, then B (preferred if A is independently useful)
@@ -223,6 +240,7 @@ NEVER commit something that references uncommitted code
 ## **EXAMPLES OF PROPER DECOMPOSITION**
 
 ### **Bad: One monolithic commit**
+
 ```
 "feat(home/programs): add wezterm configuration"
 - modules/home/programs/wezterm/default.nix (new module)
@@ -232,6 +250,7 @@ NEVER commit something that references uncommitted code
 ```
 
 ### **Good: Multiple atomic commits**
+
 ```
 Commit 1: "feat(home/programs/wezterm): add base module with enable option"
 Commit 2: "feat(home/programs/wezterm): add theme configuration"
@@ -240,6 +259,7 @@ Commit 4: "fix(common/ai-tools): correct docs-writer agent description"
 ```
 
 ### **Example: Single file, multiple commits**
+
 ```
 File has these changes:
 - Line 10: Fixed typo in comment
@@ -281,6 +301,7 @@ IF commit message doesn't match staged changes:
 ## **FINAL CHECKLIST**
 
 Before each commit, verify:
+
 - [ ] **BUILDS**: Staged changes pass validation (`nix flake check` or equivalent)
 - [ ] **COMPLETE**: No references to unstaged/uncommitted code
 - [ ] **ATOMIC**: `git diff --cached` shows exactly ONE logical change

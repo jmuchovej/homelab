@@ -30,26 +30,33 @@ Analyze code and produce clear explanations suitable for documentation or onboar
 
 ```markdown
 ## Overview
+
 [1-2 sentence summary of purpose]
 
 ## Key Components
+
 - **[Component 1]**: [purpose and responsibility]
 - **[Component 2]**: [purpose and responsibility]
 
 ## How It Works
+
 [Step-by-step explanation of main logic flow]
 
 ## Design Decisions
+
 - **[Decision 1]**: [rationale and trade-offs]
 
 ## Usage Example
+
 [Brief code example showing typical usage]
 
 ## Related Code
+
 - `path/to/related.ts` - [relationship]
 ```
 
 **Command Arguments:**
+
 - `<file-path>`: File or directory to explain
 - `--depth=shallow`: Quick overview only (default)
 - `--depth=deep`: Include implementation details and edge cases

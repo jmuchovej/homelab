@@ -32,6 +32,7 @@ Guide through understanding and resolving git merge conflicts.
    - Verify no conflict markers remain
 
 **Command Arguments:**
+
 - `[file]`: Focus on specific conflicted file
 - `--strategy=ours`: Accept current branch version
 - `--strategy=theirs`: Accept incoming branch version
@@ -61,6 +62,7 @@ git log --oneline HEAD..MERGE_HEAD
 ```
 
 **Safety Rules:**
+
 - Always verify conflict markers are completely removed
 - Run `git diff --check` to verify no markers remain
 - Suggest running tests after resolution

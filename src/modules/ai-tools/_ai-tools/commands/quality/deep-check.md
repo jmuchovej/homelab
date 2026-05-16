@@ -39,6 +39,7 @@ Perform thorough analysis of the project to identify issues, dead code, optimiza
    - Highlight maintenance issues that need immediate attention
 
 **Command Arguments:**
+
 - [scope]: Focus your analysis on specific areas (src, tests, docs, all)
 - --with-builds: Actually build/compile the project to test for build-time issues
 - --security: Include security analysis and vulnerability recommendations
