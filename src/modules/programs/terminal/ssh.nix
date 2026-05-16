@@ -9,20 +9,20 @@ _: {
         enable = true;
         enableDefaultConfig = false;
         includes = [ "config.d/*" ];
-        matchBlocks = {
-          "*" = {
-            forwardAgent = isDarwin;
-            addKeysToAgent = "no";
-            compression = false;
-            serverAliveInterval = 0;
-            serverAliveCountMax = 3;
-            hashKnownHosts = false;
-            userKnownHostsFile = "~/.ssh/known_hosts";
-            controlMaster = "no";
-            controlPath = "~/.ssh/master-%r@%n:%p";
-            controlPersist = "no";
-            identitiesOnly = isDarwin;
-            identityAgent = if isDarwin then "~/.1password/agent.sock" else null;
+        settings = {
+          "Host *" = {
+            ForwardAgent = isDarwin;
+            AddKeysToAgent = "no";
+            Compression = false;
+            ServerAliveInterval = 0;
+            ServerAliveCountMax = 3;
+            HashKnownHosts = false;
+            UserKnownHostsFile = "~/.ssh/known_hosts";
+            ControlMaster = "no";
+            ControlPath = "~/.ssh/master-%r@%n:%p";
+            ControlPersist = "no";
+            IdentitiesOnly = isDarwin;
+            IdentityAgent = if isDarwin then "~/.1password/agent.sock" else null;
           };
         };
       };
