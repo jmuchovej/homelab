@@ -77,7 +77,7 @@
 
   # ── Aspect ─────────────────────────────────────────────────────────
   rbn.services._.nomad = {
-    includes = [ (den.provides.unfree [ "nomad" ]) ];
+    includes = [ (den.batteries.unfree [ "nomad" ]) ];
 
     nixos =
       {
