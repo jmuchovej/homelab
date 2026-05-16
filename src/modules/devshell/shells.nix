@@ -54,6 +54,9 @@
           opentofu
           deploy-rs
 
+          # Networking / WireGuard (wg-holonet key gen + diagnostics)
+          wireguard-tools
+
           # Python (homelab CLI + docs via `uv run`)
           python313
           uv
@@ -65,6 +68,7 @@
           # Misc
           tmux
           fd
+          gettext # envsubst — used by mikrotik bootstrap recipe
         ];
 
         env = {
