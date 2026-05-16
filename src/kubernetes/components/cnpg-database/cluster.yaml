@@ -1,0 +1,36 @@
+---
+# $schema: https://k8s-schemas.home-operations.com/postgresql.cnpg.io/cluster_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ${APP}-db
+  annotations:
+    # Flux may never delete a database: Cluster deletion deletes its PVCs
+    # (CNPG owns them), and a recreate would re-run bootstrap — including any
+    # cnpg-import, which on a live source SUCCEEDS with stale data (worse
+    # than failing). Removal must always be deliberate (kubectl delete).
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  instances: 1
+  storage:
+    size: ${DB_SIZE}
+  managed:
+    services:
+      additional:
+        # LAN-facing LB for tofu/admin access (BGP-routed Cilium pool IP).
+        # Reachability is gated by the NetworkPolicy (${ADMIN_CIDR} only).
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: ${APP}-db-lb
+              annotations:
+                lbipam.cilium.io/ips: ${DB_LB_IP}
+            spec:
+              type: LoadBalancer
+              externalTrafficPolicy: Local
+  bootstrap:
+    initdb:
+      database: ${APP}
+      owner: ${APP}
+      secret:
+        name: ${APP}-db-creds
