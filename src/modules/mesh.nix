@@ -21,6 +21,12 @@ _: {
         healthchecks ? [ ],
         subdomain ? null,
         domain ? null,
+        # When `true`, the service is scoped to a single node — the default
+        # domain becomes `${hostname}.jm0.io` instead of `${datacenter}.jm0.io`.
+        # Use for per-node services (syncthing, node-local admin UIs) that
+        # MUST NOT share a hostname with the same service on another node.
+        # Has no effect if `domain` is set explicitly.
+        node-scoped ? false,
         public ? true,
         authed ? false,
         authentik ? null,
@@ -55,6 +61,17 @@ _: {
               inherit (host) hostname datacenter;
               mk-svc = if authed then mk-authd-traefik-service else mk-traefik-service;
 
+              # Explicit `domain` always wins. Otherwise: per-node services
+              # derive from hostname; everything else falls through to
+              # `mk-traefik-service`'s default of `${datacenter}.jm0.io`.
+              effective-domain =
+                if domain != null then
+                  domain
+                else if node-scoped then
+                  "${hostname}.jm0.io"
+                else
+                  null;
+
               base-args = {
                 inherit
                   hostname
@@ -70,7 +87,7 @@ _: {
               service = mk-svc (
                 base-args
                 // lib.optionalAttrs (!authed) { inherit priority; }
-                // lib.optionalAttrs (domain != null) { inherit domain; }
+                // lib.optionalAttrs (effective-domain != null) { domain = effective-domain; }
                 // lib.optionalAttrs (!authed && route != null) { inherit route; }
               );
 
