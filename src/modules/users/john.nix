@@ -166,10 +166,11 @@
     ];
 
     homeManager = {
-      programs.ssh.matchBlocks.git = {
-        host = "git*";
-        identitiesOnly = true;
-        identityFile = "~/.ssh/1p-%h.pub";
+      programs.ssh.settings = {
+        "Host git*" = {
+          IdentitiesOnly = true;
+          IdentityFile = "~/.ssh/1p-%h.pub";
+        };
       };
 
     };
