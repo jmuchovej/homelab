@@ -16,6 +16,9 @@
       # Core
       <rbn/programs/vcs/lazygit>
 
+      <rbn/programs/ai-tools/claude/code>
+      <rbn/programs/ai-tools/mcp>
+
       # Editors
       <rbn/programs/editors/helix>
       <rbn/programs/editors/micro>
