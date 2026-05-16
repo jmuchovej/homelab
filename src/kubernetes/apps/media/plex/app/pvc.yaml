@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: zfs
   resources:
     requests:
       storage: 50Gi
