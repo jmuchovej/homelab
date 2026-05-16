@@ -1,5 +1,4 @@
 secrets := justfile_directory() / "secrets"
-certificates := secrets / "certificates"
 
 [private]
 default:
@@ -56,7 +55,7 @@ render dc relay:
     set -euo pipefail
 
     topology="./topology.yaml"
-    sops_file="{{ secrets }}/{{ dc }}.sops.yaml"
+    sops_file="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
 
     [[ -f "$topology" ]] || { echo "ERROR: $topology not found" >&2; exit 1; }
     [[ -f "$sops_file" ]] || { echo "ERROR: $sops_file not found" >&2; exit 1; }
@@ -79,8 +78,8 @@ render dc relay:
     export MGMT_IP="10.42.0.$counter"
     export VLAN_ID="42"
     export TRUNK_PORTS=$(yq -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "$topology")
-    export ROOT_PW=$(just sops "${sops_file}" '.network."{{ relay }}".root-password')
-    export TOFU_PW=$(just sops "${sops_file}" '.network."{{ relay }}".tofu-password')
+    export ROOT_PW=$(just sops "${sops_file}" '.root-password')
+    export TOFU_PW=$(just sops "${sops_file}" '.tofu-password')
 
     rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
     envsubst '${IDENTITY} ${MGMT_IP} ${ROLE} ${ROOT_PW} ${TOFU_PW} ${VLAN_ID} ${TRUNK_PORTS}' < rbn-bootstrap.rsc > "$rendered"
