@@ -1,31 +1,19 @@
 # Invalidation (logout) flow
-
-import {
-  to = authentik_flow.invalidation
-  id = "default-invalidation-flow"
-}
+# PILOT: adopt authentik's built-in `default-invalidation-flow` (imported at root
+# in ak.tofu via local.authentik-builtins) rather than creating a parallel copy.
+# Resource config mirrors authentik's default so the import is a clean no-op.
 
 resource "authentik_flow" "invalidation" {
   name               = "Logout"
   slug               = "default-invalidation-flow"
-  title              = "Logging out..."
+  title              = "Default Invalidation Flow"
   designation        = "invalidation"
   authentication     = "none"
   policy_engine_mode = "any"
 }
 
-import {
-  to = authentik_stage_user_logout.invalidation
-  id = "efe1133d-f80f-46fe-b40a-1f36050ddfc2"
-}
-
 resource "authentik_stage_user_logout" "invalidation" {
-  name = "invalidation-logout"
-}
-
-import {
-  to = authentik_flow_stage_binding.invalidation-logout
-  id = "eaf1f11b-d0b8-4047-bf24-66e27917f005"
+  name = "default-invalidation-logout"
 }
 
 resource "authentik_flow_stage_binding" "invalidation-logout" {

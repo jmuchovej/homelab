@@ -1,16 +1,6 @@
-import {
-  to = authentik_user.admin
-  id = 6 // pk
-}
-
-resource "authentik_user" "admin" {
-  username  = data.sops_file.users.data["admin.username"]
-  type      = "internal"
-  path      = "users"
-  name      = data.sops_file.users.data["admin.name"]
-  email     = data.sops_file.users.data["admin.email"]
-  is_active = true
-}
+# NOTE: the `admin` user is intentionally NOT managed by tofu. Break-glass is
+# authentik's bootstrap `akadmin` (reached via the default-brand trapdoor URL).
+# The sops `u` users below exclude `admin.*` keys, so no admin user is created.
 
 data "authentik_users" "all" {}
 
@@ -35,4 +25,9 @@ resource "authentik_user" "u" {
     },
     lookup(local.user-data[each.value], "attributes", {})
   ))
+
+  # Users are archived (is-active = false in sops), never destroyed.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
