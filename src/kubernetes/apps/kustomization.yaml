@@ -1,0 +1,7 @@
+---
+# Aggregates the per-namespace trees. Explicit (no reliance on Flux
+# auto-generating a kustomization from a recursive directory scan).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./network

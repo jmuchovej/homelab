@@ -19,11 +19,16 @@ spec:
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-
-    # Replace flannel + kube-proxy. Cilium reaches the k3s apiserver via the
-    # supervisor loopback LB on 127.0.0.1:7445 (NOT 6443).
+    # Replace flannel + kube-proxy. With kube-proxy gone, the in-cluster
+    # `kubernetes` Service isn't routable until Cilium is up, so Cilium reaches
+    # the apiserver directly via the k3s supervisor on loopback:6443. This is
+    # node-agnostic: every k3s server runs the supervisor on 127.0.0.1:6443,
+    # and both the agent AND the operator run hostNetwork (chart default), so
+    # loopback resolves to the host on each node. (NOT 7445 — that's Talos
+    # KubePrism, which k3s doesn't run; that wrong port was the crashloop.)
     kubeProxyReplacement: true
     k8sServiceHost: 127.0.0.1
-    k8sServicePort: 7445
+    k8sServicePort: 6443
 
     ipam:
       mode: kubernetes
