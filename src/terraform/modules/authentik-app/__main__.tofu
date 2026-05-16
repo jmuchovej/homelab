@@ -57,6 +57,17 @@ resource "authentik_provider_oauth2" "provider" {
   sub_mode                   = var.sub_mode
   signing_key                = var.signing_key
   property_mappings          = var.property_mappings
+
+  # Exact-match redirect URIs declared by the service via mesh registration
+  # (`<rbn/mesh/register>` → `authentik.redirect-uris` → consul tag → here).
+  # Empty list means no URIs are allowed — which is more restrictive than the
+  # authentik default but matches the security stance of explicit allowlisting.
+  allowed_redirect_uris = [
+    for u in var.redirect_uris : {
+      matching_mode = "strict"
+      url           = u
+    }
+  ]
 }
 
 locals {

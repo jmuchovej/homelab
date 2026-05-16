@@ -42,6 +42,13 @@ locals {
         int = lookup(tags, "url.int", "")
         ext = lookup(tags, "url.ext", "")
       }
+      # Pre-expanded by `mk-authentik` (one entry per (template × subdomain)
+      # pair, joined by `;` to avoid clashing with the `,` delimiter used for
+      # `access`).
+      redirect_uris = [
+        for u in split(";", lookup(tags, "redirect-uris", "")) :
+        u if u != ""
+      ]
     }
   }
 }
@@ -60,6 +67,7 @@ module "authentik-app" {
   skip_path_regex = each.value.skip_paths
   access_group    = [for access in each.value.access : local.groups[access].id]
   basic_auth      = each.value.basic_auth
+  redirect_uris   = each.value.redirect_uris
   signing_key     = authentik_certificate_key_pair.wildcard.id
 
   flows = {
