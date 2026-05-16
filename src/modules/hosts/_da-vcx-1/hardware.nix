@@ -4,7 +4,7 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  networking.hostId = "1f49a11f";
+  networking.hostId = "fe4ccbf4";
   networking.hostName = "da-vcx-1";
 
   boot = {
