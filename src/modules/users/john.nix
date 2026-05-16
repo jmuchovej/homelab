@@ -1,4 +1,9 @@
-{ __findFile, lib, ... }:
+{
+  __findFile,
+  lib,
+  den,
+  ...
+}:
 {
   # ── Dock placement for john's programs ──────────────────────────────
   # Each sets dock.{group,order} on the aspect. The dock builder walks rbn.*
@@ -59,45 +64,25 @@
   den.aspects.john = {
     includes = [
       <den/primary-user>
+      (den.batteries.user-shell "zsh")
 
-      # Terminal programs
-      <rbn/programs/terminal/eza>
-      <rbn/programs/terminal/carapace>
-      <rbn/programs/terminal/ripgrep>
-      <rbn/programs/terminal/starship>
-      <rbn/programs/terminal/zoxide>
+      <rbn/suite/common>
+
       <rbn/programs/vcs/gh>
-      <rbn/programs/terminal/fzf>
-      <rbn/programs/terminal/readline>
-      <rbn/programs/terminal/tmux>
-      <rbn/programs/terminal/bottom>
       <rbn/programs/terminal/bacon>
-      <rbn/programs/terminal/rclone>
       <rbn/programs/terminal/topgrade>
-      <rbn/programs/terminal/bat>
       <rbn/programs/terminal/k9s>
       <rbn/programs/vcs/lazygit>
-      <rbn/programs/vcs/jujutsu>
       <rbn/programs/terminal/zellij>
-      <rbn/programs/ai-tools/gemini>
-      <rbn/programs/baseline>
       <rbn/programs/toolchains/development>
+      <rbn/programs/ai-tools/gemini>
       <rbn/programs/ai-tools/claude/code>
       <rbn/programs/ai-tools/mcp>
-      <rbn/programs/security/onepassword>
 
       # Shells
-      <rbn/shells/zsh>
-      <rbn/shells/bash>
       <rbn/shells/nushell>
 
-      # Core
-      <rbn/programs/vcs/git>
-      <rbn/programs/terminal/ssh>
-      <rbn/programs/security/sops>
-
       # Editors
-      <rbn/programs/editors/neovim>
       <rbn/programs/editors/helix>
       <rbn/programs/editors/micro>
 
