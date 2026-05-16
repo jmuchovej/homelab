@@ -29,7 +29,6 @@ _: {
           };
 
           git = {
-            fetch.prune = true;
             sign-on-push = true;
             private-commits = "description('wip:*') | description('private:*')";
           };
