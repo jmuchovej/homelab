@@ -8,7 +8,7 @@ terraform {
     # https://registry.terraform.io/providers/goauthentik/authentik/latest
     authentik = {
       source  = "goauthentik/authentik"
-      version = ">= 2025.12.0"
+      version = ">= 2025.12"
     }
     # https://registry.terraform.io/providers/hashicorp/consul/latest
     consul = {
@@ -66,9 +66,4 @@ provider "cloudflare" {
 
 provider "consul" {
   address = "https://consul.${local.domain.dc}"
-}
-
-provider "authentik" {
-  url   = "https://id.${local.domain.dc}"
-  token = data.sops_file.secrets.data["authentik.token"]
 }
