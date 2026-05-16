@@ -35,8 +35,7 @@
           {
             home.packages = [ pkgs._1password-cli ];
 
-            # Use 1Password as the SSH agent everywhere.
-            home.sessionVariables.SSH_AUTH_SOCK = lib.mkIf isDarwin "$HOME/.1password/agent.sock";
+            home.sessionVariables.SSH_AUTH_SOCK = "$HOME/.1password/agent.sock";
 
             # macOS puts the agent socket under Group Containers; symlink it
             # to ~/.1password/agent.sock so the same SSH_AUTH_SOCK works on
