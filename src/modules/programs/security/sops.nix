@@ -17,7 +17,7 @@ in
         ];
 
         sops = {
-          defaultSopsFile = sops-file "systems" hostname;
+          defaultSopsFile = sops-file "hosts" hostname;
 
           age = {
             sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -44,7 +44,7 @@ in
         ];
 
         sops = {
-          defaultSopsFile = sops-file "homes" config.home.username;
+          defaultSopsFile = sops-file "users" config.home.username;
           defaultSopsFormat = "yaml";
 
           age = {
@@ -55,7 +55,9 @@ in
             ];
           };
 
-          secrets."nix".path = "${home}/.config/nix/nix.conf";
+          # Tokens-only payload (e.g. `access-tokens = github.com=...`).
+          # HM owns ~/.config/nix/nix.conf and pulls this in via `!include`.
+          secrets."nix-access-tokens" = { };
         };
       };
   };

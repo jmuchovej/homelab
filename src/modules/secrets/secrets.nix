@@ -5,6 +5,11 @@
   };
 
   den.default = {
+    # NOTE: `age.keyFile` is intentionally unset across all three classes.
+    # sops-nix derives the age identity from each host's SSH ed25519 key via
+    # `sshKeyPaths` (system: `/etc/ssh/ssh_host_ed25519_key`; user: their own
+    # `~/.ssh/id_ed25519`). Pinning a `keyFile` to a path that may not exist
+    # makes sops-install-secrets bail before the SSH-derived key gets a chance.
     nixos =
       { host, lib, ... }:
       {
@@ -12,7 +17,6 @@
         sops = {
           defaultSopsFile = lib.mkDefault ./hosts/${host.name}.sops.yaml;
           defaultSopsFormat = "yaml";
-          age.keyFile = "/var/lib/secrets/sops/age/keys.txt";
         };
       };
 
@@ -23,7 +27,6 @@
         sops = {
           defaultSopsFile = lib.mkDefault ./hosts/${host.name}.sops.yaml;
           defaultSopsFormat = "yaml";
-          age.keyFile = "/var/lib/secrets/sops/age/keys.txt";
         };
       };
 
@@ -34,7 +37,6 @@
         sops = {
           defaultSopsFile = lib.mkDefault ./users/${host.user.name}.sops.yaml;
           defaultSopsFormat = "yaml";
-          age.keyFile = "/var/lib/secrets/sops/age/keys.txt";
         };
       };
   };

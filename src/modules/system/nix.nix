@@ -18,19 +18,27 @@
     programs.nix-index-database.comma.enable = true;
   };
 
-  den.default.homeManager = {
-    imports = [ inputs.nix-index-database.homeModules.nix-index ];
-    programs.nix-index-database.comma.enable = true;
-    home.preferXdgDirectories = lib.mkDefault true;
-    nix = {
-      enable = lib.mkDefault true;
+  den.default.homeManager =
+    { config, lib, ... }:
+    {
+      imports = [ inputs.nix-index-database.homeModules.nix-index ];
+      programs.nix-index-database.comma.enable = true;
+      home.preferXdgDirectories = lib.mkDefault true;
+      nix = {
+        enable = lib.mkDefault true;
 
-      settings = {
-        use-xdg-base-directories = true;
-        warn-dirty = false;
+        settings = {
+          use-xdg-base-directories = true;
+          warn-dirty = false;
+        };
+
+        # Pull in sops-rendered tokens (e.g. github.com access-tokens).
+        # HM owns the rest of nix.conf; this only appends an `!include`.
+        extraOptions = ''
+          !include ${config.sops.secrets."nix-access-tokens".path}
+        '';
       };
     };
-  };
 
   # ── Nix aspect ────────────────────────────────────────────────────
   rbn.system._.nix = {

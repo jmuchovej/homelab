@@ -9,6 +9,13 @@ _research/
 *.agekey
 *.pub
 *.key
+# SSH private keys (defensive — any file ending in `.prv` stays out of git).
+*.prv
+
+# Public material under secrets/ must be tracked — it's how peers learn each
+# other's identities and how sops chooses recipients.
+!secrets/**/*.pub
+!secrets/**/*.pub.age
 
 # Private
 .private
