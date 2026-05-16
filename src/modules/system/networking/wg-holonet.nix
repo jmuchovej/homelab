@@ -19,7 +19,6 @@
     let
       # YAML → JSON conversion via IFD. Yj is small; runs once per build and
       # caches in the store. Avoids forcing the catalog into JSON form.
-      read-topology = _pkgs: lib.rbn.fs.from-yaml ../../../topology.yaml;
       read-topology = lib: pkgs: lib.rbn.from-yaml ./topology.yaml { inherit pkgs; };
 
       # Build the wg-quick interface config — identical shape between NixOS
