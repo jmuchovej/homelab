@@ -1,0 +1,24 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authentik
+spec:
+  dependsOn:
+    - name: authentik-db
+    # the gateway (envoy-external) must exist for the HTTPRoute to attach.
+    - name: envoy-config
+      namespace: network
+  interval: 1h
+  path: ./src/kubernetes/apps/auth/authentik/app
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-settings
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+  wait: true
