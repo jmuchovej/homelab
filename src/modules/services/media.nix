@@ -28,7 +28,7 @@
     };
 
     includes = [
-      (den.provides.unfree [ "plexmediaserver" ])
+      (den.batteries.unfree [ "plexmediaserver" ])
       (<rbn/mesh/register> {
         name = "plex";
         port = 32400;

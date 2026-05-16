@@ -12,7 +12,13 @@
       let
         inherit (host) datacenter;
         sops-file = kind: "${inputs.self}/secrets/${kind}.sops.yaml";
-        split-pro = pkgs.callPackage ./_package.nix { };
+        # Upstream split-pro uses `pnpm.overrides` in package.json. pnpm 11
+        # dropped reading that field, so frozen-lockfile install fails with
+        # ERR_PNPM_LOCKFILE_CONFIG_MISMATCH. Pin to pnpm_10 which still
+        # honors the package.json `pnpm` config block.
+        split-pro = pkgs.callPackage ./_package.nix {
+          pnpm = pkgs.pnpm_10;
+        };
         get-sp-exe' = name: lib.getExe' split-pro "sp-${name}";
 
         port = 7548;
