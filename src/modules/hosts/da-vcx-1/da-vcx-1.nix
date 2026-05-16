@@ -132,6 +132,7 @@
       <rbn/system/networking/manager/networkmanager>
 
       # Services
+      <rbn/services/kubernetes>
       <rbn/services/consul>
       <rbn/services/consul-esm>
       <rbn/services/keepalived>
