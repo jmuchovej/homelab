@@ -25,6 +25,11 @@ terraform {
       source  = "hashicorp/vault"
       version = "~> 5.0"
     }
+    # https://registry.terraform.io/providers/terraform-routeros/routeros/latest
+    routeros = {
+      source  = "terraform-routeros/routeros"
+      version = ">= 1.86.0"
+    }
   }
 }
 
