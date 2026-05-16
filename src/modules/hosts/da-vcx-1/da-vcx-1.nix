@@ -99,6 +99,11 @@
     authentik.enable = true;
     tailscale.enable = true;
     containers.enable = true;
+
+    persistence = {
+      extra-directories = [ ];
+      extra-files = [ ];
+    };
   };
 
   den.aspects.da-vcx-1 = {
