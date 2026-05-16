@@ -66,6 +66,7 @@ Extract clean interfaces and type definitions from implementation code.
   ```
 
 - **Python Protocol**:
+
   ```python
   from typing import Protocol
 
