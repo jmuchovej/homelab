@@ -79,8 +79,8 @@ render dc relay:
     export MGMT_IP="10.42.0.$counter"
     export VLAN_ID="42"
     export TRUNK_PORTS=$(yq -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "$topology")
-    export ROOT_PW=$(just sops "${sops_file}" '.network."{{ relay }}".admin-password')
-    export TOFU_PW=$(just sops "${sops_file}" '.network."{{ relay }}".terraform-password')
+    export ROOT_PW=$(just sops "${sops_file}" '.network."{{ relay }}".root-password')
+    export TOFU_PW=$(just sops "${sops_file}" '.network."{{ relay }}".tofu-password')
 
     rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
     envsubst '${IDENTITY} ${MGMT_IP} ${ROLE} ${ROOT_PW} ${TOFU_PW} ${VLAN_ID} ${TRUNK_PORTS}' < rbn-bootstrap.rsc > "$rendered"
@@ -99,11 +99,14 @@ uploads dc relay ip="192.168.88.1":
     rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
     [[ -f "$rendered" ]] || rendered=$(just render {{ dc }} {{ relay }})
 
+    sops -d "{{ secrets }}/topology.sops.yaml" | yq '."holonet.crt"' > /tmp/wildcard.crt
+    sops -d "{{ secrets }}/topology.sops.yaml" | yq '."holonet.key"' > /tmp/wildcard.key
     echo "==> Uploading bootstrap files to {{ ip }}..."
     just scp "{{ ip }}" "${rendered}" "/rbn-bootstrap.rsc"
-    just scp "{{ ip }}" "{{ certificates }}/wildcard.crt" "/wildcard.crt"
-    just scp "{{ ip }}" "{{ certificates }}/wildcard.key" "/wildcard.key"
+    just scp "{{ ip }}" "/tmp/wildcard.crt" "/wildcard.crt"
+    just scp "{{ ip }}" "/tmp/wildcard.key" "/wildcard.key"
     just scp "{{ ip }}" "id_ed25519.pub" "/admin.pub"
+    rm "/tmp/wildcard.crt" "/tmp/wildcard.key"
 
     host_sops="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
     host_key=$(just sops "${host_sops}" ".host-key")
