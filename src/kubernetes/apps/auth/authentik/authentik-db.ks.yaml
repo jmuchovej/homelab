@@ -1,0 +1,40 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authentik-db
+spec:
+  dependsOn:
+    # Cluster CRD comes from the operator chart.
+    - name: cloudnative-pg
+      namespace: databases
+    # the creds ExternalSecret needs the 1Password store.
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./src/kubernetes/components/cnpg-database
+  components:
+    # one-off NixOS import — inert after first bootstrap; remove alongside
+    # future backup wiring, not before (see components/cnpg-import/AGENTS.md)
+    - ../cnpg-import
+  postBuild:
+    substitute:
+      # literal, NOT *name — the anchor is "authentik-db" (this ks), while
+      # APP names the app/database/role; *name here would render
+      # cluster "authentik-db-db" and import a nonexistent DB.
+      APP: authentik
+      DB_SIZE: 10Gi
+      HOST: 10.69.11.1
+      # convention: DB LBs live at 10.69.1.5x
+      DB_LB_IP: 10.69.1.51
+    substituteFrom:
+      # ADMIN_CIDR (NetworkPolicy) + future shared vars
+      - kind: Secret
+        name: cluster-settings
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: auth
+  wait: true

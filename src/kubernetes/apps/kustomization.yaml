@@ -7,6 +7,7 @@ resources:
   # `_`-prefix = excluded from cluster-settings seeding (see kubernetes.nix);
   # the k8s namespace is still plain `external-secrets`.
   - ./_external-secrets
+  - ./auth
   - ./cert-manager
   - ./databases
   - ./kube-system
