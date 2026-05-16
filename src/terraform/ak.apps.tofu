@@ -91,3 +91,43 @@ module "authentik-app" {
     [authentik_property_mapping_provider_scope.groups.id],
   )
 }
+
+module "authentik-app-tailscale" {
+  source = "./modules/authentik-app"
+
+  name  = "Tailscale"
+  group = "Compute"
+  type  = "oauth"
+  icon  = "di:tailscale"
+  access_group = [
+    local.groups["admin"].id,
+    local.groups["family"].id,
+    local.groups["compute"].id,
+    local.groups["minecraft"].id,
+  ]
+  redirect_uris = [
+    "https://login.tailscale.com/a/oauth_response",
+  ]
+  signing_key = authentik_certificate_key_pair.wildcard.id
+
+  flows = {
+    ldap = {
+      bind   = authentik_flow.ldap.uuid
+      unbind = authentik_flow.invalidation.uuid
+    }
+    proxy = {
+      authorization = authentik_flow.authz-explicit.uuid
+      invalidation  = authentik_flow.invalidation.uuid
+    }
+    oauth = {
+      authentication = authentik_flow.authn.uuid
+      authorization  = authentik_flow.authz-explicit.uuid
+      invalidation   = authentik_flow.invalidation.uuid
+    }
+  }
+
+  property_mappings = concat(
+    data.authentik_property_mapping_provider_scope.oidc.ids,
+    [authentik_property_mapping_provider_scope.groups.id],
+  )
+}
