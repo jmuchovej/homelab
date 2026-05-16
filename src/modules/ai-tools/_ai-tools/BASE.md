@@ -135,5 +135,6 @@ These tools are available in every devenv shell and on all hosts:
 7. **Stale context** — re-read files before editing. Don't rely on memory of
    file contents from earlier in the conversation.
 8. **Ignoring constraints** — re-read CLAUDE.md, AGENTS.md, and project rules
-before proposing changes that might violate them.
+   before proposing changes that might violate them.
+
 </failure-modes>

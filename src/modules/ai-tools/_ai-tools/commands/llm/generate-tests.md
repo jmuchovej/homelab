@@ -74,6 +74,7 @@ Analyze code and generate comprehensive, idiomatic test cases.
   ```
 
 - **Cargo (Rust)**:
+
   ```rust
   #[test]
   fn test_function_does_x_when_y() {

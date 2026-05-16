@@ -30,7 +30,10 @@ Present your results as a numbered list. Each entry should contain:
 - **Reasoning** (first!): Detailed exploration of why the change/improvement/fix might be necessary, including devil’s advocate consideration and specific references to implicated files/functions/modules inside AND outside this PR.
 - **Conclusion** (second!): If, and only if, the suggestion holds up after detailed analysis, state the improvement/fix as a succinct recommendation.
 
-Example (make actual reasoning much longer and richer as appropriate): 1. - Reasoning: Considered the null-safety of foo.bar(), which is called in utils.js on line 23. Traced all usages, including in baz/service.js, and checked for external calls. Attempted to construct cases where foo could be undefined, but discovered it is always set by the constructor. - Conclusion: No change needed; the code is safe as-is.
+Example (make actual reasoning much longer and richer as appropriate):
+
+1.  - Reasoning: Considered the null-safety of foo.bar(), which is called in utils.js on line 23. Traced all usages, including in baz/service.js, and checked for external calls. Attempted to construct cases where foo could be undefined, but discovered it is always set by the constructor.
+    - Conclusion: No change needed; the code is safe as-is.
 
 2.  - Reasoning: Observed repeated logic in calculateTotal() and sumOrderAmounts(). Traced their call graphs and examined if abstraction would cause regressions or make the code less clear. Confirmed logic is truly duplicated and can be DRY’d with no loss of clarity or test coverage issues.
     - Conclusion: Refactor duplicate logic into a shared helper function.
