@@ -2,7 +2,7 @@
 {
   rbn.services._.n8n = {
     includes = [
-      (den.provides.unfree [ "n8n" ])
+      (den.batteries.unfree [ "n8n" ])
       (<rbn/mesh/register> {
         name = "n8n";
         port = 5678; # N8N default port

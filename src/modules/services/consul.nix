@@ -98,7 +98,7 @@
     };
 
   rbn.services._.consul = {
-    includes = [ (den.provides.unfree [ "consul" ]) ];
+    includes = [ (den.batteries.unfree [ "consul" ]) ];
     nixos =
       {
         host,

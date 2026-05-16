@@ -1,8 +1,8 @@
-{ den, ... }:
+{ rbn, den, ... }:
 {
   rbn.system._.hardware._.gpu._.nvidia = {
     includes = [
-      (den.provides.unfree [
+      (den.batteries.unfree [
         "nvidia-x11"
         "nvidia-settings"
         "nvidia-kernel-modules"
@@ -39,7 +39,7 @@
           };
 
           shellAliases = {
-            nvidia-settings = "nvidia-settings --config='$XDG_CONFIG_HOME'/nvidia/settings";
+            nvidia-settings = "nvidia-settings --config=$XDG_CONFIG_HOME/nvidia/settings";
           };
 
           systemPackages = with pkgs; [
