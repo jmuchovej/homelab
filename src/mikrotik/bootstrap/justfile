@@ -1,0 +1,211 @@
+secrets := justfile_directory() / "secrets"
+certificates := secrets / "certificates"
+
+[private]
+default:
+    @just --list
+
+[private]
+sops file-path key-path:
+    #!/usr/bin/env bash
+    [[ -f "{{ file-path }}" ]] || {
+      echo "ERROR: {{ file-path }} not found!" >&2
+      exit 1
+    }
+    result=$(sops -d "{{ file-path }}" | yq "{{ key-path }}")
+    [[ -n "${result}" ]] || {
+      echo "ERROR: {{ file-path }} :: {{ key-path }} is not set!" >&2
+      exit 1
+    }
+    echo "${result}"
+
+[private]
+scp ip src_file dst_path:
+    scp \
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no \
+      -qO "{{ src_file }}" "admin@{{ ip }}:{{ dst_path }}"
+
+[private]
+ssh ip cmd:
+    ssh \
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no \
+      -o ServerAliveInterval=3 \
+      -o ServerAliveCountMax=3 \
+      "admin@{{ ip }}" "{{ cmd }}"
+
+# ─── Composable bootstrap pieces ─────────────────────────────────────────
+# Each step below is independently callable. `just bootstrap` chains them
+# all in order. Advanced flows can run individual steps — e.g. re-rendering
+# the script without re-uploading, or re-installing the admin SSH key
+# against an already-bootstrapped device.
+#
+# Conventions:
+#   - rendered script: /tmp/rbn-bootstrap.<dc>-<relay>.rsc (deterministic
+#     so `upload` can pick up what `render` wrote)
+#   - factory IP defaults to 192.168.88.1, overridable per call
+#   - admin pubkey reads from ./id_ed25519.pub (alongside this justfile)
+
+# ─── render: produce the rsc via envsubst ────────────────────────────────
+# Reads role/counter from topology + admin/terraform passwords from sops,
+# renders rbn-bootstrap.rsc, writes to /tmp/rbn-bootstrap.<dc>-<relay>.rsc.
+# Prints the output path on stdout so other recipes can capture it.
+render dc relay:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    topology="./topology.yaml"
+    sops_file="{{ secrets }}/{{ dc }}.sops.yaml"
+
+    [[ -f "$topology" ]] || { echo "ERROR: $topology not found" >&2; exit 1; }
+    [[ -f "$sops_file" ]] || { echo "ERROR: $sops_file not found" >&2; exit 1; }
+    command -v envsubst >/dev/null || { echo "ERROR: envsubst not in PATH" >&2; exit 1; }
+
+    role=$(yq ".network.\"{{ dc }}-{{ relay }}\".role // \"\"" "$topology")
+    [[ "$role" == "router" || "$role" == "switch" ]] || {
+      echo "ERROR: topology .network.{{ dc }}-{{ relay }}.role is '$role' (expected router|switch)" >&2
+      exit 1
+    }
+
+    counter=$(echo "{{ relay }}" | sed -E 's/^relay0?//')
+    [[ "$counter" =~ ^[0-9]+$ ]] || {
+      echo "ERROR: couldn't parse counter from '{{ relay }}'" >&2
+      exit 1
+    }
+
+    export ROLE="$role"
+    export IDENTITY="{{ dc }}-{{ relay }}"
+    export MGMT_IP="10.42.0.$counter"
+    export VLAN_ID="42"
+    export TRUNK_PORTS=$(yq -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "$topology")
+    export ROOT_PW=$(just sops "${sops_file}" '.network."{{ relay }}".admin-password')
+    export TOFU_PW=$(just sops "${sops_file}" '.network."{{ relay }}".terraform-password')
+
+    rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
+    envsubst '${IDENTITY} ${MGMT_IP} ${ROLE} ${ROOT_PW} ${TOFU_PW} ${VLAN_ID} ${TRUNK_PORTS}' < rbn-bootstrap.rsc > "$rendered"
+    chmod 0600 "$rendered"
+
+    echo "$rendered"
+
+# ─── upload: SCP rendered script + cert/key + pubkey + optional host key ─
+# Falls back to running `render` if no rendered file exists at the
+# expected path. The optional host key comes from
+# secrets/hosts/<dc>-<relay>.sops.yaml :: .host-key (PKCS#8 ed25519).
+uploads dc relay ip="192.168.88.1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
+    [[ -f "$rendered" ]] || rendered=$(just render {{ dc }} {{ relay }})
+
+    echo "==> Uploading bootstrap files to {{ ip }}..."
+    just scp "{{ ip }}" "${rendered}" "/rbn-bootstrap.rsc"
+    just scp "{{ ip }}" "{{ certificates }}/wildcard.crt" "/wildcard.crt"
+    just scp "{{ ip }}" "{{ certificates }}/wildcard.key" "/wildcard.key"
+    just scp "{{ ip }}" "id_ed25519.pub" "/admin.pub"
+
+    host_sops="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
+    host_key=$(just sops "${host_sops}" ".host-key")
+    host_key_file="/tmp/relay-host.{{ dc }}-{{ relay }}.pem"
+    printf '%s\n' "$host_key" > "$host_key_file"
+    chmod 0600 "$host_key_file"
+    echo "==> Uploading SSH host key (from $host_sops)..."
+
+    just scp "{{ ip }}" "${host_key_file}" "/relay-host.pem"
+
+# ─── install-ssh-key: install admin pubkey, idempotent ───────────────────
+# Removes any existing admin SSH keys first so re-running doesn't pile
+# up entries. Expects /admin.pub to already be on the device (from
+# `upload`).
+install-ssh-key ip="192.168.88.1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "==> Installing admin SSH key on {{ ip }}..."
+    just ssh "{{ ip }}" \
+      "/user/ssh-keys/remove [find user=admin]; \
+       /user/ssh-keys/import user=admin public-key-file=admin.pub; \
+       /file/remove [find name=admin.pub]" || true
+
+# ─── reset: trigger /system/reset-configuration ──────────────────────────
+# SSH session dies mid-command (expected; the device reboots). Aggressive
+# keepalives so the ssh client exits in ~9s instead of waiting on the
+# default TCP timeout.
+reset ip="192.168.88.1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    echo "==> Triggering /system/reset-configuration on {{ ip }} (router will reboot)..."
+    just ssh "{{ ip }}" \
+      "/system/reset-configuration no-defaults=yes skip-backup=yes run-after-reset=rbn-bootstrap.rsc" || true
+
+# ─── wait: poll for hostname reachability + TLS validation ───────────────
+# devShell sets SSL_CERT_FILE to a bundle including the homelab root.crt
+# so no --cacert needed. --resolve maps hostname → counter-derived mgmt
+# IP since the laptop's DNS may not have the relay's record yet.
+wait dc relay timeout="90":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    counter=$(echo "{{ relay }}" | sed -E 's/^relay0?//')
+    mgmt_ip="10.42.0.$counter"
+    hostname="{{ dc }}-{{ relay }}.holonet.jm0.io"
+    sops_file="{{ secrets }}/{{ dc }}.sops.yaml"
+    tofu_pw=$(just sops "${sops_file}" '.network."{{ relay }}".terraform-password')
+
+    echo "==> Waiting up to {{ timeout }}s for $hostname ($mgmt_ip)..."
+
+    attempts=$(( {{ timeout }} / 2 ))
+    for i in $(seq 1 $attempts); do
+      if curl -fsu "terraform:$tofu_pw" --max-time 2 \
+           --resolve "$hostname:443:$mgmt_ip" \
+           "https://$hostname/rest/system/identity" >/dev/null 2>&1; then
+        echo "✓ $hostname reachable (TLS validated) after $((i * 2))s"
+        exit 0
+      fi
+      sleep 2
+    done
+    echo "✗ Timed out waiting for $hostname ($mgmt_ip) after {{ timeout }}s" >&2
+    echo "" >&2
+    echo "  Diagnose:" >&2
+    echo "  - Is laptop on the mgmt VLAN? ('ip addr' should show 10.42.0.x)" >&2
+    echo "  - 'ssh admin@$mgmt_ip /system/identity/print' to verify reset completed" >&2
+    echo "  - 'ip route get $mgmt_ip' should resolve via the laptop's NIC on mgmt VLAN" >&2
+    echo "  - Check device logs: '/log/print where topics~\"system\"'" >&2
+    exit 1
+
+# ─── bootstrap: full pipeline (render → upload → install-ssh-key → reset → wait) ─
+# Operator workflow:
+#   1. Factory-reset the target device so it comes up at 192.168.88.1.
+#   2. Connect laptop to the device's ether2 (gets 192.168.88.x lease).
+#   3. Ensure topology/holonet.yaml has `role: router|switch` for this
+#      relay and secrets/<dc>.sops.yaml has both admin-password and
+#      terraform-password. Optionally add an SSH host key at
+#      secrets/hosts/<dc>-<relay>.sops.yaml :: host-key.
+#   4. Run: just bootstrap <dc> <relay>
+#
+# Post-reset connectivity:
+#   - ROUTER: laptop auto-DHCPs from the new mgmt DHCP server (~30s)
+#   - SWITCH: switch itself DHCPs from relay01 via the trunk uplink;
+#     relay01 must already be tofu-applied so the static-lease + bridge
+# VLAN tagging are in place.
+bootstrap dc relay ip="192.168.88.1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    echo "==> Bootstrap: {{ dc }}-{{ relay }} via factory IP {{ ip }}"
+    echo ""
+
+    just render {{ dc }} {{ relay }} >/dev/null
+    just uploads {{ dc }} {{ relay }} {{ ip }}
+    just install-ssh-key {{ ip }}
+    just reset {{ ip }}
+
+    # Give the device ~10s to actually reboot before we start polling
+    sleep 10
+    just wait {{ dc }} {{ relay }}
+
+    echo ""
+    echo "Next steps:"
+    echo "  - WebFig/SSH as 'admin' with the password from network.{{ relay }}.admin-password"
+    echo "  - 'tofu apply' to layer wg-holonet / wifi / full firewall on top"
