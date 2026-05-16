@@ -113,6 +113,8 @@
                   CODE_INTERPRETER_ENGINE = "pyodide";
 
                   VECTOR_DB = "chroma";
+                  CHROMA_HTTP_HOST = config.services.chromadb.host;
+                  CHROMA_HTTP_PORT = lib.toString config.services.chromadb.port;
 
                   RAG_EMBEDDING_ENGINE = "ollama";
 
@@ -132,6 +134,12 @@
                 };
                 environmentFile = config.sops.templates."open-webui.env".path;
               };
+
+              # open-webui runs under DynamicUser=true. The dynamic user isn't
+              # in /etc/passwd, so Python's `pathlib.Path('~').expanduser()`
+              # can't resolve a home directory and crashes at startup.
+              # Set HOME explicitly to the service's state directory.
+              systemd.services.open-webui.environment.HOME = "/var/lib/open-webui";
             }
           ];
 
