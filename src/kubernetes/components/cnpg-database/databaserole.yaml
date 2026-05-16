@@ -1,0 +1,23 @@
+---
+# `tofu` role in every app DB: member of the owner role (full DDL/grants on
+# the app's objects) + pg_read_all_data (read anything else on the
+# instance). Password = 1P item `postgres`, field `tofu-password`, via the
+# tofu-db-creds ExternalSecret (basic-auth username must equal role name).
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: ${APP}-db-tofu
+spec:
+  cluster:
+    name: ${APP}-db
+  name: tofu
+  comment: "OpenTofu — reads + object management"
+  login: true
+  superuser: false
+  createdb: false
+  databaseRoleReclaimPolicy: delete
+  inRoles:
+    - ${APP}
+    - pg_read_all_data
+  passwordSecret:
+    name: tofu-db-creds
