@@ -1,0 +1,38 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  # named for (and selecting) the CNPG cluster
+  name: &cluster ${APP}-db
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: *cluster
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ${APP}
+      ports:
+        - port: 5432
+    - from:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: *cluster
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: databases
+      ports:
+        - port: 8000
+        - port: 5432
+    # admin/tofu access via the ${APP}-db-lb LoadBalancer — trusted VLAN
+    # only (ADMIN_CIDR from cluster-settings; source IPs preserved by
+    # externalTrafficPolicy: Local + BGP native routing)
+    - from:
+        - ipBlock:
+            cidr: ${ADMIN_CIDR}
+      ports:
+        - port: 5432

@@ -1,0 +1,23 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ${APP}-db
+spec:
+  bootstrap:
+    initdb:
+      import:
+        type: microservice
+        databases:
+          - ${APP}
+        source:
+          externalCluster: &src nixos-postgres
+  externalClusters:
+    - name: *src
+      connectionParameters:
+        host: ${HOST}
+        user: ${APP}
+        dbname: ${APP}
+      password:
+        name: ${APP}-db-creds
+        key: password
