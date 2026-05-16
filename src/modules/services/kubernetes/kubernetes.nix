@@ -1,7 +1,12 @@
-_: {
+{ inputs, ... }:
+{
   rbn.services._.kubernetes = {
     nixos =
-      { pkgs, ... }:
+      {
+        config,
+        pkgs,
+        ...
+      }:
       {
         # Cluster admin CLIs (k9s is in the home-manager aspect below).
         environment.systemPackages = [
@@ -59,6 +64,65 @@ _: {
           179
           4240
         ];
+
+        # 1Password Connect bootstrap secrets — the credentials that let the
+        # in-cluster Connect server authenticate to 1Password. ESO can't pull
+        # these from 1Password (they ARE the keys to it), so they're seeded
+        # out-of-band from sops. Rendered via sops.templates (never in the nix
+        # store) and kubectl-applied once k3s is up (no persistent plaintext on
+        # disk beyond etcd). Everything else lives in 1Password and flows in via
+        # ExternalSecrets once Connect is running.
+        sops.secrets."1password/connect.json".sopsFile = "${inputs.self}/secrets/da.sops.yaml";
+        sops.secrets."1password/connect-access-token".sopsFile = "${inputs.self}/secrets/da.sops.yaml";
+
+        sops.templates."onepassword-connect.yaml".content = ''
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: external-secrets
+          ---
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: onepassword-connect-credentials
+            namespace: external-secrets
+          type: Opaque
+          data:
+            # sops value is already base64(1password-credentials.json); `data`
+            # expects base64, so the mounted file decodes back to raw JSON.
+            1password-credentials.json: ${config.sops.placeholder."1password/connect.json"}
+          ---
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: onepassword-connect-token
+            namespace: external-secrets
+          type: Opaque
+          stringData:
+            token: ${config.sops.placeholder."1password/connect-access-token"}
+        '';
+
+        systemd.services.k3s-seed-onepassword = {
+          description = "Seed 1Password Connect bootstrap secrets into k3s";
+          after = [ "k3s.service" ];
+          wants = [ "k3s.service" ];
+          wantedBy = [ "multi-user.target" ];
+          path = [ pkgs.kubectl ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            Environment = "KUBECONFIG=/etc/rancher/k3s/k3s.yaml";
+          };
+          # apply is idempotent; the Namespace is created first (Flux later
+          # adopts it). Secret rotation needs a manual `systemctl restart`.
+          script = ''
+            until kubectl get --raw /readyz >/dev/null 2>&1; do
+              echo "waiting for k3s apiserver..."
+              sleep 5
+            done
+            kubectl apply -f ${config.sops.templates."onepassword-connect.yaml".path}
+          '';
+        };
       };
 
     homeManager =
