@@ -56,7 +56,7 @@ vlans:
     name: "lab"
     cidr: "10.69.0.0/16"
     gateway: "10.69.0.1"
-    ranges: ["10.69.0.20-10.69.255.254"]
+    ranges: ["10.69.0.20-10.69.0.255", "10.69.2.0-10.69.255.254"]
     comment: "Homelab"
     dhcp: "dhcp2"
     pool: "pool2"
