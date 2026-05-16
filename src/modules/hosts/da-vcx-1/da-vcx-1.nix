@@ -160,6 +160,8 @@
       <rbn/services/arr>
       <rbn/services/local-llms/ollama>
       <rbn/services/local-llms/open-webui>
+
+      <rbn/services/zerotier>
     ];
 
     provides.to-users = {

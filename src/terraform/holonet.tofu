@@ -46,7 +46,7 @@ locals {
     clients = {
       for client-key, client in local.topology.clients : client-key => {
         ip     = client.ip
-        pubkey = client.public
+        pubkey = try(client.public, null)
       }
     }
   }
@@ -103,7 +103,7 @@ locals {
               local.holonet-is-public-routable[peer-key]
             ) ? "25s" : "0s"
             comment = "wg-holonet: peer ${peer-key}"
-          } if peer-key != relay-key
+          } if peer-key != relay-key && peer.public != null
         },
         local.holonet-is-public-routable[relay-key] ? {
           for cname, client in local.topology.clients : cname => {
@@ -113,7 +113,7 @@ locals {
             endpoint-port        = null
             persistent-keepalive = "0s"
             comment              = "wg-holonet: client ${cname}"
-          }
+          } if try(client.public, null) != null
         } : {}
       )
 

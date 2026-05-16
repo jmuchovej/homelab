@@ -50,6 +50,7 @@
       # Networking (base via suite-common, dns/manager selected here)
       <rbn/system/networking/dns/dnsmasq>
       <rbn/system/networking/manager/networkmanager>
+      <rbn/services/zerotier>
 
       # Services
       <rbn/services/consul>

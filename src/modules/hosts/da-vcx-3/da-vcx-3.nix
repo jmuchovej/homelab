@@ -4,6 +4,8 @@
     includes = [
       <rbn/suite/server>
       <rbn/programs/security/sops>
+
+      <rbn/services/zerotier>
     ];
 
     nixos = {
