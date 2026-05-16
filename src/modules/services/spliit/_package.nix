@@ -5,7 +5,7 @@
   nodejs,
   makeWrapper,
   openssl,
-  prisma-engines,
+  prisma-engines_6,
   ...
 }:
 
@@ -29,9 +29,9 @@ buildNpmPackage (finalAttrs: {
 
   # Prisma requires the engines at build time
   env = {
-    PRISMA_QUERY_ENGINE_LIBRARY = "${prisma-engines}/lib/libquery_engine.node";
-    PRISMA_QUERY_ENGINE_BINARY = "${prisma-engines}/bin/query-engine";
-    PRISMA_SCHEMA_ENGINE_BINARY = "${prisma-engines}/bin/schema-engine";
+    PRISMA_QUERY_ENGINE_LIBRARY = "${prisma-engines_6}/lib/libquery_engine.node";
+    PRISMA_QUERY_ENGINE_BINARY = "${prisma-engines_6}/bin/query-engine";
+    PRISMA_SCHEMA_ENGINE_BINARY = "${prisma-engines_6}/bin/schema-engine";
   };
 
   # Skip the postinstall script during npm ci (prisma generate runs at build time)
@@ -59,8 +59,11 @@ buildNpmPackage (finalAttrs: {
   postInstall = ''
     mkdir -p $out/share/spliit
 
-    # Copy the built Next.js standalone app
-    cp -r .next/standalone/* $out/share/spliit/
+    # Copy the built Next.js standalone app (trailing `/.` includes hidden
+    # entries like the bundled `.next/server` dir, which `*` would skip).
+    cp -r .next/standalone/. $out/share/spliit/
+
+    mkdir -p $out/share/spliit/.next
     cp -r .next/static $out/share/spliit/.next/static
     cp -r public $out/share/spliit/public
 
@@ -71,18 +74,18 @@ buildNpmPackage (finalAttrs: {
     makeWrapper ${nodejs}/bin/node $out/bin/spliit \
       --add-flags "$out/share/spliit/server.js" \
       --set NODE_ENV production \
-      --set PRISMA_QUERY_ENGINE_LIBRARY "${prisma-engines}/lib/libquery_engine.node" \
-      --set PRISMA_QUERY_ENGINE_BINARY "${prisma-engines}/bin/query-engine" \
-      --set PRISMA_SCHEMA_ENGINE_BINARY "${prisma-engines}/bin/schema-engine" \
-      --prefix PATH : ${lib.makeBinPath [ prisma-engines ]}
+      --set PRISMA_QUERY_ENGINE_LIBRARY "${prisma-engines_6}/lib/libquery_engine.node" \
+      --set PRISMA_QUERY_ENGINE_BINARY "${prisma-engines_6}/bin/query-engine" \
+      --set PRISMA_SCHEMA_ENGINE_BINARY "${prisma-engines_6}/bin/schema-engine" \
+      --prefix PATH : ${lib.makeBinPath [ prisma-engines_6 ]}
 
     # Create migration script
     makeWrapper ${nodejs}/bin/npx $out/bin/spliit-migrate \
       --add-flags "prisma migrate deploy" \
       --chdir "$out/share/spliit" \
-      --set PRISMA_QUERY_ENGINE_LIBRARY "${prisma-engines}/lib/libquery_engine.node" \
-      --set PRISMA_SCHEMA_ENGINE_BINARY "${prisma-engines}/bin/schema-engine" \
-      --prefix PATH : ${lib.makeBinPath [ prisma-engines ]}
+      --set PRISMA_QUERY_ENGINE_LIBRARY "${prisma-engines_6}/lib/libquery_engine.node" \
+      --set PRISMA_SCHEMA_ENGINE_BINARY "${prisma-engines_6}/bin/schema-engine" \
+      --prefix PATH : ${lib.makeBinPath [ prisma-engines_6 ]}
   '';
 
   meta = {
