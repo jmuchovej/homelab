@@ -7,3 +7,4 @@ resources:
   - ./cilium-bgp/cilium-bgp.ks.yaml
   - ./envoy-gateway/envoy-gateway.ks.yaml
   - ./envoy-gateway/envoy-config.ks.yaml
+  - ./echo/echo.ks.yaml
