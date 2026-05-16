@@ -12,6 +12,8 @@ let
     };
 in
 {
-  den.ctx.user.includes = [ role-class ];
-  den.ctx.default.includes = [ role-class ];
+  den.schema = {
+    user.includes = [ role-class ];
+    default.includes = [ role-class ];
+  };
 }
