@@ -7,39 +7,6 @@
 {
   # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.da-vcx-1 = {
-    consul = {
-      server = true;
-      interface = "enp12s0";
-      bootstrap-expect = 1;
-    };
-    keepalived = {
-      enable = true;
-      interface = "enp12s0";
-      vip.address = "10.69.1.1";
-      vip.prefix = 16;
-      vrrp = {
-        router-id = 42;
-        priority = 242;
-        preempt = false;
-        advert-interval = 1;
-      };
-    };
-    traefik = {
-      enable = true;
-      consul-catalog = true;
-    };
-    openbao = {
-      enable = true;
-      interface = "enp12s0";
-    };
-    nomad = {
-      enable = true;
-      server = true;
-      client = true;
-      bootstrap-expect = 1;
-      interface = "enp12s0";
-      consul.enable = true;
-    };
     s3 = {
       buckets = [
         "volsync"
@@ -106,7 +73,13 @@
         remote = "/impulse/home";
         local = "/home";
       }
+      {
+        server = "10.69.10.1";
+        remote = "/impulse/media";
+        local = "/srv/media";
+      }
     ];
+
     persistence = {
       device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300IBBB23122507026";
       extra-directories = [ ];
@@ -129,7 +102,13 @@
       <rbn/system/hardware/storage/zfs/managed>
 
       # Virtualization
-      <rbn/system/virtualization>
+      # <rbn/system/virtualization>
+      # (<rbn/system/virtualization/win11> {
+      #   vhd = "/warp/vms/win11.qcow2";
+      #   vcpus = 8;
+      #   memory = 32; # GiB
+      #   gpu = "0000:01:00.0"; # RTX 3090 — VGA .0 + HDMI-audio .1
+      # })
 
       # Security
       <rbn/system/security/sudo>
@@ -141,33 +120,10 @@
       # Services
       <rbn/services/nfs>
       <rbn/services/kubernetes>
-      <rbn/services/consul>
-      <rbn/services/consul-esm>
-      <rbn/services/keepalived>
-      <rbn/services/traefik>
-      <rbn/services/authentik>
-      <rbn/services/openbao>
-      <rbn/services/nomad>
-      <rbn/services/syncthing>
       <rbn/services/avahi>
       <rbn/services/cloudflared>
-      <rbn/services/redis>
       <rbn/services/ldap>
-      <rbn/services/chroma>
-      <rbn/services/n8n>
-      <rbn/services/media>
-      <rbn/services/immich>
-      <rbn/services/homebox>
-      <rbn/services/spliit>
-      <rbn/services/home-assistant>
       <rbn/services/postgres>
-      <rbn/services/proton-vpn>
-      <rbn/services/qbittorrent>
-      <rbn/services/s3>
-      <rbn/services/split-pro>
-      <rbn/services/arr>
-      <rbn/services/local-llms/ollama>
-      <rbn/services/local-llms/open-webui>
 
       <rbn/services/zerotier>
     ];
