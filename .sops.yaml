@@ -1,21 +1,25 @@
 keys:
   - &john age1s8qp0vlv4myatfd0fnm0a2tayu3pf0se4rymmegjrg0sgtucnqeqr66l0d
   - &lab age1ev6jd40jw3eu3z2xwea2gyxr68t540dwt433r9tj8c8xdjc50aassdg0cu
+  - &da-n1x age12q680qepnuzhl7kggm3g5nytxzuhvlenl7224mv8f98fpvppngwswex9se
   - &da-vcx-1 age1njtfdprj7zwr5sljahm6dqres336u70e4hzv4drjzmhasr4s6gvswttkdc
   - &da-vcx-2 age1642qelkct35d0vg3r57hr3q7ckwj8kdfegv02v8k0vwzpmc7ev9qkhrlt2
   - &da-vcx-3 age14sla3hu8e3vcmmzwu2rj7guucxwwnum4u3l52d7m25rddxhm3gcswp45ld
   - &en-t65-1 age1wjdz5ds294c3erq5f5ulrkmuntasfmngjhaknacxc8d3na8lwenstcvua2
 creation_rules:
+  - path_regex: "secrets/root\\.sops\\.yaml$"
+    key_groups:
+      - age: [*john]
   - path_regex: "secrets/.*\\.sops\\.yaml$"
     key_groups:
-      - age: [*john, *lab, *en-t65-1, *da-vcx-1, *da-vcx-2]
+      - age: [*john, *lab, *da-n1x, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-vcx-3]
   - path_regex: "modules/.*\\.sops\\.yaml$"
     mac_only_encrypted: true
     key_groups:
-      - age: [*john, *lab, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-vcx-3]
+      - age: [*john, *lab, *da-n1x, *en-t65-1, *da-vcx-1, *da-vcx-2, *da-vcx-3]
   - path_regex: "secrets/da\\.sops\\.yaml$"
     key_groups:
-      - age: [*john, *lab, *da-vcx-1, *da-vcx-2, *da-vcx-3]
+      - age: [*john, *lab, *da-n1x, *da-vcx-1, *da-vcx-2, *da-vcx-3]
   - path_regex: "[^/]+/da-n1x/?[^/]+\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john]
