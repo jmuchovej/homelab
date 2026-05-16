@@ -10,6 +10,10 @@ spec:
     - name: envoy-config
   interval: 1h
   path: ./src/kubernetes/apps/network/echo/app
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository

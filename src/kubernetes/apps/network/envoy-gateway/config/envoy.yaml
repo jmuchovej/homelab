@@ -30,10 +30,12 @@ spec:
     name: envoy
     namespace: network
 ---
-# Single external gateway. TEMP LB IP 10.69.1.10 — `10.69.1.1` is still the live
-# keepalived VIP (Traefik) until Phase 5; we cut this over to .1 once keepalived
-# is removed and BGP/DHCP (Phase 4b) are done. Until BGP, this IP is reachable
-# only on-node. Future: add an `envoy-internal` gateway for LAN-only services.
+# Single external gateway on the VIP. The router's split-horizon DNS
+# (the per-DC wildcard) and the WAN 443/80 + hairpin DNATs all target 10.69.1.1
+# (catalog.vip), so claiming it makes Envoy THE ingress with zero router-side
+# changes. Do not apply while keepalived still holds this address — the LAN
+# would see it twice (ARP vs BGP /32).
+# Future: add an `envoy-internal` gateway for LAN-only services.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -60,8 +62,16 @@ spec:
       tls:
         certificateRefs:
           - kind: Secret
-            name: da-jm0-io-tls
+            name: wildcard-tls
 ---
+# Internal (LAN-only) gateway. Same wildcard cert; isolation comes from the
+# network, not TLS: the WAN 443/80 DNATs only target 10.69.1.1, so .1.2 is
+# unreachable from the internet by construction. Apps choose exposure via their
+# route parentRef: envoy-external vs envoy-internal.
+# DNS caveat: internal-only hostnames have no public record and the router's
+# split-horizon wildcard (when re-enabled) points at .1.1 — each internal name
+# needs its own router DNS record → 10.69.1.2 until an internal-DNS story
+# (external-dns webhook or tofu records) lands.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -88,7 +98,7 @@ spec:
       tls:
         certificateRefs:
           - kind: Secret
-            name: da-jm0-io-tls
+            name: wildcard-tls
 ---
 # Redirect plain HTTP → HTTPS on both gateways.
 apiVersion: gateway.networking.k8s.io/v1

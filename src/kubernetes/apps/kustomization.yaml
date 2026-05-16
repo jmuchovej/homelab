@@ -4,7 +4,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # `_`-prefix = excluded from cluster-settings seeding (see kubernetes.nix);
+  # the k8s namespace is still plain `external-secrets`.
+  - ./_external-secrets
   - ./cert-manager
-  - ./external-secrets
   - ./media
   - ./network
