@@ -64,8 +64,9 @@ resource "authentik_provider_oauth2" "provider" {
   # authentik default but matches the security stance of explicit allowlisting.
   allowed_redirect_uris = [
     for u in var.redirect_uris : {
-      matching_mode = "strict"
-      url           = u
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = u
     }
   ]
 }
