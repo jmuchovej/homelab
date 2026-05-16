@@ -82,6 +82,11 @@ _: {
           keyMap = lib.mkForce "us";
         };
 
+        # Keep classic dbus-daemon. nixpkgs flipped the default to dbus-broker,
+        # which is treated as a "critical component" change and blocks live
+        # `switch` activations. Pin until we can plan a reboot.
+        services.dbus.implementation = "dbus";
+
         environment.sessionVariables.KEYTIMEOUT = 0;
 
         environment.variables = {
