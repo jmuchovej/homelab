@@ -20,6 +20,7 @@
       <rbn/suite/development>
       <rbn/programs/media/spotify>
       <rbn/system/networking/wg-holonet>
+      <rbn/services/zerotier>
     ];
 
     darwin = {
