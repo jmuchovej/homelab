@@ -14,11 +14,8 @@ _: {
         ];
       };
 
-    nixos =
-      { lib, ... }:
-      {
-        programs.neovim.enable = true;
-        environment.sessionVariables.EDITOR = lib.mkDefault "nvim";
-      };
+    nixos = _: {
+      programs.neovim.enable = true;
+    };
   };
 }
