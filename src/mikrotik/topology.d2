@@ -1,0 +1,283 @@
+vars: {
+  d2-config: {
+    layout-engine: "elk"
+    center: true
+    # https://d2lang.com/tour/themes/
+    theme-overrides: {
+      N1: "#0A0F25"
+      N2: "#676C7E"
+      N3: "#9499AB"
+      N4: "#CFD2DD"
+      N5: "#DEE1EB"
+      N6: "#EEF1F8"
+      N7: "#FFFFFF"
+
+      B1: "#000E3D"
+      B2: "#234CDA"
+      B3: "#6B8AFB"
+      B4: "#A6B8F8"
+      B5: "#D2DBFD"
+      B6: "#E7EAFF"
+
+      AA2: "#5829DC"
+      AA4: "#B4AEF8"
+      AA5: "#E4DBFF"
+
+      AB4: "#7FDBF8"
+      AB5: "#C3F0FF"
+    }
+    dark-theme-overrides: {
+      N1: "#F4F6FA"
+      N2: "#BBBEC9"
+      N3: "#868A96"
+      N4: "#676D7D"
+      N5: "#3A3D49"
+      N6: "#191C28"
+      N7: "#000410"
+
+      B1: "#F4F6FA"
+      B2: "#6B8AFB"
+      B3: "#3733E9"
+      B4: "#070B67"
+      B5: "#0B1197"
+      B6: "#3733E9"
+
+      AA2: "#8B5DEE"
+      AA4: "#4918B1"
+      AA5: "#7240DD"
+
+      AB4: "#00607C"
+      AB5: "#01799D"
+    }
+  }
+  d2-legend: {
+    a -- b: vlan1 {
+      class: vlan-management
+    }
+    a -- b: vlan2 {
+      class: vlan-homelab
+    }
+    a -- b: vlan3 {
+      class: vlan-trusted
+    }
+    a -- b: vlan4 {
+      class: vlan-guest
+    }
+    a -- b: vlan5 {
+      class: vlan-iot
+    }
+    a.style.opacity: 0
+    b.style.opacity: 0
+  }
+}
+
+classes: {
+  mikrotik-l: {
+    icon: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mikrotik-light.svg"
+  }
+  mikrotik-d: {
+    icon: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mikrotik.svg"
+  }
+  wan-port: {
+    style: {
+      stroke: "#fecdd3"  # rose.200
+      fill: "#cbd5e1"  # slate.300
+      font-color: "#334155"  # slate.700
+      border-radius: 8
+      stroke-width: 3
+    }
+  }
+  lan-port: {
+    style: {
+      fill: "#cbd5e1"  # slate.300
+      font-color: "#334155"  # slate.700
+      border-radius: 8
+      stroke-width: 3
+    }
+  }
+  server: {
+    style: {
+      fill: "#e2e8f0"  # slate.200
+      stroke: "#1e293b"  # slate.800
+      font-color: "#1e293b"  # slate.800
+      # fill: "#1e293b"  # slate.800
+      border-radius: 4
+      stroke-width: 3
+    }
+  }
+  client: {
+    style: {
+      fill: "#e6f3e6"
+      stroke: "#339933"
+      border-radius: 4
+      stroke-width: 3
+    }
+  }
+
+  vlan-trunk: {
+    style: {
+      fill: "#c7d2fe"  # indigo.200
+      stroke: "#4f46e5"  # indigo.600
+      font-color: "#4f46e5"  # indigo.600
+      stroke-dash: 3
+    }
+  }
+  vlan-homelab: {
+    style: {
+      fill: "#bfdbfe"  # blue.200
+      stroke: "#2563eb"  # blue.600
+      font-color: "#2563eb"  # blue.600
+    }
+  }
+  vlan-management: {
+    style: {
+      fill: "#fecdd3"  # rose.200
+      stroke: "#e11d48"  # rose.600
+      font-color: "#e11d48"  # rose.600
+    }
+  }
+  vlan-trusted: {
+    style: {
+      fill: "#99f6e4"  # teal.200
+      stroke: "#0d9488"  # teal.600
+      font-color: "#0d9488"  # teal.600
+    }
+  }
+  vlan-guest: {
+    style: {
+      fill: "#bbf7d0"  # green.200
+      stroke: "#16a34a"  # green.600
+      font-color: "#16a34a"  # green.600
+    }
+  }
+  vlan-iot: {
+    style: {
+      fill: "#fed7aa"  # orange.200
+      stroke: "#ea580c"  # orange.600
+      font-color: "#ea580c"  # orange.600
+    }
+  }
+}
+
+# Gateway and ISP connection
+gateway: Gateway {
+  # shape: circle
+  shape: image
+  width: 64
+  height: 64
+  icon: "../assets/icons/global-network.svg"
+}
+net: Network {
+  ax3: hAP ax³ {
+    class: mikrotik-d
+    style: {
+      fill: "#d4d4d8"  # zinc.300
+      stroke: "#27272a"  # zinc.800
+      font-color: "#27272a"  # zinc.800
+    }
+
+    eth1: eth1 { class: [wan-port] }
+    eth2: eth2 { class: [lan-port; vlan-management] }
+    eth3: eth3 { class: [lan-port; vlan-homelab] }
+    eth4: eth4 { class: [lan-port; vlan-homelab] }
+    eth5: eth5 { class: [lan-port; vlan-trunk] }
+    wifi1: wifi1 { class: [lan-port] }
+    wifi2: wifi2 { class: [lan-port; vlan-iot] }
+  }
+
+  L009: L009UiGS-RM {
+    class: mikrotik-l
+    style: {
+      stroke: "#991b1b"  # red.800
+      font-color: "#991b1b"  # red.800
+      fill: "#fca5a5"  # red.300
+    }
+
+    eth1: eth1 { class: [lan-port; vlan-trunk] }
+    eth2: eth2 { class: [lan-port; vlan-management] }
+    eth3: eth3 { class: [lan-port; vlan-homelab] }
+    eth4: eth4 { class: [lan-port; vlan-homelab] }
+    eth5: eth5 { class: [lan-port; vlan-trusted] }
+    eth6: eth6 { class: [lan-port; vlan-guest] }
+    eth7: eth7 { class: [lan-port; vlan-guest] }
+    eth8: eth8 { class: [lan-port; vlan-guest] }
+  }
+
+  *.label.near: top-center
+
+  *.eth*.style.font: mono
+  *.wifi*.style.font: mono
+  *.style.border-radius: 8
+  *.style.stroke-width: 3
+  style.border-radius: 8
+  style.stroke-width: 3
+  style.stroke-dash : 3
+  style.stroke: "#e2e8f0"  # slate.200
+  style.fill: "#f8fafc"  # slate.50
+}
+
+
+
+vlan1: Management {
+  class: vlan-management
+
+  macbook
+}
+
+vlan2: Homelab {
+  class: vlan-homelab
+
+  vcx-1
+  vcx-2
+  vcx-3
+  hubitat
+}
+
+vlan3: Trusted {
+  class: vlan-trusted
+
+  windows: Gaming PC
+}
+
+vlan4: Guest {
+  class: vlan-guest
+
+  apple-tv: Apple TV
+}
+
+vlan5: IoT {
+  class: vlan-iot
+
+  replicator: Bambu P1S
+  tree-painter: HP 8022e
+  android-tv: Android TV
+}
+
+vlan*.*.style.fill: "#e2e8f0"  # slate.200
+vlan*.*.style.stroke: "#1e293b"  # slate.800
+vlan*.*.style.font-color: "#1e293b"  # slate.800
+vlan*.*.style.border-radius: 4
+vlan*.*.style.stroke-width: 3
+vlan*.label.near: bottom-center
+vlan*.style.border-radius: 8
+vlan*.style.stroke-width : 3
+vlan*.style.stroke-dash: 3
+
+gateway -- net.ax3.eth1 { class: [wan-port] }
+net.ax3.eth5 -- net.L009.eth1 { class: [vlan-trunk] }
+
+net.ax3.eth2  -- vlan1.macbook { class: [vlan-management] }
+net.L009.eth2 -- vlan1.macbook { class: [vlan-management] }
+
+net.ax3.eth3  -- vlan2.vcx-1 { class: [vlan-homelab] }
+net.ax3.eth4  -- vlan2.hubitat { class: [vlan-homelab] }
+net.L009.eth3 -- vlan2.vcx-2 { class: [vlan-homelab] }
+net.L009.eth4 -- vlan2.vcx-3 { class: [vlan-homelab] }
+
+net.L009.eth5 -- vlan3.windows { class: [vlan-trusted] }
+
+net.L009.eth7 -- vlan4.apple-tv { class: [vlan-guest] }
+
+net.ax3.wifi2 -- vlan5.replicator { class: [vlan-iot] }
+net.ax3.wifi2 -- vlan5.tree-painter { class: [vlan-iot] }
+net.ax3.wifi2 -- vlan5.android-tv { class: [vlan-iot] }
