@@ -1,4 +1,9 @@
-{ __findFile, ... }:
+{
+  lib,
+  den,
+  __findFile,
+  ...
+}:
 {
   # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.da-vcx-1 = {
@@ -98,6 +103,7 @@
 
   den.aspects.da-vcx-1 = {
     includes = [
+
       # Suites
       <rbn/suite/server>
       <rbn/system/boot/graphical>
@@ -148,10 +154,16 @@
       <rbn/services/local-llms/open-webui>
     ];
 
+    provides.to-users = {
+      includes = with den.aspects; [
+        (facter ./facter.json)
+      ];
+    };
+
     nixos = {
       imports = [
-        ./_da-vcx-1/hardware.nix
-        ./_da-vcx-1/disks.nix
+        ./_hardware.nix
+        ./_disks.nix
       ];
       boot.zfs.extraPools = [
         "impulse"

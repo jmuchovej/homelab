@@ -26,29 +26,5 @@
     ];
   };
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-partlabel/EFI";
-    fsType = "vfat";
-    options = [
-      "fmask=0137"
-      "dmask=0027"
-    ];
-  };
-
-  fileSystems."/" = {
-    device = "/dev/disk/by-partlabel/NixOS";
-    fsType = "btrfs";
-    options = [
-      "rw"
-      "noatime"
-      "ssd"
-      "subvol=/@"
-    ];
-  };
-
-  swapDevices = [
-    { device = "/dev/disk/by-partlabel/swap"; }
-  ];
-
   hardware.enableRedistributableFirmware = true;
 }
