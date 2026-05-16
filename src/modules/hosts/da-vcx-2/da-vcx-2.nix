@@ -27,6 +27,7 @@
       # Networking (base via suite-common, dns/manager selected here)
       <rbn/system/networking/dns/resolved>
       <rbn/system/networking/manager/networkd>
+      <rbn/services/zerotier>
 
       # Services
       <rbn/services/avahi>

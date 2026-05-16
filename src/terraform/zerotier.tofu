@@ -48,7 +48,7 @@ resource "zerotier_network" "holonet" {
 resource "zerotier_member" "clients" {
   for_each = {
     for name, c in local.topology.clients : name => c
-    if try(c.zerotier, "") != ""
+    if try(c.zerotier, null) != null
   }
 
   network_id         = zerotier_network.holonet.id
