@@ -20,6 +20,7 @@
       # YAML → JSON conversion via IFD. Yj is small; runs once per build and
       # caches in the store. Avoids forcing the catalog into JSON form.
       read-topology = _pkgs: lib.rbn.fs.from-yaml ../../../topology.yaml;
+      read-topology = lib: pkgs: lib.rbn.from-yaml ./topology.yaml { inherit pkgs; };
 
       # Build the wg-quick interface config — identical shape between NixOS
       # and nix-darwin since both expose `networking.wg-quick.interfaces`.
@@ -99,7 +100,7 @@
           sops-key = sops-key-for host;
         in
         mkMerge [
-          (get-secret config sops-key "holonet")
+          (get-secret config sops-key "topology")
           {
             sops.secrets.${sops-key} = {
               owner = "root";
@@ -109,7 +110,7 @@
 
             networking.wg-quick.interfaces.wg-holonet = mk-interface {
               inherit host lib;
-              topology = read-topology pkgs;
+              topology = read-topology lib pkgs;
               privateKeyFile = config.sops.secrets.${sops-key}.path;
             };
           }
@@ -129,7 +130,7 @@
           sops-key = sops-key-for host;
         in
         mkMerge [
-          (get-secret config sops-key "holonet")
+          (get-secret config sops-key "topology")
           {
             sops.secrets.${sops-key} = {
               owner = "root";
@@ -142,7 +143,7 @@
 
             networking.wg-quick.interfaces.wg-holonet = mk-interface {
               inherit host lib;
-              topology = read-topology pkgs;
+              topology = read-topology lib pkgs;
               privateKeyFile = config.sops.secrets.${sops-key}.path;
             };
           }
