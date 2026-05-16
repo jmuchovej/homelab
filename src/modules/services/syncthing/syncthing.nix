@@ -120,6 +120,7 @@ in
       (<rbn/mesh/register> {
         name = "syncthing";
         port = 8384;
+        node-scoped = true;
         authed = true;
         healthcheck = "/rest/noauth/health";
         authentik = {
