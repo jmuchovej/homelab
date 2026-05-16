@@ -62,6 +62,7 @@
 
       # Terminal programs
       <rbn/programs/terminal/eza>
+      <rbn/programs/terminal/carapace>
       <rbn/programs/terminal/ripgrep>
       <rbn/programs/terminal/starship>
       <rbn/programs/terminal/zoxide>
