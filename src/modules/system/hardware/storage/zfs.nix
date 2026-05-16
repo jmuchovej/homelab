@@ -5,7 +5,10 @@ _: {
       {
         environment.systemPackages = [ pkgs.zfs ];
         boot.supportedFilesystems = [ "zfs" ];
-        boot.zfs.allowHibernation = false;
+        boot.zfs.unsafeAllowHibernation = false;
+        # Root is btrfs on these hosts, so this is purely about silencing the
+        # 26.11 default-flip warning. New default is `false` (safer).
+        boot.zfs.forceImportRoot = false;
         # TODO ZFS 2.3 only supports up to 6.17!
         # https://github.com/NixOS/nixpkgs/blob/nixos-25.11/pkgs/os-specific/linux/zfs/2_3.nix
         # Latest from https://kernel.org
