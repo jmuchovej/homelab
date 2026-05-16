@@ -1,0 +1,18 @@
+---
+# Cilium BGP config — cluster-scoped CRs (LB IP pool + BGP peering to MikroTik).
+# Separate Flux Kustomization so it prunes/reconciles independently. Cilium
+# itself (the CNI + bgpControlPlane.enabled) is NixOS-managed; this only adds
+# the BGP intent.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cilium-bgp
+spec:
+  interval: 1h
+  path: ./src/kubernetes/apps/network/cilium-bgp/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: false
