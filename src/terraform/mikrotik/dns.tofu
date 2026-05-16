@@ -12,6 +12,7 @@ resource "routeros_ip_dns" "this" {
   )
 }
 
+# ─── Sibling-relay static records (router-only) ──────────────────────────
 resource "routeros_ip_dns_record" "sibling-relay" {
   for_each = var.role == "router" ? local.holonet-sibling-mgmt-ips : {}
 

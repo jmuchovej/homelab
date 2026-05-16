@@ -155,6 +155,7 @@ resource "routeros_ip_firewall_filter" "r34_fwd_mgmt_to_homelab_dns_tcp" {
   comment     = "Allow Management VLAN to query Homelab DNS (VIP)"
 }
 
+# ─── VIP access from VLAN clients ────────────────────────────────────────
 resource "routeros_ip_firewall_filter" "fwd_drop_iot_to_vip" {
   count = local.router-filter && contains(keys(local.vlans), "iot") ? 1 : 0
 
@@ -276,6 +277,7 @@ resource "routeros_ipv6_firewall_addr_list" "bad" {
 
 locals {
   v6_filter_rules = [
+    # ── first block ─────────────────────────────────────────────────────
     { id = "v01", chain = "input", action = "accept", connection_state = "established,related,untracked", comment = "defconf: accept established,related,untracked" },
     { id = "v02", chain = "input", action = "drop", connection_state = "invalid", comment = "defconf: drop invalid" },
     { id = "v03", chain = "input", action = "accept", protocol = "icmpv6", comment = "defconf: accept ICMPv6" },
@@ -334,6 +336,9 @@ locals {
       # catches them.
       routeros_ip_firewall_filter.input_dns_allow["udp"].id,
       routeros_ip_firewall_filter.input_dns_allow["tcp"].id,
+    ],
+    var.role == "router" ? [routeros_ip_firewall_filter.input_accept_holonet[0].id] : [],
+    [
       routeros_ip_firewall_filter.r11_input_drop_not_lan.id,
       routeros_ip_firewall_filter.r12_fwd_ipsec_in[0].id,
       routeros_ip_firewall_filter.r13_fwd_ipsec_out[0].id,
@@ -355,8 +360,6 @@ locals {
       routeros_ip_firewall_filter.r40_fwd_guest_to_hass[0].id,
       routeros_ip_firewall_filter.r41_fwd_mgmt_to_hass[0].id,
     ],
-    # wg-holonet accept on WAN before WAN-input drops below.
-    var.role == "router" ? [routeros_ip_firewall_filter.input_accept_holonet[0].id] : [],
     [
       routeros_ip_firewall_filter.r43_input_block_wan_tcp[0].id,
       routeros_ip_firewall_filter.r44_input_block_wan_dns[0].id,
