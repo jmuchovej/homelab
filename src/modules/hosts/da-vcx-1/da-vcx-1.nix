@@ -101,6 +101,7 @@
     containers.enable = true;
 
     persistence = {
+      device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300IBBB23122507026";
       extra-directories = [ ];
       extra-files = [ ];
     };

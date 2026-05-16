@@ -8,8 +8,6 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  networking.hostId = "4db68ea3";
-
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
     initrd.availableKernelModules = [
