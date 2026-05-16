@@ -32,6 +32,43 @@ _: {
           default = [ ];
           description = "Paths to export over NFS.";
         };
+
+        mounts = mkOption {
+          type = listOf (submodule {
+            options = {
+              server = mkOption {
+                type = str;
+                description = "NFS server address, e.g. 10.69.10.1 (da-gr75).";
+              };
+              remote = mkOption {
+                type = str;
+                description = "Remote export path on the server, e.g. /impulse/home.";
+              };
+              local = mkOption {
+                type = str;
+                description = "Local mountpoint, e.g. /home.";
+              };
+              options = mkOption {
+                type = listOf str;
+                default = [
+                  "nfsvers=4.2"
+                  "_netdev"
+                  "noatime"
+                  # automount instead of a hard boot dependency: the mount
+                  # happens on first access and the accessor blocks until it
+                  # succeeds — it never silently falls back to the local
+                  # (impermanence-wiped) directory, so /home writes can't be
+                  # lost. Idle-unmount after 10 min of inactivity.
+                  "x-systemd.automount"
+                  "x-systemd.idle-timeout=600"
+                ];
+                description = "Mount options for this NFS filesystem.";
+              };
+            };
+          });
+          default = [ ];
+          description = "Remote NFS exports to mount on this host.";
+        };
       };
     };
 
@@ -39,12 +76,23 @@ _: {
     nixos =
       { host, lib, ... }:
       {
-        services.nfs.server = {
+        services.nfs.server = lib.mkIf (host.nfs.exports != [ ]) {
           enable = true;
           exports =
             (lib.concatMapStringsSep "\n" (e: "${e.path} ${e.clients}(${e.options})") host.nfs.exports) + "\n";
         };
-        networking.firewall.allowedTCPPorts = [ 2049 ];
+        networking.firewall.allowedTCPPorts = lib.mkIf (host.nfs.exports != [ ]) [ 2049 ];
+
+        fileSystems = lib.listToAttrs (
+          map (
+            m:
+            lib.nameValuePair m.local {
+              device = "${m.server}:${m.remote}";
+              fsType = "nfs";
+              inherit (m) options;
+            }
+          ) host.nfs.mounts
+        );
       };
   };
 }
