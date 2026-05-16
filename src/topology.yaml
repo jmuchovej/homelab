@@ -37,6 +37,22 @@ clients:
     ip: 10.42.69.10
     public: h6/JHmWbCs5hoWi+h5sF+/I/TGLn+JdPZDKHQQTh5Tw=
     zerotier: ec0c4b18cc
+  da-vcx-1:
+    ip: 10.42.32.11
+    public: ""
+    zerotier: db2f424f26
+  da-vcx-2:
+    ip: 10.42.32.12
+    public: ""
+    zerotier: c45b6e40d4
+  da-vcx-3:
+    ip: 10.42.32.13
+    public: ""
+    zerotier: b4ecd23d53
+  en-t65-1:
+    ip: 10.42.36.11
+    public: ""
+    zerotier: 2ddb151813
 
 vlans:
   mgmt:
@@ -56,6 +72,8 @@ vlans:
     name: "lab"
     cidr: "10.69.0.0/16"
     gateway: "10.69.0.1"
+    # 10.69.1.0/24 carved out for the K8s LoadBalancer pool (Cilium LB-IPAM +
+    # BGP). Ingress lands on 10.69.1.1; DHCP must not hand those out.
     ranges: ["10.69.0.20-10.69.0.255", "10.69.2.0-10.69.255.254"]
     comment: "Homelab"
     dhcp: "dhcp2"
