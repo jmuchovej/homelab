@@ -1,4 +1,9 @@
-{ __findFile, ... }:
+{
+  __findFile,
+  lib,
+  den,
+  ...
+}:
 {
   # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.en-t65-1 = {
@@ -23,18 +28,6 @@
       enable = true;
       consul-catalog = true;
     };
-    # openbao = {
-    #   enable = true;
-    #   interface = "eno1";
-    # };
-    # nomad = {
-    #   enable = true;
-    #   server = true;
-    #   client = true;
-    #   bootstrap-expect = 1;
-    #   interface = "eno1";
-    #   consul.enable = true;
-    # };
     tailscale.enable = true;
   };
 
@@ -68,10 +61,33 @@
       <rbn/services/postgres>
     ];
 
-    nixos = {
-      imports = [
-        ./_hardware.nix
+    provides.to-users = {
+      includes = with den.aspects; [
+        (facter ./facter.json)
       ];
+    };
+
+    nixos = {
+      networking.hostId = "6b832704";
+
+      fileSystems."/" = {
+        device = "/dev/disk/by-label/nixos";
+        fsType = "ext4";
+      };
+
+      fileSystems."/boot" = {
+        device = "/dev/disk/by-label/BOOT-EFI";
+        fsType = "vfat";
+        options = [
+          "fmask=0077"
+          "dmask=0077"
+        ];
+      };
+
+      swapDevices = [
+        { device = "/dev/disk/by-label/swap"; }
+      ];
+
       system.stateVersion = "24.05";
     };
   };
