@@ -2,6 +2,7 @@ listen-port: 51820
 
 zerotier:
   network: "93afae596391633f"
+  overlay: 10.42.32.0/19
 
 macs:
   UGreen CM199: c8:a3:62:10:4f:76
@@ -9,7 +10,7 @@ macs:
 subnets:
   da: 10.42.32.0/24
   en: 10.42.36.0/24
-  clients: 10.42.69.0/24
+  clients: 10.42.48.0/24
 
 network:
   da-relay01:
@@ -18,13 +19,11 @@ network:
     ip: 10.42.32.1
     ddns: hgs0ach20gx.sn.mynetname.net
     public: yzPvixlHxHdPPr3BfdgpZtAGEbQWAk/WmhSCo1DmEl0=
-
   da-relay02:
     role: switch
     ip: 10.42.32.2
     ddns: hg409j7jsk1.sn.mynetname.net
     public: T50zkiBdLOMRvx58wJ+iKLdJ+kuVRbeiiWj/3Tez+C8=
-
   en-relay01:
     role: router
     # trunks: [ether5]
@@ -34,24 +33,23 @@ network:
 
 clients:
   da-n1x:
-    ip: 10.42.69.10
+    ip: 10.42.48.10
     public: h6/JHmWbCs5hoWi+h5sF+/I/TGLn+JdPZDKHQQTh5Tw=
     zerotier: ec0c4b18cc
+  da-gr75:
+    ip: 10.42.32.10
+    zerotier: 107f4bb12a
   da-vcx-1:
     ip: 10.42.32.11
-    public: ""
     zerotier: db2f424f26
   da-vcx-2:
     ip: 10.42.32.12
-    public: ""
     zerotier: c45b6e40d4
   da-vcx-3:
     ip: 10.42.32.13
-    public: ""
     zerotier: b4ecd23d53
   en-t65-1:
     ip: 10.42.36.11
-    public: ""
     zerotier: 2ddb151813
 
 vlans:
