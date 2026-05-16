@@ -8,5 +8,6 @@ resources:
   # the k8s namespace is still plain `external-secrets`.
   - ./_external-secrets
   - ./cert-manager
+  - ./kube-system
   - ./media
   - ./network
