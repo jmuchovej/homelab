@@ -1,6 +1,6 @@
 resource "authentik_brand" "default" {
   default             = false
-  domain              = local.domain.dc
+  domain              = var.domain.da
   branding_logo       = "icon.png"
   branding_favicon    = "icon.png"
   branding_title      = "The Rebellion"
@@ -9,12 +9,13 @@ resource "authentik_brand" "default" {
   flow_user_settings  = authentik_flow.user-settings.uuid
   flow_recovery       = authentik_flow.recovery.uuid
   flow_unenrollment   = authentik_flow.unenrollment.uuid
+  default_application = module.authentik-app-tailscale.uuid
 }
 
 # Brand for external access via Cloudflare tunnel
 resource "authentik_brand" "external" {
   default             = false
-  domain              = local.domain.root
+  domain              = var.domain.root
   branding_logo       = "icon.png"
   branding_favicon    = "icon.png"
   branding_title      = "The Rebellion"
@@ -23,6 +24,7 @@ resource "authentik_brand" "external" {
   flow_user_settings  = authentik_flow.user-settings.uuid
   flow_recovery       = authentik_flow.recovery.uuid
   flow_unenrollment   = authentik_flow.unenrollment.uuid
+  default_application = module.authentik-app-tailscale.uuid
 }
 
 resource "authentik_system_settings" "default" {
@@ -36,10 +38,16 @@ resource "authentik_system_settings" "default" {
   gdpr_compliance              = true
   pagination_default_page_size = 200
   pagination_max_page_size     = 1000
+  flags = jsonencode({
+    core_default_app_access                = false,
+    enterprise_audit_include_expanded_diff = false,
+    flows_continuous_login                 = false,
+    flows_refresh_others                   = false,
+  })
 }
 
 resource "authentik_certificate_key_pair" "wildcard" {
-  name             = "Wildcard Certificate for ${local.domain.dc}"
-  certificate_data = data.sops_file.dc.data["certs.lab.crt"]
-  key_data         = data.sops_file.dc.data["certs.lab.key"]
+  name             = "Wildcard Certificate for ${var.domain.da}"
+  certificate_data = data.sops_file.da.data["certs.lab.crt"]
+  key_data         = data.sops_file.da.data["certs.lab.key"]
 }

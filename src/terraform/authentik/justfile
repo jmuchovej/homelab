@@ -1,0 +1,226 @@
+secrets := "../secrets/secrets.sops.yaml"
+output := "../authentik.auto.tfvars.json"
+
+_default:
+    @just --list
+
+[private]
+_token:
+    @sops -d {{ secrets }} | yq '.authentik.token'
+
+[private]
+_domain:
+    @sops -d {{ secrets }} | yq '.domain'
+
+# Hits the Authentik REST API and prints the raw JSON response.
+# Used by the discovery recipes below.
+#
+# Example: `just _query 'flows/instances/?page_size=200'`
+[private]
+_query path:
+    #!/usr/bin/env bash
+    TOKEN=$(just _token)
+    DOMAIN=$(just _domain)
+    curl -sk -H "Authorization: Bearer ${TOKEN}" \
+      "https://id.${DOMAIN}/api/v3/{{ path }}"
+
+# Map of every managed blueprint's path → UUID.
+discover-blueprints:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'managed/blueprints/?page_size=500' \
+      | yq -p json '.results[] | "\"\(.path)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every "default-*" flow slug → UUID.
+discover-flows:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'flows/instances/?page_size=500' \
+      | yq -p json '.results[] | select(.slug | test("^default-")) | "\"\(.slug)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every "default-*" stage name → UUID.
+# Excludes `*oobe*` — those belong to the one-time `initial-setup` (OOBE) flow.
+discover-stages:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'stages/all/?page_size=500' \
+      | yq -p json '.results[] | select(.name | test("^default-")) | select(.name | test("oobe") | not) | "\"\(.name)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every "default-*" prompt field name → UUID (used by prompt stages).
+# Excludes `*oobe*` — those belong to the one-time `initial-setup` (OOBE) flow.
+discover-prompt-fields:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'stages/prompt/prompts/?page_size=500' \
+      | yq -p json '.results[] | select(.name | test("^default-")) | select(.name | test("oobe") | not) | "\"\(.name)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every property mapping managed-name → UUID (oauth2 scopes etc).
+discover-property-mappings:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'propertymappings/all/?page_size=500' \
+      | yq -p json '.results[] | select(.managed != null) | "\"\(.managed)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every "default-*" policy name → UUID.
+# Excludes `*oobe*` — those belong to the one-time `initial-setup` (OOBE) flow.
+discover-policies:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    entries=$(just _query 'policies/all/?page_size=500' \
+      | yq -p json '.results[] | select(.name | test("^default-")) | select(.name | test("oobe") | not) | "\"\(.name)\":\"\(.pk)\""')
+    echo "{$(echo "${entries}" | paste -sd, -)}"
+
+# Map of every "default-*" flow's stage bindings "<flow-slug>|<order>" → UUID.
+# Bindings have no name/slug and no data source, so we join each binding's
+# `target` (flow UUID) back to its slug to build a stable, wipe-safe key.
+discover-flow-stage-bindings:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    declare -A slug
+    while IFS=$'\t' read -r pk s; do slug["$pk"]="$s"; done < <(
+      just _query 'flows/instances/?page_size=500' | yq -p json '.results[] | [.pk, .slug] | @tsv'
+    )
+    entries=""
+    while IFS=$'\t' read -r pk target order; do
+      fs="${slug[$target]:-}"
+      [[ "$fs" == default-* ]] || continue
+      entries="${entries}\"${fs}|${order}\":\"${pk}\","
+    done < <(
+      just _query 'flows/bindings/?page_size=500' | yq -p json '.results[] | [.pk, .target, .order] | @tsv'
+    )
+    echo "{${entries%,}}"
+
+# Map of policy bindings "<target>|<policy-name>" → UUID, where <target> is a
+# flow-stage-binding key ("<flow-slug>|<order>") or a flow slug. Doubly nested:
+# policy-binding → target binding → flow. Filtered to default-*, non-oobe.
+discover-policy-bindings:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    declare -A fslug
+    while IFS=$'\t' read -r pk s; do fslug["$pk"]="$s"; done < <(
+      just _query 'flows/instances/?page_size=500' | yq -p json '.results[] | [.pk, .slug] | @tsv'
+    )
+    declare -A bkey
+    while IFS=$'\t' read -r pk target order; do
+      fs="${fslug[$target]:-}"
+      [[ -n "$fs" ]] && bkey["$pk"]="${fs}|${order}"
+    done < <(
+      just _query 'flows/bindings/?page_size=500' | yq -p json '.results[] | [.pk, .target, .order] | @tsv'
+    )
+    entries=""
+    while IFS=$'\t' read -r pk policy target order; do
+      tk="${bkey[$target]:-${fslug[$target]:-}}"
+      [[ "$tk" == default-* ]] || continue
+      [[ "$policy" == default-* && "$policy" != *oobe* ]] || continue
+      entries="${entries}\"${tk}|${policy}\":\"${pk}\","
+    done < <(
+      just _query 'policies/bindings/?page_size=500' | yq -p json '.results[] | [.pk, (.policy_obj.name // ""), .target, (.order|tostring)] | @tsv'
+    )
+    echo "{${entries%,}}"
+
+# Map of permission codename → "app_label.codename" for the WHOLE permission table
+# (700+), paginated — this is what replaces the per-codename `data` lookups that
+# hit the provider's 100-item cap. Codenames that exist under more than one app
+# (e.g. *_devicetoken) are DROPPED so they never resolve to the wrong app; write
+# those in full "app.codename" form in the roles config (lookup() falls through).
+#
+# Unlike the other recipes this MERGES in place (yq load), so it can be run on a
+# live instance without clobbering the bootstrap-captured builtins snapshot.
+discover-permissions:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    acc=$(mktemp); echo '[]' > "$acc"; pg=$(mktemp)
+    page=1
+    while [[ -n "$page" && "$page" != "0" ]]; do
+      resp=$(just _query "rbac/permissions/?page_size=1000&page=${page}")
+      echo "$resp" | yq -p json -o json '.results' > "$pg"
+      yq -p json -o json -i ". += load(\"${pg}\")" "$acc"
+      page=$(echo "$resp" | yq -p json '.pagination.next')
+    done
+    mf=$(mktemp)
+    yq -p json -o json '(group_by(.codename) | map(select(length == 1)) | .[]) as $g ireduce ({}; . + {($g[0].codename): ($g[0].app_label + "." + $g[0].codename)})' "$acc" > "$mf"
+    [[ -f {{ output }} ]] || echo '{"authentik-builtins":{}}' > {{ output }}
+    yq -p json -o json -i ".[\"authentik-builtins\"].permissions = load(\"${mf}\")" {{ output }}
+    echo "merged permissions: $(yq -p json -o json '. | keys | length' "$mf") unique codenames"
+
+# ─── Compose + write ──────────────────────────────────────────────────────
+
+# Run every discover-* recipe, build the composite object, write to
+# the tfvars file. Tofu auto-loads any *.auto.tfvars.json in the
+# terraform dir, so no `-var-file=` needed on plan/apply.
+discover-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Discovering Authentik defaults via REST API..."
+    bp=$(just discover-blueprints)
+    fl=$(just discover-flows)
+    st=$(just discover-stages)
+    pm=$(just discover-property-mappings)
+    po=$(just discover-policies)
+    pf=$(just discover-prompt-fields)
+    fb=$(just discover-flow-stage-bindings)
+    pb=$(just discover-policy-bindings)
+    cat > {{ output }} <<EOF
+    {
+      "authentik-builtins": {
+        "blueprints":         ${bp:-null},
+        "flows":              ${fl:-null},
+        "stages":             ${st:-null},
+        "property_mappings":  ${pm:-null},
+        "policies":           ${po:-null},
+        "prompt_fields":      ${pf:-null},
+        "bindings":           ${fb:-null},
+        "policy_bindings":    ${pb:-null}
+      }
+    }
+    EOF
+    echo ""
+    echo "Wrote {{ output }}"
+    # Count entries — `keys | length` works in every yq variant.
+    count() { echo "$1" | yq -p json '. | keys | length'; }
+    echo "Counts:"
+    echo "  blueprints:        $(count "${bp}")"
+    echo "  flows:             $(count "${fl}")"
+    echo "  stages:            $(count "${st}")"
+    echo "  property_mappings: $(count "${pm}")"
+    echo "  policies:          $(count "${po}")"
+    echo "  prompt_fields:     $(count "${pf}")"
+    echo "  bindings:          $(count "${fb}")"
+    echo "  policy_bindings:   $(count "${pb}")"
+
+# ─── Outpost tokens ───────────────────────────────────────────────────────
+
+# The managed `ak-outpost-<uuid>` token is the only credential an outpost
+# connects with, and the provider doesn't expose it — so pull it from the REST
+# API and sync to sops. Run after an outpost is created or after a re-seed;
+# managed tokens are otherwise non-expiring, so this is a one-shot, not routine.
+#
+# Sync managed outpost tokens from the Authentik API into sops.
+sync-outpost-tokens:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    secrets="../secrets/authentik.sops.yaml"
+    just _query 'outposts/instances/?page_size=100' \
+      | yq -p json '.results[] | [(.name | downcase), .token_identifier] | @tsv' \
+      | while IFS=$'\t' read -r name ident; do
+          key=$(just _query "core/tokens/${ident}/view_key/" | yq -p json '.key')
+          if [[ -z "${key}" || "${key}" == "null" ]]; then
+            echo "skip  ${name} (no key for ${ident})"
+            continue
+          fi
+          sops set "${secrets}" "[\"outposts\"][\"${name}-token\"]" "\"${key}\""
+          echo "sync  outposts/${name}-token  (${ident})"
+        done
+    echo "Rebuild da-vcx-1 (or: systemctl restart authentik-{proxy,ldap,radius}) to apply."
+
+# ─── Inspection ───────────────────────────────────────────────────────────
+
+# Pretty-print the current tfvars file for inspection.
+show:
+    @[[ -f {{ output }} ]] && yq -p json {{ output }} \
+      || echo "{{ output }} does not exist — run 'just discover-all'"
