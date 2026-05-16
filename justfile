@@ -9,9 +9,6 @@ default:
 setup:
     nix profile install nixpkgs#cachix
 
-format disk:
-    diskutil eraseDisk MS-DOS GPT {{ disk }}
-
 [linux]
 switch:
     nh os switch . -j 8 --cores 8
@@ -53,5 +50,3 @@ facter host target=host:
 topology:
     d2 -w -d -p 7326 topology.d2 topology.png
 
-docs:
-    uv run --group docs zensical serve
