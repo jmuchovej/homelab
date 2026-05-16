@@ -15,6 +15,12 @@
       extra-directories = [ ];
       extra-files = [ ];
     };
+    nfs = {
+      exports = [
+        { path = "/impulse/k8s"; }
+        { path = "/impulse/users"; }
+      ];
+    };
   };
 
   den.aspects.da-gr75 = {
@@ -38,6 +44,7 @@
       <rbn/system/networking/manager/networkmanager>
 
       # Services
+      <rbn/services/nfs>
       <rbn/services/avahi>
       <rbn/services/ldap>
       <rbn/services/postgres>
