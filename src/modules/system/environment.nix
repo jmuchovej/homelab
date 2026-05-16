@@ -55,6 +55,22 @@ _: {
         environment.systemPackages = with pkgs; [
           openntpd
           nix-zsh-completions
+
+          # Common CLI baseline — available to every user, every script,
+          # every sudo shell. HM-managed versions (for users that have them)
+          # take precedence in interactive shells.
+          bat
+          bottom
+          delta
+          eza
+          fd
+          fzf
+          htop
+          jq
+          ripgrep
+          tree
+          yq-go
+          zoxide
         ];
 
         networking.timeServers = [
