@@ -3,6 +3,12 @@
   den.hosts.x86_64-linux.da-vcx-2 = {
     tailscale.enable = true;
     containers.enable = true;
+
+    persistence = {
+      device = "/dev/disk/by-id/nvme-KINGSTON_OM8PGP4512Q-A0_50026B73830175E0";
+      extra-directories = [ ];
+      extra-files = [ ];
+    };
   };
 
   den.aspects.da-vcx-2 = {
@@ -28,8 +34,8 @@
     ];
 
     nixos = {
+      networking.hostId = "4db68ea3";
       imports = [
-        ./_hardware.nix
         ./_disks.nix
       ];
       system.stateVersion = "24.11";
