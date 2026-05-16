@@ -1,5 +1,19 @@
-_: {
+{ inputs, ... }:
+{
   rbn.services._.openssh = {
+    # Shared across NixOS and nix-darwin: trust every fleet host's SSH key,
+    # eliminating TOFU between nodes. Sourced from `secrets/systems/<host>.pub`;
+    # entries without a pub file (e.g. `minimal`) are skipped by `systems-ssh`.
+    os =
+      { lib, ... }:
+      let
+        inherit (lib) mapAttrs;
+        secrets-keys = import "${inputs.self}/secrets" { inherit lib; };
+      in
+      {
+        programs.ssh.knownHosts = mapAttrs (_: pub: { publicKey = pub; }) secrets-keys.systems-ssh;
+      };
+
     nixos =
       { lib, ... }:
       let
