@@ -27,6 +27,7 @@
       # Editors
       <rbn/programs/editors/helix>
       <rbn/programs/editors/micro>
+      (<rbn/programs/editors/default-editor> "nvim")
     ];
 
     nixos =
