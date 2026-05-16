@@ -35,6 +35,11 @@
           host   all      all     ::1/128        trust
         '';
         initialScript = config.sops.templates."init.sql".path;
+        initdbArgs = [
+          "--locale-provider=builtin"
+          "--builtin-locale=C.UTF-8"
+          "--encoding=UTF8"
+        ];
       };
 
       services.postgresqlBackup = {

@@ -62,12 +62,14 @@
       (get-secret' config "authentik/secret-key")
       (get-secret' config "authentik/token")
       (get-secret' config "mailgun/smtp-token")
+      (get-secret' config "authentik/bootstrap-token")
       (get-secret config "outposts/proxy-token" "authentik")
       (get-secret config "outposts/ldap-token" "authentik")
       (get-secret config "outposts/radius-token" "authentik")
       {
         sops.templates."authentik/env".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
+          AUTHENTIK_BOOTSTRAP_TOKEN=${config.sops.placeholder."authentik/bootstrap-token"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
         '';
 
@@ -87,8 +89,8 @@
             disable_startup_analytics = true;
             avatars = "initials";
           };
-          worker.listenHTTP = "localhost:9001";
-          worker.listenMetrics = "localhost:9301";
+          worker.listenHTTP = "127.0.0.1:9001";
+          worker.listenMetrics = "127.0.0.1:9301";
         };
 
         sops.templates."authentik/outposts/proxy-env".content = ''
