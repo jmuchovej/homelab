@@ -2,6 +2,7 @@
 # /interface bridge port
 # /interface bridge vlan
 
+# ─── Derived port/VLAN layout ─────────────────────────────────────────────
 locals {
   port_pvids = {
     for name, p in var.ports : name => (
@@ -31,6 +32,7 @@ locals {
   }
 }
 
+# ─── Bridge ───────────────────────────────────────────────────────────────
 resource "routeros_interface_bridge" "bridge" {
   name           = "bridge"
   admin_mac      = var.bridge-mac
@@ -39,6 +41,7 @@ resource "routeros_interface_bridge" "bridge" {
   comment        = "defconf"
 }
 
+# ─── Bridge ports ─────────────────────────────────────────────────────────
 resource "routeros_interface_bridge_port" "port" {
   for_each = var.ports
 

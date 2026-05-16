@@ -1,5 +1,6 @@
 # /system clock
 # /system identity
+# /user group
 # /ip service
 # /ip ssh
 # /ip neighbor discovery-settings
@@ -8,6 +9,7 @@
 # /interface ethernet  (set comment on var.wan_interface)
 # /iot lora servers    (NOT SUPPORTED by terraform-provider-routeros — see note)
 
+# ─── WAN ethernet label (router only) ─────────────────────────────────────
 resource "routeros_interface_ethernet" "wan" {
   count = var.role == "router" ? 1 : 0
 
@@ -16,14 +18,17 @@ resource "routeros_interface_ethernet" "wan" {
   comment      = "WAN"
 }
 
+# ─── /system clock ────────────────────────────────────────────────────────
 resource "routeros_system_clock" "this" {
   time_zone_name = "America/New_York"
 }
 
+# ─── /system identity ─────────────────────────────────────────────────────
 resource "routeros_system_identity" "this" {
   name = var.relay
 }
 
+# ─── /ip service ──────────────────────────────────────────────────────────
 resource "routeros_ip_service" "ftp" {
   numbers  = "ftp"
   port     = 21
@@ -42,6 +47,7 @@ resource "routeros_ip_service" "www" {
   address = local.admin-allowed-sources
 }
 
+# ─── WAN certificate (imported from caller-supplied PEM) ─────────────────
 data "routeros_x509" "wan" {
   count = local.wan-certificate != "" ? 1 : 0
   data  = local.wan-certificate-pem
@@ -88,18 +94,22 @@ resource "routeros_ip_service" "api_ssl" {
   disabled = true
 }
 
+# ─── /ip ssh ──────────────────────────────────────────────────────────────
 resource "routeros_ip_ssh_server" "this" {
   strong_crypto = true
 }
 
+# ─── /ip neighbor discovery-settings ──────────────────────────────────────
 resource "routeros_ip_neighbor_discovery_settings" "this" {
   discover_interface_list = routeros_interface_list.lan.name
 }
 
+# ─── /tool mac-server ─────────────────────────────────────────────────────
 resource "routeros_tool_mac_server" "this" {
   allowed_interface_list = routeros_interface_list.lan.name
 }
 
+# ─── /tool mac-server mac-winbox ──────────────────────────────────────────
 resource "routeros_tool_mac_server_winbox" "this" {
   allowed_interface_list = routeros_interface_list.lan.name
 }

@@ -42,6 +42,7 @@ resource "routeros_ip_firewall_addr_list" "no_hairpin_dst" {
   comment = each.value.comment
 }
 
+# ─── srcnat masquerade (defconf) ──────────────────────────────────────────
 resource "routeros_ip_firewall_nat" "n01_masq_wan" {
   count = var.role == "router" ? 1 : 0
 
@@ -52,6 +53,7 @@ resource "routeros_ip_firewall_nat" "n01_masq_wan" {
   comment            = "defconf: masquerade"
 }
 
+# ─── External DNATs for Traefik VIP (always on if WAN-facing) ─────────────
 resource "routeros_ip_firewall_nat" "n03_dnat_https_to_vip" {
   count      = var.role == "router" && var.enable-hairpin ? 1 : 0
   depends_on = [routeros_ip_firewall_addr_list.rfc1918]
@@ -86,6 +88,7 @@ resource "routeros_ip_firewall_nat" "n04_dnat_http_to_vip" {
   comment          = "[ext] HTTP to Traefik VIP"
 }
 
+# ─── Hairpin: LAN → router-local IP → VIP ────────────────────────────────
 resource "routeros_ip_firewall_nat" "n09_hairpin_masq_replies" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
 
@@ -148,6 +151,7 @@ resource "routeros_ip_firewall_nat" "n12_hairpin_masq_client_src" {
   comment     = "Hairpin masquerade: rewrite client src so VIP replies via router"
 }
 
+# ─── Connection tracking timeouts ─────────────────────────────────────────
 resource "routeros_ip_firewall_connection_tracking" "this" {
   generic_timeout = "1m"
 }
