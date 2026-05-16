@@ -33,12 +33,14 @@ Perform fast, essential checks that catch common issues during active developmen
    - Provide git-workflow-friendly output
 
 **Execution Strategy:**
+
 - If [path] is specified, limit checks to that directory or file
 - If --fix is specified, automatically correct issues that are safe to fix
 - If --verbose is specified, show detailed output for each check performed
 - Otherwise, provide concise feedback focusing on actionable issues
 
 **Command Arguments:**
+
 - [path]: Directory or file to check (defaults to current directory)
 - --fix: Automatically fix issues that can be safely corrected
 - --verbose: Show detailed output for all validation steps

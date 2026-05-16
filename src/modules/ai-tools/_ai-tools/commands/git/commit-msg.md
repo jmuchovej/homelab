@@ -16,19 +16,19 @@ Generate a conventional commit message for the staged changes.
 
 2. **Determine Commit Type**:
 
-   | Type | When to Use |
-   |------|-------------|
-   | `feat` | New feature or capability added |
-   | `fix` | Bug fix |
-   | `docs` | Documentation only changes |
-   | `style` | Formatting, no code change |
+   | Type       | When to Use                             |
+   | ---------- | --------------------------------------- |
+   | `feat`     | New feature or capability added         |
+   | `fix`      | Bug fix                                 |
+   | `docs`     | Documentation only changes              |
+   | `style`    | Formatting, no code change              |
    | `refactor` | Code change that neither fixes nor adds |
-   | `perf` | Performance improvement |
-   | `test` | Adding or fixing tests |
-   | `build` | Build system or dependencies |
-   | `ci` | CI configuration |
-   | `chore` | Maintenance tasks |
-   | `revert` | Reverting previous commit |
+   | `perf`     | Performance improvement                 |
+   | `test`     | Adding or fixing tests                  |
+   | `build`    | Build system or dependencies            |
+   | `ci`       | CI configuration                        |
+   | `chore`    | Maintenance tasks                       |
+   | `revert`   | Reverting previous commit               |
 
 3. **Determine Scope**:
    - Extract from file paths (e.g., `src/auth/` -> `auth`)
@@ -101,6 +101,7 @@ Refs #38
 **Output Format:**
 
 Present the generated commit message in a code block, then explain your reasoning:
+
 - Why you chose this type
 - Why this scope (or why omitted)
 - What the key changes are

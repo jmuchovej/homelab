@@ -46,6 +46,7 @@ You default to the simplest working solution. You've seen enough "clever" abstra
 ## Project Context
 
 You may be working on any of these project types:
+
 - **Digital gardens / content sites** — Astro + content collections, MDX, structured data
 - **Data visualization sites** — Astro + Vega-Lite embeds (specs from Altair pipeline), geospatial, interactive charts
 - **API services** — Astro API routes or standalone Hono/h3 servers

@@ -38,31 +38,39 @@ Compile comprehensive information about a codebase area for use in prompts, docu
 # Context: [Topic Name]
 
 ## Purpose
+
 [What this code does and why it exists]
 
 ## Key Files
-| File | Purpose |
-|------|---------|
+
+| File              | Purpose             |
+| ----------------- | ------------------- |
 | `path/to/main.ts` | Main implementation |
 
 ## Public Interface
+
 [Key functions, types, and their signatures]
 
 ## Dependencies
+
 - **Internal**: [list of internal dependencies]
 - **External**: [list of external packages]
 
 ## Consumers
+
 [What other code uses this]
 
 ## Recent Changes
+
 [Summary of recent git history]
 
 ## Code Snippets
+
 [Relevant excerpts with context]
 ```
 
 **Command Arguments:**
+
 - `<topic>`: Feature name, module path, or search term
 - `--scope=file`: Single file context
 - `--scope=module`: Module/directory context (default)

@@ -9,6 +9,7 @@ Validate Nix code, identify issues, and provide actionable improvements.
 ## **WORKFLOW OVERVIEW**
 
 This command provides 4-tier validation:
+
 1. **Syntax & Parse** - Basic Nix syntax validation
 2. **Evaluation** - Check that expressions evaluate correctly
 3. **Build Testing** - Verify outputs can be built
@@ -17,17 +18,20 @@ This command provides 4-tier validation:
 ## **PHASE 1: PROJECT ANALYSIS**
 
 ### **Step 1.1: Context Detection**
+
 ```
 ALWAYS START - Determine Nix project type and scope
 ```
 
 **Project type detection:**
+
 - Check for `flake.nix` in current directory (flake-based project)
 - Check for `shell.nix` or `default.nix` (traditional Nix project)
 - Look for NixOS configuration patterns (`configuration.nix`, `/etc/nixos/`)
 - Check for Home Manager patterns (`home.nix`, `.config/home-manager/`)
 
 **Scope determination:**
+
 ```
 IF path specified:
     Focus validation on specific file/directory
@@ -38,7 +42,9 @@ ELSE:
 ```
 
 ### **Step 1.2: Available Tools Detection**
+
 **Check available validation tools:**
+
 ```
 □ nix flake check (for flakes)
 □ nix-instantiate (for traditional projects)
@@ -50,7 +56,9 @@ ELSE:
 ## **PHASE 2: SYSTEMATIC VALIDATION**
 
 ### **Step 2.1: Syntax Validation**
+
 **Parse-level validation:**
+
 ```
 FOR each .nix file in scope:
     Run: nix-instantiate --parse <file>
@@ -63,12 +71,15 @@ FOR each .nix file in scope:
 ```
 
 **Immediate feedback:**
+
 - Stop validation if critical syntax errors found
 - Report exact error locations with context
 - Suggest common fixes for typical syntax issues
 
 ### **Step 2.2: Evaluation Testing**
+
 **Expression evaluation validation:**
+
 ```
 IF --eval flag OR --full flag:
     FOR each file/expression:
@@ -82,6 +93,7 @@ IF --eval flag OR --full flag:
 ```
 
 **Flake-specific evaluation:**
+
 ```
 IF flake.nix present:
     Run: nix flake check --no-build
@@ -91,7 +103,9 @@ IF flake.nix present:
 ```
 
 ### **Step 2.3: Build Validation**
+
 **Build-time validation:**
+
 ```
 IF --build flag OR --full flag:
     FOR flake outputs:
@@ -103,6 +117,7 @@ IF --build flag OR --full flag:
 ```
 
 **Build issue analysis:**
+
 ```
 Categorize build problems:
   - Missing dependencies
@@ -114,7 +129,9 @@ Categorize build problems:
 ## **PHASE 3: QUALITY ANALYSIS**
 
 ### **Step 3.1: Code Quality Assessment**
+
 **Static analysis patterns:**
+
 ```
 FOR each .nix file:
     Check for anti-patterns:
@@ -126,6 +143,7 @@ FOR each .nix file:
 ```
 
 **Project-specific patterns:**
+
 ```
 IF khanelinix project detected:
     Launch Task with Nix Expert: "Analyze this Nix code for khanelinix compliance and optimization opportunities"
@@ -134,6 +152,7 @@ ELSE:
 ```
 
 ### **Step 3.2: Formatting Validation**
+
 ```
 IF --format flag OR --full flag:
     Run available formatters:
@@ -145,7 +164,9 @@ IF --format flag OR --full flag:
 ```
 
 ### **Step 3.3: Optimization Opportunities**
+
 **Performance analysis:**
+
 ```
 Identify optimization opportunities:
   - Lazy evaluation improvements
@@ -158,7 +179,9 @@ Identify optimization opportunities:
 ## **PHASE 4: REPORTING AND RECOMMENDATIONS**
 
 ### **Step 4.1: Issue Classification**
+
 **Categorize all findings:**
+
 ```
 CRITICAL: Syntax errors preventing evaluation
 HIGH: Evaluation errors breaking functionality
@@ -168,7 +191,9 @@ INFO: Suggestions and best practices
 ```
 
 ### **Step 4.2: Actionable Report Generation**
+
 **For each issue found:**
+
 ```
 Report format:
 [SEVERITY] File:Line - Issue Description
@@ -180,6 +205,7 @@ Example: Code snippet showing the fix (if applicable)
 ```
 
 ### **Step 4.3: Summary and Next Steps**
+
 ```
 Provide summary:
   - Total files checked
@@ -192,6 +218,7 @@ Provide summary:
 ## **COMMAND FLAGS AND BEHAVIOR**
 
 **Flag-specific execution:**
+
 ```
 --build: Include build testing and derivation validation
 --eval: Include comprehensive evaluation testing
@@ -203,6 +230,7 @@ No flags: Run syntax + basic evaluation + quality analysis
 ## **ERROR HANDLING AND RECOVERY**
 
 **Graceful failure handling:**
+
 ```
 FOR each validation failure:
     - Continue checking other files/aspects
@@ -212,6 +240,7 @@ FOR each validation failure:
 ```
 
 **Progress reporting:**
+
 ```
 Show progress for long-running operations:
   - File-by-file validation status

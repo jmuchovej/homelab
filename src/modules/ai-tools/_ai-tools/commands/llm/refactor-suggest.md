@@ -29,39 +29,44 @@ Analyze code and provide actionable refactoring suggestions that improve quality
 
 **Code Smells to Look For:**
 
-| Smell | Indicator | Refactoring |
-|-------|-----------|-------------|
-| Long Function | >30 lines | Extract Method |
-| Deep Nesting | >3 levels | Early Return, Extract |
-| Duplication | Similar code blocks | Extract Function |
-| God Object | Too many responsibilities | Split Class |
-| Feature Envy | Accessing other object's data | Move Method |
-| Magic Numbers | Unexplained literals | Extract Constant |
-| Long Parameter List | >4 parameters | Parameter Object |
+| Smell               | Indicator                     | Refactoring           |
+| ------------------- | ----------------------------- | --------------------- |
+| Long Function       | >30 lines                     | Extract Method        |
+| Deep Nesting        | >3 levels                     | Early Return, Extract |
+| Duplication         | Similar code blocks           | Extract Function      |
+| God Object          | Too many responsibilities     | Split Class           |
+| Feature Envy        | Accessing other object's data | Move Method           |
+| Magic Numbers       | Unexplained literals          | Extract Constant      |
+| Long Parameter List | >4 parameters                 | Parameter Object      |
 
 **Output Format:**
 
-```markdown
+````markdown
 # Refactoring Suggestions for [file]
 
 ## Summary
-- [X] high priority issues
+
+- [x] high priority issues
 - [Y] medium priority issues
 - [Z] low priority issues
 
 ## High Priority
 
 ### 1. [Issue Title]
+
 **Location**: `file.ts:42-78`
 **Problem**: [Description of the issue]
 **Suggestion**: [What to do]
 
 **Before**:
+
 ```[language]
 [Current code]
 ```
+````
 
 **After**:
+
 ```[language]
 [Suggested code]
 ```
@@ -69,7 +74,9 @@ Analyze code and provide actionable refactoring suggestions that improve quality
 **Benefit**: [Why this improves the code]
 
 ## Medium Priority
+
 ...
+
 ```
 
 **Command Arguments:**
@@ -80,3 +87,4 @@ Analyze code and provide actionable refactoring suggestions that improve quality
 - `--focus=structure`: Focus on architectural issues
 
 Suggest improvements that are practical and provide real value, not just stylistic preferences.
+```

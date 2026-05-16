@@ -120,20 +120,21 @@ These tools are available in every devenv shell and on all hosts:
 <failure-modes>
   Actively avoid these anti-patterns:
 
-  1. **Hallucinating APIs** — verify function signatures, options, and flags
-     exist before using them — check MCPs, /llms.txt, and docs when available
-     rather than relying on training data.
-  2. **Cargo-culting** — don't copy patterns without understanding why they
-     exist. Adapt to context.
-  3. **Gold-plating** — don't add error handling, validation, or features
-     beyond what the task requires.
-  4. **Scope creep** — a bug fix is not an invitation to refactor the module.
-  5. **Silent failure** — if something doesn't work, say so immediately.
-     Don't paper over errors.
-  6. **Premature abstraction** — three similar lines are better than a helper
-     nobody asked for.
-  7. **Stale context** — re-read files before editing. Don't rely on memory of
-     file contents from earlier in the conversation.
-  8. **Ignoring constraints** — re-read CLAUDE.md, AGENTS.md, and project rules
-     before proposing changes that might violate them.
+1. **Hallucinating APIs** — verify function signatures, options, and flags
+   exist before using them — check MCPs, /llms.txt, and docs when available
+   rather than relying on training data.
+2. **Cargo-culting** — don't copy patterns without understanding why they
+   exist. Adapt to context.
+3. **Gold-plating** — don't add error handling, validation, or features
+   beyond what the task requires.
+4. **Scope creep** — a bug fix is not an invitation to refactor the module.
+5. **Silent failure** — if something doesn't work, say so immediately.
+   Don't paper over errors.
+6. **Premature abstraction** — three similar lines are better than a helper
+   nobody asked for.
+7. **Stale context** — re-read files before editing. Don't rely on memory of
+   file contents from earlier in the conversation.
+8. **Ignoring constraints** — re-read CLAUDE.md, AGENTS.md, and project rules
+   before proposing changes that might violate them.
+
 </failure-modes>

@@ -34,25 +34,26 @@ Analyze code and generate comprehensive, idiomatic test cases.
 
 **Test Categories:**
 
-| Category | Description |
-|----------|-------------|
-| Unit | Single function/method in isolation |
-| Integration | Multiple components working together |
-| Edge Cases | Boundary conditions, empty/null inputs |
-| Error Handling | Expected errors are thrown/returned |
-| Regression | Specific bug prevention |
+| Category       | Description                            |
+| -------------- | -------------------------------------- |
+| Unit           | Single function/method in isolation    |
+| Integration    | Multiple components working together   |
+| Edge Cases     | Boundary conditions, empty/null inputs |
+| Error Handling | Expected errors are thrown/returned    |
+| Regression     | Specific bug prevention                |
 
 **Framework Patterns:**
 
 - **Jest (TypeScript/JavaScript)**:
+
   ```typescript
-  describe('functionName', () => {
-    it('should do X when Y', () => {
+  describe("functionName", () => {
+    it("should do X when Y", () => {
       expect(result).toBe(expected);
     });
 
     // For async functions
-    it('should do X when Y (async)', async () => {
+    it("should do X when Y (async)", async () => {
       const result = await asyncFunction();
       expect(result).toBe(expected);
     });
@@ -60,6 +61,7 @@ Analyze code and generate comprehensive, idiomatic test cases.
   ```
 
 - **pytest (Python)**:
+
   ```python
   def test_function_does_x_when_y():
       assert result == expected
@@ -72,6 +74,7 @@ Analyze code and generate comprehensive, idiomatic test cases.
   ```
 
 - **Cargo (Rust)**:
+
   ```rust
   #[test]
   fn test_function_does_x_when_y() {
@@ -87,6 +90,7 @@ Analyze code and generate comprehensive, idiomatic test cases.
   ```
 
 **Command Arguments:**
+
 - `<file-path>`: File containing code to test
 - `--framework=jest|pytest|cargo|xunit`: Testing framework to use
 - `--coverage=basic`: Essential happy path tests only

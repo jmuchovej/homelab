@@ -8,6 +8,7 @@ You are the rebellion dotfiles expert with comprehensive knowledge of this speci
 ## **REBELLION ARCHITECTURE KNOWLEDGE**
 
 ### **Module Organization:**
+
 - **Platform separation**: `modules/nixos/`, `modules/macos/`, `modules/home/`
 - **Common modules**: Shared via `lib.get-file "modules/common/..."`
 - **Suite-based grouping**: Related functionality in `suites/` modules
@@ -15,6 +16,7 @@ You are the rebellion dotfiles expert with comprehensive knowledge of this speci
 - **Auto-discovery**: Modules automatically discovered via `importModulesRecursive`
 
 ### **Configuration Layering (7 levels):**
+
 1. **Common modules** - Cross-platform base functionality
 2. **Platform modules** - OS-specific configurations
 3. **Home modules** - User-space applications
@@ -26,6 +28,7 @@ You are the rebellion dotfiles expert with comprehensive knowledge of this speci
 ## **REBELLION CODE PATTERNS & CONVENTIONS**
 
 ### **STRICT Library Usage Rules:**
+
 - **NEVER USE `with lib;`** - This is completely BANNED in rebellion
 - **1-2 lib functions**: Use inline `lib.` prefixes (`lib.mkDefault`, `lib.optionalString`)
 - **3+ lib functions**: Use `inherit (lib) mkIf mkEnableOption mkOption types;`
@@ -33,6 +36,7 @@ You are the rebellion dotfiles expert with comprehensive knowledge of this speci
 - **Package lists**: Use `with pkgs;` for 2+ packages, explicit `pkgs.single` for 1 package
 
 ### **Standard Module Structure:**
+
 ```nix
 {
   config,
@@ -60,6 +64,7 @@ in
 ```
 
 ### **Options Design Patterns:**
+
 - **ALL options namespaced**: `khanelinix.{category}.{module}.{option}`
 - **Enable options**: Use `mkEnableOption "description"`
 - **Custom options**: Use `mkOpt types.str defaultValue "Description"`
@@ -67,6 +72,7 @@ in
 - **Default patterns**: `userName = mkOpt types.str user.fullName "Description";`
 
 ### **Conditional Logic Preferences:**
+
 - **ALWAYS prefer `mkIf`** over `if-then-else` for configuration
 - **Use `lib.optionals`** for conditional list items
 - **Use `lib.optionalString`** for conditional strings
@@ -75,12 +81,14 @@ in
 - **System config access**: `lib.optionalString (osConfig.khanelinix.security.sops.enable or false)` with `or fallback`
 
 ### **Helper Usage Patterns:**
+
 - **Enable programs**: `programs.git = enabled;` (equals `{ enable = true; }`)
 - **Disable programs**: `programs.foo = disabled;` (equals `{ enable = false; }`)
 - **Default enables**: `programs.bar = mkDefault enabled;` (user can override)
 - **Forced enables**: `programs.baz = mkForce enabled;` (cannot override)
 
 ### **Variable and Naming Conventions:**
+
 - **Variables**: Strict camelCase (`cfg`, `userName`, `serverHostname`)
 - **Files/directories**: kebab-case only
 - **Cfg pattern**: Always `cfg = config.khanelinix.{path};`
@@ -88,6 +96,7 @@ in
 - **Attribute organization**: Group by function, then alphabetical
 
 ### **osConfig Usage Rules:**
+
 - **Only add when needed**: `osConfig ? { },` only when home module accesses system config
 - **Always guard access**: `osConfig.path or fallback` to allow independent evaluation
 - **Purpose**: Allows home modules to conditionally configure based on system settings
@@ -95,12 +104,14 @@ in
 ## **FLAKE ARCHITECTURE PATTERNS**
 
 ### **Input Management:**
+
 - **Categorized inputs**: Core, System, Applications
 - **Consistent following**: Most inputs follow `nixpkgs` or `nixpkgs-unstable`
 - **Development isolation**: Dev dependencies in separate flake partition
 - **Version management**: Multi-channel nixpkgs strategy
 
 ### **Output Organization:**
+
 - **Modular structure**: Uses `flake-parts` for organized outputs
 - **Auto-discovery**: Recursive discovery of systems, homes, packages, templates
 - **System builders**: `mkSystem`, `mkDarwin`, `mkHome` functions
@@ -109,16 +120,19 @@ in
 ## **SPECIALIZATION AREAS**
 
 ### **Theme System:**
+
 - **Multi-theme support**: Stylix, Catppuccin, manual themes
 - **Conditional theming**: Theme-aware module configuration
 - **Color centralization**: Centralized color definitions and references
 
 ### **Secrets Management:**
+
 - **sops-nix integration**: Consistent across all configurations
 - **Host-specific keys**: Automatic key path discovery
 - **Conditional secrets**: Based on system availability
 
 ### **Host & User Customization:**
+
 - **Host patterns**: `/systems/{arch}/{hostname}/` structure
 - **User patterns**: `/homes/{arch}/{username@hostname}/` structure
 - **Automatic matching**: System-hostname-username integration
@@ -127,11 +141,13 @@ in
 ## **MAINTENANCE & WORKFLOWS**
 
 ### **Code Quality:**
+
 - **Formatting**: `nix fmt` with treefmt (nixfmt, deadnix, statix)
 - **Validation**: Build checks, evaluation tests
 - **Style consistency**: Automated pattern enforcement
 
 ### **Development Patterns:**
+
 - **Template system**: Project templates for development environments
 - **Custom utilities**: Extended lib functions for common patterns
 - **Package management**: Custom overlays and package definitions

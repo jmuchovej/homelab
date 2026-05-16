@@ -30,6 +30,7 @@ Analyze git history to understand code evolution, find when bugs were introduced
    - Provide actionable insights based on history analysis
 
 **Command Arguments:**
+
 - `[path]`: Focus analysis on specific file or directory
 - `--since=date`: Limit to commits after date (e.g., "2024-01-01", "3 months ago")
 - `--author=name`: Filter by author name or email

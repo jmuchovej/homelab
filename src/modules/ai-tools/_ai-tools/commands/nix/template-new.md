@@ -9,6 +9,7 @@ Create production-ready development templates that integrate with existing proje
 ## **WORKFLOW OVERVIEW**
 
 This command follows a 4-phase systematic approach:
+
 1. **Discovery** - Analyze project structure and existing template patterns
 2. **Planning** - Design template specification and requirements
 3. **Generation** - Create comprehensive template with all components
@@ -17,17 +18,20 @@ This command follows a 4-phase systematic approach:
 ## **PHASE 1: PROJECT DISCOVERY AND PATTERN ANALYSIS**
 
 ### **Step 1.1: Project Context Analysis**
+
 ```
 ALWAYS START - Understand the target environment and existing patterns
 ```
 
 **Project structure analysis:**
+
 - Check if we're in a flake-based Nix project (templates/ directory expected)
 - Identify existing template patterns and organization
 - Analyze project's development infrastructure (CI/CD, tooling, patterns)
 - Determine integration requirements with project ecosystem
 
 **Template destination setup:**
+
 ```
 Template location determination:
   IF flake.nix present AND templates/ directory exists:
@@ -39,7 +43,9 @@ Template location determination:
 ```
 
 ### **Step 1.2: Existing Template Pattern Analysis**
+
 **Systematic pattern discovery:**
+
 ```
 FOR existing templates in project:
     Analyze structure patterns:
@@ -52,6 +58,7 @@ FOR existing templates in project:
 ```
 
 **Infrastructure integration analysis:**
+
 ```
 Check for project-wide patterns:
   - CI/CD pipeline templates and configurations
@@ -62,6 +69,7 @@ Check for project-wide patterns:
 ```
 
 ### **Step 1.3: Language Ecosystem Analysis**
+
 ```
 IF --language specified:
     Analyze language-specific requirements:
@@ -75,7 +83,9 @@ IF --language specified:
 ## **PHASE 2: TEMPLATE SPECIFICATION PLANNING**
 
 ### **Step 2.1: Template Requirements Assembly**
+
 **Core specifications:**
+
 ```
 Template name: <name> (required)
 Template type: --type (project|library|api|webapp) OR inferred from name
@@ -86,6 +96,7 @@ Documentation: --with-docs flag includes comprehensive docs setup
 ```
 
 **Type-specific requirements:**
+
 ```
 PROJECT template:
   - Complete application scaffold
@@ -121,7 +132,9 @@ WEBAPP template:
 ```
 
 ### **Step 2.2: Technology Stack Planning**
+
 **Language-specific stack assembly:**
+
 ```
 Based on --language, determine:
   - Primary development environment requirements
@@ -133,6 +146,7 @@ Based on --language, determine:
 ```
 
 **Integration requirements:**
+
 ```
 Determine integration needs:
   - Nix development shell configuration
@@ -145,6 +159,7 @@ Determine integration needs:
 ## **PHASE 3: SYSTEMATIC TEMPLATE GENERATION**
 
 ### **Step 3.1: Directory Structure Creation**
+
 ```
 Create template directory structure:
   1. Create base template directory: templates/<name>/
@@ -154,7 +169,9 @@ Create template directory structure:
 ```
 
 ### **Step 3.2: Core Template Files Generation**
+
 **Flake configuration:**
+
 ```
 Generate flake.nix with:
   - Appropriate inputs for language/framework
@@ -165,6 +182,7 @@ Generate flake.nix with:
 ```
 
 **Build and dependency management:**
+
 ```
 Language-specific configurations:
   RUST: Cargo.toml, rust-toolchain, .cargo/config
@@ -175,6 +193,7 @@ Language-specific configurations:
 ```
 
 **Development environment setup:**
+
 ```
 Create development infrastructure:
   - .envrc for direnv integration
@@ -185,7 +204,9 @@ Create development infrastructure:
 ```
 
 ### **Step 3.3: Advanced Template Components**
+
 **Testing infrastructure:**
+
 ```
 Set up testing framework:
   - Unit test structure and examples
@@ -196,6 +217,7 @@ Set up testing framework:
 ```
 
 **Documentation system:**
+
 ```
 IF --with-docs flag:
     Create documentation infrastructure:
@@ -207,6 +229,7 @@ IF --with-docs flag:
 ```
 
 **CI/CD integration:**
+
 ```
 IF --with-ci flag:
     Generate CI/CD configurations:
@@ -218,6 +241,7 @@ IF --with-ci flag:
 ```
 
 ### **Step 3.4: Interactive Customization**
+
 ```
 IF --interactive flag:
     Prompt for customization:
@@ -231,6 +255,7 @@ IF --interactive flag:
 ## **PHASE 4: VALIDATION AND TESTING**
 
 ### **Step 4.1: Template Structure Validation**
+
 ```
 Validate template structure:
   1. Check flake.nix syntax: nix flake check
@@ -240,6 +265,7 @@ Validate template structure:
 ```
 
 ### **Step 4.2: Functionality Testing**
+
 ```
 Comprehensive functionality tests:
   - Test all build commands and scripts
@@ -250,6 +276,7 @@ Comprehensive functionality tests:
 ```
 
 ### **Step 4.3: Integration Verification**
+
 ```
 Verify project integration:
   - Check template appears in flake outputs
@@ -259,6 +286,7 @@ Verify project integration:
 ```
 
 ### **Step 4.4: Documentation and Welcome Message**
+
 ```
 Generate comprehensive documentation:
   - Template README with setup and usage instructions
@@ -271,6 +299,7 @@ Generate comprehensive documentation:
 ## **TEMPLATE OUTPUT STRUCTURE**
 
 **Standard template organization:**
+
 ```
 templates/<name>/
 ├── flake.nix              # Template flake configuration
@@ -288,6 +317,7 @@ templates/<name>/
 ## **ERROR HANDLING AND EDGE CASES**
 
 **Common issue handling:**
+
 ```
 - Template name conflicts with existing templates
 - Unsupported language/framework combinations
@@ -297,6 +327,7 @@ templates/<name>/
 ```
 
 **Recovery strategies:**
+
 ```
 - Offer alternative names for conflicting templates
 - Provide fallback configurations for unsupported setups

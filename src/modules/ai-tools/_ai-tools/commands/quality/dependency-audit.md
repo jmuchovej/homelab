@@ -39,6 +39,7 @@ Analyze project dependencies to identify optimization opportunities, security co
    - Suggest structural improvements for dependency management
 
 **Analysis Focus Based on Arguments:**
+
 - --unused: Focus specifically on finding and reporting unused dependencies
 - --conflicts: Deep-dive into dependency conflict analysis
 - --updates: Concentrate on available updates and migration paths
@@ -46,6 +47,7 @@ Analyze project dependencies to identify optimization opportunities, security co
 - --report: Generate comprehensive report covering all aspects
 
 **Command Arguments:**
+
 - --unused: Focus analysis on finding unused dependencies
 - --conflicts: Analyze and report on dependency conflicts
 - --updates: Check for available updates and upgrade opportunities

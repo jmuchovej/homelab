@@ -29,6 +29,7 @@ Analyze code and generate clear, useful documentation comments.
 **Format Examples:**
 
 - **JSDoc (TypeScript/JavaScript)**:
+
   ```typescript
   /**
    * Brief description of what the function does.
@@ -42,6 +43,7 @@ Analyze code and generate clear, useful documentation comments.
   ```
 
 - **Python Docstring**:
+
   ```python
   """Brief description of what the function does.
 
@@ -61,7 +63,8 @@ Analyze code and generate clear, useful documentation comments.
   ```
 
 - **Rustdoc**:
-  ```rust
+
+  ````rust
   /// Brief description of what the function does.
   ///
   /// # Arguments
@@ -77,7 +80,7 @@ Analyze code and generate clear, useful documentation comments.
   /// ```
   /// let result = my_function("input");
   /// ```
-  ```
+  ````
 
 - **XML Doc (C#)**:
   ```csharp
@@ -90,6 +93,7 @@ Analyze code and generate clear, useful documentation comments.
   ```
 
 **Command Arguments:**
+
 - `<file-path>`: File to document
 - `--format=jsdoc|docstring|rustdoc|xmldoc`: Documentation format
 - `--level=public`: Only document public/exported items (default)

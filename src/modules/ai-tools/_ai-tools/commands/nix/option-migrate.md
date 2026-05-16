@@ -39,6 +39,7 @@ Safely migrate configuration keys/options to a new structure while preserving fu
    - Generate a summary report of all changes made
 
 **Command Arguments:**
+
 - <old-option>: Current configuration path/key that needs to be migrated
 - <new-option>: New configuration path/key structure
 - --dry-run: Preview all changes without applying them

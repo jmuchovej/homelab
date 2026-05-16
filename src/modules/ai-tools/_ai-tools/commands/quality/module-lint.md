@@ -40,12 +40,14 @@ Lint code modules for best practices compliance and report issues or fix them wh
    - Validate adherence to project architectural principles
 
 **Execution Strategy:**
+
 - Focus on [path] if specified, otherwise lint current directory
 - If --fix is specified, automatically correct issues that are safe to fix
 - If --strict is specified, apply more rigorous validation standards
 - If --focus is specified, concentrate on that specific aspect (structure, interfaces, docs)
 
 **Command Arguments:**
+
 - [path]: Module file or directory to lint (defaults to current directory)
 - --fix: Automatically fix issues that can be safely corrected
 - --strict: Apply stricter validation rules and best practices
