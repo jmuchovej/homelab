@@ -2,7 +2,8 @@
 # Use `nix run .#write-flake` to regenerate it.
 {
 
-  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
+  outputs =
+    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./src/modules);
 
   inputs = {
     anthropic-skills = {
