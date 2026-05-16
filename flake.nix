@@ -31,10 +31,6 @@
       url = "github:homebrew/homebrew-core";
       flake = false;
     };
-    homebrew-fvm = {
-      url = "github:leoafarias/fvm";
-      flake = false;
-    };
     homebrew-services = {
       url = "github:homebrew/homebrew-services";
       flake = false;

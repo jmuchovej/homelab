@@ -1,10 +1,5 @@
 { den, inputs, ... }:
 {
-  flake-file.inputs = {
-    homebrew-fvm.url = "github:leoafarias/fvm";
-    homebrew-fvm.flake = false;
-  };
-
   rbn.programs._.development._.apps = {
     includes = [ (den.batteries.unfree [ "android-studio" ]) ];
     homeManager =
@@ -91,15 +86,12 @@
             "cocoapods"
             "xcodegen"
             "xcodes"
-            "leoafarias/fvm/fvm"
           ];
           casks = [
             "flutter"
             "android-studio"
           ];
         };
-
-        nix-homebrew.taps."leoafarias/fvm" = inputs.homebrew-fvm;
       };
   };
 }
