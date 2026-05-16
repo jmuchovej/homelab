@@ -44,6 +44,7 @@
               "--service-cidr=10.96.0.0/16"
               "--cluster-dns=10.96.0.10"
               "--write-kubeconfig-mode=0644"
+              "--default-local-storage-path=/warp/k8s/pvcs"
             ];
 
             manifests = {
