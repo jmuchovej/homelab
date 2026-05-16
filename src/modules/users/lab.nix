@@ -1,4 +1,9 @@
-{ __findFile, den, ... }:
+{
+  lib,
+  __findFile,
+  den,
+  ...
+}:
 {
   den.aspects.lab = {
     includes = [
@@ -24,11 +29,30 @@
       <rbn/programs/editors/micro>
     ];
 
-    nixos.users.users.lab = {
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO"
+    nixos =
+      { host, lib, ... }:
+      lib.mkMerge [
+        {
+          users.users.lab = {
+            home = lib.mkForce "/lab";
+            openssh.authorizedKeys.keys = [
+              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO"
+            ];
+          };
+        }
+        (lib.optionalAttrs (host.persistence != null) {
+          environment.persistence."/persist".directories = [
+            {
+              directory = "/lab";
+              user = "lab";
+              group = "users";
+              mode = "0700";
+            }
+          ];
+        })
       ];
-    };
+
+    homeManager.home.homeDirectory = lib.mkForce "/lab";
   };
 
   den.hosts.x86_64-linux.da-vcx-1.users.lab = { };

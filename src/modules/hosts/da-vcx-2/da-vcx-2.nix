@@ -4,6 +4,14 @@
     tailscale.enable = true;
     containers.enable = true;
 
+    nfs.mounts = [
+      {
+        server = "10.69.10.1";
+        remote = "/impulse/home";
+        local = "/home";
+      }
+    ];
+
     persistence = {
       device = "/dev/disk/by-id/nvme-KINGSTON_OM8PGP4512Q-A0_50026B73830175E0";
       extra-directories = [ ];
@@ -30,6 +38,7 @@
       <rbn/services/zerotier>
 
       # Services
+      <rbn/services/nfs>
       <rbn/services/avahi>
       <rbn/services/ldap>
     ];

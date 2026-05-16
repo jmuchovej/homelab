@@ -100,6 +100,13 @@
     tailscale.enable = true;
     containers.enable = true;
 
+    nfs.mounts = [
+      {
+        server = "10.69.10.1";
+        remote = "/impulse/home";
+        local = "/home";
+      }
+    ];
     persistence = {
       device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300IBBB23122507026";
       extra-directories = [ ];
@@ -132,6 +139,7 @@
       <rbn/system/networking/manager/networkmanager>
 
       # Services
+      <rbn/services/nfs>
       <rbn/services/kubernetes>
       <rbn/services/consul>
       <rbn/services/consul-esm>
@@ -174,7 +182,6 @@
       networking.hostId = "fe4ccbf4";
 
       boot.zfs.extraPools = [
-        "impulse"
         "warp"
       ];
       system.stateVersion = "24.11";

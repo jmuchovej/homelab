@@ -19,6 +19,7 @@
       exports = [
         { path = "/impulse/k8s"; }
         { path = "/impulse/users"; }
+        { path = "/impulse/home"; }
       ];
     };
   };

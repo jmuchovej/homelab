@@ -95,6 +95,8 @@ in
           isNormalUser = true;
           group = "nix-builder";
           description = "Nix remote build user";
+          home = "/var/lib/nix-builder";
+          createHome = true;
           openssh.authorizedKeys.keys = map pub-of (filter (h: h != host.hostname) initiator-names);
         };
       };
