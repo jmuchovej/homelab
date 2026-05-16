@@ -1,4 +1,6 @@
 mod bootstrap "src/modules/hosts/bootstrap/justfile"
+mod mikrotik "src/terraform/mikrotik.just"
+mod authentik "src/terraform/authentik.just"
 
 [private]
 default:
