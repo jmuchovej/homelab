@@ -2,7 +2,7 @@ resource "vault_jwt_auth_backend" "oidc" {
   type               = "oidc"
   path               = "oidc"
   description        = "The Rebellion"
-  oidc_discovery_url = "https://id.${local.domain.dc}/application/o/${data.sops_file.authentik.data["openbao.client-id"]}-oauth/"
+  oidc_discovery_url = "https://${var.idp-url}/application/o/${data.sops_file.authentik.data["openbao.client-id"]}-oauth/"
   oidc_client_id     = data.sops_file.authentik.data["openbao.client-id"]
   oidc_client_secret = data.sops_file.authentik.data["openbao.client-secret"]
   default_role       = "compute"
@@ -14,8 +14,8 @@ resource "vault_jwt_auth_backend" "oidc" {
 
 locals {
   redirect_uris = [
-    "https://vault.${local.domain.dc}/ui/vault/auth/oidc/oidc/callback",
-    "https://vault.${local.domain.dc}/v1/auth/oidc/callback",
+    "https://${var.vault-url}/ui/vault/auth/oidc/oidc/callback",
+    "https://${var.vault-url}/v1/auth/oidc/callback",
   ]
 }
 
@@ -31,7 +31,7 @@ resource "vault_jwt_auth_backend_role" "compute" {
   token_policies        = ["reader"]
 }
 
-resource "vault_jwt_auth_backend_role" "compute_manager" {
+resource "vault_jwt_auth_backend_role" "compute-manager" {
   backend   = vault_jwt_auth_backend.oidc.path
   role_name = "compute-manager"
   role_type = "oidc"
