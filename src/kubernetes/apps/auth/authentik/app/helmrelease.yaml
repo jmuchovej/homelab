@@ -1,0 +1,63 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name authentik
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  valuesFrom:
+    - kind: Secret
+      name: &secrets authentik-secrets
+      valuesKey: secret_key
+      targetPath: authentik.secret_key
+    - kind: Secret
+      name: *secrets
+      valuesKey: bootstrap_token
+      targetPath: authentik.bootstrap_token
+    - kind: Secret
+      name: *secrets
+      valuesKey: bootstrap_password_hash
+      targetPath: authentik.bootstrap_password_hash
+    - kind: Secret
+      name: *secrets
+      valuesKey: tofu_token
+      targetPath: authentik.tofu_token
+    - kind: Secret
+      name: *secrets
+      valuesKey: postgres_password
+      targetPath: authentik.postgresql.password
+    - kind: Secret
+      name: *secrets
+      valuesKey: email_username
+      targetPath: authentik.email.username
+    - kind: Secret
+      name: *secrets
+      valuesKey: email_password
+      targetPath: authentik.email.password
+  values:
+    blueprints:
+      configMaps:
+        - authentik-blueprints
+
+    authentik:
+      postgresql:
+        host: authentik-db-rw
+        name: authentik
+        user: authentik
+      email:
+        host: smtp.mailgun.org
+        port: 587
+        use_tls: true
+        from: homelab@${DOMAIN}
+
+    # turn off bundled postgres, let CNPG own the DB.
+    postgresql:
+      enabled: false
+
+    server:
+      replicas: 1
+    worker:
+      replicas: 1
