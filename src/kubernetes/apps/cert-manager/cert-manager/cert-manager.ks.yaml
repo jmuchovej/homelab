@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+# cert-manager install (controller + CRDs). The ClusterIssuers live in a
+# separate Kustomization (issuers.ks.yaml) that dependsOn this one, so the
+# `ClusterIssuer` CRD exists before they're applied.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-manager
+spec:
+  dependsOn:
+    # cloudflare ExternalSecret needs the 1Password store.
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./src/kubernetes/apps/cert-manager/cert-manager/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: cert-manager
+  # block until the controller (and its CRDs) are healthy.
+  wait: true

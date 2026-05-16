@@ -1,0 +1,45 @@
+---
+# Let's Encrypt issuers, DNS-01 via Cloudflare. One solver on the `jm0.io` zone
+# covers every subdomain (da/en/holonet/*) since the _acme-challenge TXT is
+# always written to the jm0.io zone. Wildcards (e.g. *.holonet.jm0.io) require
+# DNS-01 — which this is. The Cloudflare token comes from the `cloudflare`
+# ExternalSecret.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    email: homelab@jm0.io
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-secret
+              key: CLOUDFLARE_DNS_TOKEN
+        selector:
+          dnsZones:
+            - jm0.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    email: homelab@jm0.io
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-production
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-secret
+              key: CLOUDFLARE_DNS_TOKEN
+        selector:
+          dnsZones:
+            - jm0.io
