@@ -37,8 +37,9 @@ locals {
   datacenter = "da"
   domain = {
     root = data.cloudflare_zone.domain.name
-    dc   = "${local.datacenter}.${data.cloudflare_zone.domain.name}"
-    cf   = data.cloudflare_zone.domain
+    da   = "da.${data.cloudflare_zone.domain.name}"
+    en   = "en.${data.cloudflare_zone.domain.name}"
+    holo = "holonet.${data.cloudflare_zone.domain.name}"
   }
 }
 
@@ -63,10 +64,6 @@ data "sops_file" "authentik" {
 
 data "sops_file" "users" {
   source_file = "${path.root}/secrets/users.sops.yaml"
-}
-
-provider "cloudflare" {
-  api_token = data.sops_file.secrets.data["cloudflare.api-key"]
 }
 
 provider "consul" {
