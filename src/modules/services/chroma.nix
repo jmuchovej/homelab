@@ -13,7 +13,7 @@
       (<rbn/mesh/register> {
         name = "chroma";
         port = 24762;
-        healthcheck = "/api/v1/heartbeat";
+        healthcheck = "/api/v2/heartbeat";
       })
     ];
   };
