@@ -139,7 +139,6 @@
       <rbn/services/spliit>
       <rbn/services/home-assistant>
       <rbn/services/postgres>
-      <rbn/services/homepage>
       <rbn/services/proton-vpn>
       <rbn/services/qbittorrent>
       <rbn/services/s3>
