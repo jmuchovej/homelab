@@ -9,11 +9,15 @@
       }:
       {
         # Cluster admin CLIs (k9s is in the home-manager aspect below).
-        environment.systemPackages = [
-          pkgs.kubectl
-          pkgs.cilium-cli
-          pkgs.fluxcd
+        environment.systemPackages = with pkgs; [
+          kubectl
+          cilium-cli
+          fluxcd
         ];
+
+        environment.sessionVariables = {
+          KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
+        };
 
         services.k3s = {
           enable = true;
