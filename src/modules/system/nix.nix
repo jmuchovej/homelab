@@ -104,13 +104,13 @@
               "root"
               "@wheel"
               "nix-builder"
-              host.user.name
+              host.primary-user.name
             ];
             allowed-users = [
               "root"
               "@wheel"
               "nix-builder"
-              host.user.name
+              host.primary-user.name
             ];
 
             substituters = [

@@ -21,11 +21,11 @@ switch:
 regen:
     nix run .#write-flake
 
-update:
+update: regen
     nix flake update
 
-deploy host:
-    deploy .#{{ host }}
+deploy host *ARGS:
+    deploy .#{{ host }} {{ ARGS }}
 
 deploy-all:
     deploy .

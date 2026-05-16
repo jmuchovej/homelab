@@ -30,7 +30,10 @@
       inherit (lib.types) attrs;
     in
     {
-      options.home = {
+      # Named `hm` rather than `home` to avoid colliding with den's
+      # fx-pipeline `home` context binding (host.home is implicitly passed
+      # as the `home` arg to home-scoped parametric aspects).
+      options.hm = {
         file = mkOption {
           type = attrs;
           default = { };
@@ -54,7 +57,7 @@
     os =
       { host, lib, ... }:
       let
-        username = host.user.name;
+        username = host.primary-user.name;
       in
       {
         home-manager = {
@@ -64,10 +67,10 @@
           verbose = true;
         };
 
-        home-manager.users.${username} = host.home.extra-options // {
-          home.file = host.home.file;
+        home-manager.users.${username} = host.hm.extra-options // {
+          home.file = host.hm.file;
           xdg.enable = true;
-          xdg.configFile = host.home.config-file;
+          xdg.configFile = host.hm.config-file;
         };
       };
 
@@ -75,7 +78,7 @@
     nixos =
       { host, lib, ... }:
       let
-        username = host.user.name;
+        username = host.primary-user.name;
       in
       {
         users.users.${username}.home = lib.mkDefault (/. + "/home/${username}");
@@ -85,7 +88,7 @@
     darwin =
       { host, lib, ... }:
       let
-        username = host.user.name;
+        username = host.primary-user.name;
       in
       {
         users.users.${username}.home = lib.mkDefault (/. + "/Users/${username}");
