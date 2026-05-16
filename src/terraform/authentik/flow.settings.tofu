@@ -1,15 +1,12 @@
-# User settings flow
-# Allows authenticated users to update profile and manage authenticators.
-
-import {
-  to = authentik_flow.user-settings
-  id = "default-user-settings-flow"
-}
+# User settings flow — adopt authentik's `default-user-settings-flow`
+# (imported at root in ak.tofu). Names mirror authentik's defaults for a clean
+# import; addresses kept. authentik also ships a `username` prompt field we don't
+# manage — our prompt stage lists only name/email/locale, so it's left untouched.
 
 resource "authentik_flow" "user-settings" {
   name               = "User Settings"
   title              = "Update your account"
-  slug               = "user-settings"
+  slug               = "default-user-settings-flow"
   designation        = "stage_configuration"
   policy_engine_mode = "any"
   denied_action      = "message_continue"
@@ -20,9 +17,10 @@ resource "authentik_flow" "user-settings" {
 # --- Prompt Fields ---
 
 resource "authentik_stage_prompt_field" "settings-name" {
-  name                     = "settings-field-name"
+  name                     = "default-user-settings-field-name"
   field_key                = "name"
   label                    = "Name"
+  placeholder              = "Name"
   type                     = "text"
   required                 = true
   initial_value            = <<-EOT
@@ -36,9 +34,10 @@ resource "authentik_stage_prompt_field" "settings-name" {
 }
 
 resource "authentik_stage_prompt_field" "settings-email" {
-  name                     = "settings-field-email"
+  name                     = "default-user-settings-field-email"
   field_key                = "email"
   label                    = "Email"
+  placeholder              = "Email"
   type                     = "email"
   required                 = true
   initial_value            = <<-EOT
@@ -52,9 +51,10 @@ resource "authentik_stage_prompt_field" "settings-email" {
 }
 
 resource "authentik_stage_prompt_field" "settings-locale" {
-  name                     = "settings-field-locale"
+  name                     = "default-user-settings-field-locale"
   field_key                = "attributes.settings.locale"
   label                    = "Locale"
+  placeholder              = "Locale"
   type                     = "ak-locale"
   required                 = true
   initial_value            = <<-EOT
@@ -69,13 +69,8 @@ resource "authentik_stage_prompt_field" "settings-locale" {
 
 # --- Validation Policy ---
 
-import {
-  to = authentik_policy_expression.settings-authorization
-  id = "4e8fa399-cb09-493f-a2ea-6e0f7f58da5f"
-}
-
 resource "authentik_policy_expression" "settings-authorization" {
-  name       = "settings-authorization"
+  name       = "default-user-settings-authorization"
   expression = <<-EOT
     from authentik.core.models import (
         USER_ATTRIBUTE_CHANGE_EMAIL,
@@ -104,13 +99,8 @@ resource "authentik_policy_expression" "settings-authorization" {
 
 # --- Stages ---
 
-import {
-  to = authentik_stage_prompt.settings
-  id = "35b3b5ab-e456-4c79-860c-fdef578b82f6"
-}
-
 resource "authentik_stage_prompt" "settings" {
-  name = "settings-profile-prompt"
+  name = "default-user-settings"
   fields = [
     authentik_stage_prompt_field.settings-name.id,
     authentik_stage_prompt_field.settings-email.id,
@@ -121,32 +111,17 @@ resource "authentik_stage_prompt" "settings" {
   ]
 }
 
-import {
-  to = authentik_stage_user_write.settings
-  id = "fce1e02b-fc4b-4fb0-b204-956dc0e48c9e"
-}
-
 resource "authentik_stage_user_write" "settings" {
-  name               = "settings-user-write"
+  name               = "default-user-settings-write"
   user_creation_mode = "never_create"
 }
 
 # --- Flow Stage Bindings ---
 
-import {
-  to = authentik_flow_stage_binding.settings-profile
-  id = "c127a948-26db-4b40-b407-b38a8621c21b"
-}
-
 resource "authentik_flow_stage_binding" "settings-profile" {
   target = authentik_flow.user-settings.uuid
   stage  = authentik_stage_prompt.settings.id
   order  = 20
-}
-
-import {
-  to = authentik_flow_stage_binding.settings-write
-  id = "46c4ef3e-16a6-4c8b-a142-b9de4b80aed1"
 }
 
 resource "authentik_flow_stage_binding" "settings-write" {

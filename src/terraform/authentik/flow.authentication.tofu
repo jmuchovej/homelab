@@ -1,15 +1,11 @@
-# Authentication flows
-# Login with username/email + password (or passkey), then TOTP/Duo/Passkey,
-# then conditional captcha post-MFA.
-
-import {
-  to = authentik_flow.authn
-  id = "default-authentication-flow"
-}
+# Authentication flow — adopt authentik's `default-authentication-flow`
+# (imported at root in ak.tofu) and manage it with our config. The captcha
+# stage + its binding/policy/policy-binding are OURS (no authentik default),
+# created not imported, inserted at order 40 between MFA (30) and login (100).
 
 resource "authentik_flow" "authn" {
   name               = "Login"
-  slug               = "auth"
+  slug               = "default-authentication-flow"
   title              = "Welcome to The Rebellion!"
   designation        = "authentication"
   authentication     = "none"
@@ -17,13 +13,8 @@ resource "authentik_flow" "authn" {
   policy_engine_mode = "any"
 }
 
-import {
-  to = authentik_stage_identification.authn
-  id = "a5a735c0-6cf8-40bc-9794-16da468de00a"
-}
-
 resource "authentik_stage_identification" "authn" {
-  name              = "authn-identification"
+  name              = "default-authentication-identification"
   user_fields       = ["email", "username"]
   password_stage    = authentik_stage_password.authn.id
   recovery_flow     = authentik_flow.recovery.uuid
@@ -32,13 +23,8 @@ resource "authentik_stage_identification" "authn" {
   sources           = []
 }
 
-import {
-  to = authentik_stage_password.authn
-  id = "b880e0f8-d0e4-4762-92cf-77dac33d1d54"
-}
-
 resource "authentik_stage_password" "authn" {
-  name = "authn-password"
+  name = "default-authentication-password"
   backends = [
     "authentik.core.auth.InbuiltBackend",
     "authentik.core.auth.TokenBackend",
@@ -48,13 +34,8 @@ resource "authentik_stage_password" "authn" {
   failed_attempts_before_cancel = 3
 }
 
-import {
-  to = authentik_stage_authenticator_validate.authn-mfa
-  id = "919cf196-2677-411f-ab3e-6cb0852ac250"
-}
-
 resource "authentik_stage_authenticator_validate" "authn-mfa" {
-  name                  = "authn-mfa-validation"
+  name                  = "default-authentication-mfa-validation"
   device_classes        = ["totp", "duo", "webauthn"]
   not_configured_action = "deny"
   last_auth_threshold   = "seconds=0"
@@ -65,15 +46,11 @@ resource "authentik_stage_authenticator_validate" "authn-mfa" {
   ]
 }
 
-import {
-  to = authentik_stage_user_login.authn
-  id = "8d030ce8-84bb-4799-a8c5-7fb2698e2c12"
-}
-
 resource "authentik_stage_user_login" "authn" {
-  name = "authn-login"
+  name = "default-authentication-login"
 }
 
+# Captcha — ours, no authentik default. Created, not imported.
 resource "authentik_stage_captcha" "authn" {
   name        = "authn-captcha"
   public_key  = data.sops_file.secrets.data["captcha.public-key"]
@@ -82,20 +59,10 @@ resource "authentik_stage_captcha" "authn" {
 
 # --- Flow Stage Bindings ---
 
-import {
-  to = authentik_flow_stage_binding.authn-identification
-  id = "d68bfe47-3cf3-41a1-af2b-e4209c9d77ad"
-}
-
 resource "authentik_flow_stage_binding" "authn-identification" {
   target = authentik_flow.authn.uuid
   stage  = authentik_stage_identification.authn.id
   order  = 10
-}
-
-import {
-  to = authentik_flow_stage_binding.authn-password
-  id = "c3c8af94-ddac-4647-b925-c31ddf715e00"
 }
 
 resource "authentik_flow_stage_binding" "authn-password" {
@@ -105,11 +72,6 @@ resource "authentik_flow_stage_binding" "authn-password" {
   re_evaluate_policies = true
 }
 
-import {
-  to = authentik_flow_stage_binding.authn-mfa
-  id = "8e94e03b-b647-4cb1-887b-cd24438f2cb4"
-}
-
 resource "authentik_flow_stage_binding" "authn-mfa" {
   target               = authentik_flow.authn.uuid
   stage                = authentik_stage_authenticator_validate.authn-mfa.id
@@ -117,17 +79,13 @@ resource "authentik_flow_stage_binding" "authn-mfa" {
   re_evaluate_policies = true
 }
 
+# Ours (captcha) — created.
 resource "authentik_flow_stage_binding" "authn-captcha" {
   target               = authentik_flow.authn.uuid
   stage                = authentik_stage_captcha.authn.id
   order                = 40
   evaluate_on_plan     = false
   re_evaluate_policies = true
-}
-
-import {
-  to = authentik_flow_stage_binding.authn-login
-  id = "3475c57e-29ec-4ba8-952b-3193fdb5dde7"
 }
 
 resource "authentik_flow_stage_binding" "authn-login" {
@@ -139,38 +97,32 @@ resource "authentik_flow_stage_binding" "authn-login" {
 # --- Policies ---
 
 # Skip password stage if user authenticated via passkey (WebAuthn passwordless)
-import {
-  to = authentik_policy_expression.authn-password-required
-  id = "0cea6f84-eb65-4cc4-912b-9dac76eb361f"
-}
-
 resource "authentik_policy_expression" "authn-password-required" {
-  name       = "authn-password-required"
+  name       = "default-authentication-flow-password-stage"
   expression = <<-EOT
     flow_plan = request.context.get("flow_plan")
     if not flow_plan:
         return True
+    # If the user does not have a backend attached to it, they haven't
+    # been authenticated yet and we need the password stage
     return not hasattr(flow_plan.context.get("pending_user"), "backend")
   EOT
 }
 
 # Skip MFA stage if user already authenticated via passkey
-import {
-  to = authentik_policy_expression.authn-mfa-required
-  id = "7fca054a-44c2-4546-9a41-d1111abf56d8"
-}
-
 resource "authentik_policy_expression" "authn-mfa-required" {
-  name       = "authn-mfa-required"
+  name       = "default-authentication-flow-authenticator-validate-stage"
   expression = <<-EOT
     flow_plan = request.context.get("flow_plan")
     if not flow_plan:
         return True
+    # if the authentication method is webauthn (passwordless), then we skip the
+    # authenticatorvalidation stage by returning false (true will execute the stage)
     return not (flow_plan.context.get("auth_method") == "auth_webauthn_pwl")
   EOT
 }
 
-# Conditional captcha based on reputation score
+# Conditional captcha based on reputation score — ours, created.
 resource "authentik_policy_reputation" "authn-captcha" {
   name           = "authn-conditional-captcha"
   check_ip       = true
@@ -194,6 +146,7 @@ resource "authentik_policy_binding" "authn-mfa-required" {
   failure_result = true
 }
 
+# Ours (captcha) — created.
 resource "authentik_policy_binding" "authn-captcha-conditional" {
   target = authentik_flow_stage_binding.authn-captcha.id
   policy = authentik_policy_reputation.authn-captcha.id

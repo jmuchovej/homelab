@@ -1,18 +1,9 @@
-data "authentik_property_mapping_provider_scope" "oidc" {
-  managed_list = [
-    "goauthentik.io/providers/oauth2/scope-email",
-    "goauthentik.io/providers/oauth2/scope-openid",
-    "goauthentik.io/providers/oauth2/scope-profile",
-  ]
-}
-
-import {
-  to = authentik_property_mapping_provider_scope.profile
-  id = "5ac73f1b-086f-4533-a5d5-0f879ce57e47"
-}
+# OAuth/OIDC scope mappings — owned wholesale by tofu (no import, no reliance on
+# authentik's managed `goauthentik.io/providers/oauth2/scope-*` defaults). Names are
+# deliberately custom so they don't collide with authentik's shipped mappings.
 
 resource "authentik_property_mapping_provider_scope" "profile" {
-  name        = "authentik default OAuth Mapping: OpenID 'profile'"
+  name        = "OIDC profile"
   description = "General Profile Information"
   scope_name  = "profile"
   expression  = <<-EOF
@@ -20,10 +11,11 @@ resource "authentik_property_mapping_provider_scope" "profile" {
     # always non-empty regardless of how the user was provisioned (local,
     # LDAP, SCIM, OIDC source).
     name = request.user.name or request.user.username or request.user.email
+    (given_name, *family_name) = request.user.name.split(" ")
     return {
       "name": name,
-      "given_name": name,
-      "family_name": "",
+      "given_name": given_name or "",
+      "family_name": family_name or "",
       "preferred_username": request.user.username,
       "nickname": request.user.username,
       "groups": [group.name for group in request.user.groups.all()],
@@ -31,13 +23,8 @@ resource "authentik_property_mapping_provider_scope" "profile" {
   EOF
 }
 
-import {
-  to = authentik_property_mapping_provider_scope.email
-  id = "54ec3d78-f5d3-43a2-a2da-d108fb14130e"
-}
-
 resource "authentik_property_mapping_provider_scope" "email" {
-  name        = "authentik default OAuth Mapping: OpenID 'email'"
+  name        = "OIDC email"
   description = "Email address"
   scope_name  = "email"
   expression  = <<-EOF
@@ -48,13 +35,8 @@ resource "authentik_property_mapping_provider_scope" "email" {
   EOF
 }
 
-import {
-  to = authentik_property_mapping_provider_scope.openid
-  id = "bbf3fe6b-0b16-43e7-a046-d0b60c8a43e9"
-}
-
 resource "authentik_property_mapping_provider_scope" "openid" {
-  name       = "authentik default OAuth Mapping: OpenID 'openid'"
+  name       = "OIDC openid"
   scope_name = "openid"
   expression = <<-EOF
     # This scope is required by the OpenID-spec, and must as such exist in authentik.

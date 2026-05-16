@@ -1,18 +1,12 @@
-data "consul_services" "all" {
-  query_options {
-    datacenter = local.datacenter
-  }
-}
-
 locals {
   service-names = split(" ",
-    lookup(data.consul_services.all.tags, "authentik.enable=true", "")
+    lookup(data.consul_services.da.tags, "authentik.enable=true", "")
   )
 
   service-tags = {
     for name in local.service-names :
     name => [
-      for tag, services in data.consul_services.all.tags :
+      for tag, services in data.consul_services.da.tags :
       replace(tag, "authentik.", "")
       if strcontains(services, name) && startswith(tag, "authentik.")
     ]
@@ -54,7 +48,7 @@ locals {
 }
 
 module "authentik-app" {
-  source   = "./modules/authentik-app"
+  source   = "./app"
   for_each = local.apps
 
   name            = each.value.name
@@ -86,14 +80,16 @@ module "authentik-app" {
     }
   }
 
-  property_mappings = concat(
-    data.authentik_property_mapping_provider_scope.oidc.ids,
-    [authentik_property_mapping_provider_scope.groups.id],
-  )
+  property_mappings = [
+    authentik_property_mapping_provider_scope.openid.id,
+    authentik_property_mapping_provider_scope.email.id,
+    authentik_property_mapping_provider_scope.profile.id,
+    authentik_property_mapping_provider_scope.groups.id,
+  ]
 }
 
 module "authentik-app-tailscale" {
-  source = "./modules/authentik-app"
+  source = "./app"
 
   name  = "Tailscale"
   group = "Compute"
@@ -126,8 +122,10 @@ module "authentik-app-tailscale" {
     }
   }
 
-  property_mappings = concat(
-    data.authentik_property_mapping_provider_scope.oidc.ids,
-    [authentik_property_mapping_provider_scope.groups.id],
-  )
+  property_mappings = [
+    authentik_property_mapping_provider_scope.openid.id,
+    authentik_property_mapping_provider_scope.email.id,
+    authentik_property_mapping_provider_scope.profile.id,
+    authentik_property_mapping_provider_scope.groups.id,
+  ]
 }
