@@ -3,7 +3,7 @@
 {
   rbn.system._.fonts = {
     includes = [
-      (den.provides.unfree [ "corefonts" ])
+      (den.batteries.unfree [ "corefonts" ])
     ];
     nixos =
       { lib, pkgs, ... }:
