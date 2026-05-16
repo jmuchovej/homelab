@@ -517,22 +517,6 @@
         "type": "github"
       }
     },
-    "homebrew-fvm": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1781560929,
-        "narHash": "sha256-sTAXPE6jjoGB97af4CqJl59B8gUXgxt6hllDHNC3Sag=",
-        "owner": "leoafarias",
-        "repo": "fvm",
-        "rev": "82feb78725d700b0ed19711c31178ab0d117593d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "leoafarias",
-        "repo": "fvm",
-        "type": "github"
-      }
-    },
     "homebrew-services": {
       "flake": false,
       "locked": {
