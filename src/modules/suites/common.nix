@@ -24,6 +24,27 @@
 
       # macOS infrastructure (no-ops on NixOS)
       <rbn/system/homebrew>
+
+      # CLI tools
+      <rbn/programs/baseline>
+      <rbn/programs/terminal/bat>
+      <rbn/programs/terminal/bottom>
+      <rbn/programs/terminal/carapace>
+      <rbn/programs/terminal/eza>
+      <rbn/programs/terminal/fzf>
+      <rbn/programs/terminal/ripgrep>
+      <rbn/programs/terminal/ssh>
+      <rbn/programs/terminal/starship>
+      <rbn/programs/terminal/rclone>
+      <rbn/programs/terminal/readline>
+      <rbn/programs/terminal/tmux>
+      <rbn/programs/terminal/zoxide>
+      <rbn/programs/security/onepassword>
+      <rbn/programs/vcs/git>
+      <rbn/programs/vcs/jujutsu>
+      <rbn/programs/editors/neovim>
+      <rbn/shells/bash>
+      <rbn/shells/zsh>
     ];
 
     # Shared across NixOS and darwin
