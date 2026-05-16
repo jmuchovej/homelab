@@ -136,5 +136,6 @@ locals {
     "media-managers"     = authentik_group.media-manager
     "minecraft"          = authentik_group.minecraft
     "minecraft-managers" = authentik_group.minecraft-manager
+    "admin"              = authentik_group.akadmin
   }
 }
