@@ -36,5 +36,10 @@
     (inputs.den.flakeModules.dendritic or { })
   ];
 
-  flake-file.outputs = "dendritic";
+  # Custom outputs template: same shape as "dendritic" but reads the module
+  # tree from ./src/modules so that ./src can host non-module sources too
+  # (e.g., ./src/homelab Python CLI, future ./src/terraform, etc.).
+  flake-file.outputs = ''
+    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./src/modules)
+  '';
 }
