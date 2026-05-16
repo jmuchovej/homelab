@@ -111,6 +111,29 @@
   /ip/dhcp-client add interface=mgmt disabled=no comment="bootstrap: mgmt"
 }
 
+# ─── Minimal input firewall (common) ─────────────────────────────────────
+# MUST run before the router forward-chain rules below. RouterOS shares ONE
+# id space across all firewall/filter chains, handing out *1, *2, … in
+# creation order. Creating these four input rules first pins them to *1..*4
+# on BOTH routers and switches — which is exactly what the per-relay tofu
+# import blocks adopt by internal id (state refresh + import grabs the new
+# mapping on each re-bootstrap). If the router-only forward rules were
+# created first they'd claim *1..*4 and the input imports would bind the
+# wrong rules. (Input and forward are separate chains, so this ordering does
+# not change rule *evaluation* — only id assignment.) Comments mirror
+# modules/mikrotik/firewall.tofu (r01/r08/r09/r11) so adoption shows zero drift.
+:log info "rbn-bootstrap: [step 5] input firewall"
+/ip/firewall/filter add chain=input action=accept \
+  connection-state=established,related,untracked \
+  comment="defconf: accept established,related,untracked"
+/ip/firewall/filter add chain=input action=drop \
+  connection-state=invalid \
+  comment="defconf: drop invalid"
+/ip/firewall/filter add chain=input action=accept protocol=icmp \
+  comment="defconf: accept ICMP"
+/ip/firewall/filter add chain=input action=drop in-interface-list=!LAN \
+  comment="defconf: drop all not coming from LAN"
+
 # ─── L3 setup: router does DHCP/DNS/NAT; switch gets a default route ─────
 :if ($role = "router") do={
   # WAN DHCP client (ISP)
@@ -158,25 +181,6 @@
   # /ip/dhcp-server/network). Nothing to configure here beyond the DHCP
   # client added above.
 }
-
-# ─── Minimal input firewall (common) ─────────────────────────────────────
-:log info "rbn-bootstrap: [step 5] input firewall"
-# Comments match what tofu's `modules/mikrotik/firewall.tofu` writes for
-# r01 / r08 / r09 / r11 — that way the per-relay tofu file imports these
-# rules by internal id (*1..*4) and adopts them with zero diff. After
-# adoption, tofu's main module owns these resources; subsequent re-
-# bootstraps are picked up the same way (state refresh removes the old
-# id mapping, import block grabs the new one).
-/ip/firewall/filter add chain=input action=accept \
-  connection-state=established,related,untracked \
-  comment="defconf: accept established,related,untracked"
-/ip/firewall/filter add chain=input action=drop \
-  connection-state=invalid \
-  comment="defconf: drop invalid"
-/ip/firewall/filter add chain=input action=accept protocol=icmp \
-  comment="defconf: accept ICMP"
-/ip/firewall/filter add chain=input action=drop in-interface-list=!LAN \
-  comment="defconf: drop all not coming from LAN"
 
 # ─── Wildcard cert + key (common; SCPed alongside this script) ───────────
 # RouterOS auto-pairs the key to its cert by public-key match.
