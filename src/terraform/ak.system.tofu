@@ -1,8 +1,8 @@
 resource "authentik_brand" "default" {
   default             = false
   domain              = local.domain.dc
-  branding_logo       = "media/public/icon.png"
-  branding_favicon    = "media/public/icon.png"
+  branding_logo       = "icon.png"
+  branding_favicon    = "icon.png"
   branding_title      = "The Rebellion"
   flow_authentication = authentik_flow.authn.uuid
   flow_invalidation   = authentik_flow.invalidation.uuid
@@ -15,8 +15,8 @@ resource "authentik_brand" "default" {
 resource "authentik_brand" "external" {
   default             = false
   domain              = local.domain.root
-  branding_logo       = "media/public/icon.png"
-  branding_favicon    = "media/public/icon.png"
+  branding_logo       = "icon.png"
+  branding_favicon    = "icon.png"
   branding_title      = "The Rebellion"
   flow_authentication = authentik_flow.authn.uuid
   flow_invalidation   = authentik_flow.invalidation.uuid
