@@ -13,7 +13,7 @@ spec:
   secretName: da-jm0-io-tls
   issuerRef:
     kind: ClusterIssuer
-    name: letsencrypt-staging
+    name: letsencrypt-production
   commonName: da.jm0.io
   dnsNames:
     - da.jm0.io
