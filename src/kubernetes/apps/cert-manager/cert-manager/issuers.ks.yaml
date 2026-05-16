@@ -24,6 +24,10 @@ spec:
       current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
   interval: 1h
   path: ./src/kubernetes/apps/cert-manager/cert-manager/issuers
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository

@@ -52,7 +52,7 @@ spec:
     - name: envoy-external
       namespace: network
   hostnames:
-    - echo.da.jm0.io
+    - echo.${DC_DOMAIN}
   rules:
     - backendRefs:
         - name: echo
