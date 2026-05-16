@@ -55,7 +55,7 @@
 
       nix-homebrew = lib.mkIf host.homebrew.enable {
         enable = true;
-        user = host.user.name;
+        user = host.primary-user.name;
 
         enableRosetta = false;
 
