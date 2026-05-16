@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json
+# Wildcard cert for the da datacenter, served by the gateway's HTTPS listener.
+# DNS-01 via Cloudflare (the only way to get a wildcard). letsencrypt-STAGING
+# while we iterate — flip issuerRef to letsencrypt-production once the full path
+# works (also rename the secret if you want a clean prod cert).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: da-jm0-io
+  namespace: network
+spec:
+  secretName: da-jm0-io-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+  commonName: da.jm0.io
+  dnsNames:
+    - da.jm0.io
+    - "*.da.jm0.io"

@@ -1,0 +1,83 @@
+---
+# Data-plane config for the gateway. Single replica (one node); image pinned to
+# the version matched to gateway-helm 1.8.1, via the gcr mirror.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: envoy
+  namespace: network
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 1
+        container:
+          image: mirror.gcr.io/envoyproxy/envoy:v1.38.2
+      envoyService:
+        externalTrafficPolicy: Local
+---
+# GatewayClass is cluster-scoped (no namespace).
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: envoy
+    namespace: network
+---
+# Single external gateway. TEMP LB IP 10.69.1.10 — `10.69.1.1` is still the live
+# keepalived VIP (Traefik) until Phase 5; we cut this over to .1 once keepalived
+# is removed and BGP/DHCP (Phase 4b) are done. Until BGP, this IP is reachable
+# only on-node. Future: add an `envoy-internal` gateway for LAN-only services.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-external
+  namespace: network
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      lbipam.cilium.io/ips: 10.69.1.10
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: https
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: da-jm0-io-tls
+---
+# Redirect plain HTTP → HTTPS on the gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-redirect
+  namespace: network
+  annotations:
+    external-dns.alpha.kubernetes.io/controller: none
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
