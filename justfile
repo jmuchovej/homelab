@@ -1,3 +1,6 @@
+mod bootstrap "src/modules/hosts/bootstrap/justfile"
+
+[private]
 default:
     just --list
 
@@ -6,10 +9,6 @@ setup:
 
 format disk:
     diskutil eraseDisk MS-DOS GPT {{ disk }}
-
-build-iso disk:
-    flake build-install-iso minimal
-    fd ".*.iso" ./result/iso -x sudo mv {} ISOs/{/}
 
 [linux]
 switch:
