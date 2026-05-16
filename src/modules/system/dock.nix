@@ -64,7 +64,7 @@
         sort
         ;
 
-      primaryUser = host.user.name;
+      primaryUser = host.primary-user.name;
       hmAppsDir = "/Users/${primaryUser}/Applications/Home Manager Apps";
 
       allEntries = host.users.${primaryUser}.dock or [ ];

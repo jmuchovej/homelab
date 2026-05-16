@@ -1,7 +1,8 @@
 # Shared host schema options — available to all hosts via `host.*`.
 # Individual service schemas are colocated in their aspect files.
 # This file defines cross-cutting options used by many aspects.
-_: {
+{ lib, den, ... }:
+{
   den.schema.host =
     { config, lib, ... }:
     let
@@ -38,7 +39,10 @@ _: {
           description = "Full hostname (same as host name)";
         };
         # ── Primary user ───────────────────────────────────────────────
-        user = {
+        # Named `primary-user` rather than `user` to avoid colliding with
+        # den's fx-pipeline `user` context binding (host.user is implicitly
+        # passed as the `user` arg to user-scoped parametric aspects).
+        primary-user = {
           name = mkOption {
             type = str;
             default = "lab";

@@ -35,7 +35,7 @@
       {
         imports = [ inputs.sops-nix.homeManagerModules.sops ];
         sops = {
-          defaultSopsFile = lib.mkDefault ./users/${host.user.name}.sops.yaml;
+          defaultSopsFile = lib.mkDefault ./users/${host.primary-user.name}.sops.yaml;
           defaultSopsFormat = "yaml";
         };
       };
