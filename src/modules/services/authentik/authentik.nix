@@ -8,13 +8,6 @@
     inputs.authentik-nix.nixosModules.default
   ];
 
-  # ── Host schema: authentik options ─────────────────────────────────
-  den.schema.host =
-    { lib, ... }:
-    {
-      options.authentik.enable = lib.mkEnableOption "Authentik authentication platform";
-    };
-
   # OIDC discovery URL helper, reachable as `<rbn/authentik/openid-url>`.
   # Usage: <rbn/authentik/openid-url> "homebox" "da"
   rbn.authentik.provides.openid-url = {
@@ -33,7 +26,7 @@
       ...
     }:
     let
-      inherit (lib) mkIf mkMerge;
+      inherit (lib) mkMerge;
       inherit (lib.rbn)
         enabled
         get-secret
@@ -45,8 +38,6 @@
         ;
       inherit (host) hostname datacenter;
 
-      cfg = host.authentik;
-
       authentik-http = "http://localhost:9000";
       authentik-proxy-http = config.services.authentik-proxy.listenHTTP;
 
@@ -56,13 +47,22 @@
         AUTHENTIK_INSECURE=false
         AUTHENTIK_OUTPOST__DISABLE_EMBEDDED_OUTPOST=true
       '';
+
+      # `blueprints_dir` is a single path, so merge authentik's built-in
+      # blueprints with our custom ones (e.g. the terraform service account).
+      merged-blueprints = pkgs.runCommand "authentik-blueprints" { } ''
+        mkdir -p $out
+        cp -r ${config.services.authentik.authentikComponents.staticWorkdirDeps}/blueprints/. $out/
+        cp ${./tofu-service-account.yaml} $out/tofu-service-account.yaml
+      '';
     in
 
-    mkIf cfg.enable (mkMerge [
+    mkMerge [
       (get-secret' config "authentik/secret-key")
       (get-secret' config "authentik/token")
-      (get-secret' config "mailgun/smtp-token")
+      (get-secret' config "authentik/admin-password")
       (get-secret' config "authentik/bootstrap-token")
+      (get-secret' config "mailgun/smtp-token")
       (get-secret config "outposts/proxy-token" "authentik")
       (get-secret config "outposts/ldap-token" "authentik")
       (get-secret config "outposts/radius-token" "authentik")
@@ -70,12 +70,15 @@
         sops.templates."authentik/env".content = ''
           AUTHENTIK_SECRET_KEY=${config.sops.placeholder."authentik/secret-key"}
           AUTHENTIK_BOOTSTRAP_TOKEN=${config.sops.placeholder."authentik/bootstrap-token"}
+          AUTHENTIK_BOOTSTRAP_PASSWORD_HASH=${config.sops.placeholder."authentik/admin-password"}
+          AUTHENTIK_TERRAFORM_TOKEN=${config.sops.placeholder."authentik/token"}
           AUTHENTIK_EMAIL__PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
         '';
 
         services.authentik = enabled // {
           environmentFile = config.sops.templates."authentik/env".path;
           settings = {
+            blueprints_dir = "${merged-blueprints}";
             email = {
               host = "smtp.mailgun.org";
               port = 587;
@@ -156,6 +159,5 @@
         in
         with-consul config (service // { checks = [ healthcheck-server ]; })
       )
-    ]);
-
+    ];
 }
