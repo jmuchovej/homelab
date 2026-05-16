@@ -1,0 +1,34 @@
+[no-cd]
+test:
+    nix eval .#nixosConfigurations.bootstrap.config.system.build.isoImage.drvPath
+
+[no-cd]
+make remote="none":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    iso_image=".#nixosConfigurations.bootstrap.config.system.build.isoImage"
+    if [ "{{ remote }}" = "none" ]; then
+      nix build --eval-store auto "${iso_image}"
+    else
+      remote="ssh-ng://lab@{{ remote }}"
+      nix build --store "${remote}" --eval-store auto "${iso_image}"
+      out=$(nix path-info --store "${remote}" "${iso_image}")
+      nix copy --no-check-sigs --from "${remote}" "${out}"
+    fi
+
+[macos]
+[no-cd]
+burn disk: make
+    #!/usr/bin/env bash
+    set -euo pipefail
+    diskutil info "{{ disk }}"
+    echo
+    read -p "About to WIPE {{ disk }} and write the bootstrap ISO. Type 'yes' to proceed: " ans
+    [ "$ans" = "yes" ] || { echo "Aborted."; exit 1; }
+    raw=$(printf '%s' "{{ disk }}" | sed 's|/dev/disk|/dev/rdisk|')
+    iso=$(ls result/iso/*.iso | head -n1)
+    echo "Writing $iso → $raw  (Ctrl-T for progress)"
+    diskutil unmountDisk "{{ disk }}"
+    sudo dd if="$iso" of="$raw" bs=4M
+    diskutil eject "{{ disk }}"
