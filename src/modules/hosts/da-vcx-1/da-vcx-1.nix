@@ -133,6 +133,7 @@
 
       # Services
       <rbn/services/consul>
+      <rbn/services/consul-esm>
       <rbn/services/keepalived>
       <rbn/services/traefik>
       <rbn/services/authentik>
