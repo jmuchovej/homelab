@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/controlplaneio-fluxcd/flux-operator/main/config/crd/bases/fluxcd.controlplane.io_fluxinstances.yaml
+#
+# FluxInstance — reconciled by the flux-operator (installed via
+# services.k3s.autoDeployCharts.flux-operator). The operator installs the Flux
+# controllers and wires the GitRepository + root Kustomization, so this is the
+# single declarative entrypoint for GitOps.
+#
+# The repo is PUBLIC, so sync is plain HTTPS with no pullSecret. If the
+# kubernetes/ tree is committed to a different branch, change `ref` (the repo's
+# GitHub default is `main`).
+---
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "1h"
+spec:
+  distribution:
+    version: "2.x"
+    registry: ghcr.io/fluxcd
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    networkPolicy: false
+  sync:
+    kind: GitRepository
+    url: https://github.com/jmuchovej/homelab
+    ref: refs/heads/main
+    path: src/kubernetes/flux/cluster
