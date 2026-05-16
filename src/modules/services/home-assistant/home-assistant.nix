@@ -80,7 +80,7 @@
               adaptive_lighting
             ])
             ++ [
-              (pkgs.home-assistant.python.pkgs.callPackage ./_packages/hacs.nix { })
+              (pkgs.home-assistant.python3Packages.callPackage ./_packages/hacs.nix { })
             ];
           extraPackages =
             python3Packages: with python3Packages; [

@@ -25,7 +25,7 @@
     provides = {
       ollama = {
         includes = [
-          (den.provides.unfree [ "ollama" ])
+          (den.batteries.unfree [ "ollama" ])
           (<rbn/mesh/register> {
             name = "ollama";
             port = 11434;
@@ -144,7 +144,7 @@
           ];
 
         includes = [
-          (den.provides.unfree [ "open-webui" ])
+          (den.batteries.unfree [ "open-webui" ])
           (<rbn/mesh/register> {
             name = "open-webui";
             port = 11435;

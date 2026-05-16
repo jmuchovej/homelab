@@ -11,7 +11,7 @@
         };
     };
     provides.postman = {
-      includes = [ (den.provides.unfree [ "postman" ]) ];
+      includes = [ (den.batteries.unfree [ "postman" ]) ];
 
       homeManager =
         { pkgs, lib, ... }:

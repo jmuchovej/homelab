@@ -11,7 +11,7 @@
         permission-profiles = import ./_claude/permissions.nix;
       in
       {
-        includes = [ (den.provides.unfree [ "claude-code" ]) ];
+        includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
         homeManager =
           {

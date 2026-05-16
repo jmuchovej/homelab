@@ -20,7 +20,7 @@
 
     provides = {
       onepassword = {
-        includes = [ (den.provides.unfree [ "1password-cli" ]) ];
+        includes = [ (den.batteries.unfree [ "1password-cli" ]) ];
 
         homeManager =
           {

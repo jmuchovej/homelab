@@ -6,7 +6,7 @@
   };
 
   rbn.programs._.development._.apps = {
-    includes = [ (den.provides.unfree [ "android-studio" ]) ];
+    includes = [ (den.batteries.unfree [ "android-studio" ]) ];
     homeManager =
       {
         pkgs,
