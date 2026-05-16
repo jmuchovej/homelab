@@ -54,13 +54,11 @@ _: {
                   "nfsvers=4.2"
                   "_netdev"
                   "noatime"
-                  # automount instead of a hard boot dependency: the mount
-                  # happens on first access and the accessor blocks until it
-                  # succeeds — it never silently falls back to the local
-                  # (impermanence-wiped) directory, so /home writes can't be
-                  # lost. Idle-unmount after 10 min of inactivity.
+                  "hard"
                   "x-systemd.automount"
+                  "x-systemd.mount-timeout=10s"
                   "x-systemd.idle-timeout=600"
+                  "nofail"
                 ];
                 description = "Mount options for this NFS filesystem.";
               };
@@ -74,14 +72,23 @@ _: {
 
   rbn.services._.nfs = {
     nixos =
-      { host, lib, ... }:
       {
-        services.nfs.server = lib.mkIf (host.nfs.exports != [ ]) {
+        host,
+        lib,
+        config,
+        ...
+      }:
+      let
+        enable-exports = host.nfs.exports != [ ];
+        enable-mounts = host.nfs.mounts != [ ];
+      in
+      {
+        services.nfs.server = lib.mkIf enable-exports {
           enable = true;
           exports =
             (lib.concatMapStringsSep "\n" (e: "${e.path} ${e.clients}(${e.options})") host.nfs.exports) + "\n";
         };
-        networking.firewall.allowedTCPPorts = lib.mkIf (host.nfs.exports != [ ]) [ 2049 ];
+        networking.firewall.allowedTCPPorts = lib.mkIf enable-exports [ 2049 ];
 
         fileSystems = lib.listToAttrs (
           map (
@@ -93,6 +100,20 @@ _: {
             }
           ) host.nfs.mounts
         );
+
+        systemd.services.systemd-tmpfiles-setup.serviceConfig.ExecStart =
+          let
+            mounts = [ "/dev" ] ++ map (m: m.local) host.nfs.mounts;
+            exec-start' = [
+              "" # reset the upstream ExecStart before redefining it
+              "${config.systemd.package}/bin/systemd-tmpfiles"
+              "--create"
+              "--remove"
+              "--boot"
+            ]
+            ++ map (mount: "--exclude-prefix=${mount}") mounts;
+          in
+          lib.mkIf enable-mounts exec-start';
       };
   };
 }
