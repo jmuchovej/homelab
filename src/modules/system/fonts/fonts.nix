@@ -1,6 +1,10 @@
 # Consolidated font configuration across NixOS and darwin.
-_: {
+{ den, ... }:
+{
   rbn.system._.fonts = {
+    includes = [
+      (den.provides.unfree [ "corefonts" ])
+    ];
     nixos =
       { lib, pkgs, ... }:
       let
