@@ -93,9 +93,20 @@ let
           load-file f args;
     in
     merge-shallow (map load filtered);
+
+  from-yaml =
+    file:
+    { pkgs, ... }:
+    builtins.fromJSON (
+      builtins.readFile (
+        pkgs.runCommand (baseNameOf file) { } ''
+          ${pkgs.yq}/bin/yq < ${file} > $out
+        ''
+      )
+    );
 in
 {
   _rbn-lib = {
-    inherit import-dir import-subdirs;
+    inherit import-dir import-subdirs from-yaml;
   };
 }
