@@ -7,6 +7,7 @@ locals {
 
   vlans = local.topology.vlans
 
+  # ─── Catalog — invariants for the main mikrotik module ──────────────
   catalog = {
     vlans        = local.vlans
     vip          = "10.69.1.1"
