@@ -8,7 +8,7 @@
 
     nixos = {
       imports = [
-        ./_da-vcx-3/hardware.nix
+        ./_hardware.nix
       ];
       system.stateVersion = "24.05";
     };

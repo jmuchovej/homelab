@@ -29,8 +29,8 @@
 
     nixos = {
       imports = [
-        ./_da-vcx-2/hardware.nix
-        ./_da-vcx-2/disks.nix
+        ./_hardware.nix
+        ./_disks.nix
       ];
       system.stateVersion = "24.11";
     };
