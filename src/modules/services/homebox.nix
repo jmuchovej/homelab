@@ -35,13 +35,13 @@
             HBOX_MAILER_HOST = "smtp.mailgun.org";
             HBOX_MAILER_PORT = "587";
             HBOX_MAILER_USERNAME = "postmaster@sandbox99f6437cfdb74594b267f6cc24740684.mailgun.org";
-            HBOX_MAILER_FROM = "homebox@jm.io";
+            HBOX_MAILER_FROM = "homebox@jm0.io";
             HBOX_OIDC_ENABLED = "true";
             HBOX_OIDC_AUTO_REDIRECT = "true";
-            HBOX_OIDC_VERIFY_EMAIL = "true";
-            HBOX_OIDC_BUTTON_TEXT = "Sign in with JM Cloud";
+            HBOX_OIDC_VERIFY_EMAIL = "false";
+            HBOX_OIDC_BUTTON_TEXT = "Sign in with The Rebellion";
             HBOX_OIDC_SCOPE = "openid profile email groups";
-            HBOX_OIDC_ALLOWED_GROUPS = "Home";
+            HBOX_OIDC_ALLOWED_GROUPS = "home";
             HBOX_OPTIONS_ALLOW_LOCAL_LOGIN = "false";
             HBOX_OPTIONS_ALLOW_REGISTRATION = "true";
             HBOX_OPTIONS_TRUST_PROXY = "true";
@@ -58,10 +58,10 @@
           in
           {
             content = ''
-              HBOX_OIDC_CLIENT_ID = ${client-id}
-              HBOX_OIDC_ISSUER_URL = ${issuer-url}
-              HBOX_OIDC_CLIENT_SECRET = ${config.sops.placeholder."homebox/client-secret"}
-              HBOX_MAILER_PASSWORD = ${config.sops.placeholder."mailgun/smtp-token"}
+              HBOX_OIDC_CLIENT_ID=${client-id}
+              HBOX_OIDC_ISSUER_URL=${issuer-url}
+              HBOX_OIDC_CLIENT_SECRET=${config.sops.placeholder."homebox/client-secret"}
+              HBOX_MAILER_PASSWORD=${config.sops.placeholder."mailgun/smtp-token"}
             '';
           };
 
@@ -94,6 +94,7 @@
           access = [ "family" ];
           icon = "di:homebox";
           skip-paths = "/api/*";
+          redirect-uris = [ "{{ domain }}/api/v1/users/login/oidc/callback" ];
         };
       })
     ];

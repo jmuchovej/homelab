@@ -50,6 +50,12 @@ variable "property_mappings" {
   default = []
 }
 
+variable "redirect_uris" {
+  description = "Exact-match redirect URIs allowed for the OAuth provider. Sourced from per-service mesh registration → `authentik.redirect_uris` consul tag. Only consulted when `type == \"oauth\"`."
+  type        = list(string)
+  default     = []
+}
+
 variable "jwks_sources" {
   type    = list(string)
   default = []
