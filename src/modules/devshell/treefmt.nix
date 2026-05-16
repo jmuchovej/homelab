@@ -59,7 +59,7 @@
           gofmt.enable = true;
 
           # JS/TS/YAML/TOML/etc.
-          # oxfmt.enable = true;
+          oxfmt.enable = true;
 
           # Lua
           stylua.enable = true;
