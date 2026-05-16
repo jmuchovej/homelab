@@ -1,3 +1,7 @@
+output "uuid" {
+  value = authentik_application.app.uuid
+}
+
 output "app_id" {
   value = authentik_application.app.id
 }
