@@ -17,7 +17,7 @@ _: {
         enable = true;
         extraRules = [
           {
-            users = [ host.user.name ];
+            users = [ host.primary-user.name ];
             noPass = true;
             keepEnv = true;
           }

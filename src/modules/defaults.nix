@@ -1,7 +1,7 @@
 {
   inputs,
-  __findFile,
   lib,
+  den,
   ...
 }:
 let
@@ -22,17 +22,16 @@ let
   extended-lib = lib.extend (_: _: { rbn = rbn-lib; });
 in
 {
-  den.default = {
-    includes = [
-      <den/define-user>
-      (
-        { host, ... }:
-        {
-          ${host.class}.networking.hostName = host.name;
-        }
-      )
-    ];
-  };
+  den.default.includes = [
+    den.batteries.define-user
+    den.batteries.hostname
+    (
+      { host, ... }:
+      {
+        ${host.class}.networking.hostName = host.name;
+      }
+    )
+  ];
 
   # Override instantiate to inject our extended lib (with `lib.rbn`) and
   # other host-derived args into OS evaluation.
