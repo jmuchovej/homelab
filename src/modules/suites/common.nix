@@ -4,6 +4,7 @@
     includes = [
       # Cross-platform system
       <rbn/system/nix>
+      <rbn/system/nix-builders>
       <rbn/system/environment>
       <rbn/services/openssh>
       <rbn/programs/security/sops>
