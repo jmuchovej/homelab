@@ -20,8 +20,8 @@
           documentation = {
             enable = lib.mkForce false;
             info.enable = lib.mkForce false;
-            man.enable = lib.mkForce false;
-            nixos.enable = lib.mkForce false;
+            man.enable = lib.mkForce true;
+            nixos.enable = lib.mkForce true;
           };
 
           users.mutableUsers = false;
