@@ -1,7 +1,7 @@
 { __findFile, ... }:
 {
   den.hosts.aarch64-darwin.da-n1x = {
-    user = {
+    primary-user = {
       name = "john";
       email = "john@jm0.io";
       full-name = "John Muchovej";
@@ -19,6 +19,7 @@
       <rbn/suite/desktop>
       <rbn/suite/development>
       <rbn/programs/media/spotify>
+      <rbn/system/networking/wg-holonet>
     ];
 
     darwin = {
