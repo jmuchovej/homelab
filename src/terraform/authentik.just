@@ -1,5 +1,5 @@
-secrets := "../secrets/secrets.sops.yaml"
-output := "../authentik.auto.tfvars.json"
+secrets := "secrets/secrets.sops.yaml"
+output := "authentik.auto.tfvars.json"
 
 _default:
     @just --list
