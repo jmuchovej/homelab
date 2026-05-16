@@ -4,7 +4,7 @@ _: {
     darwin =
       { host, ... }:
       let
-        username = host.user.name;
+        username = host.primary-user.name;
       in
       {
         home-manager.users.${username}.home.file."Pictures/Screenshots/.keep".text = "";
