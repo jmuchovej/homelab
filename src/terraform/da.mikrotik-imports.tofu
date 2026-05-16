@@ -185,3 +185,14 @@ import {
   to = module.da-relay02.routeros_ip_firewall_filter.r11_input_drop_not_lan
   id = "*4"
 }
+
+# --- ZeroTier ------------------------------------------------------------------
+import {
+  to = module.da-relay01.routeros_zerotier.zt1
+  id = "name=zt1"
+}
+
+import {
+  to = module.da-relay02.routeros_zerotier.zt1
+  id = "name=zt1"
+}
