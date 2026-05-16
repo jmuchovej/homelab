@@ -153,6 +153,7 @@ in
         ++ host.persistence.extra-files;
       };
 
+      sops.age.sshKeyPaths = lib.mkBefore [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
       # Standard M.2 disko layout — only when host.persistence.device is set.
       # Hosts with custom partitioning leave `.device = null` and write
       # their own `_disks.nix`. `lib.mkIf` on `disko` short-circuits the
