@@ -6,7 +6,7 @@ _: {
 
       environment.systemPackages = with pkgs; [
         btrfs-progs
-        fuseiso
+        fuse-archive
         nfs-utils
         ntfs3g
       ];
