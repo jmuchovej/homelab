@@ -34,7 +34,6 @@ terraform {
 }
 
 locals {
-  datacenter = "da"
   domain = {
     root = data.cloudflare_zone.domain.name
     da   = "da.${data.cloudflare_zone.domain.name}"
@@ -64,8 +63,4 @@ data "sops_file" "authentik" {
 
 data "sops_file" "users" {
   source_file = "${path.root}/secrets/users.sops.yaml"
-}
-
-provider "consul" {
-  address = "https://consul.${local.domain.dc}"
 }
