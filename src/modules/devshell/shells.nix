@@ -10,7 +10,7 @@
       # Bundle system CA certs with homelab CA for SSL trust
       caBundle =
         let
-          homelabCA = "${self}/secrets/certificates/da/ca.crt";
+          homelabCA = "${self}/secrets/certificates/root.crt";
           systemCerts = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         in
         pkgs.runCommand "ca-bundle-with-homelab" { } ''
