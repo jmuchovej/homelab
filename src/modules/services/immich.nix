@@ -6,6 +6,7 @@
         host,
         config,
         lib,
+        pkgs,
         ...
       }:
       let
@@ -71,7 +72,7 @@
             storageTemplate = {
               enabled = true;
               hashVerificationEnabled = true;
-              template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{fileame}}";
+              template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
             };
             trash.enabled = true;
             trash.days = 90;
@@ -83,6 +84,24 @@
           enable = true;
           openFirewall = true;
           immichUrl = "http://localhost:${toString config.services.immich.port}";
+        };
+
+        systemd.services.immich-public-proxy = {
+          after = [ "immich-server.service" ];
+          wants = [ "immich-server.service" ];
+          serviceConfig.ExecStartPre =
+            let
+              wait-for-immich = pkgs.writeShellScript "wait-for-immich" ''
+                url="http://localhost:${toString config.services.immich.port}/api/server/ping"
+                for _ in $(seq 1 60); do
+                  ${lib.getExe pkgs.curl} -sf "$url" >/dev/null && exit 0
+                  sleep 2
+                done
+                echo "immich-public-proxy: immich not ready after 120s" >&2
+                exit 1
+              '';
+            in
+            "${wait-for-immich}";
         };
       };
 
@@ -115,7 +134,7 @@
         ];
         route = "/share";
         priority = 20;
-        healthcheck = "/share/healthceck";
+        healthcheck = "/share/healthcheck";
       })
     ];
   };
