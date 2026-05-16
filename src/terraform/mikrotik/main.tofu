@@ -1,6 +1,7 @@
 terraform {
   required_providers {
     routeros = { source = "terraform-routeros/routeros" }
+    zerotier = { source = "zerotier/zerotier" }
   }
 }
 
@@ -186,9 +187,11 @@ variable "wifi-passphrases" {
 }
 
 locals {
+  # ─── Identity decomposition ──────────────────────────────────────────
   dc       = split("-", var.relay)[0]
   identity = split("-", var.relay)[1]
 
+  # ─── Catalog slices ──────────────────────────────────────────────────
   vlans        = var.catalog.vlans
   vip          = var.catalog.vip
   lan-supernet = var.catalog.lan-supernet
