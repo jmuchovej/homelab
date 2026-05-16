@@ -20,7 +20,12 @@
 
     provides = {
       onepassword = {
-        includes = [ (den.batteries.unfree [ "1password-cli" ]) ];
+        includes = [
+          (den.batteries.unfree [
+            "1password-cli"
+            "1password"
+          ])
+        ];
 
         homeManager =
           {
@@ -31,28 +36,51 @@
           }:
           let
             inherit (pkgs.stdenv) isDarwin;
+            op-ssh-sign =
+              "${pkgs._1password-gui}"
+              + (if isDarwin then "/Applications/1Password.app/Contents/MacOS" else "/bin")
+              + "/op-ssh-sign";
+
+            signing-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPzVs6NgTgGHRUb2AOW3iLsuCpRXLVMleeLeQ3FYF8Kb";
           in
           {
-            home.packages = [ pkgs._1password-cli ];
+            home = {
+              packages = [ pkgs._1password-cli ];
+              sessionVariables.SSH_AUTH_SOCK = "$HOME/.1password/agent.sock";
+              file = {
+                ".ssh/allowed_signers".text = "* ${signing-key}";
+                ".1password/agent.sock" = lib.mkIf isDarwin {
+                  source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+                };
+              };
+            };
 
-            home.sessionVariables.SSH_AUTH_SOCK = "$HOME/.1password/agent.sock";
+            programs.git.settings = {
+              gpg.format = "ssh";
+              gpg.ssh.program = op-ssh-sign;
+              commit.gpgsign = true;
+              tag.gpgsign = true;
+              user.signingkey = signing-key;
+            };
 
-            # macOS puts the agent socket under Group Containers; symlink it
-            # to ~/.1password/agent.sock so the same SSH_AUTH_SOCK works on
-            # both platforms. Linux's 1Password writes there directly.
-            home.file.".1password/agent.sock" = lib.mkIf isDarwin {
-              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+            programs.jujutsu.settings.signing = {
+              behavior = "drop";
+              backend = "ssh";
+              key = signing-key;
+              backends.ssh.program = op-ssh-sign;
+              git.sign-on-push = true;
             };
           };
 
-        darwin =
-          { host, lib, ... }:
-          lib.mkIf host.homebrew.enable {
-            homebrew.casks = [ "1password" ];
-            homebrew.masApps = {
-              # "1Password for Safari" = 1569813296;
-            };
+        os = { pkgs, ... }: {
+          environment.systemPackages = [ pkgs._1password-gui ];
+        };
+
+        darwin = { host, lib, ... }: {
+          homebrew.masApps = lib.mkIf (host.meta.uses-homebrew or false) {
+            # "1Password for Safari" = 1569813296;
           };
+        };
       };
     };
   };
