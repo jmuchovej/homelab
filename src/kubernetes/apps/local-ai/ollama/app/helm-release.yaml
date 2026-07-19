@@ -1,0 +1,133 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name ollama
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      ollama:
+        containers:
+          app:
+            image: &image
+              repository: docker.io/ollama/ollama
+              tag: 0.32.1
+            env:
+              TZ: America/New_York
+              OLLAMA_HOST: 0.0.0.0:11434
+              # nvidia RuntimeClass injects the GPU without a device plugin —
+              # single node, so no scheduling arithmetic to preserve
+              NVIDIA_VISIBLE_DEVICES: all
+              NVIDIA_DRIVER_CAPABILITIES: compute,utility
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 24Gi
+          models:
+            image: *image
+            env:
+              OLLAMA_HOST: 127.0.0.1:11434
+              MODELS: |-
+                all-minilm
+                codegemma
+                codellama
+                cogito
+                deepseek-coder
+                deepseek-r1
+                deepseek-v3
+                deepseek-v3.1
+                devstral
+                devstral-2
+                dolphin3
+                falcon3
+                gemma
+                gemma2
+                gemma3
+                gpt-oss
+                llama3
+                llama3.1
+                llama3.2
+                llama3.2-vision
+                llama3.3
+                llama4
+                llava
+                magistral
+                ministral-3
+                mistral
+                mixtral
+                mxbai-embed-large
+                nemotron-3-nano
+                nomic-embed-text
+                olmo-3
+                olmo2
+                phi
+                phi3
+                phi3.5
+                phi4-reasoning
+                qwen
+                qwen2
+                qwen2.5
+                qwen2.5-coder
+                qwen2.5vl
+                qwen3
+                qwen3-embedding
+                qwen3-vl
+                qwq
+                embeddinggemma
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                until ollama list >/dev/null 2>&1; do sleep 5; done
+                echo "$MODELS" | while read -r m; do
+                  [ -z "$m" ] || ollama pull "$m" || echo "pull failed: $m"
+                done
+                echo "model sync complete"
+                sleep infinity
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+    defaultPodOptions:
+      runtimeClassName: nvidia
+
+    service:
+      app:
+        ports:
+          http:
+            port: 11434
+
+    route:
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: Ollama
+          authentik.rbn/type: proxy
+          authentik.rbn/group: Compute
+          authentik.rbn/icon: di:ollama
+          authentik.rbn/access: compute,compute-managers
+          authentik.rbn/basic-auth.enabled: "true"
+          authentik.rbn/basic-auth.username: username
+          authentik.rbn/basic-auth.password: password
+        hostnames:
+          - ollama.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      # model blobs + ollama state; node-pinned cache, so hostPath over PVC
+      models:
+        type: hostPath
+        hostPath: /warp/models/ollama
+        hostPathType: DirectoryOrCreate
+        globalMounts:
+          - path: /root/.ollama

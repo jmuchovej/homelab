@@ -14,6 +14,12 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: home-automation
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: local-ai
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: local-ai
   to:
     - group: ""
       kind: Service

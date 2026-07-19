@@ -1,0 +1,24 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ollama
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ollama
+  extAuth:
+    headersToExtAuth:
+      - cookie
+    http:
+      backendRefs:
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
+      path: /outpost.goauthentik.io/auth/envoy
+      headersToBackend:
+        - set-cookie
+        # basic-auth injection: the provider synthesizes Authorization from
+        # user attributes (basic-auth.{username,password} annotations)
+        - authorization
