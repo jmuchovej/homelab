@@ -9,6 +9,10 @@ spec:
       kind: HTTPRoute
       name: hubitat
   extAuth:
+    # the session cookie must reach the outpost on check requests, or every
+    # request looks anonymous and the flow loops back to login
+    headersToExtAuth:
+      - cookie
     http:
       backendRefs:
         - name: authentik-server
