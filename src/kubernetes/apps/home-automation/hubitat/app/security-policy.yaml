@@ -15,9 +15,10 @@ spec:
       - cookie
     http:
       backendRefs:
-        - name: authentik-server
+        # authentik-deployed from the tofu-managed "Proxy" outpost
+        - name: ak-outpost-proxy
           namespace: auth
-          port: 80
+          port: 9000
       path: /outpost.goauthentik.io/auth/envoy
       headersToBackend:
         - set-cookie
