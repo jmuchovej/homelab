@@ -1,9 +1,4 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
-# Gateway/GatewayClass/EnvoyProxy + the cert. Applied only after the controller
-# installed its CRDs (envoy-gateway) and the LE issuer exists (cert-manager-
-# issuers). Resources carry explicit namespaces (GatewayClass is cluster-scoped),
-# so NO targetNamespace here.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:

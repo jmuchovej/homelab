@@ -1,9 +1,4 @@
 ---
-# Let's Encrypt issuers, DNS-01 via Cloudflare. One solver on the root zone
-# covers every subdomain (per-DC/holonet/*) since the _acme-challenge TXT is
-# always written to the root zone. Wildcards require DNS-01 — which this is.
-# The Cloudflare token comes from the `cloudflare` ExternalSecret; the zone
-# and email substitute from `cluster-settings` (issuers.ks.yaml postBuild).
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

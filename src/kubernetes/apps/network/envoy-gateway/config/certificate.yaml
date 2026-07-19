@@ -1,9 +1,4 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json
-# Wildcard cert for the da datacenter, served by the gateway's HTTPS listener.
-# DNS-01 via Cloudflare (the only way to get a wildcard). Production issuer —
-# the full TLS→gateway→route path was proven on staging first. cert-manager
-# re-issues into the same secret; the gateway picks it up without changes.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

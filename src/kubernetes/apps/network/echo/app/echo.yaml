@@ -1,7 +1,5 @@
 ---
-# Proof workload — a request-echoing server behind the gateway, to validate
-# end-to-end routing + TLS. Plain manifests (real apps will use the app-template
-# HelmRelease pattern); image from ghcr to dodge Docker Hub rate limits.
+# $schema: https://k8s-schemas.home-operations.com/apps/deployment_v1.json
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,6 +29,7 @@ spec:
             capabilities:
               drop: ["ALL"]
 ---
+# $schema: https://k8s-schemas.home-operations.com/core/service_v1.json
 apiVersion: v1
 kind: Service
 metadata:
@@ -43,6 +42,7 @@ spec:
       port: 8080
       targetPort: http
 ---
+# $schema: https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -52,7 +52,7 @@ spec:
     - name: envoy-external
       namespace: network
   hostnames:
-    - echo.${DC_DOMAIN}
+    - "echo.${DC_DOMAIN}"
   rules:
     - backendRefs:
         - name: echo

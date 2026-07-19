@@ -38,6 +38,15 @@ spec:
       valuesKey: email_password
       targetPath: authentik.email.password
   values:
+    global:
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: authentik-media
+      volumeMounts:
+        - name: media
+          mountPath: /media
+
     blueprints:
       configMaps:
         - authentik-blueprints
@@ -53,7 +62,6 @@ spec:
         use_tls: true
         from: homelab@${DOMAIN}
 
-    # turn off bundled postgres, let CNPG own the DB.
     postgresql:
       enabled: false
 
