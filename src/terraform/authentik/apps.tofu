@@ -8,24 +8,6 @@ locals {
   apps = merge(local.frozen-apps, var.discovered-apps)
 
   frozen-apps = {
-    home-assistant = {
-      name       = "Home Assistant"
-      group      = "Home"
-      type       = "oauth"
-      icon       = "di:home-assistant"
-      access     = ["home"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = ""
-        ext = "https://home.${var.domain.da}"
-      }
-      redirect_uris = ["https://home.${var.domain.da}/auth/oidc/callback"]
-    }
     homebox = {
       name       = "homebox"
       group      = "Family"
@@ -43,24 +25,6 @@ locals {
         ext = "https://homebox.${var.domain.da}"
       }
       redirect_uris = ["https://homebox.${var.domain.da}/api/v1/users/login/oidc/callback"]
-    }
-    hubitat = {
-      name       = "hubitat"
-      group      = "Home"
-      type       = "proxy"
-      icon       = "di:hubitat"
-      access     = ["home"]
-      skip_paths = "/apps/api/*"
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = "https://hubitat.${var.domain.da}"
-        ext = "https://hubitat.${var.domain.da}"
-      }
-      redirect_uris = []
     }
     immich = {
       name       = "immich"
