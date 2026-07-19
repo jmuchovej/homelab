@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: seerr
+spec:
+  dependsOn:
+    - name: envoy-config
+      namespace: network
+  interval: 1h
+  path: ./src/kubernetes/apps/media/seerr/app
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-settings
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: media
+  wait: true

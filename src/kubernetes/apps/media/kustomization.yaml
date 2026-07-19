@@ -5,3 +5,4 @@ namespace: media
 resources:
   - ./namespace.yaml
   - ./plex/plex.ks.yaml
+  - ./seerr/seerr.ks.yaml
