@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: certificates
+spec:
+  dependsOn:
+    - name: cert-manager-issuers
+      namespace: cert-manager
+  interval: 1h
+  path: ./src/kubernetes/apps/network/certificates/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: network
+  # wait would gate on the PushSecret, which can't sync until the
+  # write-scoped Connect token exists — don't let that block consumers
+  wait: false
