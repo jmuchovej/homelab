@@ -1,0 +1,16 @@
+---
+# STAGED, not yet in kustomization.yaml — requires the UHD 750 enabled in BIOS
+# plus the intel-gpu-resource-driver (DRA) deployed. When both land: add this
+# to kustomization.yaml and wire the HelmRelease per home-ops
+# (defaultPodOptions.resourceClaims + resources.claims: [gpu]).
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: plex
+spec:
+  spec:
+    devices:
+      requests:
+        - name: gpu
+          exactly:
+            deviceClassName: gpu.intel.com

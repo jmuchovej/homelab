@@ -1,4 +1,7 @@
 ---
+# NOTE: no namespace.yaml here — kube-system always exists, and its absence
+# keeps this tree out of the cluster-settings seeding walk (which keys on
+# namespace.yaml presence).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: kube-system
