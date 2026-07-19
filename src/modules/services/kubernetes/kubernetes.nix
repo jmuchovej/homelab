@@ -200,6 +200,9 @@
       { pkgs, ... }:
       {
         systemd.services.k3s.path = [ pkgs.nvidia-container-toolkit.tools ];
+        # the runtime's CDI generation dlopens libnvidia-ml — which NixOS
+        # keeps in /run/opengl-driver, nowhere a raw binary looks
+        systemd.services.k3s.environment.LD_LIBRARY_PATH = "/run/opengl-driver/lib";
       };
   };
 }
