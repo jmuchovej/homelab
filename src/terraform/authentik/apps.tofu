@@ -1,9 +1,13 @@
 # Frozen 2026-07-20 from the last consul-tag-discovered state (the mesh that
 # published `authentik.*` tags is gone). Snapshot via `tofu show -json` —
-# same for_each keys, so zero destroys. Prune or migrate entries per-app as
-# workloads land on k8s (Envoy ext-auth replaces the proxy-type apps).
+# same for_each keys, so zero destroys. To migrate an entry: label+annotate
+# its HTTPRoute (`authentik.rbn/*`), wait for Flux to apply it, then delete
+# the frozen entry here — discovery wins on collision, so the plan stays
+# zero-diff throughout.
 locals {
-  apps = {
+  apps = merge(local.frozen-apps, var.discovered-apps)
+
+  frozen-apps = {
     home-assistant = {
       name       = "Home Assistant"
       group      = "Home"

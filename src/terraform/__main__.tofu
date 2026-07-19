@@ -15,6 +15,11 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = ">= 4.7.1"
     }
+    # https://registry.terraform.io/providers/hashicorp/kubernetes/latest
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.30"
+    }
     # https://registry.terraform.io/providers/terraform-routeros/routeros/latest
     routeros = {
       source  = "terraform-routeros/routeros"
