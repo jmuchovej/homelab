@@ -8,6 +8,8 @@ spec:
     kind: OCIRepository
     name: *name
   interval: 1h
+  # worker boot (migrations + blueprint import) regularly exceeds Helm's 5m default
+  timeout: 15m
   valuesFrom:
     - kind: Secret
       name: &secrets authentik-secrets
