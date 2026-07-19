@@ -1,0 +1,18 @@
+---
+# Traefik-era path semantics: pass escaped slashes through untouched and
+# don't merge `//`. Hubitat's Maker API embeds full URLs in paths
+# (`postURL/http://…`) — Envoy's defaults 307-bounce the escaped form, then
+# merge the raw retry into `http:/…`, which the hub 404s. Normalization here
+# can't be scoped per-route (it runs before routing), so this is per-gateway.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: envoy-external
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+  path:
+    escapedSlashesAction: KeepUnchanged
+    mergeSlashes: false

@@ -25,6 +25,7 @@
             "https://k8s-schemas.home-operations.com/core/service_v1.json": "./src/kubernetes/**/service.yaml",
             "https://k8s-schemas.home-operations.com/discovery.k8s.io/endpointslice_v1.json": "./src/kubernetes/**/endpoint-slice.yaml",
             "https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json": "./src/kubernetes/**/security-policy.yaml",
+            "https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/clienttrafficpolicy_v1alpha1.json": "./src/kubernetes/**/client-traffic-policy.yaml",
             "https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/referencegrant_v1beta1.json": "./src/kubernetes/**/reference-grant.yaml"
           },
           "customTags": [
