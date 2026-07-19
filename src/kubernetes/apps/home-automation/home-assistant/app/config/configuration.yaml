@@ -1,0 +1,20 @@
+# Declarative half of the HA config (the imperative half lives in .storage on
+# the PVC, seeded from the NixOS /var/lib/hass). Mounted read-only over
+# /config/configuration.yaml; ${DC_DOMAIN} substitutes via Flux postBuild.
+# auth_oidc is deliberately absent until HACS installs the custom component —
+# referencing a missing integration puts HA in safe mode.
+default_config:
+
+homeassistant:
+  name: Home
+  unit_system: us_customary
+  time_zone: America/New_York
+  internal_url: https://home.${DC_DOMAIN}
+  external_url: https://home.${DC_DOMAIN}
+
+recorder:
+  db_url: !env_var HASS_RECORDER_DB_URL
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
