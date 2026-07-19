@@ -2,11 +2,6 @@ terraform {
   required_providers {
     sops      = { source = "carlpett/sops" }
     authentik = { source = "goauthentik/authentik" }
-    consul = {
-      source                = "hashicorp/consul"
-      configuration_aliases = [consul.da, consul.en]
-    }
-    vault = { source = "hashicorp/vault" }
   }
 }
 
@@ -45,11 +40,4 @@ variable "domain" {
 variable "permissions" {
   type    = map(string)
   default = {}
-}
-
-data "consul_services" "da" {
-  provider = consul.da
-  query_options {
-    datacenter = "da"
-  }
 }
