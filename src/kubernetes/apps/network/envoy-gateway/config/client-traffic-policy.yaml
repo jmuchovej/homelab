@@ -16,4 +16,4 @@ spec:
       name: envoy-external
   path:
     escapedSlashesAction: KeepUnchanged
-    mergeSlashes: false
+    disableMergeSlashes: true
