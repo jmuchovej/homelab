@@ -73,8 +73,18 @@ spec:
 
     route:
       app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: Home Assistant
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Home
+          authentik.rbn/icon: di:home-assistant
+          authentik.rbn/access: home
+          authentik.rbn/redirect-uris: https://home.${DC_DOMAIN}/auth/oidc/callback
         hostnames:
           - home.${DC_DOMAIN}
+          - ha.${DC_DOMAIN}
         parentRefs:
           - name: envoy-external
             namespace: network
