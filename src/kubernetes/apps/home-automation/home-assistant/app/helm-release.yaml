@@ -27,6 +27,10 @@ spec:
                 rm -rf /config/custom_components/hacs
                 mkdir -p /config/custom_components/hacs
                 unzip -qq /tmp/hacs.zip -d /config/custom_components/hacs
+                # fresh-volume safety: the !include targets must exist
+                for f in automations scripts scenes; do
+                  [ -f "/config/$f.yaml" ] || echo "[]" > "/config/$f.yaml"
+                done
         containers:
           app:
             image:
@@ -34,8 +38,6 @@ spec:
               tag: 2026.7.2@sha256:547d0fcb67ceb2c2d3adf22db37c7ea79d9ff9e91f3e3c536c6aebd998083f0f
             env:
               TZ: America/New_York
-              # the only proxy is envoy (pod CIDR; same-node via native routing)
-              HASS_HTTP_TRUSTED_PROXY_1: 10.244.0.0/16
             envFrom:
               - secretRef:
                   name: home-assistant-secret
