@@ -8,5 +8,6 @@ resources:
   - ./databases
   - ./home-automation
   - ./kube-system
+  - ./local-ai
   - ./media
   - ./network
