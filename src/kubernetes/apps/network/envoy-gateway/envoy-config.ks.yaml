@@ -6,8 +6,6 @@ metadata:
 spec:
   dependsOn:
     - name: envoy-gateway
-    - name: cert-manager-issuers
-      namespace: cert-manager
   interval: 1h
   path: ./src/kubernetes/apps/network/envoy-gateway/config
   postBuild:

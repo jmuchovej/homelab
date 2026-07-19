@@ -13,7 +13,8 @@
       in
       lib.mkMerge [
         (get-secret config "1password/connect.json" host.datacenter)
-        (get-secret config "1password/connect-access-token" host.datacenter)
+        (get-secret config "1password/connect-ro" host.datacenter)
+        (get-secret config "1password/connect-rw" host.datacenter)
         (get-secret' config "domain")
         (get-secret' config "${host.datacenter}/domain")
         {
@@ -86,11 +87,20 @@
             apiVersion: v1
             kind: Secret
             metadata:
-              name: onepassword-connect-token
+              name: op-connect-ro
               namespace: external-secrets
             type: Opaque
             stringData:
-              token: ${config.sops.placeholder."1password/connect-access-token"}
+              token: ${config.sops.placeholder."1password/connect-ro"}
+            ---
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: op-connect-rw
+              namespace: external-secrets
+            type: Opaque
+            stringData:
+              token: ${config.sops.placeholder."1password/connect-rw"}
           '';
 
           sops.templates."cluster-settings.yaml".content =
