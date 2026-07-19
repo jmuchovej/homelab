@@ -5,10 +5,15 @@ metadata:
   name: zfs
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
+    # parameters are immutable — force lets Flux recreate on change
+    kustomize.toolkit.fluxcd.io/force: enabled
 provisioner: zfs.csi.openebs.io
 parameters:
   poolname: warp/k8s/pvcs
   fstype: zfs
+  # ZFS datasets mount at exactly one path, so without this a PVC used by two
+  # pods on the same node deadlocks the second in ContainerCreating
+  shared: "yes"
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 reclaimPolicy: Delete
