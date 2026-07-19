@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: network
 resources:
   - ./namespace.yaml
+  - ./certificates/certificates.ks.yaml
   - ./cilium-bgp/cilium-bgp.ks.yaml
   - ./envoy-gateway/envoy-gateway.ks.yaml
   - ./envoy-gateway/envoy-config.ks.yaml
