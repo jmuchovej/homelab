@@ -120,10 +120,28 @@
       # Services
       <rbn/services/nfs>
       <rbn/services/kubernetes>
+      <rbn/services/kubernetes/nvidia>
+      # <rbn/services/authentik>
+      # <rbn/services/syncthing>
       <rbn/services/avahi>
       <rbn/services/cloudflared>
+      # <rbn/services/redis>
       <rbn/services/ldap>
+      # <rbn/services/chroma>
+      # <rbn/services/n8n>
+      # <rbn/services/media>
+      # <rbn/services/immich>
+      # <rbn/services/homebox>
+      # <rbn/services/spliit>
+      # <rbn/services/home-assistant>
       <rbn/services/postgres>
+      # <rbn/services/proton-vpn>
+      # <rbn/services/qbittorrent>
+      # <rbn/services/s3>
+      # <rbn/services/split-pro>
+      # <rbn/services/arr>
+      # <rbn/services/local-llms/ollama>
+      # <rbn/services/local-llms/open-webui>
 
       <rbn/services/zerotier>
     ];

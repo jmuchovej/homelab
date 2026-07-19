@@ -141,6 +141,14 @@
             wants = [ "k3s.service" ];
             wantedBy = [ "multi-user.target" ];
             path = [ pkgs.kubectl ];
+            # RemainAfterExit oneshots don't rerun on switch — retrigger when
+            # a template DEFINITION changes (e.g. a new namespace joins the
+            # substituting set); rotated secret VALUES still don't, since
+            # placeholders resolve after eval
+            restartTriggers = [
+              config.sops.templates."onepassword-connect.yaml".content
+              config.sops.templates."cluster-settings.yaml".content
+            ];
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
@@ -169,6 +177,16 @@
           cilium-cli
           k9s
         ];
+      };
+
+    # <rbn/services/kubernetes/nvidia> — GPU hosts opt in. k3s auto-generates
+    # the containerd nvidia runtime config only if it finds
+    # `nvidia-container-runtime` in $PATH at agent start — NixOS puts it
+    # nowhere k3s looks by default.
+    _.nvidia.nixos =
+      { pkgs, ... }:
+      {
+        systemd.services.k3s.path = [ pkgs.nvidia-container-toolkit.tools ];
       };
   };
 }
