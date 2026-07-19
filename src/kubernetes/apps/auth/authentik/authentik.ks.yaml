@@ -20,4 +20,6 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: auth
+  # must outlast the HelmRelease's 15m upgrade timeout
+  timeout: 16m
   wait: true
