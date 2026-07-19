@@ -54,12 +54,16 @@
             };
           };
 
-          # k3s apiserver (6443), kubelet (10250), BGP (179), Cilium health (4240).
+          # k3s apiserver (6443), kubelet (10250), BGP (179), Cilium health
+          # (4240). hostNetwork pods sit behind this firewall too: 8123
+          # (envoy → home-assistant) and 39501 (Hubitat event push → HA).
           networking.firewall.allowedTCPPorts = [
             6443
             10250
             179
             4240
+            8123
+            39501
           ];
 
           sops.templates."onepassword-connect.yaml".content = ''
@@ -116,6 +120,7 @@
                   DATACENTER: ${host.datacenter}
                   DC_DOMAIN: ${config.sops.placeholder."${host.datacenter}/domain"}
                   DOMAIN: ${config.sops.placeholder."domain"}
+                  ADMIN_CIDR: 10.99.0.0/16
               '';
             in
             lib.concatMapStrings mk-settings substituting-namespaces;

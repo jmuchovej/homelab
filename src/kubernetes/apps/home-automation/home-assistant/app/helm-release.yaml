@@ -1,0 +1,100 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name home-assistant
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      home-assistant:
+        initContainers:
+          # installs/updates HACS on every start (idempotent); community
+          # components (auth_oidc, adaptive_lighting, …) install THROUGH
+          # HACS afterwards and live on the config PVC
+          hacs:
+            image:
+              repository: mirror.gcr.io/alpine
+              tag: "3.23"
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                wget -qO /tmp/hacs.zip https://github.com/hacs/integration/releases/latest/download/hacs.zip
+                rm -rf /config/custom_components/hacs
+                mkdir -p /config/custom_components/hacs
+                unzip -qq /tmp/hacs.zip -d /config/custom_components/hacs
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/home-assistant
+              tag: 2026.7.2@sha256:547d0fcb67ceb2c2d3adf22db37c7ea79d9ff9e91f3e3c536c6aebd998083f0f
+            env:
+              TZ: America/New_York
+              # the only proxy is envoy (pod CIDR; same-node via native routing)
+              HASS_HTTP_TRUSTED_PROXY_1: 10.244.0.0/16
+            envFrom:
+              - secretRef:
+                  name: home-assistant-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 2Gi
+
+    defaultPodOptions:
+      # zeroconf/mDNS discovery (esphome, apple_tv, androidtv) — no Multus
+      # here; single node makes hostNetwork the boring answer, matching the
+      # old NixOS-native behavior.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            appProtocol: kubernetes.io/ws
+            port: 8123
+
+    route:
+      app:
+        hostnames:
+          - home.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      config:
+        existingClaim: home-assistant-config
+        globalMounts:
+          - path: /config
+      # runtime-installed integration requirements survive restarts
+      venv:
+        existingClaim: home-assistant-venv
+        globalMounts:
+          - path: /config/.venv
+      config-file:
+        type: configMap
+        name: home-assistant-configuration
+        globalMounts:
+          - path: /config/configuration.yaml
+            subPath: configuration.yaml
+            readOnly: true
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
