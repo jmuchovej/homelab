@@ -1,0 +1,38 @@
+---
+# Auth-flow route: deliberately NOT targeted by the SecurityPolicy, so login
+# and callback requests can never be gated by the auth they implement.
+# Longest-path-match precedence sends /outpost.goauthentik.io/* here.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hubitat-outpost
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - hubitat.${DC_DOMAIN}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: authentik-server
+          namespace: auth
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hubitat
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - hubitat.${DC_DOMAIN}
+  rules:
+    - backendRefs:
+        - name: hubitat
+          port: 80

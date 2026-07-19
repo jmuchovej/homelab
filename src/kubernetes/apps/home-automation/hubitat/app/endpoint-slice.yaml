@@ -1,0 +1,17 @@
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: hubitat-1
+  labels:
+    kubernetes.io/service-name: hubitat
+addressType: IPv4
+ports:
+  - name: http
+    port: 80
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.69.4.2
+    conditions:
+      ready: true
