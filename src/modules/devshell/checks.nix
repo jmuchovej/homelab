@@ -17,9 +17,20 @@
           pre-commit-hook-ensure-sops.enable = true;
           treefmt = {
             enable = true;
-            # no-cache (default: true) uses mtime-based change detection which
-            # races with pre-commit's stash/restore cycle, causing false positives.
             settings.no-cache = false;
+          };
+          check-k8s-schemas = {
+            enable = true;
+            entry = lib.getExe (pkgs.callPackage ./_git-hooks/check-k8s-schemas.nix { });
+            files = "^src/kubernetes/.*\\.ya?ml$";
+            # ConfigMap payloads (blueprints, HA config) and kustomize patches
+            # (partial manifests, `patch-*` by convention) are not validatable
+            # standalone
+            excludes = [
+              "^src/kubernetes/.*/blueprints/"
+              "^src/kubernetes/apps/home-automation/home-assistant/app/config/"
+              "/patch-[^/]*\\.ya?ml$"
+            ];
           };
         };
       };
