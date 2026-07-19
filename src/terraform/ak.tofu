@@ -9,9 +9,6 @@ module "authentik" {
   providers = {
     sops      = sops
     authentik = authentik
-    consul.da = consul.da
-    consul.en = consul.en
-    vault     = vault
   }
 
   domain      = local.domain
