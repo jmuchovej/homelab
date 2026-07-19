@@ -9,6 +9,7 @@
             "https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json": "./src/kubernetes/**/helm-release.yaml",
             "https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json": "./src/kubernetes/**/oci-repository.yaml",
             "https://k8s-schemas.home-operations.com/external-secrets.io/externalsecret_v1.json": "./src/kubernetes/**/external-secret.yaml",
+            "https://k8s-schemas.home-operations.com/external-secrets.io/pushsecret_v1alpha1.json": "./src/kubernetes/**/push-secret.yaml",
             "https://k8s-schemas.home-operations.com/external-secrets.io/clustersecretstore_v1.json": "./src/kubernetes/**/cluster-secret-store.yaml",
             "https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json": "./src/kubernetes/**/certificate.yaml",
             "https://k8s-schemas.home-operations.com/cert-manager.io/clusterissuer_v1.json": "./src/kubernetes/**/cluster-issuers.yaml",
