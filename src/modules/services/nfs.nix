@@ -104,16 +104,22 @@ _: {
         systemd.services.systemd-tmpfiles-setup.serviceConfig.ExecStart =
           let
             mounts = [ "/dev" ] ++ map (m: m.local) host.nfs.mounts;
-            exec-start' = [
-              "" # reset the upstream ExecStart before redefining it
-              "${config.systemd.package}/bin/systemd-tmpfiles"
-              "--create"
-              "--remove"
-              "--boot"
-            ]
-            ++ map (mount: "--exclude-prefix=${mount}") mounts;
+            # each list element becomes its own `ExecStart=` line, so the full
+            # command must be a single string — bare flags are silently ignored
+            exec-start' = lib.concatStringsSep " " (
+              [
+                "${config.systemd.package}/bin/systemd-tmpfiles"
+                "--create"
+                "--remove"
+                "--boot"
+              ]
+              ++ map (mount: "--exclude-prefix=${mount}") mounts
+            );
           in
-          lib.mkIf enable-mounts exec-start';
+          lib.mkIf enable-mounts [
+            "" # reset the upstream ExecStart before redefining it
+            exec-start'
+          ];
       };
   };
 }
