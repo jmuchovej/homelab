@@ -35,9 +35,11 @@ spec:
                     done
                     rm -rf /tmp/pack
                   }
-                  sync_pack homarr-labs/dashboard-icons di
-                  sync_pack selfhst/icons sh
-                  echo "synced: $(find /media/di /media/sh -type f | wc -l) icons"
+                  rm -rf /media/di /media/sh
+                  # authentik serves relative meta_icon paths from MEDIA_ROOT/public/
+                  sync_pack homarr-labs/dashboard-icons public/di
+                  sync_pack selfhst/icons public/sh
+                  echo "synced: $(find /media/public/di /media/public/sh -type f | wc -l) icons"
               volumeMounts:
                 - name: media
                   mountPath: /media
