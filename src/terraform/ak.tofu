@@ -11,8 +11,9 @@ module "authentik" {
     authentik = authentik
   }
 
-  domain      = local.domain
-  permissions = var.authentik-builtins.permissions
+  domain          = local.domain
+  permissions     = var.authentik-builtins.permissions
+  discovered-apps = local.ak-discovered-apps
 }
 
 import {

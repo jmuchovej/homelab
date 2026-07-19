@@ -41,3 +41,28 @@ variable "permissions" {
   type    = map(string)
   default = {}
 }
+
+# Apps discovered from cluster HTTPRoutes (see ak.discovery.tofu at root).
+# Same shape as the frozen map in apps.tofu; wins on key collision so a
+# frozen entry can coexist with its discovered successor during cutover.
+variable "discovered-apps" {
+  type = map(object({
+    name       = string
+    group      = string
+    type       = string
+    icon       = string
+    access     = list(string)
+    skip_paths = optional(string)
+    basic_auth = object({
+      enabled  = bool
+      username = string
+      password = string
+    })
+    url = object({
+      int = string
+      ext = string
+    })
+    redirect_uris = list(string)
+  }))
+  default = {}
+}

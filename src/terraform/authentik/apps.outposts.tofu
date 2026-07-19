@@ -22,10 +22,19 @@ locals {
 # isn't exposed by the provider, so it's pulled from the REST API and synced to
 # sops out-of-band: `just -f authentik/justfile sync-outpost-tokens`.
 
+# With a local kubernetes service connection, authentik deploys and manages
+# the outpost workloads itself (`ak-outpost-<slug(name)>` Deployment+Service
+# in its own namespace) — no token syncing, no hand-rolled manifests.
+resource "authentik_service_connection_kubernetes" "local" {
+  name  = "local-cluster"
+  local = true
+}
+
 resource "authentik_outpost" "proxy" {
-  count = length(local.proxy-providers) > 0 ? 1 : 0
-  name  = "Proxy"
-  type  = "proxy"
+  count              = length(local.proxy-providers) > 0 ? 1 : 0
+  name               = "Proxy"
+  type               = "proxy"
+  service_connection = authentik_service_connection_kubernetes.local.id
   config = jsonencode({
     "authentik_host" : "https://id.${var.domain.da}",
     "authentik_host_insecure" : false,
@@ -36,9 +45,10 @@ resource "authentik_outpost" "proxy" {
 }
 
 resource "authentik_outpost" "ldap" {
-  count = length(local.ldap-providers) > 0 ? 1 : 0
-  name  = "LDAP"
-  type  = "ldap"
+  count              = length(local.ldap-providers) > 0 ? 1 : 0
+  name               = "LDAP"
+  type               = "ldap"
+  service_connection = authentik_service_connection_kubernetes.local.id
   config = jsonencode({
     "authentik_host" : "https://id.${var.domain.da}",
     "authentik_host_insecure" : false,
@@ -49,9 +59,10 @@ resource "authentik_outpost" "ldap" {
 }
 
 resource "authentik_outpost" "radius" {
-  count = length(local.radius-providers) > 0 ? 1 : 0
-  name  = "RADIUS"
-  type  = "radius"
+  count              = length(local.radius-providers) > 0 ? 1 : 0
+  name               = "RADIUS"
+  type               = "radius"
+  service_connection = authentik_service_connection_kubernetes.local.id
   config = jsonencode({
     "authentik_host" : "https://id.${var.domain.da}",
     "authentik_host_insecure" : false,
