@@ -1,0 +1,22 @@
+---
+# Auth-flow route: NOT targeted by the SecurityPolicy, so login/callback
+# requests can never be gated by the auth they implement.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ollama-outpost
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - ollama.${DC_DOMAIN}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
