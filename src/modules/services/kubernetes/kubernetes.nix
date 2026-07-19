@@ -55,6 +55,19 @@
             };
           };
 
+          # front docker.io with Google's pull-through cache — Docker Hub
+          # (throttling, hung pulls) stops being a single point of failure;
+          # cache misses fall straight through to docker.io
+          environment.etc."rancher/k3s/registries.yaml".text = ''
+            mirrors:
+              docker.io:
+                endpoint:
+                  - "https://mirror.gcr.io"
+          '';
+          systemd.services.k3s.restartTriggers = [
+            config.environment.etc."rancher/k3s/registries.yaml".text
+          ];
+
           # k3s apiserver (6443), kubelet (10250), BGP (179), Cilium health
           # (4240). hostNetwork pods sit behind this firewall too: 8123
           # (envoy → home-assistant) and 39501 (Hubitat event push → HA).
