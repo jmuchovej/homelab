@@ -10,20 +10,10 @@ terraform {
       source  = "goauthentik/authentik"
       version = ">= 2025.12"
     }
-    # https://registry.terraform.io/providers/hashicorp/consul/latest
-    consul = {
-      source  = "hashicorp/consul"
-      version = "~> 2.20"
-    }
     # https://registry.terraform.io/providers/cloudflare/cloudflare/latest
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = ">= 4.7.1"
-    }
-    # https://registry.terraform.io/providers/hashicorp/vault/latest
-    vault = {
-      source  = "hashicorp/vault"
-      version = "~> 5.0"
     }
     # https://registry.terraform.io/providers/terraform-routeros/routeros/latest
     routeros = {
