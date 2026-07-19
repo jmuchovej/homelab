@@ -5,10 +5,8 @@ metadata:
   name: authentik-db
 spec:
   dependsOn:
-    # Cluster CRD comes from the operator chart.
     - name: cloudnative-pg
       namespace: databases
-    # the creds ExternalSecret needs the 1Password store.
     - name: onepassword-connect
       namespace: external-secrets
   interval: 1h
@@ -28,7 +26,6 @@ spec:
       # convention: DB LBs live at 10.69.1.5x
       DB_LB_IP: 10.69.1.51
     substituteFrom:
-      # ADMIN_CIDR (NetworkPolicy) + future shared vars
       - kind: Secret
         name: cluster-settings
   prune: true

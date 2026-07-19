@@ -1,9 +1,5 @@
 ---
-# LoadBalancer IP pool — carved from the lab VLAN (10.69.0.0/16). These IPs are
-# advertised to MikroTik via BGP as /32s. allowFirstLastIPs "No" reserves .0/.255.
-# NOTE: 10.69.1.0/24 must be excluded from the lab DHCP range (topology.yaml /
-# MikroTik) before any LoadBalancer Service claims an IP here, to avoid clashes.
-# Ingress (Envoy) will pin 10.69.1.1 via `lbipam.cilium.io/ips`.
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumloadbalancerippool_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
@@ -13,8 +9,7 @@ spec:
   blocks:
     - cidr: 10.69.1.0/24
 ---
-# Advertise LoadBalancer service IPs over BGP. Matched to the peer config by the
-# `advertise: bgp` label.
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumbgpadvertisement_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPAdvertisement
 metadata:
@@ -31,6 +26,7 @@ spec:
         matchExpressions:
           - { key: somekey, operator: NotIn, values: ["never-used-value"] }
 ---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPPeerConfig
 metadata:
@@ -43,9 +39,7 @@ spec:
         matchLabels:
           advertise: bgp
 ---
-# Peer with the lab router (da-relay01) — iBGP, both ends AS 64512 (matches the
-# existing RouterOS BGP template). peerAddress is the lab gateway 10.69.0.1; the
-# MikroTik side (src/terraform/modules/mikrotik/bgp.tofu) peers back at the node.
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumbgpclusterconfig_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPClusterConfig
 metadata:

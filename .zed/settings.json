@@ -1,0 +1,44 @@
+{
+  "lsp": {
+    "yaml-language-server": {
+      "settings": {
+        "yaml": {
+          "schemas": {
+            "https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json": "./src/kubernetes/**/*.ks.yaml",
+            "https://k8s-schemas.home-operations.com/kustomize.config.k8s.io/kustomization_v1beta1.json": "./src/kubernetes/**/kustomization.yaml",
+            "https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json": "./src/kubernetes/**/helm-release.yaml",
+            "https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json": "./src/kubernetes/**/oci-repository.yaml",
+            "https://k8s-schemas.home-operations.com/external-secrets.io/externalsecret_v1.json": "./src/kubernetes/**/external-secret.yaml",
+            "https://k8s-schemas.home-operations.com/external-secrets.io/clustersecretstore_v1.json": "./src/kubernetes/**/cluster-secret-store.yaml",
+            "https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json": "./src/kubernetes/**/certificate.yaml",
+            "https://k8s-schemas.home-operations.com/cert-manager.io/clusterissuer_v1.json": "./src/kubernetes/**/cluster-issuers.yaml",
+            "https://k8s-schemas.home-operations.com/networking.k8s.io/networkpolicy_v1.json": "./src/kubernetes/**/network-policy.yaml",
+            "https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json": "./src/kubernetes/**/http-route.yaml",
+            "https://k8s-schemas.home-operations.com/postgresql.cnpg.io/cluster_v1.json": "./src/kubernetes/**/cluster.yaml",
+            "https://k8s-schemas.home-operations.com/postgresql.cnpg.io/databaserole_v1.json": "./src/kubernetes/**/database-role.yaml",
+            "https://k8s-schemas.home-operations.com/storage.k8s.io/storageclass_v1.json": "./src/kubernetes/**/storage-class.yaml",
+            "https://k8s-schemas.home-operations.com/core/namespace_v1.json": "./src/kubernetes/**/namespace.yaml",
+            "https://k8s-schemas.home-operations.com/core/persistentvolumeclaim_v1.json": "./src/kubernetes/**/pvc.yaml",
+            "https://k8s-schemas.home-operations.com/batch/cronjob_v1.json": "./src/kubernetes/**/cron-job.yaml",
+            "https://k8s-schemas.home-operations.com/resource.k8s.io/resourceclaimtemplate_v1.json": "./src/kubernetes/**/resource-claim-template.yaml"
+          },
+          "customTags": [
+            "!Condition sequence",
+            "!Context scalar",
+            "!Enumerate sequence",
+            "!Env scalar",
+            "!File scalar",
+            "!File sequence",
+            "!Find sequence",
+            "!Format sequence",
+            "!If sequence",
+            "!Index scalar",
+            "!KeyOf scalar",
+            "!Value scalar",
+            "!AtIndex scalar",
+          ],
+        }
+      }
+    }
+  }
+}

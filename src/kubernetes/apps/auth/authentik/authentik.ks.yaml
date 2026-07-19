@@ -6,7 +6,6 @@ metadata:
 spec:
   dependsOn:
     - name: authentik-db
-    # the gateway (envoy-external) must exist for the HTTPRoute to attach.
     - name: envoy-config
       namespace: network
   interval: 1h

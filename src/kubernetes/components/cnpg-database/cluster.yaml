@@ -17,8 +17,6 @@ spec:
   managed:
     services:
       additional:
-        # LAN-facing LB for tofu/admin access (BGP-routed Cilium pool IP).
-        # Reachability is gated by the NetworkPolicy (${ADMIN_CIDR} only).
         - selectorType: rw
           serviceTemplate:
             metadata:

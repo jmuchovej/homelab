@@ -28,9 +28,6 @@ spec:
       ports:
         - port: 8000
         - port: 5432
-    # admin/tofu access via the ${APP}-db-lb LoadBalancer — trusted VLAN
-    # only (ADMIN_CIDR from cluster-settings; source IPs preserved by
-    # externalTrafficPolicy: Local + BGP native routing)
     - from:
         - ipBlock:
             cidr: ${ADMIN_CIDR}

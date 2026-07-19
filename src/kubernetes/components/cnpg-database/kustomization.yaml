@@ -2,7 +2,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./externalsecret.yaml
+  - ./external-secret.yaml
   - ./cluster.yaml
-  - ./databaserole.yaml
-  # - ./networkpolicy.yaml
+  - ./database-role.yaml
+  # DISABLED: Cilium drops the CNPG operator's :8000 status probes despite
+  # the namespaceSelector rule matching on paper (bisected 2026-07-19:
+  # delete policy → Cluster Ready in minutes). First-ever enforced policy in
+  # this cluster — needs a dedicated investigation (hubble) before re-enable.
+  # Until then scram auth is the DB boundary.
+  # - ./network-policy.yaml
