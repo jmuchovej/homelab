@@ -1,6 +1,6 @@
 ---
-# Data-plane config for the gateway. Single replica (one node); image pinned to
-# the version matched to gateway-helm 1.8.1, via the gcr mirror.
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/envoyproxy_v1alpha1.json
+# image pinned to match gateway-helm 1.8.1
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -17,7 +17,7 @@ spec:
       envoyService:
         externalTrafficPolicy: Local
 ---
-# GatewayClass is cluster-scoped (no namespace).
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gatewayclass_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -30,12 +30,7 @@ spec:
     name: envoy
     namespace: network
 ---
-# Single external gateway on the VIP. The router's split-horizon DNS
-# (the per-DC wildcard) and the WAN 443/80 + hairpin DNATs all target 10.69.1.1
-# (catalog.vip), so claiming it makes Envoy THE ingress with zero router-side
-# changes. Do not apply while keepalived still holds this address — the LAN
-# would see it twice (ARP vs BGP /32).
-# Future: add an `envoy-internal` gateway for LAN-only services.
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -64,14 +59,7 @@ spec:
           - kind: Secret
             name: wildcard-tls
 ---
-# Internal (LAN-only) gateway. Same wildcard cert; isolation comes from the
-# network, not TLS: the WAN 443/80 DNATs only target 10.69.1.1, so .1.2 is
-# unreachable from the internet by construction. Apps choose exposure via their
-# route parentRef: envoy-external vs envoy-internal.
-# DNS caveat: internal-only hostnames have no public record and the router's
-# split-horizon wildcard (when re-enabled) points at .1.1 — each internal name
-# needs its own router DNS record → 10.69.1.2 until an internal-DNS story
-# (external-dns webhook or tofu records) lands.
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -100,7 +88,7 @@ spec:
           - kind: Secret
             name: wildcard-tls
 ---
-# Redirect plain HTTP → HTTPS on both gateways.
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

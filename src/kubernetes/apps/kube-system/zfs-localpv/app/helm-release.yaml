@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zfs-localpv
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: zfs-localpv
+  interval: 1h
+  values:
+    zfsNode:
+      # default /home/keys collides with /home being the da-gr75 NFS
+      # automount on this host (mkdir: permission denied → node pod stuck
+      # ContainerCreating). Keep the driver's state on the pool it manages.
+      encrKeysDir: /warp/k8s/keys
+
+    zfs:
+      # the plugin chroots into the host to run zfs — NixOS keeps it out of
+      # the FHS paths the wrapper probes (this exact path is the chart's own
+      # documented example for non-standard installs)
+      bin: /run/current-system/sw/bin/zfs
