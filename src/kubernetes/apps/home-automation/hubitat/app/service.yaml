@@ -1,0 +1,12 @@
+---
+# Selector-less: endpoints are declared manually in endpoint-slice.yaml,
+# pointing at the Hubitat C8 on the lab VLAN.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubitat
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP

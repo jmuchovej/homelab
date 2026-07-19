@@ -8,6 +8,7 @@ resources:
   - ./cron-job.yaml
   - ./helm-release.yaml
   - ./http-route.yaml
+  - ./reference-grant.yaml
 
 configMapGenerator:
   - name: authentik-blueprints
