@@ -1,8 +1,8 @@
 _: {
   rbn.system._.networking._.manager._.networkd.nixos =
-    { host, lib, ... }:
+    { lib, ... }:
     let
-      inherit (lib) mkIf mkForce;
+      inherit (lib) mkForce;
     in
     {
       networking.useNetworkd = mkForce true;
@@ -21,14 +21,6 @@ _: {
             matchConfig.Name = "dummy*";
             networkConfig = { };
             linkConfig.Unmanaged = "yes";
-          };
-
-          "20-tailscale-ignore" = mkIf (host.tailscale.enable or false) {
-            matchConfig.Name = "tailscale*";
-            linkConfig = {
-              Unmanaged = "yes";
-              RequiredForOnline = false;
-            };
           };
         };
       };

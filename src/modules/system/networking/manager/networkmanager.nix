@@ -28,7 +28,6 @@ _: {
           "interface-name:br-*"
           "interface-name:rndis*"
         ]
-        ++ optionals (host.tailscale.enable or false) [ "interface-name:tailscale*" ]
         ++ optionals (host.containers.enable or false) [ "interface-name:docker*" ];
       };
 

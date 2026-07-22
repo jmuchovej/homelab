@@ -95,7 +95,6 @@
           default = true;
           description = "Whether sops secrets management is enabled";
         };
-        tailscale.enable = mkEnableOption "Tailscale VPN";
         containers.enable = mkEnableOption "Container runtime (Podman/Docker)";
       };
     };

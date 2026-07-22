@@ -5,11 +5,6 @@
   ...
 }:
 {
-  # Host schema config — read by aspects via `host.*`
-  den.hosts.x86_64-linux.en-t65-1 = {
-    tailscale.enable = true;
-  };
-
   den.aspects.en-t65-1 = {
     includes = [
       <rbn/suite/server>
