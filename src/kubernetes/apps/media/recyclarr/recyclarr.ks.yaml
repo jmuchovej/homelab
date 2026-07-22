@@ -9,10 +9,6 @@ spec:
       namespace: external-secrets
   interval: 1h
   path: ./src/kubernetes/apps/media/recyclarr/app
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository

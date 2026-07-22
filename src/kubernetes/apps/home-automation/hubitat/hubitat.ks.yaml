@@ -11,10 +11,6 @@ spec:
       namespace: auth
   interval: 1h
   path: ./src/kubernetes/apps/home-automation/hubitat/app
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository

@@ -26,9 +26,6 @@ spec:
       # convention: DB LBs live at 10.69.1.5x (IP frees when the old
       # cluster's LB is deleted; pending until then is harmless)
       DB_LB_IP: 10.69.1.58
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   targetNamespace: home
   prune: true
   sourceRef:
