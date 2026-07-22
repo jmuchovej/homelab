@@ -7,27 +7,6 @@
 {
   # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.en-t65-1 = {
-    consul = {
-      server = true;
-      interface = "eno1";
-      bootstrap-expect = 1;
-    };
-    keepalived = {
-      enable = true;
-      interface = "eno1";
-      vip.address = "10.69.1.1";
-      vip.prefix = 16;
-      vrrp = {
-        router-id = 53;
-        priority = 254;
-        preempt = false;
-        advert-interval = 1;
-      };
-    };
-    traefik = {
-      enable = true;
-      consul-catalog = true;
-    };
     tailscale.enable = true;
   };
 
@@ -53,9 +32,6 @@
       <rbn/services/zerotier>
 
       # Services
-      <rbn/services/consul>
-      <rbn/services/keepalived>
-      <rbn/services/traefik>
       # <rbn/services/openbao>
       # <rbn/services/nomad>
       # home-assistant + postgres retired ahead of the multi-cluster
