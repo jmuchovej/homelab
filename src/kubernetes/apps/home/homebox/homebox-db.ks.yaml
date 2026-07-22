@@ -12,20 +12,24 @@ spec:
   interval: 1h
   path: ./src/kubernetes/components/cnpg-database
   components:
-    # one-off NixOS import — inert after first bootstrap; remove alongside
-    # future backup wiring, not before (see components/cnpg-import/AGENTS.md)
+    # one-off import — inert after first bootstrap; remove alongside future
+    # backup wiring, not before (see components/cnpg-import/AGENTS.md).
+    # Source = the RETIRED home-automation cluster (namespace move; CNPG
+    # clusters can't cross namespaces), not the NixOS instance — it carried
+    # post-migration changes. Delete that cluster deliberately once proven.
     - ../cnpg-import
   postBuild:
     substitute:
       APP: homebox
       DB_SIZE: 2Gi
-      HOST: 10.69.11.1
-      # convention: DB LBs live at 10.69.1.5x
+      HOST: homebox-db-rw.home-automation.svc.cluster.local
+      # convention: DB LBs live at 10.69.1.5x (IP frees when the old
+      # cluster's LB is deleted; pending until then is harmless)
       DB_LB_IP: 10.69.1.58
     substituteFrom:
       - kind: Secret
         name: cluster-settings
-  targetNamespace: home-automation
+  targetNamespace: home
   prune: true
   sourceRef:
     kind: GitRepository
