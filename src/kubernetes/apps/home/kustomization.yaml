@@ -6,5 +6,6 @@ resources:
   - ./namespace.yaml
   - ./actual/actual.ks.yaml
   - ./linkding/linkding.ks.yaml
+  - ./n8n/n8n.ks.yaml
   - ./split-pro/split-pro-db.ks.yaml
   - ./split-pro/split-pro.ks.yaml

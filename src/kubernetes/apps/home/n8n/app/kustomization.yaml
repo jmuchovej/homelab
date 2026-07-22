@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./oci-repository.yaml
+  - ./pvc.yaml
+  - ./external-secret.yaml
+  - ./helm-release.yaml
+
+configMapGenerator:
+  # VENDORED from cweagans/n8n-oidc @ f2961d6c (MIT, LICENSE.md alongside) —
+  # auth-critical code is pinned in-repo, never fetched at runtime. Update =
+  # copy a new revision in and bump this comment.
+  - name: n8n-hooks
+    files:
+      - ./resources/hooks.js
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        # the JS is full of template literals — flux postBuild substitution
+        # parses them as ${vars} and dies ("missing closing brace"); this
+        # annotation exempts the object from substitution entirely
+        kustomize.toolkit.fluxcd.io/substitute: disabled
