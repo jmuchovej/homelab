@@ -1,0 +1,63 @@
+---
+# Auth-flow route: deliberately NOT targeted by the SecurityPolicy, so login
+# and callback requests can never be gated by the auth they implement.
+# Longest-path-match precedence sends /outpost.goauthentik.io/* here.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: sonarr-outpost
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - sonarr.${DC_DOMAIN}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
+    # The API bypasses ext-auth at the ROUTE layer (X-Api-Key-authenticated
+    # anyway; prowlarr sync and the servarr tofu provider come in this way).
+    # authentik's skip_paths can't do it under envoy ext-auth — see the
+    # hubitat route for the encoded-slash 301 gotcha.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: sonarr
+          port: 8989
+---
+# NOTE: raw routes (not app-template `route:` values) — with a second route
+# key the chart names every route `<app>-<key>`, and discovery keys on the
+# route NAME, which must stay `sonarr` for a zero-diff cutover.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: sonarr
+  labels:
+    authentik.rbn/enabled: "true"
+  annotations:
+    authentik.rbn/name: Sonarr
+    authentik.rbn/group: Media Management
+    authentik.rbn/icon: di:sonarr
+    authentik.rbn/access: media-managers
+    authentik.rbn/skip-paths: /api/*
+    authentik.rbn/basic-auth.enabled: "true"
+    authentik.rbn/basic-auth.username: servarr-username
+    authentik.rbn/basic-auth.password: servarr-password
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - sonarr.${DC_DOMAIN}
+  rules:
+    - backendRefs:
+        - name: sonarr
+          port: 8989
