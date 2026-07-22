@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.terminal._.eza.homeManager =
     { lib, pkgs, ... }:
     {

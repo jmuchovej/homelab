@@ -97,20 +97,6 @@
         };
         tailscale.enable = mkEnableOption "Tailscale VPN";
         containers.enable = mkEnableOption "Container runtime (Podman/Docker)";
-
-        # ── Homebrew (darwin) ──────────────────────────────────────────
-        homebrew = {
-          enable = mkOption {
-            type = bool;
-            default = false;
-            description = "Enable Homebrew";
-          };
-          mas.enable = mkOption {
-            type = bool;
-            default = false;
-            description = "Enable Mac App Store downloads";
-          };
-        };
       };
     };
 }

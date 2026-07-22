@@ -1,7 +1,7 @@
 { den, ... }:
 {
   rbn.programs._.toolchains._.api = {
-    provides.bruno = {
+    _.bruno = {
       dock.app = "Bruno.app";
 
       homeManager =
@@ -10,7 +10,8 @@
           home.packages = [ pkgs.bruno ];
         };
     };
-    provides.postman = {
+
+    _.postman = {
       includes = [ (den.batteries.unfree [ "postman" ]) ];
 
       homeManager =
@@ -19,11 +20,7 @@
           home.packages = [ pkgs.postman ];
         };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "postman" ];
-        };
+      darwin.homebrew.casks = [ "postman" ];
     };
   };
 }

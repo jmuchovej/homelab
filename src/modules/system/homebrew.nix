@@ -1,4 +1,3 @@
-{ inputs, lib, ... }:
 {
   flake-file.inputs = {
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
@@ -25,45 +24,46 @@
   #   })
   # ];
 
-  rbn.system._.homebrew.darwin =
-    { host, lib, ... }:
-    {
-      imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
-      environment.systemPath = [ "/opt/homebrew/bin" ];
+  rbn.system._.homebrew = {
+    darwin =
+      { inputs, host, ... }:
+      {
+        imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
-      homebrew = lib.mkIf host.homebrew.enable {
-        enable = true;
+        environment.systemPath = [ "/opt/homebrew/bin" ];
 
-        global = {
-          brewfile = true;
-          autoUpdate = true;
+        homebrew = {
+          enable = true;
+
+          global = {
+            brewfile = true;
+            autoUpdate = true;
+          };
+
+          caskArgs = {
+            appdir = "~/Applications";
+            require_sha = true;
+          };
+
+          onActivation = {
+            autoUpdate = false;
+            cleanup = "uninstall";
+            upgrade = false;
+          };
         };
 
-        caskArgs = {
-          appdir = "~/Applications";
-          require_sha = true;
-        };
+        nix-homebrew = {
+          enable = true;
+          user = host.primary-user.name;
 
-        onActivation = {
-          autoUpdate = true;
-          cleanup = "uninstall";
-          upgrade = true;
-        };
+          enableRosetta = false;
 
-        brews = [ ];
+          taps = {
+            "homebrew/core" = inputs.homebrew-core;
+            "homebrew/cask" = inputs.homebrew-cask;
+            "homebrew/services" = inputs.homebrew-services;
+          };
+        };
       };
-
-      nix-homebrew = lib.mkIf host.homebrew.enable {
-        enable = true;
-        user = host.primary-user.name;
-
-        enableRosetta = false;
-
-        taps = {
-          "homebrew/core" = inputs.homebrew-core;
-          "homebrew/cask" = inputs.homebrew-cask;
-          "homebrew/services" = inputs.homebrew-services;
-        };
-      };
-    };
+  };
 }

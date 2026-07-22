@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.terminal._.k9s.homeManager =
     { pkgs, ... }:
     {

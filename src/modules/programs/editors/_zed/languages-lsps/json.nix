@@ -7,26 +7,23 @@
 # https://biomejs.dev/internals/language-support/
 { pkgs, ... }:
 {
-  extensions = [ "biome" ];
-  packages = [
-    pkgs.biome
-    pkgs.jsonfmt
-  ];
+  extensions = [ ];
+  packages = [ pkgs.jsonfmt ];
   settings = {
     languages.JSON = {
       tab_size = 2;
       formatter = "language_server";
       language_servers = [
-        "biome"
-        "!json-language-server"
+        "json-language-server"
+        "!biome"
       ];
     };
     languages.JSONC = {
       tab_size = 2;
       formatter = "language_server";
       language_servers = [
-        "biome"
-        "!json-language-server"
+        "json-language-server"
+        "!biome"
       ];
     };
     lsp.json-language-server = {

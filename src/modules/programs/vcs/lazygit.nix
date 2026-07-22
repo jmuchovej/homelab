@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.vcs._.lazygit.homeManager =
     { config, ... }:
     {

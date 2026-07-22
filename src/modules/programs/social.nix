@@ -1,6 +1,6 @@
-_: {
+{
   rbn.programs._.social = {
-    provides.beeper = {
+    _.beeper = {
       dock.app = "Beeper Desktop.app";
 
       homeManager =
@@ -11,39 +11,27 @@ _: {
           ];
         };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "beeper" ];
-        };
+      darwin.homebrew.casks = [ "beeper" ];
     };
 
-    provides.zoom = {
+    _.zoom = {
       homeManager =
         { pkgs, lib, ... }:
         {
           home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.zoom-us ];
         };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "zoom" ];
-        };
+      darwin.homebrew.casks = [ "zoom" ];
     };
 
-    provides.zulip = {
+    _.zulip = {
       homeManager =
         { pkgs, lib, ... }:
         lib.mkIf pkgs.stdenv.isLinux {
           home.packages = [ pkgs.zulip ];
         };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "zulip" ];
-        };
+      darwin.homebrew.casks = [ "zulip" ];
     };
   };
 }

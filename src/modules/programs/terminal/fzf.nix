@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.terminal._.fzf.homeManager = {
     programs.fzf = {
       enable = true;
