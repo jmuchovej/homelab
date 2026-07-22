@@ -8,24 +8,6 @@ locals {
   apps = merge(local.frozen-apps, var.discovered-apps)
 
   frozen-apps = {
-    homebox = {
-      name       = "homebox"
-      group      = "Family"
-      type       = "oauth"
-      icon       = "di:homebox"
-      access     = ["family"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = ""
-        ext = "https://homebox.${var.domain.da}"
-      }
-      redirect_uris = ["https://homebox.${var.domain.da}/api/v1/users/login/oidc/callback"]
-    }
     immich = {
       name       = "immich"
       group      = "Family"
@@ -47,24 +29,6 @@ locals {
         "https://photos.${var.domain.da}/auth/login",
       ]
     }
-    lidarr = {
-      name       = "Lidarr"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:lidarr"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://lidarr.${var.domain.da}"
-        ext = "https://lidarr.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
     openbao = {
       name       = "OpenBao"
       group      = "Compute"
@@ -80,78 +44,6 @@ locals {
       url = {
         int = ""
         ext = "https://vault.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    prowlarr = {
-      name       = "Prowlarr"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:prowlarr"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://prowlarr.${var.domain.da}"
-        ext = "https://prowlarr.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    qbittorrent = {
-      name       = "qBittorrent"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:qbittorrent"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://qbittorrent.${var.domain.da}"
-        ext = "https://qbittorrent.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    radarr = {
-      name       = "Radarr"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:radarr"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://radarr.${var.domain.da}"
-        ext = "https://radarr.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    readarr = {
-      name       = "Readarr"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:readarr"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://readarr.${var.domain.da}"
-        ext = "https://readarr.${var.domain.da}"
       }
       redirect_uris = []
     }
@@ -206,24 +98,6 @@ locals {
       url = {
         int = ""
         ext = "https://s3.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    sonarr = {
-      name       = "Sonarr"
-      group      = "Media Management"
-      type       = "proxy"
-      icon       = "di:sonarr"
-      access     = ["media-managers"]
-      skip_paths = "/api/*"
-      basic_auth = {
-        enabled  = true
-        username = "servarr-username"
-        password = "servarr-password"
-      }
-      url = {
-        int = "https://sonarr.${var.domain.da}"
-        ext = "https://sonarr.${var.domain.da}"
       }
       redirect_uris = []
     }
