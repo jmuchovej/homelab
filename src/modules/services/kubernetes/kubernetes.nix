@@ -22,6 +22,7 @@
             kubectl
             cilium-cli
             fluxcd
+            (pkgs.callPackage ./_seed-pvc.nix { })
           ];
 
           environment.sessionVariables.KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
