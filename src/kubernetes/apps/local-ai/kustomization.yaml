@@ -4,5 +4,8 @@ kind: Kustomization
 namespace: local-ai
 resources:
   - ./namespace.yaml
-  - ./ollama/ollama.ks.yaml
+  # TEMPORARILY pruned: the model-sync roster overran the node's disk
+  # (DiskPressure eviction storm, 2026-07-22). Re-add once model storage is
+  # resolved and the disk is cleaned.
+  # - ./ollama/ollama.ks.yaml
   - ./open-webui/open-webui.ks.yaml
