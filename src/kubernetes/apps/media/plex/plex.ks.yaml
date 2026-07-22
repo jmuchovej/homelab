@@ -15,8 +15,4 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: media
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   wait: true

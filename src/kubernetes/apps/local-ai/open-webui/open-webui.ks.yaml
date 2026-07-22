@@ -7,14 +7,10 @@ spec:
   dependsOn:
     - name: envoy-config
       namespace: network
-    # ollama dependsOn removed while it's pruned (disk incident) — open-webui
-    # tolerates the backend being absent; restore alongside ollama's re-add
+      # ollama dependsOn removed while it's pruned (disk incident) — open-webui
+      # tolerates the backend being absent; restore alongside ollama's re-add
   interval: 1h
   path: ./src/kubernetes/apps/local-ai/open-webui/app
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository
