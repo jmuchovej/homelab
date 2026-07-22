@@ -1,0 +1,25 @@
+---
+# $schema: https://k8s-schemas.home-operations.com/kustomize.config.k8s.io/component_v1alpha1.json
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+# VectorChord-flavored cnpg-database: pg + vchord (and pgvector) for
+# vector-typed workloads (immich). A COMPONENT, not ks spec.patches — the
+# cluster-apps parent stamps its own spec.patches onto every child
+# Kustomization and strategic-merge REPLACES the list, silently discarding
+# per-app patches (bit the first immich bootstrap: default pg18 image, no
+# vchord). Build-time components are immune.
+patches:
+  - target:
+      kind: Cluster
+    patch: |
+      apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      metadata:
+        name: ${APP}-db
+      spec:
+        # matched to the migration source (pg 17.10, vchord 1.1.1); vchord
+        # must be preloaded or CREATE EXTENSION fails mid-import
+        imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.10-1.1.1@sha256:f22538c11c6d0e9ade44d3224f2dccd6bad9b2e60034b2e118804f9ad35f59bf
+        postgresql:
+          shared_preload_libraries:
+            - vchord.so
