@@ -49,6 +49,8 @@ resource "authentik_provider_oauth2" "provider" {
   count                      = var.type == "oauth" ? 1 : 0
   name                       = "tf-${local.slug}-oauth"
   client_type                = var.client_type
+  # newer authentik defaults this to [] — a provider that permits NO grants
+  grant_types                = ["authorization_code", "refresh_token"]
   client_id                  = data.sops_file.authentik.data["${local.slug}.client-id"]
   # ignored by authentik for public clients (PKCE)
   client_secret              = data.sops_file.authentik.data["${local.slug}.client-secret"]
