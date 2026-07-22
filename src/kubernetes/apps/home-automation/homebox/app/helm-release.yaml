@@ -1,0 +1,124 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name homebox
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      homebox:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/sysadminsmedia/homebox
+              tag: 0.26.2-rootless@sha256:a41a3081ac724a2f4955b71b9294bd916b0e92035e4ea8438e84def74f4ae692
+            env:
+              TZ: America/New_York
+              HBOX_MODE: production
+              HBOX_DATABASE_DRIVER: postgres
+              HBOX_DATABASE_HOST: homebox-db-rw
+              HBOX_DATABASE_PORT: "5432"
+              HBOX_DATABASE_USERNAME: homebox
+              HBOX_DATABASE_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: homebox-db-creds
+                    key: password
+              HBOX_DATABASE_DATABASE: homebox
+              HBOX_DATABASE_SSL_MODE: disable
+              HBOX_OPTIONS_CHECK_GITHUB_RELEASE: "false"
+              HBOX_LOG_FORMAT: json
+              HBOX_MAILER_HOST: smtp.mailgun.org
+              HBOX_MAILER_PORT: "587"
+              HBOX_MAILER_USERNAME: postmaster@sandbox99f6437cfdb74594b267f6cc24740684.mailgun.org
+              HBOX_MAILER_FROM: homebox@jm0.io
+              HBOX_OIDC_ENABLED: "true"
+              HBOX_OIDC_AUTO_REDIRECT: "true"
+              HBOX_OIDC_VERIFY_EMAIL: "false"
+              HBOX_OIDC_BUTTON_TEXT: Sign in with The Rebellion
+              HBOX_OIDC_SCOPE: openid profile email groups
+              HBOX_OIDC_ALLOWED_GROUPS: home
+              # authentik application slug is <slug>-<type> (see app module);
+              # homebox appends /.well-known/openid-configuration itself
+              HBOX_OIDC_ISSUER_URL: https://id.${DC_DOMAIN}/application/o/homebox-oauth/
+              HBOX_OPTIONS_ALLOW_LOCAL_LOGIN: "false"
+              HBOX_OPTIONS_ALLOW_REGISTRATION: "true"
+              HBOX_OPTIONS_TRUST_PROXY: "true"
+              HBOX_OPTIONS_HOSTNAME: homebox.${DC_DOMAIN}
+            envFrom:
+              - secretRef:
+                  name: homebox-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/status
+                    port: &port 7745
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      securityContext:
+        # the rootless image's `nonroot` user
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+
+    route:
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: homebox
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Family
+          authentik.rbn/icon: di:homebox
+          authentik.rbn/access: family
+          authentik.rbn/redirect-uris: https://homebox.${DC_DOMAIN}/api/v1/users/login/oidc/callback
+        hostnames:
+          - homebox.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      data:
+        # image defaults resolve storage to /data (conn file:/// + prefix)
+        existingClaim: homebox-data
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

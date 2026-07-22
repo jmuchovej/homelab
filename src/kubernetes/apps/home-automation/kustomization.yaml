@@ -6,4 +6,6 @@ resources:
   - ./namespace.yaml
   - ./home-assistant/home-assistant-db.ks.yaml
   - ./home-assistant/home-assistant.ks.yaml
+  - ./homebox/homebox-db.ks.yaml
+  - ./homebox/homebox.ks.yaml
   - ./hubitat/hubitat.ks.yaml
