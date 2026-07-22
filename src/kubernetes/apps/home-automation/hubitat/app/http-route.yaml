@@ -21,6 +21,17 @@ spec:
         - name: ak-outpost-proxy
           namespace: auth
           port: 9000
+    # Maker API bypasses ext-auth at the ROUTE layer (token-authenticated
+    # anyway). authentik's skip_paths can't do it: the ext-auth check appends
+    # the original path, and the outpost's Go router 301s any path with
+    # encoded slashes (postURL/http%3A%2F%2F…) before the skip-regex runs.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /apps/api
+      backendRefs:
+        - name: hubitat
+          port: 80
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
