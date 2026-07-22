@@ -1,0 +1,99 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name jellyfin
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      jellyfin:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/jellyfin/jellyfin
+              tag: 10.11.11@sha256:45f648c382a0c8b552582fcea40e95cb17c5d475473a891cba0eb7523fb92112
+            env:
+              TZ: America/New_York
+              JELLYFIN_PublishedServerUrl: https://jellyfin.${DC_DOMAIN}
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &port 8096
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 60
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                # software transcode only — the GPU stays reserved for CUDA
+                # (same call as plex/NVENC); revisit alongside any iGPU work
+                memory: 8Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        # library gids on the NFS media tree (setgid dirs)
+        supplementalGroups: [193, 911]
+
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+
+    route:
+      # own auth (jellyfin clients speak its API directly — no ext-auth,
+      # same posture as plex); deliberately NOT labeled for discovery
+      app:
+        hostnames:
+          - jellyfin.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      config:
+        existingClaim: jellyfin-config
+        globalMounts:
+          - path: /config
+      media:
+        type: hostPath
+        hostPath: /srv/media
+        globalMounts:
+          - path: /srv/media
+            readOnly: true
+      transcode:
+        type: emptyDir
+        globalMounts:
+          - path: /config/transcodes
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /cache
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
