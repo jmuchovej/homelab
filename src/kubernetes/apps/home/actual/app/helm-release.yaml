@@ -1,0 +1,101 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name actual
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      actual:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/actualbudget/actual
+              tag: 26.7.0@sha256:e18b7fbfec6157a368fad4146563f397502e9da70a120aeaeac63b4977405d1c
+            env:
+              TZ: America/New_York
+              ACTUAL_PORT: &port "5006"
+              # native OIDC, not ext-auth: the desktop/mobile sync clients
+              # speak the same HTTP API and would break behind a login proxy
+              ACTUAL_LOGIN_METHOD: openid
+              ACTUAL_OPENID_PROVIDER_NAME: authentik
+              ACTUAL_OPENID_DISCOVERY_URL: https://id.${DC_DOMAIN}/application/o/actual-oauth/.well-known/openid-configuration
+              # redirect_uri = <server_hostname>/openid/callback (verified in
+              # sync-server source)
+              ACTUAL_OPENID_SERVER_HOSTNAME: https://actual.${DC_DOMAIN}
+            envFrom:
+              - secretRef:
+                  name: actual-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /info
+                    port: 5006
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: 5006
+
+    route:
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: actual
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Family
+          authentik.rbn/icon: di:actual-budget
+          authentik.rbn/access: family
+          authentik.rbn/redirect-uris: https://actual.${DC_DOMAIN}/openid/callback
+        hostnames:
+          - actual.${DC_DOMAIN}
+          - budget.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      data:
+        existingClaim: actual-data
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
