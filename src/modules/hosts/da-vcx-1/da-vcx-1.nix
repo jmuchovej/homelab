@@ -15,54 +15,6 @@
       ];
       data-dir = [ "/impulse/s3" ];
     };
-    local-llms.ollama.models = [
-      "all-minilm"
-      "codegemma"
-      "codellama"
-      "cogito"
-      "deepseek-coder"
-      "deepseek-r1"
-      "deepseek-v3"
-      "deepseek-v3.1"
-      "devstral"
-      "devstral-2"
-      "dolphin3"
-      "falcon3"
-      "gemma"
-      "gemma2"
-      "gemma3"
-      "gpt-oss"
-      "llama3"
-      "llama3.1"
-      "llama3.2"
-      "llama3.2-vision"
-      "llama3.3"
-      "llama4"
-      "llava"
-      "magistral"
-      "ministral-3"
-      "mistral"
-      "mixtral"
-      "mxbai-embed-large"
-      "nemotron-3-nano"
-      "nomic-embed-text"
-      "olmo-3"
-      "olmo2"
-      "phi"
-      "phi3"
-      "phi3.5"
-      "phi4-reasoning"
-      "qwen"
-      "qwen2"
-      "qwen2.5"
-      "qwen2.5-coder"
-      "qwen2.5vl"
-      "qwen3"
-      "qwen3-embedding"
-      "qwen3-vl"
-      "qwq"
-      "embeddinggemma"
-    ];
     authentik.enable = true;
     tailscale.enable = true;
     containers.enable = true;
@@ -117,32 +69,13 @@
       <rbn/system/networking/dns/dnsmasq>
       <rbn/system/networking/manager/networkmanager>
 
-      # Services
+      # Services — the app tier lives in the cluster now
+      # (<rbn/services/kubernetes>); only per-host infrastructure remains
       <rbn/services/nfs>
       <rbn/services/kubernetes>
       <rbn/services/kubernetes/nvidia>
-      # <rbn/services/authentik>
-      # <rbn/services/syncthing>
       <rbn/services/avahi>
-      <rbn/services/cloudflared>
-      # <rbn/services/redis>
       <rbn/services/ldap>
-      # <rbn/services/chroma>
-      # <rbn/services/n8n>
-      # <rbn/services/media>
-      # <rbn/services/immich>
-      # <rbn/services/homebox>
-      # <rbn/services/spliit>
-      # <rbn/services/home-assistant>
-      <rbn/services/postgres>
-      # <rbn/services/proton-vpn>
-      # <rbn/services/qbittorrent>
-      # <rbn/services/s3>
-      # <rbn/services/split-pro>
-      # <rbn/services/arr>
-      # <rbn/services/local-llms/ollama>
-      # <rbn/services/local-llms/open-webui>
-
       <rbn/services/zerotier>
     ];
 

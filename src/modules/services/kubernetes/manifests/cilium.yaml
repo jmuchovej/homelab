@@ -3,10 +3,10 @@
 # it during cluster bring-up, before the node can go Ready (k3s ships no CNI;
 # started with --flannel-backend=none --disable-kube-proxy).
 #
-# Single-node values trimmed from the home-ops reference: dropped netkit
-# datapath (kernel-dependent), prometheus/serviceMonitor + dashboards (no o11y
-# CRDs day 1), bonded `devices`, maglev/DSR. Contains NO secrets.
+# Chart values live in cilium-values.yaml (schema-validated standalone);
+# kubernetes.nix renders them into valuesContent.
 ---
+# $schema: schemas/helmchart_v1.json
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
@@ -19,49 +19,4 @@ spec:
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-
-    # Replace flannel + kube-proxy. With kube-proxy gone, the in-cluster
-    # `kubernetes` Service isn't routable until Cilium is up, so Cilium reaches
-    # the apiserver directly via the k3s supervisor on loopback:6443. This is
-    # node-agnostic: every k3s server runs the supervisor on 127.0.0.1:6443,
-    # and both the agent AND the operator run hostNetwork (chart default), so
-    # loopback resolves to the host on each node. (NOT 7445 — that's Talos
-    # KubePrism, which k3s doesn't run; that wrong port was the crashloop.)
-    kubeProxyReplacement: true
-    k8sServiceHost: 127.0.0.1
-    k8sServicePort: 6443
-
-    ipam:
-      mode: kubernetes
-    routingMode: native
-    autoDirectNodeRoutes: true
-    # Pod CIDR — traffic within it is natively routed; outside it is masqueraded.
-    ipv4NativeRoutingCIDR: 10.244.0.0/16
-    endpointRoutes:
-      enabled: true
-
-    # BGP control plane advertises LoadBalancer IPs to MikroTik. The BGP CRs
-    # (peer, cluster config, LB IP pool) live in the Flux tree under
-    # src/kubernetes/apps/network/cilium-bgp/, not here.
-    bgpControlPlane:
-      enabled: true
-    l2announcements:
-      enabled: false
-
-    # Don't let Cilium's embedded Envoy bind host ports — ingress is Envoy Gateway.
-    envoy:
-      enabled: false
-    hubble:
-      enabled: false
-
-    # Coexist politely with any other CNI conflists on the host.
-    cni:
-      exclusive: false
-
-    socketLB:
-      enabled: true
-      hostNamespaceOnly: true
-
-    operator:
-      replicas: 1
-      rollOutPods: true
-    rollOutCiliumPods: true
+    @values@

@@ -58,8 +58,9 @@
       <rbn/services/traefik>
       # <rbn/services/openbao>
       # <rbn/services/nomad>
-      <rbn/services/home-assistant>
-      <rbn/services/postgres>
+      # home-assistant + postgres retired ahead of the multi-cluster
+      # rollout: en-t65-1 becomes its own k8s host with a FRESH en
+      # home-assistant and an authentik replica of the da cluster's
     ];
 
     provides.to-users = {

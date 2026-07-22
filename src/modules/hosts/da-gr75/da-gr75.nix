@@ -15,10 +15,17 @@
       extra-directories = [ ];
       extra-files = [ ];
     };
+
+    # Export /impulse/k8s for the K8s cluster (bulk/shared data — media,
+    # immich library, …). A dedicated subtree keeps minio's /impulse/s3 out
+    # of the NFS export. `/impulse/k8s` must exist (e.g. `zfs create impulse/k8s`).
     nfs = {
       exports = [
         { path = "/impulse/k8s"; }
         { path = "/impulse/users"; }
+        # Network home directories for the da-vcx-* hosts. Mounted as /home
+        # there; survives their impermanence rollback. `/impulse/home` must
+        # exist (e.g. `zfs create impulse/home`).
         { path = "/impulse/home"; }
         { path = "/impulse/media"; }
       ];
@@ -49,7 +56,6 @@
       <rbn/services/nfs>
       <rbn/services/avahi>
       <rbn/services/ldap>
-      <rbn/services/postgres>
       <rbn/services/zerotier>
     ];
 

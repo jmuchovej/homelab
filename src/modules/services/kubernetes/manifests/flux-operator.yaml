@@ -2,6 +2,7 @@
 # (flux-instance.yaml), which installs the Flux controllers and points GitOps
 # at the repo. Pulled at runtime by k3s' helm-controller.
 ---
+# $schema: schemas/helmchart_v1.json
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
