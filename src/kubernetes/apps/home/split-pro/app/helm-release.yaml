@@ -1,0 +1,90 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name split-pro
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      split-pro:
+        containers:
+          app:
+            image:
+              # upstream image replaces the source-built NixOS package
+              # (was 2.0.0-beta.9 — forward migration)
+              repository: docker.io/ossapps/splitpro
+              tag: v2.0.3@sha256:6e3cbc88dbd4c1b64dcb39b1c24ae8da71c8a475f1e012345da1d1ed0dd2cbe9
+            env:
+              TZ: America/New_York
+              PORT: &port "7548"
+              HOSTNAME: 0.0.0.0
+              NEXTAUTH_URL: https://split-pro.${DC_DOMAIN}
+              DEFAULT_HOMEPAGE: /balances
+              DISABLE_EMAIL_SIGNUP: "true"
+              OIDC_ALLOW_DANGEROUS_EMAIL_LINKING: "true"
+              OIDC_NAME: The Rebellion
+              FROM_EMAIL: homelab@jm0.io
+              EMAIL_SERVER_HOST: smtp.mailgun.org
+              EMAIL_SERVER_PORT: "587"
+            envFrom:
+              - secretRef:
+                  name: split-pro-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: 7548
+
+    route:
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: Split Pro
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Home
+          authentik.rbn/icon: di:spliit
+          authentik.rbn/access: home
+          authentik.rbn/redirect-uris: https://split-pro.${DC_DOMAIN}/api/auth/callback/the rebellion
+        hostnames:
+          - split-pro.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

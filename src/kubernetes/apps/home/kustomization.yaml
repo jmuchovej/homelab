@@ -5,3 +5,5 @@ namespace: home
 resources:
   - ./namespace.yaml
   - ./actual/actual.ks.yaml
+  - ./split-pro/split-pro-db.ks.yaml
+  - ./split-pro/split-pro.ks.yaml
