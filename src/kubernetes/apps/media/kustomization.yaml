@@ -4,5 +4,15 @@ kind: Kustomization
 namespace: media
 resources:
   - ./namespace.yaml
+  - ./lidarr/lidarr-db.ks.yaml
+  - ./lidarr/lidarr.ks.yaml
   - ./plex/plex.ks.yaml
+  - ./prowlarr/prowlarr-db.ks.yaml
+  - ./prowlarr/prowlarr.ks.yaml
+  - ./radarr/radarr-db.ks.yaml
+  - ./radarr/radarr.ks.yaml
+  - ./readarr/readarr-db.ks.yaml
+  - ./readarr/readarr.ks.yaml
   - ./seerr/seerr.ks.yaml
+  - ./sonarr/sonarr-db.ks.yaml
+  - ./sonarr/sonarr.ks.yaml
