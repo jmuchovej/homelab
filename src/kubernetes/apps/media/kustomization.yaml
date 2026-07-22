@@ -9,6 +9,7 @@ resources:
   - ./plex/plex.ks.yaml
   - ./prowlarr/prowlarr-db.ks.yaml
   - ./prowlarr/prowlarr.ks.yaml
+  - ./qbittorrent/qbittorrent.ks.yaml
   - ./radarr/radarr-db.ks.yaml
   - ./radarr/radarr.ks.yaml
   - ./readarr/readarr-db.ks.yaml
