@@ -1,7 +1,6 @@
 { __findFile, ... }:
 {
   den.hosts.x86_64-linux.da-vcx-2 = {
-    tailscale.enable = true;
     containers.enable = true;
 
     nfs.mounts = [
