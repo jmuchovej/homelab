@@ -1,0 +1,87 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name chroma
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      chroma:
+        # single replica on an RWO sqlite-backed store
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              # 1.5.9 vs the 0.x-era NixOS service: chroma migrates its
+              # persist dir on first boot — fails LOUDLY if it can't, and
+              # collections are re-embeddable dev artifacts either way
+              repository: docker.io/chromadb/chroma
+              tag: 1.5.9@sha256:1e0b73a187a28757c572acba508c46f48c9e8b0acaf5c20e6d95cdedce1acdf6
+            env:
+              TZ: America/New_York
+              PERSIST_DIRECTORY: /data
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v2/heartbeat
+                    port: &port 8000
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 2Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+
+    route:
+      # chroma has NO auth of its own — LAN-only via the internal gateway
+      # (10.69.1.2), same posture as tautulli; needs a router DNS record.
+      # In-cluster consumers use chroma.local-ai.svc:8000 directly.
+      app:
+        hostnames:
+          - chroma.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+
+    persistence:
+      data:
+        existingClaim: chroma-data
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
