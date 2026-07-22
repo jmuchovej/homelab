@@ -1,0 +1,36 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: split-pro-db
+spec:
+  dependsOn:
+    - name: cloudnative-pg
+      namespace: databases
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./src/kubernetes/components/cnpg-database
+  components:
+    # one-off NixOS import — inert after first bootstrap; remove alongside
+    # future backup wiring, not before (see components/cnpg-import/AGENTS.md).
+    # Source-side pg_cron was DROPPED pre-import (CNPG images lack it); the
+    # recurring-expense scheduler is a known gap until an image carries it.
+    - ../cnpg-import
+  postBuild:
+    substitute:
+      APP: split-pro
+      DB_SIZE: 2Gi
+      HOST: 10.69.11.1
+      # convention: DB LBs live at 10.69.1.5x/6x
+      DB_LB_IP: 10.69.1.60
+    substituteFrom:
+      - kind: Secret
+        name: cluster-settings
+  targetNamespace: home
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
