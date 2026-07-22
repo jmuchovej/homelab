@@ -1,0 +1,27 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: readarr
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: readarr
+  extAuth:
+    # the session cookie must reach the outpost on check requests, or every
+    # request looks anonymous and the flow loops back to login
+    headersToExtAuth:
+      - cookie
+    http:
+      backendRefs:
+        # authentik-deployed from the tofu-managed "Proxy" outpost
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
+      path: /outpost.goauthentik.io/auth/envoy
+      headersToBackend:
+        - set-cookie
+        # basic-auth injection: the provider synthesizes Authorization from
+        # user attributes (basic-auth.{username,password} annotations)
+        - authorization
