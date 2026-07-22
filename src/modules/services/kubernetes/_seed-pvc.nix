@@ -75,6 +75,20 @@ pkgs.writeShellApplication {
 
     declare -A replicas
     suspended=""
+    tmp=""
+    # restore consumers even if the seed dies mid-flight — an interrupted run
+    # otherwise strands deployments at 0 replicas, which kstatus calls "Ready"
+    cleanup() {
+      [ -n "$tmp" ] && mountpoint -q "$tmp" && umount "$tmp" && rmdir "$tmp"
+      for c in "''${!replicas[@]}"; do
+        kubectl scale "$c" -n "$ns" --replicas="''${replicas[$c]:-1}" || true
+      done
+      for s in $suspended; do
+        flux resume kustomization "''${s%/*}" -n "''${s#*/}" --timeout 5m || true
+      done
+    }
+    trap cleanup EXIT
+
     for c in "''${consumers[@]}"; do
       replicas[$c]=$(kubectl get "$c" -n "$ns" -o jsonpath='{.spec.replicas}')
       ks=$(kubectl get "$c" -n "$ns" -o jsonpath='{.metadata.labels.kustomize\.toolkit\.fluxcd\.io/name}')
@@ -98,19 +112,11 @@ pkgs.writeShellApplication {
 
     tmp=$(mktemp -d)
     mount -t zfs "$dataset" "$tmp"
-    trap 'umount "$tmp" && rmdir "$tmp"' EXIT
 
     rsync -a --info=progress2 "$@" "''${src%/}/" "$tmp/"
     chown -R "$owner" "$tmp"
-    umount "$tmp" && rmdir "$tmp"
-    trap - EXIT
 
-    for c in "''${consumers[@]}"; do
-      kubectl scale "$c" -n "$ns" --replicas="''${replicas[$c]:-1}"
-    done
-    for s in $suspended; do
-      flux resume kustomization "''${s%/*}" -n "''${s#*/}" --timeout 5m || true
-    done
+    # cleanup (EXIT trap) unmounts and restores consumers
     echo "✓ seeded $ns/$pvc ($dataset) from $src, owned by $owner"
   '';
 }
