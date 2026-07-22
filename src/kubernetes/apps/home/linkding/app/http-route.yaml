@@ -1,0 +1,47 @@
+---
+# Auth-flow route: deliberately NOT targeted by the SecurityPolicy, so login
+# and callback requests can never be gated by the auth they implement.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: linkding-outpost
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - linkding.${DC_DOMAIN}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io
+      backendRefs:
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
+---
+# NOTE: raw routes (not app-template `route:` values) — with a second route
+# key the chart names every route `<app>-<key>`, and discovery keys on the
+# route NAME.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: linkding
+  labels:
+    authentik.rbn/enabled: "true"
+  annotations:
+    authentik.rbn/name: linkding
+    authentik.rbn/group: Home
+    authentik.rbn/icon: di:linkding
+    authentik.rbn/access: home
+spec:
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - linkding.${DC_DOMAIN}
+  rules:
+    - backendRefs:
+        - name: linkding
+          port: 9090
