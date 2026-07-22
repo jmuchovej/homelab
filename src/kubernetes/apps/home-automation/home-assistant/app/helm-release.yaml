@@ -27,6 +27,10 @@ spec:
                 rm -rf /config/custom_components/hacs
                 mkdir -p /config/custom_components/hacs
                 unzip -qq /tmp/hacs.zip -d /config/custom_components/hacs
+                wget -qO /tmp/oidc.zip https://github.com/christiaangoossens/hass-oidc-auth/releases/latest/download/hass-oidc-auth.zip
+                rm -rf /config/custom_components/auth_oidc
+                mkdir -p /config/custom_components/auth_oidc
+                unzip -qq /tmp/oidc.zip -d /config/custom_components/auth_oidc
                 # fresh-volume safety: the !include targets must exist
                 for f in automations scripts scenes; do
                   [ -f "/config/$f.yaml" ] || echo "[]" > "/config/$f.yaml"
