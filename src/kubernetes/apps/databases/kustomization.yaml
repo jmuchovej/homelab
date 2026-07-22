@@ -5,3 +5,4 @@ namespace: databases
 resources:
   - ./namespace.yaml
   - ./cloudnative-pg/cloudnative-pg.ks.yaml
+  - ./valkey/valkey.ks.yaml
