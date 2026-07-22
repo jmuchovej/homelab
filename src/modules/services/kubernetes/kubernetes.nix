@@ -10,6 +10,48 @@
       }:
       let
         inherit (lib.rbn) get-secret get-secret';
+
+        render =
+          file: vars:
+          let
+            src = builtins.readFile file;
+            names = lib.attrNames vars;
+            unused = lib.filter (n: !(lib.hasInfix "@${n}@" src)) names;
+            out = lib.replaceStrings (map (n: "@${n}@") names) (map (n: vars.${n}) names) src;
+            leftover = lib.filter (line: builtins.match ".*@[a-z0-9-]+@.*" line != null) (
+              lib.splitString "\n" out
+            );
+          in
+          if unused != [ ] then
+            throw "render ${baseNameOf file}: unused vars: ${lib.concatStringsSep ", " unused}"
+          else if leftover != [ ] then
+            throw "render ${baseNameOf file}: unsubstituted markers: ${lib.concatStringsSep " " leftover}"
+          else
+            out;
+
+        k8s-schemas = pkgs.linkFarm "k8s-bootstrap-schemas" [
+          {
+            name = "fluxcd.controlplane.io/fluxinstance_v1.json";
+            path = ./manifests/schemas/fluxinstance_v1.json;
+          }
+          {
+            name = "helm.cattle.io/helmchart_v1.json";
+            path = ./manifests/schemas/helmchart_v1.json;
+          }
+          {
+            name = "namespace-v1.json";
+            path = ./manifests/schemas/namespace-v1.json;
+          }
+        ];
+
+        # every line at the block-scalar depth of `valuesContent: |-`
+        indent-block = s: lib.concatStringsSep "\n    " (lib.splitString "\n" (lib.removeSuffix "\n" s));
+
+        cilium-manifest = pkgs.writeText "cilium.yaml" (
+          render ./manifests/cilium.yaml {
+            values = indent-block (builtins.readFile ./manifests/cilium-values.yaml);
+          }
+        );
       in
       lib.mkMerge [
         (get-secret config "1password/connect.json" host.datacenter)
@@ -62,7 +104,7 @@
             ];
 
             manifests = {
-              cilium.source = ./manifests/cilium.yaml;
+              cilium.source = cilium-manifest;
               flux-operator.source = ./manifests/flux-operator.yaml;
               flux-instance.source = ./manifests/flux-instance.yaml;
             };
@@ -93,41 +135,11 @@
             39501
           ];
 
-          sops.templates."onepassword-connect.yaml".content = ''
-            apiVersion: v1
-            kind: Namespace
-            metadata:
-              name: external-secrets
-            ---
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: onepassword-connect-credentials
-              namespace: external-secrets
-            type: Opaque
-            data:
-              # sops value is already base64(1password-credentials.json); `data`
-              # expects base64, so the mounted file decodes back to raw JSON.
-              1password-credentials.json: ${config.sops.placeholder."1password/connect.json"}
-            ---
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: op-connect-ro
-              namespace: external-secrets
-            type: Opaque
-            stringData:
-              token: ${config.sops.placeholder."1password/connect-ro"}
-            ---
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: op-connect-rw
-              namespace: external-secrets
-            type: Opaque
-            stringData:
-              token: ${config.sops.placeholder."1password/connect-rw"}
-          '';
+          sops.templates."onepassword-connect.yaml".content = render ./manifests/onepassword-connect.yaml {
+            connect-credentials = config.sops.placeholder."1password/connect.json";
+            ro-token = config.sops.placeholder."1password/connect-ro";
+            rw-token = config.sops.placeholder."1password/connect-rw";
+          };
 
           sops.templates."cluster-settings.yaml".content =
             let
@@ -139,27 +151,66 @@
                   # .files (not .leafs) forces the read and yields the list
                   (it: it.files);
 
-              mk-settings = ns: ''
-                ---
-                apiVersion: v1
-                kind: Namespace
-                metadata:
-                  name: ${ns}
-                ---
-                apiVersion: v1
-                kind: Secret
-                metadata:
-                  name: cluster-settings
-                  namespace: ${ns}
-                type: Opaque
-                stringData:
-                  DATACENTER: ${host.datacenter}
-                  DC_DOMAIN: ${config.sops.placeholder."${host.datacenter}/domain"}
-                  DOMAIN: ${config.sops.placeholder."domain"}
-                  ADMIN_CIDR: 10.99.0.0/16
-              '';
+              mk-settings =
+                ns:
+                render ./manifests/cluster-settings.yaml {
+                  namespace = ns;
+                  inherit (host) datacenter;
+                  dc-domain = config.sops.placeholder."${host.datacenter}/domain";
+                  domain = config.sops.placeholder."domain";
+                };
             in
             lib.concatMapStrings mk-settings substituting-namespaces;
+
+          # every bootstrap manifest — static and template-rendered — must
+          # satisfy its schema for the system to build. Secrets are skipped
+          # (kubeconform can't see through sops placeholders anyway); the
+          # pre-commit hook covers src/kubernetes/ only, not these.
+          system.checks = [
+            (pkgs.runCommand "check-k8s-bootstrap-manifests"
+              {
+                nativeBuildInputs = [
+                  pkgs.kubeconform
+                  pkgs.check-jsonschema
+                  pkgs.yq-go
+                ];
+                onepasswordConnect = config.sops.templates."onepassword-connect.yaml".content;
+                clusterSettings = config.sops.templates."cluster-settings.yaml".content;
+                passAsFile = [
+                  "onepasswordConnect"
+                  "clusterSettings"
+                ];
+              }
+              ''
+                cp "$onepasswordConnectPath" onepassword-connect.yaml
+                cp "$clusterSettingsPath" cluster-settings.yaml
+                kubeconform -strict -skip Secret \
+                  -schema-location '${k8s-schemas}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+                  -schema-location '${k8s-schemas}/{{.ResourceKind}}{{.KindSuffix}}.json' \
+                  -summary \
+                  ${cilium-manifest} \
+                  ${./manifests/flux-operator.yaml} \
+                  ${./manifests/flux-instance.yaml} \
+                  onepassword-connect.yaml cluster-settings.yaml
+
+                # cilium values against the chart's own values schema
+                check-jsonschema \
+                  --schemafile ${./manifests/schemas/cilium-values.json} \
+                  ${./manifests/cilium-values.yaml}
+
+                # the vendored schema must have been refreshed for the pinned
+                # chart version, or values validate against a stale schema
+                want=$(yq 'select(.kind == "HelmChart") | .spec.version' ${cilium-manifest})
+                have=$(yq -p json '."cilium-values.json".version' ${./manifests/schemas/SOURCES.json})
+                if [ "$want" != "$have" ]; then
+                  echo "cilium chart $want but vendored values schema is for $have —" \
+                    "run 'just k8s update-schemas'" >&2
+                  exit 1
+                fi
+                touch "$out"
+              ''
+            )
+          ];
 
           systemd.services.k3s-seed-secrets = {
             description = "Seed bootstrap secrets (1Password Connect, cluster-settings) into k3s";

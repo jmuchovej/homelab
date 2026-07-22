@@ -1,0 +1,58 @@
+set script-interpreter := ['bash', '-euo', 'pipefail']
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# Refresh the vendored schemas under manifests/schemas/. These back both
+# editor validation (relative `# $schema:` comments in the bootstrap
+# manifests) and the build-time kubeconform/check-jsonschema pass in
+# kubernetes.nix (the nix sandbox has no network, hence vendoring).
+#
+# The cilium values schema is CHART-versioned: the version is read from
+# cilium.yaml's spec.version, so bump the chart there first, then run this.
+# The build check fails if the stamp in SOURCES.json lags the chart.
+[doc('Refresh vendored schemas (bump cilium spec.version first; build check enforces sync)')]
+[script]
+update-schemas:
+    manifests="{{ module_directory() }}/manifests"
+    schemas="$manifests/schemas"
+    mkdir -p "$schemas"
+
+    cilium_version=$(yq 'select(.kind == "HelmChart") | .spec.version' "$manifests/cilium.yaml")
+    [[ -n $cilium_version && $cilium_version != "null" ]] || {
+        echo "could not read spec.version from $manifests/cilium.yaml" >&2
+        exit 1
+    }
+
+    fetch() {
+        echo "fetching $2"
+        curl -fsSL "$1" -o "$schemas/$2"
+    }
+
+    url_cilium="https://raw.githubusercontent.com/cilium/cilium/v${cilium_version}/install/kubernetes/cilium/values.schema.json"
+    url_fluxinstance="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/fluxcd.controlplane.io/fluxinstance_v1.json"
+    url_helmchart="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.cattle.io/helmchart_v1.json"
+    url_namespace="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/namespace-v1.json"
+    url_secret="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
+
+    fetch "$url_cilium" cilium-values.json
+    fetch "$url_fluxinstance" fluxinstance_v1.json
+    fetch "$url_helmchart" helmchart_v1.json
+    fetch "$url_namespace" namespace-v1.json
+    fetch "$url_secret" secret-v1.json
+
+    cat > "$schemas/SOURCES.json" <<EOF
+    {
+      "cilium-values.json": {
+        "version": "$cilium_version",
+        "url": "$url_cilium"
+      },
+      "fluxinstance_v1.json": { "url": "$url_fluxinstance" },
+      "helmchart_v1.json": { "url": "$url_helmchart" },
+      "namespace-v1.json": { "url": "$url_namespace" },
+      "secret-v1.json": { "url": "$url_secret" }
+    }
+    EOF
+
+    echo "vendored $(ls "$schemas" | wc -l | tr -d ' ') files into $schemas (cilium chart $cilium_version)"

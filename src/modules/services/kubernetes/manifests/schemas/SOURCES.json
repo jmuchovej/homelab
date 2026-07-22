@@ -1,0 +1,18 @@
+{
+  "cilium-values.json": {
+    "version": "1.19.5",
+    "url": "https://raw.githubusercontent.com/cilium/cilium/v1.19.5/install/kubernetes/cilium/values.schema.json"
+  },
+  "fluxinstance_v1.json": {
+    "url": "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/fluxcd.controlplane.io/fluxinstance_v1.json"
+  },
+  "helmchart_v1.json": {
+    "url": "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.cattle.io/helmchart_v1.json"
+  },
+  "namespace-v1.json": {
+    "url": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/namespace-v1.json"
+  },
+  "secret-v1.json": {
+    "url": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
+  }
+}

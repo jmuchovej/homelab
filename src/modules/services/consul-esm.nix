@@ -1,3 +1,14 @@
+# Consul External Service Monitor.
+#
+# Runs the health checks for agentless external nodes registered in the Consul
+# catalog (relay01/02, hubitat — see src/terraform/consul/service-node). Those
+# devices can't run a Consul agent, so nothing executes their checks; ESM
+# claims any node tagged `external-node = "true"` in its meta and runs the
+# http/tcp checks on its behalf, plus an ICMP node-health probe.
+#
+# Runs on every Consul server. Instances coordinate through a leader lock under
+# the `consul-esm/` KV prefix, so exactly one is active and the rest are warm
+# standbys — no per-host configuration needed.
 { inputs, ... }:
 {
   rbn.services._.consul-esm = {
@@ -16,6 +27,10 @@
 
         cfg = host.consul;
 
+        # Token is injected via CONSUL_HTTP_TOKEN (sops env file) rather than
+        # the `token` config field, so it never lands in the Nix store. ESM's
+        # ClientConfig() starts from api.DefaultConfig(), which reads that env
+        # var, and only overrides when the config field is non-empty.
         config-file = pkgs.writeText "consul-esm.hcl" ''
           log_level      = "INFO"
           consul_service = "consul-esm"

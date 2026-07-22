@@ -86,5 +86,9 @@
           '';
         };
       };
+
+    meta = {
+      uses-tailscale = true;
+    };
   };
 }

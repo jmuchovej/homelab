@@ -1,0 +1,24 @@
+# Per-namespace cluster settings — rendered ONCE PER NAMESPACE by
+# kubernetes.nix and concatenated (namespaces discovered from
+# src/kubernetes/apps/*/namespace.yaml). Namespaces are created here first;
+# Flux adopts them later. Domain values become sops placeholders at eval and
+# real values at activation.
+---
+# $schema: schemas/namespace-v1.json
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "@namespace@"
+---
+# $schema: schemas/secret-v1.json
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-settings
+  namespace: "@namespace@"
+type: Opaque
+stringData:
+  DATACENTER: "@datacenter@"
+  DC_DOMAIN: "@dc-domain@"
+  DOMAIN: "@domain@"
+  ADMIN_CIDR: 10.99.0.0/16
