@@ -1,0 +1,97 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name minecraft
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      minecraft:
+        # single replica on an RWO world — never two servers on one save
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              # docker.io fronts through mirror.gcr.io on the node
+              repository: docker.io/itzg/minecraft-server
+              tag: 2026.7.2@sha256:6ec1110e4d9236d00ae9436a3e4a5929583e5b19cc94b756a7c603f7cf647a77
+            env:
+              TZ: America/New_York
+              EULA: "TRUE"
+              TYPE: PAPER
+              VERSION: LATEST
+              MEMORY: 4G
+              ENABLE_RCON: "false"
+              # LAN/VPN-only by construction: the LB IP is BGP-internal and
+              # nothing DNATs to it, so online-mode auth is the only gate
+              ONLINE_MODE: "true"
+              MOTD: The Rebellion
+            probes:
+              # itzg ships mc-health for exactly this
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: ["mc-health"]
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 10
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: ["mc-health"]
+                  periodSeconds: 15
+                  timeoutSeconds: 10
+                  failureThreshold: 10
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: ["mc-health"]
+                  failureThreshold: 60
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 500m
+              limits:
+                memory: 6Gi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: 10.69.1.40
+        externalTrafficPolicy: Local
+        ports:
+          minecraft:
+            port: 25565
+
+    persistence:
+      data:
+        existingClaim: minecraft-data
+        globalMounts:
+          - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
