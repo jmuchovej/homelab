@@ -1,0 +1,71 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name linkding
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      linkding:
+        # single replica on an RWO sqlite volume
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: docker.io/sissbruecker/linkding
+              tag: 1.45.0@sha256:61b2eb9eed8e5772a473fb7f1f8923e046cb8cbbeb50e88150afd5ff287d4060
+            env:
+              TZ: America/New_York
+              LD_SUPERUSER_NAME: john
+              # authentik ext-auth IS the login: trust the outpost header
+              # (Django spelling of X-authentik-username), no local form
+              LD_ENABLE_AUTH_PROXY: "True"
+              LD_AUTH_PROXY_USERNAME_HEADER: HTTP_X_AUTHENTIK_USERNAME
+              LD_AUTH_PROXY_LOGOUT_URL: https://linkding.${DC_DOMAIN}/outpost.goauthentik.io/sign_out
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 512Mi
+
+    defaultPodOptions:
+      securityContext:
+        # the image's www-data user
+        runAsNonRoot: true
+        runAsUser: 33
+        runAsGroup: 33
+        fsGroup: 33
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: 9090
+
+    persistence:
+      data:
+        existingClaim: linkding-data
+        globalMounts:
+          - path: /etc/linkding/data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
