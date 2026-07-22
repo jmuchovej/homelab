@@ -4,6 +4,8 @@ kind: Kustomization
 namespace: media
 resources:
   - ./namespace.yaml
+  - ./immich/immich-db.ks.yaml
+  - ./immich/immich.ks.yaml
   - ./lidarr/lidarr-db.ks.yaml
   - ./lidarr/lidarr.ks.yaml
   - ./plex/plex.ks.yaml
