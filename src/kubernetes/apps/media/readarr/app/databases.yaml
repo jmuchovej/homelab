@@ -1,0 +1,25 @@
+---
+# Readarr's metadata cache lives in a SECOND database on the same cluster.
+# Declarative (not imported): the cache rebuilds itself, so only the main db
+# goes through cnpg-import.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: readarr-cache
+spec:
+  cluster:
+    name: readarr-db
+  name: readarr-cache
+  owner: readarr
+---
+# Unlike the modern arrs, readarr 0.4.x predates LOG__DBENABLED and refuses
+# to start without its log database — fresh (empty), not imported.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: readarr-log
+spec:
+  cluster:
+    name: readarr-db
+  name: readarr-log
+  owner: readarr
