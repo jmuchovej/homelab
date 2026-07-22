@@ -1,0 +1,220 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name immich
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      immich:
+        containers:
+          app:
+            image:
+              # pinned to the EXACT version the imported database ran on
+              # (version_history: 2.7.5) — the v3 jump is its own upgrade,
+              # after the migration proves out
+              repository: ghcr.io/immich-app/immich-server
+              tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
+            env:
+              TZ: America/New_York
+              DB_HOSTNAME: immich-db-rw
+              DB_USERNAME: immich
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: immich-db-creds
+                    key: password
+              DB_DATABASE_NAME: immich
+              REDIS_HOSTNAME: immich-valkey
+              IMMICH_CONFIG_FILE: /config/immich-config.json
+              # SAME path the imported database references in every asset row
+              IMMICH_MEDIA_LOCATION: &media /impulse/media/Immich
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/server/ping
+                    port: &port 2283
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 60
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 4Gi
+
+      machine-learning:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/immich-app/immich-machine-learning
+              tag: v2.7.5@sha256:a2501141440f10516d329fdfba2c68082e19eb9ba6016c061ac80d23beadf7f3
+            env:
+              TZ: America/New_York
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 4Gi
+
+      valkey:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/valkey-io/valkey
+              tag: 8.1.9@sha256:495e4fecdc98ee48a20b207726caa5ab6451e0fac3642a9be10d9e70b3068df6
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 512Mi
+
+      proxy:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/alangrainger/immich-public-proxy
+              tag: 3.0.2
+            env:
+              TZ: America/New_York
+              IMMICH_URL: http://immich:2283
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        # the NFS library (mode 700 on the da-gr75 export, root-squashed) is
+        # only readable as its owner — every container runs as that uid
+        runAsUser: 995
+        runAsGroup: 995
+        fsGroup: 995
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        controller: immich
+        # multi-service releases suffix every key — pin the name the route,
+        # proxy IMMICH_URL, and the public-proxy docs expect
+        forceRename: immich
+        ports:
+          http:
+            port: *port
+      valkey:
+        controller: valkey
+        ports:
+          valkey:
+            port: 6379
+      machine-learning:
+        controller: machine-learning
+        forceRename: immich-machine-learning
+        ports:
+          http:
+            port: 3003
+      proxy:
+        controller: proxy
+        forceRename: immich-proxy
+        ports:
+          http:
+            port: 3000
+
+    route:
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: immich
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Family
+          authentik.rbn/icon: di:immich
+          authentik.rbn/access: family
+          authentik.rbn/redirect-uris: https://immich.${DC_DOMAIN}/auth/login;https://photos.${DC_DOMAIN}/auth/login
+        hostnames:
+          - immich.${DC_DOMAIN}
+          - photos.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+        rules:
+          # public share links bypass the app entirely (immich-public-proxy
+          # serves them without auth — same split the old traefik route had)
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /share
+            backendRefs:
+              - name: immich-proxy
+                port: 3000
+          - backendRefs:
+              - name: immich
+                port: *port
+
+    persistence:
+      media:
+        # hostPath onto the da-gr75 NFS mount, at the exact path the
+        # imported database references
+        type: hostPath
+        hostPath: /srv/media/Immich
+        advancedMounts:
+          immich:
+            app:
+              - path: *media
+      config:
+        type: secret
+        name: immich-secret
+        advancedMounts:
+          immich:
+            app:
+              - path: /config
+      ml-cache:
+        existingClaim: immich-ml-cache
+        advancedMounts:
+          machine-learning:
+            app:
+              - path: /cache
+      valkey-data:
+        type: emptyDir
+        advancedMounts:
+          valkey:
+            app:
+              - path: /data
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
