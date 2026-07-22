@@ -32,6 +32,18 @@
             role = "server";
             gracefulNodeShutdown.enable = true;
 
+            # every zfs dataset reports POOL-free as available, so kubelet's
+            # default disk thresholds (nodefs<10%, imagefs<15%) hold ~324GB of
+            # the 2TB pool hostage — 5% (~108GB) is guard enough here
+            extraKubeletConfig = {
+              evictionHard = {
+                "memory.available" = "100Mi";
+                "nodefs.available" = "5%";
+                "imagefs.available" = "5%";
+                "nodefs.inodesFree" = "5%";
+              };
+            };
+
             disable = [
               "traefik"
               "servicelb"
