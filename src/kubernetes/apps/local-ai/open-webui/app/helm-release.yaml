@@ -11,6 +11,9 @@ spec:
   values:
     controllers:
       open-webui:
+        # explicit so helm re-asserts it — an interrupted seed/scale-down
+        # otherwise leaves 0 replicas looking "Ready" to kstatus forever
+        replicas: 1
         containers:
           app:
             image:
