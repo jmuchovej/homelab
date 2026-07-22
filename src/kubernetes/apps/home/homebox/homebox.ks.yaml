@@ -9,7 +9,7 @@ spec:
     - name: envoy-config
       namespace: network
   interval: 1h
-  path: ./src/kubernetes/apps/home-automation/homebox/app
+  path: ./src/kubernetes/apps/home/homebox/app
   postBuild:
     substituteFrom:
       - kind: Secret
@@ -19,5 +19,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: home-automation
+  targetNamespace: home
   wait: true
