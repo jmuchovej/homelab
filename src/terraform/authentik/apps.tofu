@@ -8,27 +8,6 @@ locals {
   apps = merge(local.frozen-apps, var.discovered-apps)
 
   frozen-apps = {
-    immich = {
-      name       = "immich"
-      group      = "Family"
-      type       = "oauth"
-      icon       = "di:immich"
-      access     = ["family"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = ""
-        ext = "https://immich.${var.domain.da}"
-      }
-      redirect_uris = [
-        "https://immich.${var.domain.da}/auth/login",
-        "https://photos.${var.domain.da}/auth/login",
-      ]
-    }
     openbao = {
       name       = "OpenBao"
       group      = "Compute"
@@ -100,24 +79,6 @@ locals {
         ext = "https://s3.${var.domain.da}"
       }
       redirect_uris = []
-    }
-    split-pro = {
-      name       = "Split Pro"
-      group      = "Home"
-      type       = "oauth"
-      icon       = "di:spliit"
-      access     = ["home"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = ""
-        ext = "https://split-pro.${var.domain.da}"
-      }
-      redirect_uris = ["https://split-pro.${var.domain.da}/api/auth/callback/the rebellion"]
     }
     syncthing = {
       name       = "Syncthing"
