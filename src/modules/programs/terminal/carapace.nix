@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.terminal._.carapace.homeManager =
     { pkgs, ... }:
     {

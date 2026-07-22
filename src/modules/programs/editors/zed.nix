@@ -7,8 +7,8 @@ _: {
       let
         inherit (lib.rbn) import-dir merge-deep;
 
-        languages-lsps = import-dir ./zed/languages-lsps { inherit lib pkgs; };
-        zed = import-dir ./zed { inherit lib; };
+        languages-lsps = import-dir ./_zed/languages-lsps { inherit lib pkgs; };
+        zed = import-dir ./_zed { inherit lib; };
         settings = merge-deep [
           zed.settings
           languages-lsps.settings

@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.emulators._.ghostty = {
     dock.app = "Ghostty.app";
 
@@ -15,10 +15,6 @@ _: {
         };
       };
 
-    darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew.casks = [ "ghostty" ];
-      };
+    darwin.homebrew.casks = [ "ghostty" ];
   };
 }

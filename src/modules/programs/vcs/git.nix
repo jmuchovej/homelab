@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.vcs._.git.homeManager = { pkgs, ... }: {
     xdg.configFile."git/ignore" = {
       enable = true;
@@ -6,6 +6,8 @@ _: {
         _research/
         .scratch/
         .arxiv/
+        .devenv/
+        .direnv/
       '';
     };
 

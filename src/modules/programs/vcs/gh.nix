@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.vcs._.gh.homeManager =
     { pkgs, ... }:
     {

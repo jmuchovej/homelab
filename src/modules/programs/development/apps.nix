@@ -78,20 +78,16 @@
         };
       };
 
-    darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew = {
-          brews = [
-            "cocoapods"
-            "xcodegen"
-            "xcodes"
-          ];
-          casks = [
-            "flutter"
-            "android-studio"
-          ];
-        };
-      };
+    darwin.homebrew = {
+      brews = [
+        "cocoapods"
+        "xcodegen"
+        "xcodes"
+      ];
+      casks = [
+        "flutter"
+        "android-studio"
+      ];
+    };
   };
 }

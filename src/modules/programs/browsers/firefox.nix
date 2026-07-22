@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.browsers._.firefox = {
     dock.app = "Firefox Developer Edition.app";
 
@@ -193,10 +193,6 @@ _: {
         };
       };
 
-    darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew.casks = [ "firefox@developer-edition" ];
-      };
+    darwin.homebrew.casks = [ "firefox@developer-edition" ];
   };
 }

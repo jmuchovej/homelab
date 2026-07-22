@@ -6,10 +6,6 @@ _: {
         home.packages = [ pkgs.powershell ];
       };
 
-    darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew.casks = [ "powershell" ];
-      };
+    darwin.homebrew.casks = [ "powershell" ];
   };
 }

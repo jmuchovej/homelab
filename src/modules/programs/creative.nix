@@ -1,17 +1,13 @@
-_: {
+{
   rbn.programs._.creative = {
-    provides.figma = {
+    _.figma = {
       # TODO: no nixpkg named 'figma' for Linux
       homeManager = { };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "figma" ];
-        };
+      darwin.homebrew.casks = [ "figma" ];
     };
 
-    provides."3d-modeling" = {
+    _."3d-modeling" = {
       homeManager =
         { pkgs, lib, ... }:
         {
@@ -24,22 +20,17 @@ _: {
           );
         };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [
-            "orcaslicer"
-            "openscad@snapshot"
-          ];
-        };
+      darwin.homebrew.casks = [
+        "orcaslicer"
+        "openscad@snapshot"
+      ];
     };
 
-    provides.sketch = {
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [ "sketch" ];
-        };
+    _.design = {
+      darwin.homebrew.casks = [
+        "sketch"
+        "affinity"
+      ];
     };
   };
 }
