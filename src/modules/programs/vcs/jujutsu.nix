@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.vcs._.jujutsu.homeManager = { config, pkgs, ... }: {
     home.packages = [ pkgs.lazyjj ];
 

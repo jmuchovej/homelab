@@ -1,10 +1,10 @@
-# Consolidated font configuration across NixOS and darwin.
 { den, ... }:
 {
   rbn.system._.fonts = {
     includes = [
       (den.batteries.unfree [ "corefonts" ])
     ];
+
     nixos =
       { lib, pkgs, ... }:
       let
@@ -41,6 +41,7 @@
             source-sans
             inter
             lexend
+            google-fonts
 
             # Emojis
             noto-fonts-color-emoji
@@ -94,37 +95,30 @@
         };
       };
 
-    darwin =
-      { host, lib, ... }:
-      let
-        brew = host.homebrew;
-      in
-      {
-        system.defaults.NSGlobalDomain.AppleFontSmoothing = 1;
+    darwin = {
+      system.defaults.NSGlobalDomain.AppleFontSmoothing = 1;
 
-        homebrew = lib.mkIf brew.enable {
-          casks = [
-            "font-jetbrains-mono"
-            "font-jetbrains-mono-nerd-font"
-            "font-maple-mono"
-            "font-maple-mono-nf"
-            "font-monaspace"
-            "font-monaspace-nf"
-            "font-lato"
-            "font-roboto"
-            "font-roboto-mono-nerd-font"
-            "font-stix-two-math"
-            "font-stix-two-text"
-            "font-ibm-plex"
-            "font-ibm-plex-mono"
-            "font-ibm-plex-math"
-            "font-ibm-plex-sans"
-            "font-ibm-plex-serif"
-            "font-red-hat-display"
-            "font-red-hat-mono"
-            "font-red-hat-text"
-          ];
-        };
-      };
+      homebrew.casks = [
+        "font-jetbrains-mono"
+        "font-jetbrains-mono-nerd-font"
+        "font-maple-mono"
+        "font-maple-mono-nf"
+        "font-monaspace"
+        "font-monaspace-nf"
+        "font-lato"
+        "font-roboto"
+        "font-roboto-mono-nerd-font"
+        "font-stix-two-math"
+        "font-stix-two-text"
+        "font-ibm-plex"
+        "font-ibm-plex-mono"
+        "font-ibm-plex-math"
+        "font-ibm-plex-sans"
+        "font-ibm-plex-serif"
+        "font-red-hat-display"
+        "font-red-hat-mono"
+        "font-red-hat-text"
+      ];
+    };
   };
 }

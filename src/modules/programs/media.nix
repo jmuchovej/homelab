@@ -1,30 +1,24 @@
-_: {
+{
   rbn.programs._.media = {
-    provides.ferium = {
+    _.ferium = {
       homeManager =
-        { pkgs, lib, ... }:
+        { pkgs, ... }:
         {
-          home.packages = with pkgs; [
-            ferium
-          ];
+          home.packages = [ pkgs.ferium ];
         };
     };
 
-    provides.plex = {
+    _.plex = {
       # TODO: needs upstream nixpkg support for plex-desktop and plexamp
       homeManager = { };
 
-      darwin =
-        { host, lib, ... }:
-        lib.mkIf host.homebrew.enable {
-          homebrew.casks = [
-            "plex"
-            "plexamp"
-          ];
-        };
+      darwin.homebrew.casks = [
+        "plex"
+        "plexamp"
+      ];
     };
 
-    provides.spotify = {
+    _.spotify = {
       dock.app = "Spotify.app";
 
       homeManager =
@@ -33,23 +27,16 @@ _: {
           home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.spotify ];
         };
 
-      darwin =
-        { host, lib, ... }:
-        let
-          brew = host.homebrew;
-        in
-        {
-          homebrew = lib.mkIf brew.enable {
-            casks = [
-              "spotify"
-              "notunes"
-            ];
-          };
+      darwin = {
+        homebrew.casks = [
+          "spotify"
+          "notunes"
+        ];
 
-          system.defaults.CustomUserPreferences = {
-            twisted.noTunes.replacement = "/Applications/Spotify.app";
-          };
+        system.defaults.CustomUserPreferences = {
+          twisted.noTunes.replacement = "/Applications/Spotify.app";
         };
+      };
     };
   };
 }

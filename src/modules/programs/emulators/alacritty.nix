@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.emulators._.alacritty = {
     homeManager =
       { pkgs, lib, ... }:
@@ -9,10 +9,6 @@ _: {
         };
       };
 
-    darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew.casks = [ "alacritty" ];
-      };
+    darwin.homebrew.casks = [ "alacritty" ];
   };
 }
