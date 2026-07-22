@@ -203,6 +203,18 @@
         # the runtime's CDI generation dlopens libnvidia-ml — which NixOS
         # keeps in /run/opengl-driver, nowhere a raw binary looks
         systemd.services.k3s.environment.LD_LIBRARY_PATH = "/run/opengl-driver/lib";
+        # ... and even then, auto-generated specs embed FHS hook paths
+        # (/usr/bin/nvidia-ctk). Use the spec hardware.nvidia-container-toolkit
+        # pre-generates at boot with nix-store paths instead. Read per
+        # container-create — no k3s restart needed on change.
+        environment.etc."nvidia-container-runtime/config.toml".text = ''
+          [nvidia-container-runtime]
+          mode = "cdi"
+
+          [nvidia-container-runtime.modes.cdi]
+          default-kind = "nvidia.com/gpu"
+          spec-dirs = ["/var/run/cdi"]
+        '';
       };
   };
 }
