@@ -1,0 +1,216 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name qbittorrent
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      qbittorrent:
+        # single node + RWO PVC = old and new pod share /config during a
+        # rolling update, and qbittorrent REWRITES its conf on shutdown —
+        # the terminating pod clobbers what the new pod's init just wrote
+        strategy: Recreate
+        initContainers:
+          # fetch the prebuilt WebUI from VueTorrent's release branch; inits
+          # run before gluetun exists, so this egresses via plain CNI — no
+          # VPN dependency. --one-time = UI updates land on pod restart.
+          vuetorrent:
+            image:
+              repository: registry.k8s.io/git-sync/git-sync
+              tag: v4.7.1@sha256:c5e1976da735bf0b53979f079a07475d77174c51863cd084e928ff6074480717
+            args:
+              - --repo=https://github.com/WDaan/VueTorrent
+              - --ref=latest-release
+              - --root=/addons
+              - --link=VueTorrent
+              - --one-time
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
+          # assert the alternative-UI keys declaratively — qBittorrent has NO
+          # env mechanism for arbitrary settings (verified against 5.2.3
+          # source; QBT_Preferences__* seen in community repos is cargo-cult)
+          # and rewrites its conf on shutdown, so reassert on every start.
+          config:
+            image:
+              repository: mirror.gcr.io/library/alpine
+              tag: "3.22"
+            command: ["/bin/sh", "-ec"]
+            args:
+              - |
+                # flux postBuild substitution constrains this script: braced
+                # variable forms get EMPTIED, and command substitution or a
+                # dollar before punctuation breaks its parser outright — a
+                # bare dollar-name variable is the only safe dollar syntax
+                # (this comment avoids writing those forms for that reason)
+                conf=/config/qBittorrent/qBittorrent.conf
+                mkdir -p /config/qBittorrent
+                [ -f "$conf" ] || printf '[Preferences]\n' > "$conf"
+                tmp="$conf.tmp"
+                grep -vF 'WebUI\AlternativeUIEnabled=' "$conf" \
+                  | grep -vF 'WebUI\RootFolder=' > "$tmp"
+                awk '1; /^\[Preferences\]/ {
+                  print "WebUI\\AlternativeUIEnabled=true"
+                  print "WebUI\\RootFolder=/addons/VueTorrent"
+                }' "$tmp" > "$conf"
+                rm -f "$tmp"
+            securityContext:
+              # must match the conf's owner: with ALL caps dropped even the
+              # image-default root loses DAC_OVERRIDE and cannot write it
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 32Mi
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/qbittorrent
+              tag: 5.2.3@sha256:4fcf15b7f265c2c8d7bc2a7e13240a07e0593c326f3cf3b5b9bb69eec5b79299
+            env:
+              TZ: America/New_York
+              QBT_WEBUI_PORT: &port "8080"
+            probes:
+              # TCP, not HTTP: the WebUI 401s unauthenticated probes (the
+              # auth whitelist covers the pod CIDR, not the node)
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+              limits:
+                memory: 4Gi
+          gluetun:
+            # the pod's only way out: gluetun owns the netns routing table and
+            # firewalls everything that isn't the tunnel (kill switch). Pinned
+            # to the same Proton wireguard peer the NixOS proton0 used.
+            image:
+              repository: ghcr.io/qdm12/gluetun
+              tag: v3.41.1@sha256:1a5bf4b4820a879cdf8d93d7ef0d2d963af56670c9ebff8981860b6804ebc8ab
+            env:
+              # native provider = the location SELECTOR lives here, in git
+              # (a Proton wireguard key works on every server, so 1P holds
+              # just the one key). Switching location = edit + bounce (ESO
+              # secret updates don't restart pods).
+              # SECURE_CORE_ONLY=on handshakes but passes NO traffic with
+              # this key (2026-07-23) — plain US servers verified working;
+              # revisit with a freshly generated key before re-enabling.
+              VPN_SERVICE_PROVIDER: protonvpn
+              VPN_TYPE: wireguard
+              SERVER_COUNTRIES: United States
+              # let the WebUI/API in from the cluster (arrs, envoy, probes)
+              FIREWALL_INPUT_PORTS: *port
+              FIREWALL_OUTBOUND_SUBNETS: 10.244.0.0/16,10.96.0.0/16
+            envFrom:
+              - secretRef:
+                  name: proton-vpn
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        # gid owning /srv/media/Downloads on the NFS export
+        supplementalGroups: [911]
+
+    service:
+      app:
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      config:
+        existingClaim: qbittorrent-config
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /config
+            config:
+              - path: /config
+      addons:
+        type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /addons
+            vuetorrent:
+              - path: /addons
+      media:
+        # same path the arrs (and the old NixOS services) use, so torrent
+        # save paths and arr import paths agree
+        type: hostPath
+        hostPath: /srv/media
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /srv/media
+      tun:
+        type: hostPath
+        hostPath: /dev/net/tun
+        hostPathType: CharDevice
+        advancedMounts:
+          qbittorrent:
+            gluetun:
+              - path: /dev/net/tun
+      gluetun-data:
+        type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            gluetun:
+              - path: /gluetun
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
