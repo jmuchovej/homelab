@@ -9,7 +9,6 @@
       url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
       flake = false;
     };
-    authentik-nix.url = "github:nix-community/authentik-nix";
     den.url = "github:denful/den";
     deploy.url = "github:serokell/deploy-rs";
     disko.url = "github:nix-community/disko";
