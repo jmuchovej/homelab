@@ -65,42 +65,6 @@ locals {
       }
       redirect_uris = []
     }
-    ollama = {
-      name       = "Ollama"
-      group      = "Compute"
-      type       = "proxy"
-      icon       = "di:ollama"
-      access     = ["compute", "compute-managers"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = true
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = "https://ollama.${var.domain.da}"
-        ext = "https://ollama.${var.domain.da}"
-      }
-      redirect_uris = []
-    }
-    open-webui = {
-      name       = "Open WebUI"
-      group      = "Compute"
-      type       = "oauth"
-      icon       = "di:open-webui"
-      access     = ["compute", "compute-managers"]
-      skip_paths = null
-      basic_auth = {
-        enabled  = false
-        username = "username"
-        password = "password"
-      }
-      url = {
-        int = ""
-        ext = "https://chat.${var.domain.da}"
-      }
-      redirect_uris = ["https://chat.${var.domain.da}/oauth/oidc/callback"]
-    }
     openbao = {
       name       = "OpenBao"
       group      = "Compute"
