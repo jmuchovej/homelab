@@ -13,7 +13,7 @@ configMapGenerator:
   # copy a new revision in and bump this comment.
   - name: n8n-hooks
     files:
-      - ./resources/hooks.js
+      - ./resources/n8n-oidc.js
     options:
       disableNameSuffixHash: true
       annotations:
