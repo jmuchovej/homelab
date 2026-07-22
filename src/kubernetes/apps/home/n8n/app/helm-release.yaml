@@ -1,0 +1,115 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name n8n
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      n8n:
+        # single replica on an RWO sqlite volume
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/n8n-io/n8n
+              tag: 2.31.5@sha256:cda6bafc7bb4873533e7affb82d1bd47282a7614bdf83242c2293f8ff281261a
+            env:
+              TZ: America/New_York
+              GENERIC_TIMEZONE: America/New_York
+              N8N_PORT: &port "5678"
+              N8N_HOST: n8n.${DC_DOMAIN}
+              N8N_PROTOCOL: https
+              WEBHOOK_URL: https://n8n.${DC_DOMAIN}/
+              # community OIDC via external hooks (vendored cweagans/n8n-oidc
+              # — n8n gates native OIDC behind enterprise). Password fallback:
+              # /signin?showLogin=true
+              EXTERNAL_HOOK_FILES: /hooks/hooks.js
+              N8N_ADDITIONAL_NON_UI_ROUTES: auth
+              EXTERNAL_FRONTEND_HOOKS_URLS: /assets/oidc-frontend-hook.js
+              N8N_TRUST_PROXY: "true"
+              OIDC_ISSUER_URL: https://id.${DC_DOMAIN}/application/o/n8n-oauth/
+              OIDC_REDIRECT_URI: https://n8n.${DC_DOMAIN}/auth/oidc/callback
+            envFrom:
+              - secretRef:
+                  name: n8n-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /healthz
+                    port: 5678
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 5
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 2Gi
+
+    defaultPodOptions:
+      securityContext:
+        # the image's node user
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+
+    service:
+      app:
+        ports:
+          http:
+            port: 5678
+
+    route:
+      # oauth-type registration only (SSO via the vendored hooks; existing
+      # users link by email) — NO ext-auth, so webhooks stay reachable
+      app:
+        labels:
+          authentik.rbn/enabled: "true"
+        annotations:
+          authentik.rbn/name: n8n
+          authentik.rbn/type: oauth
+          authentik.rbn/group: Home
+          authentik.rbn/icon: di:n8n
+          authentik.rbn/access: admin
+          authentik.rbn/redirect-uris: https://n8n.${DC_DOMAIN}/auth/oidc/callback
+        hostnames:
+          - n8n.${DC_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+
+    persistence:
+      data:
+        existingClaim: n8n-data
+        globalMounts:
+          - path: /home/node/.n8n
+      hooks:
+        type: configMap
+        name: n8n-hooks
+        globalMounts:
+          - path: /hooks/hooks.js
+            subPath: hooks.js
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
