@@ -37,7 +37,7 @@
             checkReversePath = "loose";
           };
 
-          networkmanager.unmanaged = [ "tailscale0" ];
+          networkmanager.unmanaged = [ "interface-name:tailscale*" ];
         };
 
         services.tailscale = {
@@ -46,7 +46,17 @@
           useRoutingFeatures = "both";
         };
 
-        systemd.network.wait-online.ignoredInterfaces = [ tailscale0 ];
+        systemd.network = {
+          wait-online.ignoredInterfaces = [ tailscale0 ];
+
+          networks."20-tailscale-ignore" = {
+            matchConfig.Name = "tailscale*";
+            linkConfig = {
+              Unmanaged = "yes";
+              RequiredForOnline = false;
+            };
+          };
+        };
 
         systemd.services.tailscaled.serviceConfig.Environment = mkBefore [
           "TS_NO_LOGS_SUPPORT=true"
@@ -86,9 +96,5 @@
           '';
         };
       };
-
-    meta = {
-      uses-tailscale = true;
-    };
   };
 }
