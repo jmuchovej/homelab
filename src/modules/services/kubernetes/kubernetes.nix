@@ -199,6 +199,11 @@
     _.nvidia.nixos =
       { pkgs, ... }:
       {
+        # generates the CDI spec (/var/run/cdi) with nix-store paths at boot —
+        # NOT inherited from the virtualization aspect; this sub-aspect must
+        # be self-sufficient
+        hardware.nvidia-container-toolkit.enable = true;
+
         systemd.services.k3s.path = [ pkgs.nvidia-container-toolkit.tools ];
         # the runtime's CDI generation dlopens libnvidia-ml — which NixOS
         # keeps in /run/opengl-driver, nowhere a raw binary looks
