@@ -273,6 +273,7 @@ module "authentik-app" {
   name            = each.value.name
   group           = each.value.group
   type            = each.value.type
+  client_type     = try(each.value.client_type, "confidential")
   icon            = each.value.icon
   internal        = each.value.url.int
   external        = each.value.url.ext

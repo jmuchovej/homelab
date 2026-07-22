@@ -46,9 +46,11 @@ resource "authentik_provider_proxy" "provider" {
 }
 
 resource "authentik_provider_oauth2" "provider" {
-  count                      = var.type == "oauth" ? 1 : 0
-  name                       = "tf-${local.slug}-oauth"
-  client_id                  = data.sops_file.authentik.data["${local.slug}.client-id"]
+  count       = var.type == "oauth" ? 1 : 0
+  name        = "tf-${local.slug}-oauth"
+  client_type = var.client_type
+  client_id   = data.sops_file.authentik.data["${local.slug}.client-id"]
+  # ignored by authentik for public clients (PKCE)
   client_secret              = data.sops_file.authentik.data["${local.slug}.client-secret"]
   authorization_flow         = var.flows.oauth.authorization
   authentication_flow        = var.flows.oauth.authentication

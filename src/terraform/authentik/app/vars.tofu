@@ -69,6 +69,16 @@ variable "type" {
   }
 }
 
+variable "client_type" {
+  description = "OAuth client type — `public` (PKCE, no secret; e.g. hass-oidc-auth) or `confidential`."
+  type        = string
+  default     = "confidential"
+  validation {
+    condition     = contains(["confidential", "public"], var.client_type)
+    error_message = "Valid values for `client_type` are `[confidential, public]`."
+  }
+}
+
 variable "sub_mode" {
   type = string
   validation {

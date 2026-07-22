@@ -47,12 +47,13 @@ variable "permissions" {
 # frozen entry can coexist with its discovered successor during cutover.
 variable "discovered-apps" {
   type = map(object({
-    name       = string
-    group      = string
-    type       = string
-    icon       = string
-    access     = list(string)
-    skip_paths = optional(string)
+    name        = string
+    group       = string
+    type        = string
+    client_type = optional(string, "confidential")
+    icon        = string
+    access      = list(string)
+    skip_paths  = optional(string)
     basic_auth = object({
       enabled  = bool
       username = string

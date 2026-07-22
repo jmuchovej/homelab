@@ -37,12 +37,13 @@ locals {
   ak-discovered-apps = {
     for r in local.ak-discovered-routes :
     r.metadata.name => {
-      name       = lookup(r.metadata.annotations, "${local.ak-ann}/name", r.metadata.name)
-      group      = lookup(r.metadata.annotations, "${local.ak-ann}/group", "Ungrouped")
-      type       = lookup(r.metadata.annotations, "${local.ak-ann}/type", "proxy")
-      icon       = lookup(r.metadata.annotations, "${local.ak-ann}/icon", r.metadata.name)
-      access     = split(",", lookup(r.metadata.annotations, "${local.ak-ann}/access", "users"))
-      skip_paths = lookup(r.metadata.annotations, "${local.ak-ann}/skip-paths", null)
+      name        = lookup(r.metadata.annotations, "${local.ak-ann}/name", r.metadata.name)
+      group       = lookup(r.metadata.annotations, "${local.ak-ann}/group", "Ungrouped")
+      type        = lookup(r.metadata.annotations, "${local.ak-ann}/type", "proxy")
+      client_type = lookup(r.metadata.annotations, "${local.ak-ann}/oauth-client-type", "confidential")
+      icon        = lookup(r.metadata.annotations, "${local.ak-ann}/icon", r.metadata.name)
+      access      = split(",", lookup(r.metadata.annotations, "${local.ak-ann}/access", "users"))
+      skip_paths  = lookup(r.metadata.annotations, "${local.ak-ann}/skip-paths", null)
       basic_auth = {
         enabled  = lookup(r.metadata.annotations, "${local.ak-ann}/basic-auth.enabled", "false") == "true"
         username = lookup(r.metadata.annotations, "${local.ak-ann}/basic-auth.username", "username")
