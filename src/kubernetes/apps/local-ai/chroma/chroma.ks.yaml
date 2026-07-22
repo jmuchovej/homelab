@@ -9,10 +9,6 @@ spec:
       namespace: network
   interval: 1h
   path: ./src/kubernetes/apps/local-ai/chroma/app
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   prune: true
   sourceRef:
     kind: GitRepository

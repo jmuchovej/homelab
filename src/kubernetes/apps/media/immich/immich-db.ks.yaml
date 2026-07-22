@@ -25,9 +25,6 @@ spec:
       HOST: 10.69.11.1
       # convention: DB LBs live at 10.69.1.5x
       DB_LB_IP: 10.69.1.59
-    substituteFrom:
-      - kind: Secret
-        name: cluster-settings
   targetNamespace: media
   prune: true
   sourceRef:
