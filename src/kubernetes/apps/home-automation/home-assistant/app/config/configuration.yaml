@@ -1,9 +1,11 @@
-# Declarative half of the HA config (the imperative half lives in .storage on
-# the PVC, seeded from the NixOS /var/lib/hass). Mounted read-only over
-# /config/configuration.yaml; ${DC_DOMAIN} substitutes via Flux postBuild.
-# auth_oidc is deliberately absent until HACS installs the custom component —
-# referencing a missing integration puts HA in safe mode.
 default_config:
+
+auth_oidc:
+  client_id: !env_var HASS_OIDC_CLIENT_ID
+  client_secret: !env_var HASS_OIDC_CLIENT_SECRET
+  discovery_url: https://id.${DC_DOMAIN}/application/o/home-assistant-oauth/.well-known/openid-configuration
+  features:
+    automatic_user_linking: true
 
 homeassistant:
   name: Home
