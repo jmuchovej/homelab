@@ -16,6 +16,10 @@ metadata:
   name: lab-loadbalancer
   labels:
     advertise: bgp
+  annotations:
+    # bump to force the agent to re-reconcile advertisements — recovers the
+    # established-but-advertising-nothing state after a startup RBAC race
+    rebellion.dev/kick: "1"
 spec:
   advertisements:
     - advertisementType: Service
@@ -44,6 +48,8 @@ apiVersion: cilium.io/v2
 kind: CiliumBGPClusterConfig
 metadata:
   name: lab
+  annotations:
+    rebellion.dev/kick: "1"
 spec:
   nodeSelector:
     matchLabels:
