@@ -29,6 +29,9 @@
             excludes = [
               "^src/kubernetes/.*/blueprints/"
               "^src/kubernetes/apps/home-automation/home-assistant/app/config/"
+              # app-config payloads mounted via configMapGenerator (home-ops
+              # `resources/` convention) — not k8s manifests
+              "^src/kubernetes/.*/resources/"
               "/patch-[^/]*\\.ya?ml$"
             ];
           };
