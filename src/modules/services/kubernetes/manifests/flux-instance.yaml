@@ -33,4 +33,4 @@ spec:
     kind: GitRepository
     url: https://github.com/jmuchovej/homelab
     ref: refs/heads/main
-    path: src/kubernetes/@datacenter@
+    path: src/kubernetes/clusters/@dc-domain@/flux
