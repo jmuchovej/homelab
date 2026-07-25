@@ -1,8 +1,8 @@
 # Per-namespace cluster settings — rendered ONCE PER NAMESPACE by
-# kubernetes.nix and concatenated (namespaces discovered from
-# src/kubernetes/apps/*/namespace.yaml). Namespaces are created here first;
-# Flux adopts them later. Domain values become sops placeholders at eval and
-# real values at activation.
+# kubernetes.nix and concatenated (namespaces from this cluster's core + site
+# lists in kubernetes.nix). Namespaces are created here first; Flux adopts them
+# later. Domain values become sops placeholders at eval and real values at
+# activation.
 ---
 # $schema: schemas/namespace-v1.json
 apiVersion: v1
