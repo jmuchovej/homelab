@@ -1,0 +1,40 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../core
+  # media (da)
+  - ../../../apps/media/namespace.yaml
+  - ../../../apps/media/immich
+  - ../../../apps/media/jellyfin
+  - ../../../apps/media/lidarr
+  - ../../../apps/media/plex
+  - ../../../apps/media/prowlarr
+  - ../../../apps/media/qbittorrent
+  - ../../../apps/media/radarr
+  - ../../../apps/media/readarr
+  - ../../../apps/media/recyclarr
+  - ../../../apps/media/seerr
+  - ../../../apps/media/sonarr
+  - ../../../apps/media/tautulli
+  # home-automation (da)
+  - ../../../apps/home-automation/namespace.yaml
+  - ../../../apps/home-automation/home-assistant
+  - ../../../apps/home-automation/hubitat
+  # local-ai (da) — GPU inference; retag to en if it follows the GPU
+  - ../../../apps/local-ai/namespace.yaml
+  - ../../../apps/local-ai/chroma
+  # TEMPORARILY pruned: model-sync roster overran the node's disk (DiskPressure
+  # eviction storm, 2026-07-22). Re-add once model storage is resolved.
+  # - ../../../apps/local-ai/ollama
+  - ../../../apps/local-ai/open-webui
+  # home (da)
+  - ../../../apps/home/namespace.yaml
+  - ../../../apps/home/actual
+  - ../../../apps/home/homebox
+  - ../../../apps/home/linkding
+  - ../../../apps/home/n8n
+  - ../../../apps/home/split-pro
+  # games (da)
+  - ../../../apps/games/namespace.yaml
+  - ../../../apps/games/minecraft

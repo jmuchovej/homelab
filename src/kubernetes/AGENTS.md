@@ -1,6 +1,6 @@
 # src/kubernetes — Flux-managed cluster manifests
 
-GitOps tree for the K3s clusters (one per datacenter: `da`, `en`). A NixOS-managed `FluxInstance` (`src/modules/services/kubernetes/kubernetes.nix`) syncs this repo per cluster — its sync path is `src/kubernetes/${host.datacenter}`, whose `cluster-apps.ks.yaml` fans out to that cluster's selection: the shared `core/` bundle plus the cluster's own apps.
+GitOps tree for the K3s clusters, one per cluster keyed by full domain (`clusters/da.jm0.io`, `clusters/en.jm0.io`). A NixOS-managed `FluxInstance` (`src/modules/services/kubernetes/kubernetes.nix`) syncs this repo per cluster — its sync path is `src/kubernetes/clusters/${host.dc-domain}/flux`, a dir holding **only** the root `cluster-apps.ks.yaml` (so Flux actually applies it — a `kustomization.yaml` beside it would shadow it and silently drop its HelmRelease patch). That root reconciles `clusters/<domain>/apps`, whose selection fans out to the shared `core/` bundle plus the cluster's own apps.
 
 ## Documentation policy
 
@@ -36,9 +36,14 @@ Adding a new content-named manifest type = one glob line in `.zed/settings.json`
 ## Layout
 
 ```
-<datacenter>/                       per-cluster root (dir name == host.datacenter)
-  cluster-apps.ks.yaml              root Flux Kustomization — the FluxInstance sync target
-  kustomization.yaml                selection: ../core + this cluster's app dirs
+clusters/<domain>/                  per-cluster root (dir name == host.dc-domain, e.g. da.jm0.io)
+  flux/
+    cluster-apps.ks.yaml            root Flux Kustomization (HelmRelease patch); the ONLY file
+                                    in the FluxInstance sync dir; path → ../apps
+  apps/kustomization.yaml           selection: ../../../core + this cluster's app dirs
+  config/                           cluster-scoped in-cluster resources (RuntimeClasses, etc.)
+                                    + <domain>.sops.yaml — Flux-decrypted per-cluster secrets.
+                                    Future: awaits a dedicated flux age key (NixOS-seeded).
 core/kustomization.yaml             shared-infra bundle every cluster includes
 apps/<group>/                       one directory per namespace (the catalog)
   namespace.yaml
@@ -51,7 +56,7 @@ apps/<group>/                       one directory per namespace (the catalog)
 components/                         reusable cross-app building blocks → components/AGENTS.md
 ```
 
-- Cluster selection is explicit, not directory-scanned. `core/kustomization.yaml` lists the shared-infra namespace dirs; each `<datacenter>/kustomization.yaml` lists `../core` plus this cluster's apps. Core namespaces are selected whole (namespace-level, via their `apps/<ns>/kustomization.yaml`); per-site namespaces (`media`, `home-automation`, `local-ai`, `home`, `games`) are selected per-app via `apps/<ns>/<app>/` wrappers, so a namespace can split across clusters. Cross-directory refs (`../apps/<ns>/namespace.yaml`) rely on Flux's `LoadRestrictionsNone` — `kubectl kustomize` needs `--load-restrictor LoadRestrictionsNone` to build them locally.
+- Cluster selection is explicit, not directory-scanned. `core/kustomization.yaml` lists the shared-infra namespace dirs; each `clusters/<domain>/apps/kustomization.yaml` lists `../../../core` plus this cluster's apps. Core namespaces are selected whole (namespace-level, via their `apps/<ns>/kustomization.yaml`); per-site namespaces (`media`, `home-automation`, `local-ai`, `home`, `games`) are selected per-app via `apps/<ns>/<app>/` wrappers, so a namespace can split across clusters. Cross-directory refs (`../../../apps/<ns>/namespace.yaml`) rely on Flux's `LoadRestrictionsNone` — `kubectl kustomize` needs `--load-restrictor LoadRestrictionsNone` to build them locally.
 - A `_` prefix on a namespace dir (e.g. `_external-secrets`) marks it as absent from cluster-settings seeding — it's seeded instead by the onepassword-connect template and needs no `DC_DOMAIN` vars. The seeded set is the explicit `core-namespaces` + per-datacenter `site-namespaces` lists in `kubernetes.nix` (which must track each cluster's Flux selection); the k8s namespace itself is the unprefixed name.
 - One concern per Flux Kustomization. When an app has a CRD-providing and a CRD-consuming half (operator vs config, controller vs issuers, app vs db), split them into sibling `*.ks.yaml` files linked by `dependsOn` so the CRDs exist before anything instantiates them. Current examples: `cert-manager` → `issuers`, `envoy-gateway` → `envoy-config`, `cloudnative-pg` → per-app `*-db`.
 
@@ -68,7 +73,7 @@ components/                         reusable cross-app building blocks → compo
 
 ## Substitution variables
 
-The `cluster-settings` `Secret` (seeded by the NixOS `k3s` aspect into each namespace this cluster deploys — `core-namespaces` + the datacenter's `site-namespaces` in `kubernetes.nix`) provides `${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}`. Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
+The `cluster-settings` `Secret` (seeded by the NixOS `k3s` aspect into each namespace this cluster deploys — `core-namespaces` + the datacenter's `site-namespaces` in `kubernetes.nix`) provides `${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}`. These are **plaintext identity**, not secrets — sourced from the `host` schema (`host.datacenter`/`host.dc-domain`/`host.domain`), not sops (access control, not obscurity, is the boundary; the repo is public anyway). Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
 
 ## Images & charts
 
