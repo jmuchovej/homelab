@@ -9,7 +9,7 @@ _: {
         ...
       }:
       let
-        inherit (lib.rbn) get-secret get-secret';
+        inherit (lib.rbn) get-secret;
 
         render =
           file: vars:
@@ -63,8 +63,6 @@ _: {
         (get-secret config "1password/connect.json" host.datacenter)
         (get-secret config "1password/connect-ro" host.datacenter)
         (get-secret config "1password/connect-rw" host.datacenter)
-        (get-secret' config "domain")
-        (get-secret' config "${host.datacenter}/domain")
         {
           environment.systemPackages = with pkgs; [
             kubectl
@@ -178,9 +176,7 @@ _: {
                 ns:
                 render ./manifests/cluster-settings.yaml {
                   namespace = ns;
-                  inherit (host) datacenter;
-                  dc-domain = config.sops.placeholder."${host.datacenter}/domain";
-                  domain = config.sops.placeholder."domain";
+                  inherit (host) datacenter dc-domain domain;
                 };
             in
             lib.concatMapStrings mk-settings seed-namespaces;
