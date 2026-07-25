@@ -1,4 +1,4 @@
-_: {
+{
   rbn.services._.kubernetes = {
     nixos =
       {
@@ -9,60 +9,50 @@ _: {
         ...
       }:
       let
-        inherit (lib.rbn) get-secret;
+        inherit (lib.rbn) get-secret';
+        inherit (lib)
+          attrNames
+          filter
+          replaceStrings
+          splitString
+          hasInfix
+          concatStringsSep
+          removeSuffix
+          ;
+        inherit (builtins) readFile match;
 
         render =
           file: vars:
           let
-            src = builtins.readFile file;
-            names = lib.attrNames vars;
-            unused = lib.filter (n: !(lib.hasInfix "@${n}@" src)) names;
-            out = lib.replaceStrings (map (n: "@${n}@") names) (map (n: vars.${n}) names) src;
-            leftover = lib.filter (line: builtins.match ".*@[a-z0-9-]+@.*" line != null) (
-              lib.splitString "\n" out
-            );
+            src = readFile file;
+            names = attrNames vars;
+            unused = filter (n: !(hasInfix "@${n}@" src)) names;
+            out = replaceStrings (map (n: "@${n}@") names) (map (n: vars.${n}) names) src;
+            leftover = filter (line: match ".*@[a-z0-9-]+@.*" line != null) (splitString "\n" out);
           in
           if unused != [ ] then
-            throw "render ${baseNameOf file}: unused vars: ${lib.concatStringsSep ", " unused}"
+            throw "render ${baseNameOf file}: unused vars: ${concatStringsSep ", " unused}"
           else if leftover != [ ] then
-            throw "render ${baseNameOf file}: unsubstituted markers: ${lib.concatStringsSep " " leftover}"
+            throw "render ${baseNameOf file}: unsubstituted markers: ${concatStringsSep " " leftover}"
           else
             out;
 
-        k8s-schemas = pkgs.linkFarm "k8s-bootstrap-schemas" [
-          {
-            name = "fluxcd.controlplane.io/fluxinstance_v1.json";
-            path = ./manifests/schemas/fluxinstance_v1.json;
-          }
-          {
-            name = "helm.cattle.io/helmchart_v1.json";
-            path = ./manifests/schemas/helmchart_v1.json;
-          }
-          {
-            name = "namespace-v1.json";
-            path = ./manifests/schemas/namespace-v1.json;
-          }
-        ];
-
-        # every line at the block-scalar depth of `valuesContent: |-`
-        indent-block = s: lib.concatStringsSep "\n    " (lib.splitString "\n" (lib.removeSuffix "\n" s));
-
         cilium-manifest = pkgs.writeText "cilium.yaml" (
           render ./manifests/cilium.yaml {
-            values = indent-block (builtins.readFile ./manifests/cilium-values.yaml);
+            # every line at the block-scalar depth of `valuesContent: |-`
+            values = concatStringsSep "\n    " (
+              splitString "\n" (removeSuffix "\n" (readFile ./manifests/cilium-values.yaml))
+            );
           }
         );
 
-        # rendered per-cluster so the FluxInstance sync path selects this
-        # cluster's root by datacenter (src/kubernetes/<datacenter>)
         flux-instance-manifest = pkgs.writeText "flux-instance.yaml" (
           render ./manifests/flux-instance.yaml { inherit (host) dc-domain; }
         );
+
       in
       lib.mkMerge [
-        (get-secret config "1password/connect.json" host.datacenter)
-        (get-secret config "1password/connect-ro" host.datacenter)
-        (get-secret config "1password/connect-rw" host.datacenter)
+        (get-secret' config "kubernetes/flux/${host.dc-domain}/age-key")
         {
           environment.systemPackages = with pkgs; [
             kubectl
@@ -78,9 +68,6 @@ _: {
             role = "server";
             gracefulNodeShutdown.enable = true;
 
-            # every zfs dataset reports POOL-free as available, so kubelet's
-            # default disk thresholds (nodefs<10%, imagefs<15%) hold ~324GB of
-            # the 2TB pool hostage — 5% (~108GB) is guard enough here
             extraKubeletConfig = {
               evictionHard = {
                 "memory.available" = "100Mi";
@@ -114,9 +101,6 @@ _: {
             };
           };
 
-          # front docker.io with Google's pull-through cache — Docker Hub
-          # (throttling, hung pulls) stops being a single point of failure;
-          # cache misses fall straight through to docker.io
           environment.etc."rancher/k3s/registries.yaml".text = ''
             mirrors:
               docker.io:
@@ -127,138 +111,44 @@ _: {
             config.environment.etc."rancher/k3s/registries.yaml".text
           ];
 
-          # k3s apiserver (6443), kubelet (10250), BGP (179), Cilium health
-          # (4240). hostNetwork pods sit behind this firewall too: 8123
-          # (envoy → home-assistant) and 39501 (Hubitat event push → HA).
           networking.firewall.allowedTCPPorts = [
-            6443
-            10250
-            179
-            4240
-            8123
-            39501
+            6443 # k3s apiserver
+            10250 # kubelet
+            179 # BGP
+            4240 # Cilium Health
+            8123 # envoy -> home-assistant
+            39501 # Hubitat event-push -> home-assistant
           ];
 
-          sops.templates."onepassword-connect.yaml".content = render ./manifests/onepassword-connect.yaml {
-            connect-credentials = config.sops.placeholder."1password/connect.json";
-            ro-token = config.sops.placeholder."1password/connect-ro";
-            rw-token = config.sops.placeholder."1password/connect-rw";
+          sops.templates."flux-agekey.yaml".content = render ./manifests/flux-agekey.yaml {
+            agekey = config.sops.placeholder."kubernetes/flux/${host.dc-domain}/age-key";
           };
 
-          sops.templates."cluster-settings.yaml".content =
-            let
-              # Namespaces seeded with a cluster-settings Secret. Must track this
-              # cluster's Flux selection (core/ + <datacenter>/kustomization.yaml):
-              # seed a namespace not deployed → stray empty namespace; deploy one
-              # not seeded → its apps' postBuild substitution fails. `external-
-              # secrets` is intentionally absent — seeded by the onepassword-
-              # connect template above, and needs no DC_DOMAIN vars.
-              core-namespaces = [
-                "auth"
-                "cert-manager"
-                "databases"
-                "kube-system"
-                "network"
-              ];
-              site-namespaces = {
-                da = [
-                  "media"
-                  "home-automation"
-                  "local-ai"
-                  "home"
-                  "games"
-                ];
-                en = [ ];
-              };
-              seed-namespaces = core-namespaces ++ (site-namespaces.${host.datacenter} or [ ]);
-
-              mk-settings =
-                ns:
-                render ./manifests/cluster-settings.yaml {
-                  namespace = ns;
-                  inherit (host) datacenter dc-domain domain;
-                };
-            in
-            lib.concatMapStrings mk-settings seed-namespaces;
-
-          # every bootstrap manifest — static and template-rendered — must
-          # satisfy its schema for the system to build. Secrets are skipped
-          # (kubeconform can't see through sops placeholders anyway); the
-          # pre-commit hook covers src/kubernetes/ only, not these.
           system.checks = [
-            (pkgs.runCommand "check-k8s-bootstrap-manifests"
-              {
-                nativeBuildInputs = [
-                  pkgs.kubeconform
-                  pkgs.check-jsonschema
-                  pkgs.yq-go
-                ];
-                onepasswordConnect = config.sops.templates."onepassword-connect.yaml".content;
-                clusterSettings = config.sops.templates."cluster-settings.yaml".content;
-                passAsFile = [
-                  "onepasswordConnect"
-                  "clusterSettings"
-                ];
-              }
-              ''
-                cp "$onepasswordConnectPath" onepassword-connect.yaml
-                cp "$clusterSettingsPath" cluster-settings.yaml
-                kubeconform -strict -skip Secret \
-                  -schema-location '${k8s-schemas}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-                  -schema-location '${k8s-schemas}/{{.ResourceKind}}{{.KindSuffix}}.json' \
-                  -summary \
-                  ${cilium-manifest} \
-                  ${./manifests/flux-operator.yaml} \
-                  ${flux-instance-manifest} \
-                  onepassword-connect.yaml cluster-settings.yaml
-
-                # cilium values against the chart's own values schema
-                check-jsonschema \
-                  --schemafile ${./manifests/schemas/cilium-values.json} \
-                  ${./manifests/cilium-values.yaml}
-
-                # the vendored schema must have been refreshed for the pinned
-                # chart version, or values validate against a stale schema
-                want=$(yq 'select(.kind == "HelmChart") | .spec.version' ${cilium-manifest})
-                have=$(yq -p json '."cilium-values.json".version' ${./manifests/schemas/SOURCES.json})
-                if [ "$want" != "$have" ]; then
-                  echo "cilium chart $want but vendored values schema is for $have —" \
-                    "run 'just k8s update-schemas'" >&2
-                  exit 1
-                fi
-                touch "$out"
-              ''
-            )
+            # added b/c pre-commit hook only covers src/kubernetes/**
+            (import ./_bootstrap-checks.nix {
+              inherit pkgs cilium-manifest flux-instance-manifest;
+            })
           ];
 
           systemd.services.k3s-seed-secrets = {
-            description = "Seed bootstrap secrets (1Password Connect, cluster-settings) into k3s";
+            description = "Seed the Flux sops-age decryption key into k3s";
             after = [ "k3s.service" ];
             wants = [ "k3s.service" ];
             wantedBy = [ "multi-user.target" ];
             path = [ pkgs.kubectl ];
-            # RemainAfterExit oneshots don't rerun on switch — retrigger when
-            # a template DEFINITION changes (e.g. a new namespace joins the
-            # substituting set); rotated secret VALUES still don't, since
-            # placeholders resolve after eval
-            restartTriggers = [
-              config.sops.templates."onepassword-connect.yaml".content
-              config.sops.templates."cluster-settings.yaml".content
-            ];
+            restartTriggers = [ config.sops.templates."flux-agekey.yaml".content ];
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
-              Environment = "KUBECONFIG=/etc/rancher/k3s/k3s.yaml";
+              Environment = "KUBECONFIG=${config.environment.sessionVariables.KUBECONFIG}";
             };
-            # apply is idempotent; Namespaces are created first (Flux later
-            # adopts them). Secret rotation needs a manual `systemctl restart`.
             script = ''
               until kubectl get --raw /readyz >/dev/null 2>&1; do
                 echo "waiting for k3s apiserver..."
                 sleep 5
               done
-              kubectl apply -f ${config.sops.templates."onepassword-connect.yaml".path}
-              kubectl apply -f ${config.sops.templates."cluster-settings.yaml".path}
+              kubectl apply -f ${config.sops.templates."flux-agekey.yaml".path}
             '';
           };
         }
@@ -273,36 +163,6 @@ _: {
           cilium-cli
           k9s
         ];
-      };
-
-    # <rbn/services/kubernetes/nvidia> — GPU hosts opt in. k3s auto-generates
-    # the containerd nvidia runtime config only if it finds
-    # `nvidia-container-runtime` in $PATH at agent start — NixOS puts it
-    # nowhere k3s looks by default.
-    _.nvidia.nixos =
-      { pkgs, ... }:
-      {
-        # generates the CDI spec (/var/run/cdi) with nix-store paths at boot —
-        # NOT inherited from the virtualization aspect; this sub-aspect must
-        # be self-sufficient
-        hardware.nvidia-container-toolkit.enable = true;
-
-        systemd.services.k3s.path = [ pkgs.nvidia-container-toolkit.tools ];
-        # the runtime's CDI generation dlopens libnvidia-ml — which NixOS
-        # keeps in /run/opengl-driver, nowhere a raw binary looks
-        systemd.services.k3s.environment.LD_LIBRARY_PATH = "/run/opengl-driver/lib";
-        # ... and even then, auto-generated specs embed FHS hook paths
-        # (/usr/bin/nvidia-ctk). Use the spec hardware.nvidia-container-toolkit
-        # pre-generates at boot with nix-store paths instead. Read per
-        # container-create — no k3s restart needed on change.
-        environment.etc."nvidia-container-runtime/config.toml".text = ''
-          [nvidia-container-runtime]
-          mode = "cdi"
-
-          [nvidia-container-runtime.modes.cdi]
-          default-kind = "nvidia.com/gpu"
-          spec-dirs = ["/var/run/cdi"]
-        '';
       };
   };
 }
