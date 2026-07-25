@@ -38,6 +38,18 @@
           default = config.name;
           description = "Full hostname (same as host name)";
         };
+        # ── Cluster domain (plaintext; not secret — access control, not
+        #    obscurity, is the boundary) ─────────────────────────────────
+        domain = mkOption {
+          type = str;
+          default = "jm0.io";
+          description = "Base/apex domain for this host's cluster";
+        };
+        dc-domain = mkOption {
+          type = str;
+          default = "${config.datacenter}.${config.domain}";
+          description = "Per-datacenter subdomain (derived: <datacenter>.<domain>)";
+        };
         # ── Primary user ───────────────────────────────────────────────
         # Named `primary-user` rather than `user` to avoid colliding with
         # den's fx-pipeline `user` context binding (host.user is implicitly
