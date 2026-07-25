@@ -56,7 +56,7 @@ _: {
         # rendered per-cluster so the FluxInstance sync path selects this
         # cluster's root by datacenter (src/kubernetes/<datacenter>)
         flux-instance-manifest = pkgs.writeText "flux-instance.yaml" (
-          render ./manifests/flux-instance.yaml { inherit (host) datacenter; }
+          render ./manifests/flux-instance.yaml { inherit (host) dc-domain; }
         );
       in
       lib.mkMerge [

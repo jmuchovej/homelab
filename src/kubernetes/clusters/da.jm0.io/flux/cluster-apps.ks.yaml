@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h
-  path: ./src/kubernetes/da
+  path: ./src/kubernetes/clusters/da.jm0.io/apps
   prune: true
   sourceRef:
     kind: GitRepository
@@ -23,6 +23,12 @@ spec:
         metadata:
           name: _
         spec:
+          postBuild:
+            substitute:
+              DATACENTER: da
+              DC_DOMAIN: da.jm0.io
+              DOMAIN: jm0.io
+              ADMIN_CIDR: 10.99.0.0/16
           patches:
             - target:
                 group: helm.toolkit.fluxcd.io
