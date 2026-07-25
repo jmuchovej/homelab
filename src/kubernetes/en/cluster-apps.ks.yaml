@@ -1,0 +1,41 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-apps
+  namespace: flux-system
+spec:
+  interval: 1h
+  path: ./src/kubernetes/en
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: false
+  patches:
+    - target:
+        group: kustomize.toolkit.fluxcd.io
+        kind: Kustomization
+      patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: _
+        spec:
+          patches:
+            - target:
+                group: helm.toolkit.fluxcd.io
+                kind: HelmRelease
+              patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2
+                kind: HelmRelease
+                metadata:
+                  name: _
+                spec:
+                  install:
+                    crds: CreateReplace
+                  upgrade:
+                    crds: CreateReplace
+                    remediation:
+                      retries: 2
