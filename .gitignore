@@ -16,6 +16,8 @@ _research/
 # other's identities and how sops chooses recipients.
 !secrets/**/*.pub
 !secrets/**/*.pub.age
+# Same for per-cluster Flux sops recipient pubkeys.
+!src/kubernetes/clusters/**/*.pub
 
 # Private
 .private

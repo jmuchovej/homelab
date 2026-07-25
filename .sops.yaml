@@ -7,6 +7,13 @@ keys:
   - &da-vcx-3 age14sla3hu8e3vcmmzwu2rj7guucxwwnum4u3l52d7m25rddxhm3gcswp45ld
   - &da-gr75 age1r4mzqrm7445prrc8h4yw408z3d2nygjwc3kfhzjju03sj6pwkyhq9dfht9
   - &en-t65-1 age1wjdz5ds294c3erq5f5ulrkmuntasfmngjhaknacxc8d3na8lwenstcvua2
+  # STAGED (flux sops bootstrap) — per-cluster Flux recipients. PRIVATE keys are
+  # already in secrets.sops.yaml under kubernetes/flux/<dc-domain>/age-key; paste
+  # the matching PUBLIC keys here + into clusters/<domain>/flux/age-key.pub, then
+  # uncomment the creation_rules below + set flux-sops-enabled = true. See
+  # clusters/AGENTS.md.
+  # - &da-flux age1REPLACE_ME_da_flux_public_key
+  # - &en-flux age1REPLACE_ME_en_flux_public_key
 creation_rules:
   - path_regex: "secrets/root\\.sops\\.yaml$"
     key_groups:
@@ -48,6 +55,16 @@ creation_rules:
   - path_regex: "secrets/users/lab\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab]
+  # STAGED (flux sops bootstrap) — each cluster's in-tree secrets, encrypted to
+  # john (to edit) + that cluster's Flux key (Flux decrypts in-cluster). NOT the
+  # host keys: these are decrypted by kustomize-controller, not NixOS. Uncomment
+  # once the *-flux anchors above are real. See src/kubernetes/clusters/AGENTS.md.
+  # - path_regex: "src/kubernetes/clusters/da\\.jm0\\.io/.*\\.sops\\.yaml$"
+  #   key_groups:
+  #     - age: [*john, *da-flux]
+  # - path_regex: "src/kubernetes/clusters/en\\.jm0\\.io/.*\\.sops\\.yaml$"
+  #   key_groups:
+  #     - age: [*john, *en-flux]
 stores:
   yaml:
     indent: 2
