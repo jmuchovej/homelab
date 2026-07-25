@@ -33,6 +33,9 @@
               # `resources/` convention) — not k8s manifests
               "^src/kubernetes/.*/resources/"
               "/patch-[^/]*\\.ya?ml$"
+              # sops-encrypted manifests aren't validatable standalone (ENC[…]
+              # values + a `sops` block); ensure-sops covers their encryption
+              "\\.sops\\.yaml$"
             ];
           };
         };
