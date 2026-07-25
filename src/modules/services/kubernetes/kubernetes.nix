@@ -1,4 +1,4 @@
-{ inputs, ... }: {
+_: {
   rbn.services._.kubernetes = {
     nixos =
       {
@@ -51,6 +51,12 @@
           render ./manifests/cilium.yaml {
             values = indent-block (builtins.readFile ./manifests/cilium-values.yaml);
           }
+        );
+
+        # rendered per-cluster so the FluxInstance sync path selects this
+        # cluster's root by datacenter (src/kubernetes/<datacenter>)
+        flux-instance-manifest = pkgs.writeText "flux-instance.yaml" (
+          render ./manifests/flux-instance.yaml { inherit (host) datacenter; }
         );
       in
       lib.mkMerge [
@@ -106,7 +112,7 @@
             manifests = {
               cilium.source = cilium-manifest;
               flux-operator.source = ./manifests/flux-operator.yaml;
-              flux-instance.source = ./manifests/flux-instance.yaml;
+              flux-instance.source = flux-instance-manifest;
             };
           };
 
@@ -143,13 +149,30 @@
 
           sops.templates."cluster-settings.yaml".content =
             let
-              substituting-namespaces =
-                inputs.import-tree (it: it.withLib lib) (it: it.addPath "${inputs.self}/src/kubernetes/apps")
-                  (it: it.initFilter (lib.hasSuffix "/namespace.yaml"))
-                  (it: it.filterNot (lib.hasInfix "/_"))
-                  (it: it.map (p: baseNameOf (dirOf p)))
-                  # .files (not .leafs) forces the read and yields the list
-                  (it: it.files);
+              # Namespaces seeded with a cluster-settings Secret. Must track this
+              # cluster's Flux selection (core/ + <datacenter>/kustomization.yaml):
+              # seed a namespace not deployed → stray empty namespace; deploy one
+              # not seeded → its apps' postBuild substitution fails. `external-
+              # secrets` is intentionally absent — seeded by the onepassword-
+              # connect template above, and needs no DC_DOMAIN vars.
+              core-namespaces = [
+                "auth"
+                "cert-manager"
+                "databases"
+                "kube-system"
+                "network"
+              ];
+              site-namespaces = {
+                da = [
+                  "media"
+                  "home-automation"
+                  "local-ai"
+                  "home"
+                  "games"
+                ];
+                en = [ ];
+              };
+              seed-namespaces = core-namespaces ++ (site-namespaces.${host.datacenter} or [ ]);
 
               mk-settings =
                 ns:
@@ -160,7 +183,7 @@
                   domain = config.sops.placeholder."domain";
                 };
             in
-            lib.concatMapStrings mk-settings substituting-namespaces;
+            lib.concatMapStrings mk-settings seed-namespaces;
 
           # every bootstrap manifest — static and template-rendered — must
           # satisfy its schema for the system to build. Secrets are skipped
@@ -190,7 +213,7 @@
                   -summary \
                   ${cilium-manifest} \
                   ${./manifests/flux-operator.yaml} \
-                  ${./manifests/flux-instance.yaml} \
+                  ${flux-instance-manifest} \
                   onepassword-connect.yaml cluster-settings.yaml
 
                 # cilium values against the chart's own values schema
