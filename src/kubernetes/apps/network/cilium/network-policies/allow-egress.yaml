@@ -1,0 +1,99 @@
+---
+# Labelled egress grants. A pod opts in with `egress.rbn/<name>: allow`;
+# Cilium then flips that pod to default-deny-egress, so every grant below
+# (except dns, which IS the DNS grant) re-includes kube-dns:53 to keep name
+# resolution working. Grants compose — a pod may wear several labels.
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-egress-dns
+spec:
+  description: kube-dns only — the tightest lockdown (self-contained/SQLite apps).
+  endpointSelector:
+    matchLabels:
+      egress.rbn/dns: allow
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-egress-internet
+spec:
+  description: Public internet (all non-RFC1918), plus DNS.
+  endpointSelector:
+    matchLabels:
+      egress.rbn/internet: allow
+  egress:
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-egress-apiserver
+spec:
+  description: Kubernetes API server (in-cluster controllers), plus DNS.
+  endpointSelector:
+    matchLabels:
+      egress.rbn/apiserver: allow
+  egress:
+    - toEntities:
+        - kube-apiserver
+    - toEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "6443"
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-egress-lan
+spec:
+  description: The lab LAN 10.69.0.0/16 (router, NAS, LAN services), plus DNS.
+  endpointSelector:
+    matchLabels:
+      egress.rbn/lan: allow
+  egress:
+    - toCIDR:
+        - 10.69.0.0/16
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY

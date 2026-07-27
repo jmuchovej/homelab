@@ -5,7 +5,7 @@ metadata:
   name: cilium-bgp
 spec:
   interval: 1h
-  path: ./src/kubernetes/apps/network/cilium-bgp/app
+  path: ./src/kubernetes/apps/network/cilium/bgp
   prune: true
   sourceRef:
     kind: GitRepository
