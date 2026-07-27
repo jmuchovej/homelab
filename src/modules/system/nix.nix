@@ -1,4 +1,3 @@
-# Consolidated Nix configuration: package, caches, registry, GC, daemon tuning.
 { inputs, lib, ... }:
 {
   flake-file.inputs = {
@@ -6,7 +5,6 @@
     nh.url = "github:nix-community/nh";
   };
 
-  # ── Module imports per class ──────────────────────────────────────
   den.default.nixos = {
     imports = [ inputs.nix-index-database.nixosModules.nix-index ];
     programs.nix-index-database.comma.enable = true;
@@ -32,17 +30,13 @@
           warn-dirty = false;
         };
 
-        # Pull in sops-rendered tokens (e.g. github.com access-tokens).
-        # HM owns the rest of nix.conf; this only appends an `!include`.
         extraOptions = ''
           !include ${config.sops.secrets."nix-access-tokens".path}
         '';
       };
     };
 
-  # ── Nix aspect ────────────────────────────────────────────────────
   rbn.system._.nix = {
-    # Shared across NixOS and darwin
     os =
       {
         host,
@@ -51,32 +45,28 @@
         ...
       }:
       let
-        inherit (lib)
-          mkDefault
-          mkIf
-          pipe
-          filterAttrs
-          mapAttrs
-          isType
-          ;
-        inherit (pkgs.stdenv) isLinux isDarwin;
-
-        # Nix registry: map all flake inputs + remap nixpkgs
-        remap-nixpkgs = reg: reg // { nixpkgs.flake = inputs.nixpkgs; };
-        drop-unstable-macos = reg: if isDarwin then removeAttrs reg [ "nixpkgs-unstable" ] else reg;
-        mappedRegistry = pipe inputs [
-          (filterAttrs (_: isType "flake"))
-          (mapAttrs (_: flake: { inherit flake; }))
-          remap-nixpkgs
-          drop-unstable-macos
-        ];
+        substituters = {
+          "cache.nixos.org" = "1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+          # "cache.lix.systems" = "1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+          "jmuchovej.cachix.org" = "1:NfwGBGTph5ztNzYL+xTteJeSOUPTK6U+rA8fItXmx6A=";
+          "nix-community.cachix.org" = "1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=";
+          "nixpkgs-unfree.cachix.org" = "1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs=";
+          "numtide.cachix.org" = "1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE=";
+        };
+        extra-substituters = {
+          "devenv.cachix.org" = "1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
+          "nixpkgs-python.cachix.org" = "1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU=";
+          "cachix.cachix.org" = "1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM=";
+        };
+        substituter-urls = subs: map (sub: "https://${sub}") (lib.attrNames subs);
+        substituter-keys = subs: lib.mapAttrsToList (domain: pkey: "${domain}-${pkey}") subs;
       in
       {
         # Faster rebuilding
         documentation = {
           doc.enable = false;
           info.enable = false;
-          man.enable = mkDefault true;
+          man.enable = lib.mkDefault true;
         };
 
         environment.systemPackages = with pkgs; [
@@ -89,15 +79,15 @@
           deploy-rs
         ];
 
-        environment.etc =
-          mkIf isLinux { "nixos".source = inputs.self; }
-          // mkIf isDarwin { "nix-darwin".source = inputs.self; };
+        # Backs `nix.nixPath` below so `<nixpkgs>` and `nix-shell -p` resolve
+        # to the same nixpkgs the system was built from.
+        environment.etc."nix/inputs/nixpkgs".source = inputs.nixpkgs;
 
-        nixpkgs.hostPlatform = mkDefault system;
+        nixpkgs.hostPlatform = lib.mkDefault system;
 
         nix = {
-          package = mkDefault pkgs.lixPackageSets.stable.lix;
-          enable = mkDefault isLinux;
+          package = lib.mkDefault pkgs.lixPackageSets.stable.lix;
+          enable = lib.mkDefault true;
 
           settings = {
             trusted-users = [
@@ -113,33 +103,11 @@
               host.primary-user.name
             ];
 
-            substituters = [
-              "https://cache.nixos.org"
-              "https://cache.lix.systems"
-              "https://jmuchovej.cachix.org"
-              "https://nix-community.cachix.org"
-              "https://nixpkgs-unfree.cachix.org"
-              "https://numtide.cachix.org"
-            ];
-            trusted-public-keys = [
-              "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-              "cache.lix.systems-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-              "jmuchovej.cachix.org-1:NfwGBGTph5ztNzYL+xTteJeSOUPTK6U+rA8fItXmx6A="
-              "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-              "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
-              "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
-            ];
+            substituters = substituter-urls substituters;
+            trusted-public-keys = substituter-keys substituters;
 
-            extra-substituters = [
-              "https://nixpkgs-python.cachix.org"
-              "https://devenv.cachix.org"
-              "https://cachix.cachix.org"
-            ];
-            extra-trusted-public-keys = [
-              "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
-              "nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU="
-              "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
-            ];
+            extra-substituters = substituter-urls extra-substituters;
+            extra-trusted-public-keys = substituter-keys extra-substituters;
 
             use-xdg-base-directories = true;
             experimental-features = [
@@ -147,18 +115,17 @@
               "flakes"
               "auto-allocate-uids"
             ];
-            fallback = mkDefault true;
-            keep-going = mkDefault true;
-            keep-derivations = mkDefault true;
-            keep-outputs = mkDefault true;
-            warn-dirty = mkDefault false;
-            sandbox = mkDefault true;
-            preallocate-contents = mkDefault true;
-            log-lines = mkDefault 50;
-            http-connections = mkDefault 0;
+            fallback = lib.mkDefault true;
+            keep-going = lib.mkDefault true;
+            keep-derivations = lib.mkDefault true;
+            keep-outputs = lib.mkDefault true;
+            warn-dirty = lib.mkDefault false;
+            sandbox = lib.mkDefault true;
+            preallocate-contents = lib.mkDefault true;
+            log-lines = lib.mkDefault 50;
+            http-connections = lib.mkDefault 0;
             flake-registry = "/etc/nix/registry.json";
-            builders-use-substitutes = mkDefault true;
-            auto-optimise-store = mkDefault isLinux;
+            builders-use-substitutes = lib.mkDefault true;
 
             system-features = [
               "kvm"
@@ -169,52 +136,67 @@
 
           checkConfig = true;
           nixPath = [ "/etc/nix/inputs" ];
-          registry = mappedRegistry;
+
+          registry = lib.pipe inputs [
+            (lib.filterAttrs (_: lib.isType "flake"))
+            (lib.mapAttrs (_: flake: { inherit flake; }))
+            # No-op while an input named `nixpkgs` exists; load-bearing the
+            # moment that input is renamed or split.
+            (reg: reg // { nixpkgs.flake = inputs.nixpkgs; })
+          ];
 
           optimise.automatic = true;
 
           gc = {
             automatic = true;
-            options = mkDefault "--delete-older-than 7d";
+            options = lib.mkDefault "--delete-older-than 7d";
           };
         };
       };
 
-    # NixOS-specific daemon tuning
-    nixos =
-      { lib, ... }:
-      {
-        documentation.nixos = {
-          enable = true;
-          options = {
-            warningsAreErrors = true;
-            splitBuild = true;
-          };
-        };
+    nixos = { lib, pkgs, ... }: {
+      environment.systemPackages = [
+        (pkgs.writeShellApplication {
+          name = "known-good";
+          runtimeInputs = [
+            pkgs.coreutils
+            pkgs.lixPackageSets.stable.lix
+          ];
+          text = builtins.readFile ./known-good.sh;
+        })
+      ];
+      environment.etc."nixos".source = inputs.self;
 
-        nix = {
-          daemonCPUSchedPolicy = "batch";
-          daemonIOSchedClass = "idle";
-          daemonIOSchedPriority = 7;
-
-          gc.dates = [ "weekly" ];
-          optimise.dates = [ "04:00" ];
-
-          settings = {
-            auto-optimise-store = lib.mkDefault true;
-            log-lines = 50;
-            http-connections = 50;
-            experimental-features = [ "cgroups" ];
-            use-cgroups = true;
-          };
-        };
-      };
-
-    # darwin-specific nix settings
-    darwin = {
-      nix = {
+      documentation.nixos = {
         enable = true;
+        options = {
+          warningsAreErrors = true;
+          splitBuild = true;
+        };
+      };
 
+      nix = {
+        daemonCPUSchedPolicy = "batch";
+        daemonIOSchedClass = "idle";
+        daemonIOSchedPriority = 7;
+
+        gc.dates = [ "weekly" ];
+        optimise.dates = [ "04:00" ];
+
+        settings = {
+          auto-optimise-store = lib.mkDefault true;
+          log-lines = 50;
+          http-connections = 50;
+          experimental-features = [ "cgroups" ];
+          use-cgroups = true;
+        };
+      };
+    };
+
+    darwin = {
+      environment.etc."nix-darwin".source = inputs.self;
+
+      nix = {
         settings = {
           max-jobs = "auto";
           cores = 0;
@@ -238,7 +220,6 @@
             Hour = 0;
             Minute = 0;
           };
-          options = "--delete-older-than 7d";
         };
 
         optimise.automatic = true;
