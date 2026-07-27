@@ -7,28 +7,49 @@
       package = pkgs.jujutsu;
 
       settings = {
-        user = {
-          name = config.programs.git.settings.user.name or "John Muchovej";
-          email = config.programs.git.settings.user.email or "jmuchovej@users.noreply.github.com";
+        user = with config.programs.git.settings; {
+          name = user.name or "John Muchovej";
+          email = user.email or "jmuchovej@users.noreply.github.com";
         };
-
-        init.default_branch = "main";
-        lfs.enable = true;
 
         git = {
           private-commits = "description('wip:*') | description('private:*')";
         };
 
-        push = {
-          autoSetupRemote = true;
-          default = "current";
-        };
+        "--scope" = [
+          {
+            "--when".commands = [ "status" ];
+            ui.paginate = "never";
+          }
+        ];
 
-        rebase.auto_stash = true;
+        remotes = {
+          origin = {
+            auto-track-bookmarks = "*";
+          };
+          upstream = {
+            auto-track-bookmarks = "*";
+          };
+        };
 
         ui = {
           color = "always";
           default-command = "log";
+        };
+
+        fix.tools.treefmt = {
+          enabled = true;
+          command = [
+            "treefmt"
+            "--no-cache"
+            "--stdin"
+            "$path"
+          ];
+          patterns = [ "glob:**/*" ];
+        };
+
+        template-aliases = {
+          "format_timestamp(timestamp)" = "timestamp.ago()";
         };
       };
     };
