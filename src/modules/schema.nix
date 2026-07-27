@@ -13,7 +13,6 @@
         nullOr
         listOf
         attrs
-        bool
         ;
 
       # Derive datacenter/nodename/hostname from host name
@@ -90,11 +89,6 @@
         };
 
         # ── Cross-service flags ────────────────────────────────────────
-        sops.enable = mkOption {
-          type = bool;
-          default = true;
-          description = "Whether sops secrets management is enabled";
-        };
         containers.enable = mkEnableOption "Container runtime (Podman/Docker)";
       };
     };
