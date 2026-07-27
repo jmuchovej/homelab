@@ -14,6 +14,11 @@
             "https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json": "./src/kubernetes/**/certificate.yaml",
             "https://k8s-schemas.home-operations.com/cert-manager.io/clusterissuer_v1.json": "./src/kubernetes/**/cluster-issuers.yaml",
             "https://k8s-schemas.home-operations.com/networking.k8s.io/networkpolicy_v1.json": "./src/kubernetes/**/network-policy.yaml",
+            "https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json": [
+              "./src/kubernetes/**/allow-egress.yaml",
+              "./src/kubernetes/**/allow-ingress.yaml"
+            ],
+            "https://k8s-schemas.home-operations.com/cilium.io/ciliumnetworkpolicy_v2.json": "./src/kubernetes/**/kube-system-allow-all.yaml",
             "https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json": "./src/kubernetes/**/http-route.yaml",
             "https://k8s-schemas.home-operations.com/postgresql.cnpg.io/cluster_v1.json": "./src/kubernetes/**/cluster.yaml",
             "https://k8s-schemas.home-operations.com/postgresql.cnpg.io/databaserole_v1.json": "./src/kubernetes/**/database-role.yaml",
