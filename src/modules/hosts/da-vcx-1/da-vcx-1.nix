@@ -52,7 +52,7 @@
       <rbn/system/hardware/storage/zfs/managed>
 
       # Virtualization
-      # <rbn/system/virtualization>
+      <rbn/system/virtualization/apptainer>
       # (<rbn/system/virtualization/win11> {
       #   vhd = "/warp/vms/win11.qcow2";
       #   vcpus = 8;
