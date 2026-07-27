@@ -1,52 +1,35 @@
-_: {
-  rbn.programs._.development._.julia.homeManager =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
-    let
-      inherit (lib) mkIf;
+{
+  rbn.programs._.development._.julia.homeManager = { pkgs, ... }: {
+    home.packages = with pkgs; [
+      julia-bin
+    ];
 
-      vsc-extensions = with pkgs.open-vsx; [
+    programs.vscode = {
+      profiles.default.extensions = with pkgs.open-vsx; [
         julialang.language-julia
       ];
-      vsc-user-settings = {
+      profiles.default.userSettings = {
         "julia.symbolCacheDownload" = true;
         "terminal.integrated.commandsToSkipShell" = [
           "language-julia.interrupt"
         ];
       };
+    };
 
-      # https://zed.dev/docs/languages/julia
-      # https://github.com/JuliaEditorSupport/zed-julia
-      zed = {
-        extensions = [ "julia" ];
-        extraPackages = with pkgs; [ julia-bin ];
-        userSettings = {
+    # https://zed.dev/docs/languages/julia
+    # https://github.com/JuliaEditorSupport/zed-julia
+    programs.zed-editor = {
+      extensions = [ "julia" ];
+      extraPackages = with pkgs; [ julia-bin ];
+      userSettings = {
 
-          lsp.julia = {
-          };
-          languages.Julia = {
-            tab_size = 4;
-            formatter = "language_server";
-          };
+        lsp.julia = {
+        };
+        languages.Julia = {
+          tab_size = 4;
+          formatter = "language_server";
         };
       };
-    in
-    {
-      home.packages = with pkgs; [
-        julia-bin
-      ];
-
-      programs.vscode = mkIf (config.programs.vscode.enable or false) {
-        profiles.default.extensions = vsc-extensions;
-        profiles.default.userSettings = vsc-user-settings;
-      };
-
-      programs.zed-editor = mkIf (config.programs.zed-editor.enable or false) {
-        inherit (zed) extensions extraPackages userSettings;
-      };
     };
+  };
 }

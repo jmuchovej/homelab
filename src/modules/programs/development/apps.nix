@@ -1,82 +1,47 @@
-{ den, inputs, ... }:
+{ den, ... }:
 {
   rbn.programs._.development._.apps = {
     includes = [ (den.batteries.unfree [ "android-studio" ]) ];
-    homeManager =
-      {
-        pkgs,
-        lib,
-        config,
-        ...
-      }:
-      let
-        inherit (lib) mkIf;
+    homeManager = { pkgs, lib, ... }: {
+      home.packages = lib.mkIf pkgs.stdenv.isLinux (
+        with pkgs;
+        [
+          kotlin
+          swift
+          android-studio
+        ]
+      );
 
-        vsc-extensions = with pkgs.open-vsx; [
+      programs.vscode = {
+        profiles.default.extensions = with pkgs.open-vsx; [
           dart-code.dart-code
           dart-code.flutter
           zxh404.vscode-proto3
           sswg.swift-lang
         ];
-        vsc-user-settings = { };
+        profiles.default.userSettings = { };
+      };
 
+      programs.zed-editor = {
         # https://zed.dev/docs/languages/dart
         # https://zed.dev/docs/languages/kotlin
         # https://zed.dev/docs/languages/swift
-        zed = {
-          extensions = [
-            "dart"
-            "swift"
-            "kotlin"
-          ];
-          extraPackages = with pkgs; [
-            flutter
-            # TODO: migrate to `kotlin-lsp` once on nixpkgs
-            kotlin-language-server
-            swiftlint
-            swift-format
-          ];
-          userSettings = {
-            languages.Dart = {
-              tab_size = 2;
-              formatter = "auto";
-            };
-            lsp.dart = {
-              binary = {
-                arguments = [
-                  "language-server"
-                  "--protocol=lsp"
-                ];
-              };
-              settings = {
-                lineLength = 120;
-              };
-            };
-            lsp.kotlin-language-server = { };
-            lsp.sourcekit-lsp = { };
-          };
-        };
-      in
-      {
-        home.packages = lib.mkIf pkgs.stdenv.isLinux (
-          with pkgs;
-          [
-            flutter
-            kotlin
-            swift
-            android-studio
-          ]
-        );
-
-        programs.vscode = mkIf (config.programs.vscode.enable or false) {
-          profiles.default.extensions = vsc-extensions;
-          profiles.default.userSettings = vsc-user-settings;
-        };
-
-        programs.zed-editor = mkIf (config.programs.zed-editor.enable or false) {
-          inherit (zed) extensions extraPackages userSettings;
+        extensions = [
+          "swift"
+          "kotlin"
+        ];
+        extraPackages = with pkgs; [
+          # TODO: migrate to `kotlin-lsp` once on nixpkgs
+          kotlin-language-server
+          swiftlint
+          swift-format
+        ];
+        userSettings = {
+          lsp.kotlin-language-server = { };
+          lsp.sourcekit-lsp = { };
         };
       };
+    };
 
     darwin.homebrew = {
       brews = [
@@ -84,10 +49,7 @@
         "xcodegen"
         "xcodes"
       ];
-      casks = [
-        "flutter"
-        "android-studio"
-      ];
+      casks = [ "android-studio" ];
     };
   };
 }
