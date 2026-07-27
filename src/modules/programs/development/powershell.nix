@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.development._.powershell = {
     homeManager =
       { pkgs, lib, ... }:

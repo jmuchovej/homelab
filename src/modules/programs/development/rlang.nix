@@ -1,14 +1,7 @@
-_: {
+{
   rbn.programs._.development._.rlang.homeManager =
-    {
-      pkgs,
-      lib,
-      config,
-      ...
-    }:
+    { pkgs, ... }:
     let
-      inherit (lib) mkIf;
-
       default-packages = with pkgs.rPackages; [
         # Tidyverse and friends
         tidyverse
@@ -22,14 +15,20 @@ _: {
 
       R = pkgs.rWrapper.override { packages = default-packages; };
       # RStudio = pkgs.rstudioWrapper.override { packages = default-packages; };
+    in
+    {
+      # FIXME: R appears to be broken due to some issues with `r-curl`???
+      home.packages = [ R ];
 
-      vsc-extensions = with pkgs.open-vsx; [
-        reditorsupport.r
-      ];
-      vsc-user-settings = { };
+      programs.vscode = {
+        profiles.default.extensions = with pkgs.open-vsx; [
+          reditorsupport.r
+        ];
+        profiles.default.userSettings = { };
+      };
 
       # https://zed.dev/docs/languages/r
-      zed = {
+      programs.zed-editor = {
         extensions = [
           "r"
           "air"
@@ -45,26 +44,12 @@ _: {
           })
         ];
         userSettings = {
-          lsp.air = {
-          };
+          lsp.air = { };
           languages.R = {
             tab_size = 2;
             language_servers = [ "air" ];
           };
         };
-      };
-    in
-    {
-      # FIXME: R appears to be broken due to some issues with `r-curl`???
-      home.packages = [ R ];
-
-      programs.vscode = mkIf (config.programs.vscode.enable or false) {
-        profiles.default.extensions = vsc-extensions;
-        profiles.default.userSettings = vsc-user-settings;
-      };
-
-      programs.zed-editor = mkIf (config.programs.zed-editor.enable or false) {
-        inherit (zed) extensions extraPackages userSettings;
       };
     };
 }
