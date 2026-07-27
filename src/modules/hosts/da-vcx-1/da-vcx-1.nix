@@ -1,11 +1,4 @@
-{
-  lib,
-  den,
-  __findFile,
-  ...
-}:
-{
-  # Host schema config — read by aspects via `host.*`
+{ den, __findFile, ... }: {
   den.hosts.x86_64-linux.da-vcx-1 = {
     s3 = {
       buckets = [
@@ -15,7 +8,6 @@
       ];
       data-dir = [ "/impulse/s3" ];
     };
-    authentik.enable = true;
 
     nfs.mounts = [
       {
@@ -39,7 +31,6 @@
 
   den.aspects.da-vcx-1 = {
     includes = [
-
       # Suites
       <rbn/suite/server>
       <rbn/system/boot/graphical>
@@ -53,6 +44,7 @@
 
       # Virtualization
       <rbn/system/virtualization/apptainer>
+      <rbn/system/virtualization/apptainer/nvidia>
       # (<rbn/system/virtualization/win11> {
       #   vhd = "/warp/vms/win11.qcow2";
       #   vcpus = 8;
@@ -68,7 +60,6 @@
       <rbn/system/networking/manager/networkmanager>
 
       # Services — the app tier lives in the cluster now
-      # (<rbn/services/kubernetes>); only per-host infrastructure remains
       <rbn/services/nfs>
       <rbn/services/kubernetes>
       <rbn/services/kubernetes/nvidia>
@@ -85,10 +76,7 @@
 
     nixos = {
       networking.hostId = "fe4ccbf4";
-
-      boot.zfs.extraPools = [
-        "warp"
-      ];
+      boot.zfs.extraPools = [ "warp" ];
       system.stateVersion = "24.11";
     };
   };

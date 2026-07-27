@@ -1,10 +1,4 @@
-{
-  __findFile,
-  lib,
-  den,
-  ...
-}:
-{
+{ den, __findFile, ... }: {
   den.aspects.en-t65-1 = {
     includes = [
       <rbn/suite/server>
@@ -18,7 +12,6 @@
 
       # Security
       <rbn/system/security/sudo>
-
       <rbn/programs/security/sops>
 
       # Networking (base via suite-common, dns/manager selected here)
@@ -27,11 +20,6 @@
       <rbn/services/zerotier>
 
       # Services
-      # <rbn/services/openbao>
-      # <rbn/services/nomad>
-      # home-assistant + postgres retired ahead of the multi-cluster
-      # rollout: en-t65-1 becomes its own k8s host with a FRESH en
-      # home-assistant and an authentik replica of the da cluster's
     ];
 
     provides.to-users = {
@@ -47,7 +35,6 @@
         device = "/dev/disk/by-label/nixos";
         fsType = "ext4";
       };
-
       fileSystems."/boot" = {
         device = "/dev/disk/by-label/BOOT-EFI";
         fsType = "vfat";
@@ -56,7 +43,6 @@
           "dmask=0077"
         ];
       };
-
       swapDevices = [
         { device = "/dev/disk/by-label/swap"; }
       ];
