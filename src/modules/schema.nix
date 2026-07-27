@@ -6,7 +6,7 @@
   den.schema.host =
     { config, lib, ... }:
     let
-      inherit (lib) mkOption mkEnableOption;
+      inherit (lib) mkOption;
       inherit (lib.types)
         str
         int
@@ -87,9 +87,6 @@
             };
           };
         };
-
-        # ── Cross-service flags ────────────────────────────────────────
-        containers.enable = mkEnableOption "Container runtime (Podman/Docker)";
       };
     };
 }

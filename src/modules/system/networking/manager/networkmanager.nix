@@ -1,14 +1,10 @@
 _: {
   rbn.system._.networking._.manager._.networkmanager.nixos =
     {
-      host,
       lib,
       pkgs,
       ...
     }:
-    let
-      inherit (lib) optionals;
-    in
     {
       networking.networkmanager = {
         enable = true;
@@ -27,8 +23,7 @@ _: {
         unmanaged = [
           "interface-name:br-*"
           "interface-name:rndis*"
-        ]
-        ++ optionals (host.containers.enable or false) [ "interface-name:docker*" ];
+        ];
       };
 
       systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
