@@ -16,7 +16,6 @@
       data-dir = [ "/impulse/s3" ];
     };
     authentik.enable = true;
-    containers.enable = true;
 
     nfs.mounts = [
       {
