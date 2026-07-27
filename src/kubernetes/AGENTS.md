@@ -83,10 +83,38 @@ The `cluster-settings` `Secret` (seeded by the NixOS `k3s` aspect into each name
 
 ## Secrets
 
-External Secrets Operator + 1Password Connect: `ClusterSecretStore` `onepassword-connect`, vault `Homelab`. The Connect credentials `Secret` and `cluster-settings` are seeded out-of-band from sops by the NixOS `k3s` aspect — nothing in this tree bootstraps them. Apps declare `ExternalSecrets` in their `app/` dir.
+External Secrets Operator + 1Password Connect: `ClusterSecretStore` `onepassword-connect`, vault `Homelab`. The one secret NixOS seeds out-of-band from sops is the Flux **sops-age** key; with it, Flux decrypts each cluster's `clusters/<domain>/config/op-connect.sops.yaml` to bring up 1Password Connect, after which apps' `ExternalSecrets` (declared in each `app/` dir) resolve from 1Password.
 
 ## Networking
 
-- LoadBalancer IPs come from the Cilium LB-IPAM pool `10.69.1.0/24` (excluded from the lab DHCP range in topology.yaml — keep it that way), advertised to the MikroTik router as /32s over iBGP (AS 64512). Per-app DB LBs live at `10.69.1.5x`. The BGP CRs live in `apps/network/cilium-bgp`; Cilium itself (CNI + `bgpControlPlane`) is NixOS-managed.
+- LoadBalancer IPs come from the Cilium LB-IPAM pool `10.69.1.0/24` (excluded from the lab DHCP range in topology.yaml — keep it that way), advertised to the MikroTik router as /32s over iBGP (AS 64512). Per-app DB LBs live at `10.69.1.5x`. The BGP CRs live in `apps/network/cilium/bgp`; Cilium itself (CNI + `bgpControlPlane`) is NixOS-managed.
 - Ingress is Envoy Gateway (namespace `network`): `envoy-external` (`10.69.1.1`) is WAN-reachable, `envoy-internal` (`10.69.1.2`) is LAN-only by construction (WAN DNATs only target .1.1). Apps choose exposure via their `HTTPRoute`'s `parentRef`. Caveat: internal-only hostnames need their own router DNS record → `10.69.1.2` (no public record; the split-horizon wildcard targets .1.1) until an internal-DNS story lands.
 - TLS terminates at the gateway with a wildcard Let's Encrypt cert (`cert-manager`, DNS-01 via Cloudflare) — apps do not manage certificates.
+
+## Network policies
+
+`CiliumClusterwideNetworkPolicy` (CCNP) live under `apps/network/cilium/network-policies/` — part of **cilium's definition**, not a standalone app; deployed by the `cilium-network-policies` Flux Kustomization (no `targetNamespace`, since the tree mixes cluster-scoped CCNPs with a `kube-system` CNP). Cilium runs in its **`default` enforcement mode** (`policyEnforcementMode` unset in `cilium-values.yaml`): an endpoint is allow-all **until a policy selects it in a given direction**, then flips to **deny-all-except-allowed** for that direction. A pod therefore locks down the instant it wears its first grant label — lockdown is opt-in, per pod.
+
+**House convention — label grants are `<direction>.rbn/<grant>: allow`.** This matches the repo's existing `<concern>.rbn/<key>` scheme (`authentik.rbn/*`), **not** biohazard's `home.arpa`. Label keys are freeform strings Cilium only string-matches; the `.rbn` prefix is ours by convention. A pod opts in by wearing the label on its **pod template** (the endpoint — not the Deployment/HelmRelease top level). Grants compose: a pod may wear several.
+
+Mechanics baked into the policies (so you don't re-derive them per app):
+
+- **DNS is folded into every egress grant** (`kube-dns:53`), so a locked-down pod always resolves — there is no separate cluster-wide DNS floor (we deliberately did **not** adopt biohazard's cluster-wide kube-dns egress selector, which is a big-bang lockdown). `egress.rbn/dns` is the DNS-_only_ grant (tightest possible egress).
+- **Kubelet health probes are unaffected** by ingress lockdown — Cilium's default `allow-localhost=visible` permits host→local-pod.
+- `kube-system-allow-all` (a namespaced `CiliumNetworkPolicy`) keeps the system tier permanently open, so a future cluster-wide policy can't strand it.
+
+### Grant registry
+
+Every grant is hand-authored, so this table **is** the catalog — add a row here whenever you add a CCNP to `allow-egress.yaml` / `allow-ingress.yaml` (a new grant = label-selector → allow rule; re-include the `kube-dns:53` block for egress grants).
+
+| Label                  | Direction | Grants                                                                              |
+| ---------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `egress.rbn/dns`       | egress    | `kube-dns:53` only — self-contained/SQLite apps                                     |
+| `egress.rbn/internet`  | egress    | all non-RFC1918 (`0.0.0.0/0` except `10/8`, `172.16/12`, `192.168/16`) + DNS        |
+| `egress.rbn/apiserver` | egress    | `kube-apiserver` + `host:6443` (in-cluster controllers) + DNS                       |
+| `egress.rbn/lan`       | egress    | lab LAN `10.69.0.0/16` (router/NAS/LAN svcs) + DNS                                  |
+| `ingress.rbn/gateway`  | ingress   | Envoy data plane only (`network` ns, `managed-by=envoy-gateway`, `component=proxy`) |
+| `ingress.rbn/cluster`  | ingress   | any in-cluster endpoint (Cilium `cluster` entity)                                   |
+| `ingress.rbn/world`    | ingress   | public internet (Cilium `world` entity)                                             |
+
+Roll out a first-time lockdown **audit-first**: `cilium endpoint config <id> PolicyAuditMode=Enabled` on the node, watch `hubble observe --verdict AUDIT` for the pod, confirm only the intended flows appear, then disable audit to enforce.

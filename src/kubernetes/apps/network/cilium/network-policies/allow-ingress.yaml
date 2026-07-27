@@ -1,0 +1,48 @@
+---
+# Labelled ingress grants. A pod opts in with `ingress.rbn/<name>: allow`;
+# Cilium then flips that pod to default-deny-ingress. Kubelet health probes are
+# unaffected — Cilium's default allow-localhost=visible permits host→local-pod.
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-ingress-gateway
+spec:
+  description: Only the Envoy Gateway data plane (envoy-external/-internal) may connect.
+  endpointSelector:
+    matchLabels:
+      ingress.rbn/gateway: allow
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            k8s:app.kubernetes.io/managed-by: envoy-gateway
+            k8s:app.kubernetes.io/component: proxy
+---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-ingress-cluster
+spec:
+  description: Any in-cluster endpoint (host, nodes, pods).
+  endpointSelector:
+    matchLabels:
+      ingress.rbn/cluster: allow
+  ingress:
+    - fromEntities:
+        - cluster
+---
+# $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-ingress-world
+spec:
+  description: The public internet (for hostPort/LoadBalancer-fronted workloads).
+  endpointSelector:
+    matchLabels:
+      ingress.rbn/world: allow
+  ingress:
+    - fromEntities:
+        - world

@@ -5,7 +5,8 @@ namespace: network
 resources:
   - ./namespace.yaml
   - ./certificates/certificates.ks.yaml
-  - ./cilium-bgp/cilium-bgp.ks.yaml
+  - ./cilium/cilium-bgp.ks.yaml
+  - ./cilium/cilium-network-policies.ks.yaml
   - ./envoy-gateway/envoy-gateway.ks.yaml
   - ./envoy-gateway/envoy-config.ks.yaml
   - ./echo/echo.ks.yaml
