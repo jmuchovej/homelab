@@ -34,7 +34,7 @@
       redact_private_values = false;
 
       # Soft-wrap and rulers
-      soft_wrap = "preferred_line_length"; # none; editor_width; preferred_line_length; bounded
+      soft_wrap = "prefer_line"; # none; editor_width; prefer_line; bounded
       preferred_line_length = 88; # Column to soft-wrap
       show_wrap_guides = true; # Show/hide wrap guides (vertical rulers)
       wrap_guides = [
@@ -246,7 +246,6 @@
     {
       edit_predictions = {
         mode = "eager"; # Automatically show (eager) or hold-alt (subtle)
-        enabled_in_text_threads = true; # Show/hide predictions in agent text threads
       };
       show_edit_predictions = true; # Show/hide predictions in editor
     }
