@@ -48,7 +48,8 @@
         default_width = 360;
         status_style = "icon";
         # Sort by path (false) or status (true)
-        sort_by_path = false;
+        sort_by = "path";
+        group_by = "status";
         scrollbar.show = "system";
       };
 
@@ -80,7 +81,7 @@
     {
       file_finder = {
         file_icons = true;
-        git_status = true;
+        modal_max_width = "small";
         include_ignored = "smart";
       };
     }
@@ -95,17 +96,6 @@
         default_width = 240;
       };
       show_call_status_icon = true;
-
-      ## Notification Panel
-
-      notification_panel = {
-        # Whether to show the notification panel button in the status bar.
-        button = true;
-        # Where to dock the notification panel. Can be 'left' or 'right'.
-        dock = "right";
-        # Default width of the notification panel.
-        default_width = 380;
-      };
     }
   ];
 }
