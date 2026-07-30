@@ -14,11 +14,8 @@ spec:
         containers:
           app:
             image:
-              # pinned to the EXACT version the imported database ran on
-              # (version_history: 2.7.5) — the v3 jump is its own upgrade,
-              # after the migration proves out
               repository: ghcr.io/immich-app/immich-server
-              tag: v2.7.5@sha256:c15bff75068effb03f4355997d03dc7e0fc58720c2b54ad6f7f10d1bc57efaa5
+              tag: v3.1.0@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb
             env:
               TZ: America/New_York
               DB_HOSTNAME: immich-db-rw
@@ -49,7 +46,9 @@ spec:
               startup:
                 enabled: true
                 spec:
-                  failureThreshold: 60
+                  # REVERT to 60 once the v3 rollout is confirmed — widened to
+                  # 30min so a long schema migration can't be killed mid-run
+                  failureThreshold: 360
                   periodSeconds: 5
             securityContext:
               allowPrivilegeEscalation: false
@@ -65,7 +64,7 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v2.7.5@sha256:a2501141440f10516d329fdfba2c68082e19eb9ba6016c061ac80d23beadf7f3
+              tag: v3.1.0@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e
             env:
               TZ: America/New_York
             probes:
