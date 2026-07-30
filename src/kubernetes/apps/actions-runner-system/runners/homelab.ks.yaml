@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: homelab-runner
+spec:
+  dependsOn:
+    # owns the AutoscalingRunnerSet CRD, the shared chart, and the credential
+    - name: actions-runner-controller
+  interval: 1h
+  path: ./src/kubernetes/components/github-runner
+  postBuild:
+    substitute:
+      GH_OWNER: jmuchovej
+      GH_REPO: homelab
+      RUNNER_MAX: "2"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: actions-runner-system
+  # a scale set only reports Ready once GitHub accepts the registration; a wait
+  # here would stall the whole wave on a credential typo
+  wait: false

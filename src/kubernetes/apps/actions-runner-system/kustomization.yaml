@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: actions-runner-system
+resources:
+  - ./namespace.yaml
+  - ./actions-runner-controller/actions-runner-controller.ks.yaml
+  # one entry per repo — see components/github-runner/AGENTS.md
+  - ./runners/homelab.ks.yaml
