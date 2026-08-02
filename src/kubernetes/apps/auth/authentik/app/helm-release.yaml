@@ -58,6 +58,13 @@ spec:
         host: authentik-db-rw
         name: authentik
         user: authentik
+        # persistent connections: one DNS lookup per thread per 5min instead
+        # of one per request, which matters because the cluster drops ~1% of
+        # DNS packets. conn_health_checks MUST accompany this — without it a
+        # connection closed server-side (db restart, failover) surfaces as a
+        # 500 on the next request instead of being transparently reopened.
+        conn_max_age: 300
+        conn_health_checks: true
       email:
         host: smtp.mailgun.org
         port: 587
