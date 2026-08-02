@@ -11,5 +11,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  # no targetNamespace: the tree mixes cluster-scoped CCNPs with a kube-system CNP
+  # no targetNamespace: the tree is entirely cluster-scoped CCNPs
   wait: false

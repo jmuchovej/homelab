@@ -1,9 +1,7 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# No namespace: transformer — kube-system-allow-all is a namespaced CNP that
-# must stay in kube-system; the rest are cluster-scoped CCNPs.
+# No namespace: transformer — every resource here is a cluster-scoped CCNP.
 resources:
-  - ./kube-system-allow-all.yaml
   - ./allow-egress.yaml
   - ./allow-ingress.yaml
