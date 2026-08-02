@@ -163,7 +163,11 @@ spec:
           authentik.rbn/group: Family
           authentik.rbn/icon: di:immich
           authentik.rbn/access: family
-          authentik.rbn/redirect-uris: https://immich.${DC_DOMAIN}/auth/login;https://photos.${DC_DOMAIN}/auth/login
+          # the third URI is immich's hardcoded MOBILE_REDIRECT — the mobile
+          # app sends it verbatim (triple slash included) while
+          # oauth.mobileOverrideEnabled is false, and authentik matches
+          # redirect URIs strictly
+          authentik.rbn/redirect-uris: https://immich.${DC_DOMAIN}/auth/login;https://photos.${DC_DOMAIN}/auth/login;app.immich:///oauth-callback
         hostnames:
           - immich.${DC_DOMAIN}
           - photos.${DC_DOMAIN}
