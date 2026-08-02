@@ -57,7 +57,7 @@ components/                         reusable cross-app building blocks → compo
 ```
 
 - Cluster selection is explicit, not directory-scanned. `core/kustomization.yaml` lists the shared-infra namespace dirs; each `clusters/<domain>/apps/kustomization.yaml` lists `../../../core` plus this cluster's apps. Core namespaces are selected whole (namespace-level, via their `apps/<ns>/kustomization.yaml`); per-site namespaces (`media`, `home-automation`, `local-ai`, `home`, `games`) are selected per-app via `apps/<ns>/<app>/` wrappers, so a namespace can split across clusters. Cross-directory refs (`../../../apps/<ns>/namespace.yaml`) rely on Flux's `LoadRestrictionsNone` — `kubectl kustomize` needs `--load-restrictor LoadRestrictionsNone` to build them locally.
-- A `_` prefix on a namespace dir (e.g. `_external-secrets`) marks it as absent from cluster-settings seeding — it's seeded instead by the onepassword-connect template and needs no `DC_DOMAIN` vars. The seeded set is the explicit `core-namespaces` + per-datacenter `site-namespaces` lists in `kubernetes.nix` (which must track each cluster's Flux selection); the k8s namespace itself is the unprefixed name.
+- `external-secrets` is the foundational namespace dir — it holds the ESO / 1Password Connect bootstrap that most apps' `ExternalSecret`s depend on, so nearly everything reaches it through a `dependsOn`. Ordering is expressed by those `dependsOn` edges, not by directory naming.
 - One concern per Flux Kustomization. When an app has a CRD-providing and a CRD-consuming half (operator vs config, controller vs issuers, app vs db), split them into sibling `*.ks.yaml` files linked by `dependsOn` so the CRDs exist before anything instantiates them. Current examples: `cert-manager` → `issuers`, `envoy-gateway` → `envoy-config`, `cloudnative-pg` → per-app `*-db`.
 
 ## `<app>.ks.yaml` conventions
@@ -65,7 +65,7 @@ components/                         reusable cross-app building blocks → compo
 - `interval: 1h`, `prune: true`, `sourceRef` = the `flux-system` GitRepository, `wait: true` unless there's a reason not to.
 - `targetNamespace` set on the ks — omit it only when the tree contains cluster-scoped or explicitly-namespaced resources (then say so; see `envoy-config` for the shape).
 - `dependsOn` encodes real ordering: CRD providers, `onepassword-connect` (namespace `external-secrets`) for anything with an `ExternalSecret`, and `envoy-config` (namespace `network`) for anything with an `HTTPRoute`.
-- `postBuild.substituteFrom` the `cluster-settings` `Secret` for domain-ish vars; `postBuild.substitute` for literal per-app vars (component parameters).
+- Don't add `postBuild.substituteFrom` for domain vars — the per-cluster `cluster-apps.ks.yaml` patch injects `${DATACENTER}`/`${DC_DOMAIN}`/`${DOMAIN}` into every child's `postBuild.substitute`. Apps set `postBuild.substitute` only for their own literals (component parameters).
 
 ## Inherited HelmRelease defaults
 
@@ -73,7 +73,7 @@ components/                         reusable cross-app building blocks → compo
 
 ## Substitution variables
 
-The `cluster-settings` `Secret` (seeded by the NixOS `k3s` aspect into each namespace this cluster deploys — `core-namespaces` + the datacenter's `site-namespaces` in `kubernetes.nix`) provides `${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}`. These are **plaintext identity**, not secrets — sourced from the `host` schema (`host.datacenter`/`host.dc-domain`/`host.domain`), not sops (access control, not obscurity, is the boundary; the repo is public anyway). Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
+`${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}` are injected into every app's `postBuild.substitute` by the **per-cluster** `clusters/<domain>/flux/cluster-apps.ks.yaml` patch — static, hand-written per cluster (the domain differs per cluster, so unlike a single-cluster repo it can't be hardcoded in the manifests). There is **no `cluster-settings` Secret and no NixOS seeding of it**; the values are plaintext identity, not secrets. Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
 
 ## Images & charts
 
@@ -93,7 +93,7 @@ External Secrets Operator + 1Password Connect: `ClusterSecretStore` `onepassword
 
 ## Network policies
 
-`CiliumClusterwideNetworkPolicy` (CCNP) live under `apps/network/cilium/network-policies/` — part of **cilium's definition**, not a standalone app; deployed by the `cilium-network-policies` Flux Kustomization (no `targetNamespace`, since the tree mixes cluster-scoped CCNPs with a `kube-system` CNP). Cilium runs in its **`default` enforcement mode** (`policyEnforcementMode` unset in `cilium-values.yaml`): an endpoint is allow-all **until a policy selects it in a given direction**, then flips to **deny-all-except-allowed** for that direction. A pod therefore locks down the instant it wears its first grant label — lockdown is opt-in, per pod.
+`CiliumClusterwideNetworkPolicy` (CCNP) live under `apps/network/cilium/network-policies/` — part of **cilium's definition**, not a standalone app; deployed by the `cilium-network-policies` Flux Kustomization (no `targetNamespace` — the tree is entirely cluster-scoped CCNPs). Cilium runs in its **`default` enforcement mode** (`policyEnforcementMode` unset in `cilium-values.yaml`): an endpoint is allow-all **until a policy selects it in a given direction**, then flips to **deny-all-except-allowed** for that direction. A pod therefore locks down the instant it wears its first grant label — lockdown is opt-in, per pod.
 
 **House convention — label grants are `<direction>.rbn/<grant>: allow`.** This matches the repo's existing `<concern>.rbn/<key>` scheme (`authentik.rbn/*`), **not** biohazard's `home.arpa`. Label keys are freeform strings Cilium only string-matches; the `.rbn` prefix is ours by convention. A pod opts in by wearing the label on its **pod template** (the endpoint — not the Deployment/HelmRelease top level). Grants compose: a pod may wear several.
 
@@ -101,7 +101,19 @@ Mechanics baked into the policies (so you don't re-derive them per app):
 
 - **DNS is folded into every egress grant** (`kube-dns:53`), so a locked-down pod always resolves — there is no separate cluster-wide DNS floor (we deliberately did **not** adopt biohazard's cluster-wide kube-dns egress selector, which is a big-bang lockdown). `egress.rbn/dns` is the DNS-_only_ grant (tightest possible egress).
 - **Kubelet health probes are unaffected** by ingress lockdown — Cilium's default `allow-localhost=visible` permits host→local-pod.
-- `kube-system-allow-all` (a namespaced `CiliumNetworkPolicy`) keeps the system tier permanently open, so a future cluster-wide policy can't strand it.
+- **kube-system is deliberately unenforced** — no policy selects it, so the system tier (kube-dns, cilium-operator, metrics) skips policy evaluation entirely. Keep it that way until the lockdown below actually arrives.
+
+### There is no such thing as a permissive policy
+
+Given the `default` enforcement mode above, **an allow-all policy is not a no-op — it is strictly worse than no policy.** Selecting an endpoint flips it from *unenforced* (the datapath skips the policy lookup and structurally cannot drop) to *enforced*, and Cilium expands `fromEntities: cluster` / `fromEndpoints: {}` into **one policy-map entry per identity**, never a wildcard. Ordinary pod churn rewrites that map, and packets arriving mid-rewrite are dropped as `Policy denied`. A `kube-system-allow-all` copied from biohazard cost ~1% of all cluster DNS this way (2026-08-02, deleted); the `cnpg-database` NetworkPolicy cost the CNPG operator's `:8000` probes the same way (2026-07-19, still disabled). Both presented as random intermittent failures, not as policy problems.
+
+Before adding any policy:
+
+1. **Does a pod need this grant today?** An unenforced pod already reaches everything — a policy can only ever *restrict* it. "Permissive addition" is a contradiction here.
+2. **Is the exemption shipped with the lockdown that requires it?** Both in one change, or neither. Never add an exemption prophylactically so a future policy "can't strand" an endpoint — it strands that endpoint immediately, and reads as inert to whoever finds it next.
+3. **Porting from biohazard?** They run cluster-wide default-deny (`netpols/cluster-default-kube-dns.yaml` selects `k8s-app: kube-dns` directly), so their endpoints are enforced regardless and their exemptions are load-bearing. Lockdown here is opt-in per pod, so the same file is pure cost. Port the lockdown first, or neither.
+
+When an "impossible" intermittent connection failure appears, check this before the network: `cilium-dbg monitor --type drop` while reproducing, then `cilium-dbg endpoint get <id>` for `policy-enabled` and `cilium-dbg bpf policy get <id>` to see whether the allowlist is enumerated. The identity numbers `monitor` prints are unreliable (low byte zeroed), so `identity get` will 404 on them — trust the IPs.
 
 ### Grant registry
 
