@@ -7,3 +7,14 @@ resources:
   # - ../../../apps/local-ai/namespace.yaml
   # - ../../../apps/local-ai/ollama       # GPU inference on en-t65-1
   # - ../../../apps/local-ai/open-webui
+  # home-automation (en)
+  - ../../../apps/home-automation/namespace.yaml
+  - ../../../apps/home-automation/home-assistant
+  - ../../../apps/home-automation/hubitat
+  # home (en)
+  - ../../../apps/home/namespace.yaml
+  - ../../../apps/home/actual
+  - ../../../apps/home/n8n
+  # games (en)
+  - ../../../apps/games/namespace.yaml
+  - ../../../apps/games/minecraft
