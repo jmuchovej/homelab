@@ -20,6 +20,13 @@
     _.code = {
       includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
+      hm-linux = { pkgs, ... }: {
+        home.packages = [
+          pkgs.bubblewrap
+          pkgs.socat
+        ];
+      };
+
       hm =
         { lib, pkgs, ... }:
         let
@@ -31,22 +38,8 @@
           };
           inherit (ai-tools) claude-code;
 
-          # Each hook file returns `{ <Event> = [ … ]; }`. Several files target the
-          # same event — `post-tool-{audit,validate}` both define `PostToolUse`,
-          # `pre-tool-{audit,use}` both define `PreToolUse` — so the lists have to
-          # be concatenated per event. The previous `import-dir` shallow-merged
-          # with `//` and silently kept only the last file of each pair.
-          hooks = lib.zipAttrsWith (_: lib.concatLists) (
-            lib.pipe import-tree [
-              (i: i.initFilter (p: lib.hasSuffix ".nix" (toString p)))
-              (i: i.map (p: import p { inherit pkgs; }))
-              (i: i.leafs ./_claude/hooks)
-            ]
-          );
-
-          status-line = import ./_claude/status-line.nix {
-            inherit pkgs;
-          };
+          hooks = import ./_claude/hooks.nix { inherit pkgs; };
+          scripts = import ./_claude/scripts.nix { inherit pkgs; };
         in
         {
           xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
@@ -58,9 +51,11 @@
             inherit (claude-code) agents commands;
 
             settings = {
-              theme = "dark";
-
+              inherit (ai-tools) skills;
               inherit hooks;
+
+              theme = "auto";
+              editorMode = "vim";
 
               verbose = true;
               includeCoAuthoredBy = false;
@@ -71,14 +66,60 @@
 
               statusLine = {
                 type = "command";
-                command = lib.getExe status-line;
+                command = lib.getExe scripts.status-line;
+              };
+
+              sandbox = {
+                enabled = false;
+                credentials =
+                  let
+                    mk-credential = key: mode: value: {
+                      "${key}" = value;
+                      inherit mode;
+                    };
+                    mk-deny = key: value: mk-credential key "deny" value;
+                    mk-mask = key: value: mk-credential key "mask" value;
+                    mk-file-deny = path: mk-deny "path" path;
+                    mk-file-mask = path: mk-mask "path" path;
+                    mk-env-deny = name: mk-deny "name" name;
+                    mk-env-mask = name: mk-mask "name" name;
+                  in
+                  {
+                    files = [
+                      (mk-file-deny "~/.ssh")
+                    ];
+                    envVars = [
+                      (mk-env-mask "SOPS_AGE_KEY")
+                      (mk-env-mask "GITHUB_TOKEN")
+                    ];
+                  };
+                network = {
+                  allowedDomains = [
+                    "raw.githubusercontent.com"
+                    "github.com"
+                    "openbao.org"
+                    "mynixos.com"
+                    "registry.terraform.io"
+                    "devenv.sh"
+                    "flake.parts"
+                    "docs.goauthentik.io"
+                    "integrations.goauthentik.io"
+                    "tailscale.com"
+                    "nixos.org"
+                    "noogle.dev"
+                    "nix.dev"
+                    "api.github.com"
+                    "kdl.dev"
+                    "den.denful.dev"
+                    "import-tree.denful.dev"
+                    "search.nixos.org"
+                    "waypoints.so"
+                  ];
+                };
               };
             };
 
-            inherit (ai-tools) skills;
-
             context = ./_ai-tools/BASE.md;
-
           };
         };
 
