@@ -1,5 +1,5 @@
 {
-  rbn.programs._.terminal._.fzf.homeManager = {
+  rbn.programs._.terminal._.fzf.hm = _: {
     programs.fzf = {
       enable = true;
 

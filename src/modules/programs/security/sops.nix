@@ -4,29 +4,24 @@ let
 in
 {
   rbn.programs._.security._.sops = {
-    nixos =
-      { host, pkgs, ... }:
-      let
-        inherit (host) hostname;
-      in
-      {
-        environment.systemPackages = with pkgs; [
-          age
-          sops
-          ssh-to-age
-        ];
+    nixos = { host, pkgs, ... }: {
+      environment.systemPackages = with pkgs; [
+        age
+        sops
+        ssh-to-age
+      ];
 
-        sops = {
-          defaultSopsFile = sops-file "hosts" hostname;
+      sops = {
+        defaultSopsFile = sops-file "hosts" host.hostname;
 
-          age = {
-            sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-            generateKey = false;
-          };
+        age = {
+          sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+          generateKey = false;
         };
       };
+    };
 
-    homeManager =
+    hm =
       {
         config,
         lib,

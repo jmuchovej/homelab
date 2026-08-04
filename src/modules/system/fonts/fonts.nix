@@ -13,6 +13,7 @@
         # Private fonts — colocated packages
         brandon-text = pkgs.callPackage ./_packages/brandon-text.nix { };
         monolisa = pkgs.callPackage ./_packages/monolisa.nix { };
+        albert-sans = pkgs.callPackage ./_packages/albert-sans.nix { };
       in
       {
         nixpkgs.config.input-fonts.acceptLicense = true;
@@ -24,6 +25,7 @@
           packages = [
             brandon-text
             monolisa
+            albert-sans
           ]
           ++ (with pkgs; [
             # Desktop Fonts
@@ -95,7 +97,7 @@
         };
       };
 
-    darwin = {
+    macos = {
       system.defaults.NSGlobalDomain.AppleFontSmoothing = 1;
 
       homebrew.casks = [

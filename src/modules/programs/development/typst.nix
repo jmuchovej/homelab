@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.typst.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.typst.hm = { pkgs, ... }: {
     home.packages = with pkgs; [
       typst
       tinymist

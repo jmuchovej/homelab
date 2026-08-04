@@ -1,9 +1,7 @@
-# Environment: XDG, pager, locale, time, zsh.
-_: {
+{
   rbn.system._.environment = {
-    # Shared across NixOS and darwin
     os =
-      { lib, pkgs, ... }:
+      { lib, ... }:
       let
         pagerArgs = [
           "--RAW-CONTROL-CHARS"
@@ -38,9 +36,13 @@ _: {
         ];
       };
 
-    # NixOS-specific
     nixos =
-      { lib, pkgs, ... }:
+      {
+        config,
+        lib,
+        pkgs,
+        ...
+      }:
       let
         pagerArgs = [
           "--RAW-CONTROL-CHARS"
@@ -51,14 +53,10 @@ _: {
         ];
       in
       {
-        # ── Time ─────────────────────────────────────────────────────
         environment.systemPackages = with pkgs; [
           openntpd
           nix-zsh-completions
 
-          # Common CLI baseline — available to every user, every script,
-          # every sudo shell. HM-managed versions (for users that have them)
-          # take precedence in interactive shells.
           bat
           bottom
           delta
@@ -122,6 +120,8 @@ _: {
           enableCompletion = true;
           histFile = "$XDG_CACHE_HOME/zsh.history";
         };
+
+        environment.shells = [ config.programs.zsh.package ];
       };
   };
 }

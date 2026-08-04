@@ -1,37 +1,45 @@
-{
+{ den, ... }: {
   rbn.programs._.social = {
     _.beeper = {
       dock.app = "Beeper Desktop.app";
 
-      homeManager =
-        { pkgs, ... }:
-        {
-          home.packages = with pkgs; [
-            beeper-bridge-manager
-          ];
-        };
+      includes = [
+        (den.batteries.unfree [ "beeper" ])
+      ];
 
-      darwin.homebrew.casks = [ "beeper" ];
+      hm = { pkgs, ... }: {
+        home.packages = [ pkgs.beeper-bridge-manager ];
+      };
+
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.beeper ];
+      };
+
+      macos.homebrew.casks = [ "beeper" ];
     };
 
     _.zoom = {
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.zoom-us ];
-        };
+      dock.app = "zoom.us.app";
 
-      darwin.homebrew.casks = [ "zoom" ];
+      includes = [
+        (den.batteries.unfree [ "zoom" ])
+      ];
+
+      hm = { pkgs, ... }: {
+        home.packages = [ pkgs.zoom-us ];
+      };
+
+      # macos.homebrew.casks = [ "zoom" ];
     };
 
     _.zulip = {
-      homeManager =
-        { pkgs, lib, ... }:
-        lib.mkIf pkgs.stdenv.isLinux {
-          home.packages = [ pkgs.zulip ];
-        };
+      dock.app = "Zulip.app";
 
-      darwin.homebrew.casks = [ "zulip" ];
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.zulip ];
+      };
+
+      macos.homebrew.casks = [ "zulip" ];
     };
   };
 }

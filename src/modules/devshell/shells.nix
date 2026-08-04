@@ -1,8 +1,8 @@
-{ self, ... }:
-{
+{ self, ... }: {
   perSystem =
     {
       config,
+      inputs',
       pkgs,
       ...
     }:
@@ -28,6 +28,7 @@
           nix-output-monitor
           nix-tree
           nix-diff
+          inputs'.nix-unit.packages.default
 
           # VCS / repo tooling
           git
@@ -44,6 +45,9 @@
           ssh-to-age
           ssh-to-pgp
           mkpasswd
+          gum
+          # mints Syncthing device identities (`just secrets syncthing-identity`)
+          syncthing
 
           # Service mesh
           consul

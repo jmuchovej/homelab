@@ -1,84 +1,73 @@
 {
   rbn.programs._.baseline = {
-    homeManager =
-      {
-        lib,
-        pkgs,
-        config,
-        ...
-      }:
-      let
-        inherit (lib) optionals;
-        inherit (lib.rbn) enabled;
-        inherit (pkgs.stdenv) isLinux isDarwin;
-      in
-      {
-        home.packages =
-          with pkgs;
-          [
-            optinix
-            gnupg
-            age
-            httpie
-            hyperfine
-            erdtree
-            rust-motd
+    hm-linux = { pkgs, ... }: {
+      home.packages = with pkgs; [ iproute2 ];
+    };
 
-            jaq
-            yq-go
-            jqp
-            jnv
+    hm-macos = { pkgs, ... }: {
+      home.packages = with pkgs; [ iproute2mac ];
+    };
 
-            parallel
-            choose
-            curlie
-            doggo
-            duf
-            dust
-            dua
-            gping
-            fd
-            procs
-            ov
-            sd
-            viddy
-            just
-            ouch
+    hm = { pkgs, ... }: {
+      home.packages = with pkgs; [
+        optinix
+        gnupg
+        age
+        httpie
+        hyperfine
+        erdtree
+        rust-motd
 
-            nmap
-            speedtest-cli
-          ]
-          ++ optionals isLinux [ iproute2 ]
-          ++ optionals isDarwin [ iproute2mac ];
+        jaq
+        yq-go
+        jqp
+        jnv
 
-        programs.nh = enabled;
-        programs.nix-your-shell = enabled;
+        parallel
+        choose
+        curlie
+        doggo
+        duf
+        dust
+        dua
+        gping
+        fd
+        procs
+        ov
+        sd
+        viddy
+        just
+        ouch
 
-        programs.nix-index-database.comma.enable = true;
+        nmap
+        speedtest-cli
+      ];
 
-        programs.nix-index = {
-          enable = true;
-          package = pkgs.nix-index;
+      programs.nh.enable = true;
+      programs.topgrade.settings.misc.nix_handler = "nh";
+      programs.nix-your-shell.enable = true;
+      programs.command-not-found.enable = false;
+      programs.nix-index-database.comma.enable = true;
 
-          enableBashIntegration = config.programs.bash.enable or false;
-          enableZshIntegration = config.programs.zsh.enable or false;
-
-          symlinkToCacheHome = true;
-        };
+      programs.nix-index = {
+        enable = true;
+        symlinkToCacheHome = true;
       };
 
-    darwin =
-      { pkgs, ... }:
-      {
-        environment.systemPackages = with pkgs; [
-          gawk
-          gnugrep
-          gnupg
-          gnused
-          gnutls
-          terminal-notifier
-          trash-cli
-        ];
+      home.sessionVariables = {
       };
+    };
+
+    macos = { pkgs, ... }: {
+      environment.systemPackages = with pkgs; [
+        gawk
+        gnugrep
+        gnupg
+        gnused
+        gnutls
+        terminal-notifier
+        trash-cli
+      ];
+    };
   };
 }

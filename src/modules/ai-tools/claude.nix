@@ -1,4 +1,10 @@
-{ den, inputs, ... }:
+{
+  __findFile,
+  den,
+  inputs,
+  rbn-policies,
+  ...
+}:
 {
   flake-file.inputs.anthropic-skills = {
     flake = false;
@@ -6,119 +12,101 @@
   };
 
   rbn.programs._.ai-tools._.claude = {
-    provides.code =
-      let
-        permission-profiles = import ./_claude/permissions.nix;
-      in
-      {
-        includes = [ (den.batteries.unfree [ "claude-code" ]) ];
+    includes = [
+      <rbn/programs/ai-tools/claude/code>
+      (rbn-policies.when-desktop "claude" <rbn/programs/ai-tools/claude/desktop>)
+    ];
 
-        homeManager =
-          {
-            config,
-            lib,
-            pkgs,
-            ...
-          }:
-          let
-            inherit (lib) mkOption;
-            inherit (lib.rbn) import-dir;
+    _.code = {
+      includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
-            ai-tools = import ./_ai-tools {
-              inherit lib;
-              anthropic-skills-src = inputs.anthropic-skills;
-            };
-            inherit (ai-tools) claude-code;
+      hm =
+        { lib, pkgs, ... }:
+        let
+          inherit (inputs) import-tree;
 
-            hooks-dir = ./_claude/hooks;
-            status-line = import ./_claude/status-line.nix {
-              inherit lib pkgs;
-            };
-          in
-          {
-            # Define options (replaces old mk-module option definitions)
-            options.rebellion.programs.ai-tools.claude = {
-              code = {
-                enable = mkOption {
-                  type = lib.types.bool;
-                  default = false;
-                  description = "Enable Claude Code";
-                };
-                permissions-profile = mkOption {
-                  type = lib.types.enum [
-                    "conservative"
-                    "standard"
-                    "autonomous"
-                  ];
-                  default = "standard";
-                  description = "Permission profile for Claude Code.";
-                };
+          ai-tools = import ./_ai-tools {
+            inherit lib import-tree;
+            anthropic-skills-src = inputs.anthropic-skills;
+          };
+          inherit (ai-tools) claude-code;
+
+          # Each hook file returns `{ <Event> = [ … ]; }`. Several files target the
+          # same event — `post-tool-{audit,validate}` both define `PostToolUse`,
+          # `pre-tool-{audit,use}` both define `PreToolUse` — so the lists have to
+          # be concatenated per event. The previous `import-dir` shallow-merged
+          # with `//` and silently kept only the last file of each pair.
+          hooks = lib.zipAttrsWith (_: lib.concatLists) (
+            lib.pipe import-tree [
+              (i: i.initFilter (p: lib.hasSuffix ".nix" (toString p)))
+              (i: i.map (p: import p { inherit pkgs; }))
+              (i: i.leafs ./_claude/hooks)
+            ]
+          );
+
+          status-line = import ./_claude/status-line.nix {
+            inherit pkgs;
+          };
+        in
+        {
+          xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
+
+          programs.claude-code = {
+            enable = true;
+            enableMcpIntegration = true;
+
+            inherit (claude-code) agents commands;
+
+            settings = {
+              theme = "dark";
+
+              inherit hooks;
+
+              verbose = true;
+              includeCoAuthoredBy = false;
+
+              env = {
+                USE_BUILTIN_RIPGREP = "0";
+              };
+
+              statusLine = {
+                type = "command";
+                command = lib.getExe status-line;
               };
             };
 
-            config = lib.mkMerge [
-              {
-                xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
+            inherit (ai-tools) skills;
 
-                programs.claude-code = {
-                  enable = true;
+            context = ./_ai-tools/BASE.md;
 
-                  enableMcpIntegration = config.programs.mcp.enable;
-
-                  inherit (claude-code) agents commands;
-
-                  settings = {
-                    theme = "dark";
-
-                    hooks = import-dir hooks-dir { inherit pkgs; };
-
-                    verbose = true;
-                    includeCoAuthoredBy = false;
-
-                    env = {
-                      USE_BUILTIN_RIPGREP = "0";
-                    };
-                  };
-
-                  inherit (ai-tools) skills;
-
-                  context = ./_ai-tools/BASE.md;
-                };
-              }
-              status-line
-            ];
-          };
-        provides.conservative.homeManager = {
-          programs.claude-code.settings.permissions = {
-            allow = permission-profiles.allow.conservative;
-            ask = permission-profiles.ask.conservative;
-            deny = permission-profiles.deny.conservative;
-            defaultMode = "conservative";
           };
         };
-        provides.standard.homeManager = {
-          programs.claude-code.settings.permissions = {
-            allow = permission-profiles.allow.standard;
-            ask = permission-profiles.ask.standard;
-            deny = permission-profiles.deny.standard;
-            defaultMode = "standard";
-          };
-        };
-        provides.autonomous.homeManager = {
-          programs.claude-code.settings.permissions = {
-            allow = permission-profiles.allow.autonomous;
-            ask = permission-profiles.ask.autonomous;
-            deny = permission-profiles.deny.autonomous;
-            defaultMode = "autonomous";
-          };
+
+      conservative.hm = _: {
+        programs.claude-code.settings.permissions = {
+          inherit ((import ./_claude/permissions.nix).conservative) allow ask deny;
+          defaultMode = "conservative";
         };
       };
 
-    provides.desktop.dock.app = "Claude.app";
-    provides.desktop.darwin =
-      { host, lib, ... }:
-      lib.mkIf host.homebrew.enable {
-        homebrew.casks = [ "claude" ];
+      standard.hm = _: {
+        programs.claude-code.settings.permissions = {
+          inherit ((import ./_claude/permissions.nix).standard) allow ask deny;
+          defaultMode = "standard";
+        };
       };
+
+      autonomous.hm = _: {
+        programs.claude-code.settings.permissions = {
+          inherit ((import ./_claude/permissions.nix).autanomous) allow ask deny;
+          defaultMode = "autonomous";
+        };
+      };
+    };
+
+    _.desktop = {
+      dock.app = "Claude.app";
+      macos.homebrew.casks = [ "claude" ];
+    };
   };
 }

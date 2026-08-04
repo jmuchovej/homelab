@@ -153,7 +153,19 @@ in
         ++ host.persistence.extra-files;
       };
 
+      # sops derives the host's age identity from the SSH host key. The base
+      # sops config points at /etc/ssh/ssh_host_ed25519_key, but on impermanence
+      # hosts that's an impermanence *bind-mount* that isn't up yet when sops's
+      # early `setupSecretsForUsers` activation runs (for `neededForUsers`
+      # secrets like lab/password). That phase then reads an empty file, fails
+      # to derive a key, and the user password never lands — leaving the host
+      # unbootable ("failed to decrypt … 0 successful groups").
+      #
+      # The real key lives at /persist/etc/ssh/ssh_host_ed25519_key, and
+      # /persist is `neededForBoot` (mounted before any activation script), so
+      # it's always present. mkBefore so sops tries it ahead of the bind path.
       sops.age.sshKeyPaths = lib.mkBefore [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+
       # Standard M.2 disko layout — only when host.persistence.device is set.
       # Hosts with custom partitioning leave `.device = null` and write
       # their own `_disks.nix`. `lib.mkIf` on `disko` short-circuits the

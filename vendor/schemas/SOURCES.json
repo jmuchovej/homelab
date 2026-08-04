@@ -14,5 +14,9 @@
   },
   "secret-v1.json": {
     "url": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
+  },
+  "talos-config.json": {
+    "version": "1.13.7",
+    "url": "https://docs.siderolabs.com/talos/v1.13/schemas/config.schema.json"
   }
 }

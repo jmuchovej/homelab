@@ -9,7 +9,7 @@
     _.brave = {
       dock.app = "Brave Browser.app";
 
-      hm-linux = {
+      hm-linux = _: {
         programs.brave.enable = true;
       };
 
@@ -52,7 +52,7 @@
     };
 
     _.google-chrome = {
-      hm-linux = {
+      hm-linux = _: {
         programs.google-chrome.enable = true;
       };
 
@@ -60,7 +60,7 @@
     };
 
     _.vivaldi = {
-      hm-linux = {
+      hm-linux = _: {
         programs.vivaldi.enable = true;
       };
 

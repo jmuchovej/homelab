@@ -4,7 +4,7 @@ set script-interpreter := ['bash', '-euo', 'pipefail']
 default:
     @just --justfile {{ module_file() }} --list
 
-# Refresh the vendored schemas under manifests/schemas/. These back both
+# Refresh the vendored schemas under vendor/schemas/. These back both
 # editor validation (relative `# $schema:` comments in the bootstrap
 # manifests) and the build-time kubeconform/check-jsonschema pass in
 # kubernetes.nix (the nix sandbox has no network, hence vendoring).
@@ -15,8 +15,9 @@ default:
 [doc('Refresh vendored schemas (bump cilium spec.version first; build check enforces sync)')]
 [script]
 update-schemas:
-    manifests="{{ module_directory() }}/manifests"
-    schemas="$manifests/schemas"
+    # manifests moved to src/bootstrap/kubernetes/; schemas are repo-root vendored
+    manifests="{{ justfile_directory() }}/src/bootstrap/kubernetes"
+    schemas="{{ justfile_directory() }}/vendor/schemas"
     mkdir -p "$schemas"
 
     cilium_version=$(yq 'select(.kind == "HelmChart") | .spec.version' "$manifests/cilium.yaml")
@@ -24,6 +25,17 @@ update-schemas:
         echo "could not read spec.version from $manifests/cilium.yaml" >&2
         exit 1
     }
+
+    # Talos version comes from the machineconfig's installer image tag, the
+    # same way cilium's comes from its HelmChart spec.version.
+    talos_image=$(yq '.machine.install.image' "{{ justfile_directory() }}/src/bootstrap/talos/machineconfig.yaml")
+    talos_version=${talos_image##*:v}
+    [[ -n $talos_version && $talos_version != "null" ]] || {
+        echo "could not read machine.install.image from the talos machineconfig" >&2
+        exit 1
+    }
+    # docs are published per MINOR (v1.13), not per patch (v1.13.7)
+    talos_minor=${talos_version%.*}
 
     fetch() {
         echo "fetching $2"
@@ -35,12 +47,16 @@ update-schemas:
     url_helmchart="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.cattle.io/helmchart_v1.json"
     url_namespace="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/namespace-v1.json"
     url_secret="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
+    # Talos machine config — MINOR-versioned docs path (v1.13), not the patch
+    # release, which is what `machine.install.image` pins.
+    url_talos="https://docs.siderolabs.com/talos/v${talos_minor}/schemas/config.schema.json"
 
     fetch "$url_cilium" cilium-values.json
     fetch "$url_fluxinstance" fluxinstance_v1.json
     fetch "$url_helmchart" helmchart_v1.json
     fetch "$url_namespace" namespace-v1.json
     fetch "$url_secret" secret-v1.json
+    fetch "$url_talos" talos-config.json
 
     cat > "$schemas/SOURCES.json" <<EOF
     {
@@ -51,8 +67,13 @@ update-schemas:
       "fluxinstance_v1.json": { "url": "$url_fluxinstance" },
       "helmchart_v1.json": { "url": "$url_helmchart" },
       "namespace-v1.json": { "url": "$url_namespace" },
-      "secret-v1.json": { "url": "$url_secret" }
+      "secret-v1.json": { "url": "$url_secret" },
+      "talos-config.json": {
+        "version": "$talos_version",
+        "url": "$url_talos"
+      }
     }
     EOF
 
-    echo "vendored $(ls "$schemas" | wc -l | tr -d ' ') files into $schemas (cilium chart $cilium_version)"
+    echo "vendored $(ls "$schemas" | wc -l | tr -d ' ') files into $schemas" \
+      "(cilium chart $cilium_version, talos $talos_version)"

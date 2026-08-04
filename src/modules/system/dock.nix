@@ -46,7 +46,7 @@
     };
 
   # ── Darwin aspect: build dock layout ───────────────────────────────
-  rbn.system._.dock.darwin =
+  rbn.system._.dock.macos =
     {
       host,
       lib,
@@ -65,7 +65,9 @@
         ;
 
       primaryUser = host.primary-user.name;
-      hmAppsDir = "/Users/${primaryUser}/Applications/Home Manager Apps";
+      userAppsDir = "/Users/${primaryUser}/Applications";
+      hmAppsDir = "${userAppsDir}/Home Manager Apps";
+      nixAppsDir = "/Applications/Nix Apps";
 
       allEntries = host.users.${primaryUser}.dock or [ ];
 
@@ -75,8 +77,12 @@
           entry.path
         else if entry.source == "hm" then
           "${hmAppsDir}/${entry.name}"
-        else if entry.source == "system" then
+        else if entry.source == "user-apps" then
+          "${userAppsDir}/${entry.name}"
+        else if entry.source == "system-apps" then
           "/System/Applications/${entry.name}"
+        else if entry.source == "nix-apps" then
+          "${nixAppsDir}/${entry.name}"
         else
           "/Applications/${entry.name}";
 

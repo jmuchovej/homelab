@@ -1,4 +1,3 @@
-{ cfg, ... }:
 let
   # Helper to filter out specific rules
   without = rules: exclusions: builtins.filter (rule: !(builtins.elem rule exclusions)) rules;
@@ -174,5 +173,19 @@ let
   deny.conservative = definitely-deny;
 in
 {
-  inherit allow ask deny;
+  conservative = {
+    allow = allow.conservative;
+    ask = ask.conservative;
+    deny = deny.conservative;
+  };
+  standard = {
+    allow = allow.standard;
+    ask = ask.standard;
+    deny = deny.standard;
+  };
+  autonomous = {
+    allow = allow.autonomous;
+    ask = ask.autonomous;
+    deny = deny.autonomous;
+  };
 }

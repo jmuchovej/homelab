@@ -10,6 +10,7 @@
     "jetbrains-new-ui-icons"
     "material-icon-theme"
     "nvim-nightfox"
+    "flexoki-themes"
   ];
   settings = lib.mkMerge [
     {
@@ -17,9 +18,10 @@
       # https://zed.dev/docs/visual-customization#themes
       theme = {
         # dark = "Catppuccin Frappé";
-        light = "Dawnfox - opaque";
+        # light = "Dawnfox - opaque";
+        light = "Flexoki Light";
         # light = "Catppuccin Latte";
-        dark = "Carbonfox - opaque";
+        dark = "Flexoki Dark";
         mode = "system";
       };
       icon_theme = {

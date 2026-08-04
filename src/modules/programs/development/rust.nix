@@ -1,11 +1,11 @@
 {
-  rbn.programs._.development._.rust.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.rust.hm = { pkgs, ... }: {
     home.packages = with pkgs; [
       cargo
       rustc
       cargo-binstall
       tombi
-      # cargo-xtask — not in nixpkgs
+      cargo-workspaces
     ];
 
     programs.vscode = {

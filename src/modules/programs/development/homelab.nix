@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.homelab.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.homelab.hm = { pkgs, ... }: {
     home.packages = [ pkgs.opentofu ];
 
     # https://zed.dev/docs/languages/terraform

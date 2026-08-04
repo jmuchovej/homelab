@@ -59,7 +59,7 @@ in
   # then dynamically rebinds the GPU from `nvidia` to `vfio-pci`, returning
   # it to `nvidia` when the guest stops. `active = false` keeps the GPU with
   # the host driver until you explicitly `virsh start`.
-  rbn.system._.virtualization.provides.win11.__functor =
+  rbn.system._.virtualization._.win11.__functor =
     _self:
     {
       name ? "win11",

@@ -4,8 +4,8 @@
 #   <rbn/system/networking/manager/networkd> or <rbn/system/networking/manager/networkmanager>
 {
   rbn.system._.networking = {
-    provides.static.nixos.networking.tempAddresses = "disabled";
-    provides.wol.systemd.network.links."10-wol" = {
+    _.static.nixos.networking.tempAddresses = "disabled";
+    _.wol.systemd.network.links."10-wol" = {
       matchConfig.Type = "ether";
       linkConfig.WakeOnLan = "magic";
     };
@@ -13,22 +13,10 @@
     nixos =
       {
         host,
-        config,
         lib,
         pkgs,
         ...
       }:
-      let
-        inherit (lib)
-          mkDefault
-          mkForce
-          optionals
-          getExe'
-          ;
-
-        # Check if consul is enabled on this host (mesh services need consul)
-        hasMesh = host.consul.enable or false;
-      in
       {
         networking = {
           nftables.enable = true;
@@ -44,7 +32,7 @@
               443
               8080
             ];
-            checkReversePath = mkDefault false;
+            checkReversePath = lib.mkDefault false;
             logReversePathDrops = true;
             logRefusedConnections = true;
           };
@@ -54,8 +42,8 @@
             "lab"
           ];
 
-          useDHCP = mkForce false;
-          usePredictableInterfaceNames = mkForce true;
+          useDHCP = lib.mkForce false;
+          usePredictableInterfaceNames = lib.mkForce true;
         };
 
         boot = {
@@ -129,7 +117,7 @@
         # ── Dynamic gateway discovery ──────────────────────────────────
         systemd.services.discover-gateway = {
           description = "Discover default gateway and network device";
-          after = [ "network-online.target" ] ++ optionals hasMesh [ "consul.service" ];
+          after = [ "network-online.target" ];
           wants = [ "network-online.target" ];
 
           serviceConfig = {
@@ -139,8 +127,8 @@
 
           script =
             let
-              ip = getExe' pkgs.iproute2 "ip";
-              awk = getExe' pkgs.gawk "awk";
+              ip = lib.getExe' pkgs.iproute2 "ip";
+              awk = lib.getExe' pkgs.gawk "awk";
             in
             ''
               set -euo pipefail
@@ -167,8 +155,7 @@
           after = [
             "network-online.target"
             "discover-gateway.service"
-          ]
-          ++ optionals hasMesh [ "consul.service" ];
+          ];
           wants = [
             "network-online.target"
             "discover-gateway.service"
@@ -180,20 +167,24 @@
             RemainAfterExit = true;
           };
 
-          script = mkDefault ''
+          script = lib.mkDefault ''
             echo "No DNS backend configured"
             exit 1
           '';
         };
 
-        systemd.services.dynamic-gateway-reload = {
-          description = "Reload dynamic gateway configuration";
-          serviceConfig.Type = "oneshot";
-          script = ''
-            ${getExe' pkgs.systemd "systemctl"} restart discover-gateway.service
-            ${getExe' pkgs.systemd "systemctl"} restart dynamic-gateway.service
-          '';
-        };
+        systemd.services.dynamic-gateway-reload =
+          let
+            systemctl = lib.getExe' pkgs.systemd "systemctl";
+          in
+          {
+            description = "Reload dynamic gateway configuration";
+            serviceConfig.Type = "oneshot";
+            script = ''
+              ${systemctl} restart discover-gateway.service
+              ${systemctl} restart dynamic-gateway.service
+            '';
+          };
 
         systemd.paths.dynamic-gateway-trigger = {
           wantedBy = [ "multi-user.target" ];

@@ -40,38 +40,29 @@
       <rbn/programs/terminal/tmux>
       <rbn/programs/terminal/zoxide>
       <rbn/programs/security/onepassword>
-      <rbn/programs/vcs/git>
-      <rbn/programs/vcs/jujutsu>
+      <rbn/programs/security/proton>
       <rbn/programs/editors/neovim>
       <rbn/shells/bash>
       <rbn/shells/zsh>
     ];
 
     # Shared across NixOS and darwin
-    os =
-      { pkgs, ... }:
-      {
-        environment.systemPackages = with pkgs; [
-          coreutils
-          curl
-          fd
-          file
-          git
-          findutils
-          lsof
-          pciutils
-          tldr
-          unzip
-          wget
-          xclip
-        ];
-      };
-
-    # NixOS-only extras
-    nixos =
-      { pkgs, ... }:
-      {
-        environment.systemPackages = [ pkgs.usbutils ];
-      };
+    os = { pkgs, ... }: {
+      environment.systemPackages = with pkgs; [
+        coreutils
+        curl
+        fd
+        file
+        git
+        findutils
+        lsof
+        pciutils
+        tldr
+        unzip
+        wget
+        xclip
+        usbutils
+      ];
+    };
   };
 }

@@ -1,18 +1,10 @@
 {
-  rbn.programs._.terminal._.carapace.homeManager =
-    { pkgs, ... }:
-    {
-      home.packages = [ pkgs.carapace-bridge ];
+  rbn.programs._.terminal._.carapace.hm = { pkgs, ... }: {
+    home.packages = [ pkgs.carapace-bridge ];
 
-      programs.carapace = {
-        enable = true;
-        package = pkgs.carapace;
-        ignoreCase = false;
-
-        enableBashIntegration = true;
-        enableZshIntegration = true;
-        enableNushellIntegration = true;
-        enableFishIntegration = true;
-      };
+    programs.carapace = {
+      enable = true;
+      ignoreCase = false;
     };
+  };
 }

@@ -1,6 +1,6 @@
 ## AI-tools helpers: markdown frontmatter parsing for cross-tool translation
 ## (Claude Code → Antigravity → etc.). Imported explicitly by sibling modules.
-{ lib }:
+{ lib, import-tree }:
 let
   inherit (lib)
     concatStringsSep
@@ -14,9 +14,9 @@ let
     removePrefix
     removeSuffix
     splitString
+    hasSuffix
     trim
     ;
-  inherit (lib.rbn) import-subdirs;
 
   ## Strip surrounding double-quotes from a string.
   strip-quotes = s: removePrefix "\"" (removeSuffix "\"" s);
@@ -92,8 +92,23 @@ in
       inherit guide;
     };
 
-  ## Load commands and agents from a directory using import-subdirs.
-  ## Returns { commands = { name = "raw md"; ... }; agents = { ... }; }.
+  ## Load commands or agents from a directory, flattening any nesting
+  ## (`commands/git/commit-msg.md` -> `commit-msg`), keyed by filename stem.
+  ##
+  ## Values are the `.md` paths themselves, not their contents:
+  ## `programs.claude-code.{commands,agents}` is `attrsOf (either lines path)`,
+  ## so a path works and avoids a `readFile` per file at eval time.
+  ##
+  ## As in `default.nix`, `initFilter` must be overridden — the default filter
+  ## rejects everything under `_ai-tools/` because the path contains `/_`.
   #@ Path -> Attrs
-  load-tools = base-path: import-subdirs base-path { };
+  load-tools =
+    base-path:
+    listToAttrs (
+      lib.pipe import-tree [
+        (i: i.initFilter (p: hasSuffix ".md" (toString p)))
+        (i: i.map (p: nameValuePair (removeSuffix ".md" (baseNameOf p)) p))
+        (i: i.leafs base-path)
+      ]
+    );
 }

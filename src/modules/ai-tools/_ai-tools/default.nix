@@ -1,14 +1,21 @@
-{ lib, anthropic-skills-src }:
-
+{
+  lib,
+  import-tree,
+  anthropic-skills-src,
+}:
 let
-  inherit (import ./lib.nix { inherit lib; }) load-tools;
+  inherit (import ./lib.nix { inherit lib import-tree; }) load-tools;
 
   commands = load-tools ./commands;
   agents = load-tools ./agents;
 
   # Local skills — each subdir of ./skills/ is one skill.
-  local-skills = lib.mapAttrs' (name: _: lib.nameValuePair name (./skills + "/${name}")) (
-    builtins.readDir ./skills
+  local-skills = lib.listToAttrs (
+    lib.pipe import-tree [
+      (i: i.initFilter (p: lib.hasSuffix "/SKILL.md" (toString p)))
+      (i: i.map (p: lib.nameValuePair (baseNameOf (dirOf p)) (dirOf p)))
+      (i: i.leafs ./skills)
+    ]
   );
 
   # Upstream Anthropic skills (subset; rev pinned via flake input).

@@ -7,7 +7,7 @@
 - **Research/scientific**: Python or Julia. Prefer Julia when type safety and
   composability matter; Python when ecosystem support is critical (e.g., deep
   learning, most ML libraries).
-- **Mobile/cross-platform apps**: Dart + Flutter with a Rust FFI core.
+- **Mobile/cross-platform apps**: Rust + Tauri.
 - **Systems/backend/FFI**: Rust or Python.
 - **Web**: TypeScript — prefer Astro, then Nuxt.
 - When choosing between approaches, prioritize type safety, then development

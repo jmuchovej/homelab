@@ -1,41 +1,18 @@
-_: {
+{
   rbn.system._.networking._.dns._.dnsmasq.nixos =
-    {
-      host,
-      config,
-      lib,
-      ...
-    }:
+    { lib, ... }:
     let
-      inherit (lib) mkIf mkForce mkMerge;
-
-      consul =
-        host.consul or {
-          enable = false;
-          dns = {
-            enable = false;
-          };
-        };
-      keepalived =
-        host.keepalived or {
-          enable = false;
-          vip = {
-            address = "";
-          };
-          interface = "lo";
-        };
-      inherit (host) datacenter;
       dynamic-gateway-conf = "/run/dnsmasq/dynamic-gateway.conf";
     in
     {
-      networking.networkmanager.dns = mkIf (!(consul.dns.enable or false)) "dnsmasq";
-      services.resolved.enable = mkForce false;
+      networking.networkmanager.dns = "dnsmasq";
+      services.resolved.enable = lib.mkForce false;
 
       services.dnsmasq = {
         enable = true;
         resolveLocalQueries = true;
 
-        settings = mkMerge [
+        settings = lib.mkMerge [
           {
             strict-order = true;
 
@@ -49,17 +26,6 @@ _: {
             interface = [ "lo" ];
             conf-file = [ dynamic-gateway-conf ];
           }
-
-          (mkIf (consul.dns.enable or false) {
-            server = [ "/consul/127.0.0.1#8600" ];
-            local = [ "/${datacenter}.jm0.io/" ];
-            address = [ "/${datacenter}.jm0.io/${keepalived.vip.address}" ];
-
-            interface = [
-              "lo"
-              keepalived.interface
-            ];
-          })
         ];
       };
 
@@ -68,7 +34,7 @@ _: {
         before = [ "dnsmasq.target" ];
         requiredBy = [ "dnsmasq.service" ];
 
-        script = mkForce ''
+        script = lib.mkForce ''
           if [ -f /run/dynamic-gateway/env ]; then
             source /run/dynamic-gateway/env
           else
@@ -86,12 +52,5 @@ _: {
         requires = [ "dynamic-gateway.service" ];
         after = [ "dynamic-gateway.service" ];
       };
-
-      networking.firewall = mkIf (consul.dns.enable or false) {
-        allowedUDPPorts = [ 53 ];
-        allowedTCPPorts = [ 53 ];
-      };
-
-      networking.nameservers = mkIf (consul.dns.enable or false) (mkForce [ "127.0.0.1" ]);
     };
 }

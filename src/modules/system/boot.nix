@@ -1,45 +1,40 @@
-# NixOS boot: base EFI/systemd-boot, secure boot (lanzaboote), graphical boot.
 { inputs, lib, ... }:
 {
   flake-file.inputs.lanzaboote.url = "github:nix-community/lanzaboote";
 
   rbn.system._.boot = {
-    # Base boot config — always applies on NixOS
-    nixos =
-      { lib, pkgs, ... }:
-      {
-        environment.systemPackages = with pkgs; [
-          efibootmgr
-          efitools
-          efivar
-        ];
+    nixos = { lib, pkgs, ... }: {
+      environment.systemPackages = with pkgs; [
+        efibootmgr
+        efitools
+        efivar
+      ];
 
-        boot = {
-          loader = {
-            efi = {
-              canTouchEfiVariables = true;
-              efiSysMountPoint = "/boot";
-            };
-
-            generationsDir.copyKernels = true;
-
-            systemd-boot = {
-              enable = true;
-              configurationLimit = 20;
-              editor = false;
-            };
+      boot = {
+        loader = {
+          efi = {
+            canTouchEfiVariables = true;
+            efiSysMountPoint = "/boot";
           };
 
-          tmp = {
-            useTmpfs = lib.mkDefault true;
-            cleanOnBoot = lib.mkDefault true;
-            tmpfsSize = lib.mkDefault "50%";
+          generationsDir.copyKernels = true;
+
+          systemd-boot = {
+            enable = true;
+            configurationLimit = 20;
+            editor = false;
           };
         };
-      };
 
-    # Secure boot via lanzaboote — include <rbn/system/boot/secure>
-    provides.secure.nixos = {
+        tmp = {
+          useTmpfs = lib.mkDefault true;
+          cleanOnBoot = lib.mkDefault true;
+          tmpfsSize = lib.mkDefault "50%";
+        };
+      };
+    };
+
+    _.secure.nixos = {
       imports = [ inputs.lanzaboote.nixosModules.lanzaboote ];
       boot = {
         loader.systemd-boot.enable = lib.mkForce false;
@@ -50,8 +45,7 @@
       };
     };
 
-    # Graphical boot (plymouth + quiet) — include <rbn/system/boot/graphical>
-    provides.graphical.nixos = {
+    _.graphical.nixos = {
       boot = {
         plymouth.enable = true;
         consoleLogLevel = 3;

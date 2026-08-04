@@ -1,15 +1,13 @@
 { __findFile, ... }:
 {
   den.hosts.aarch64-darwin.da-n1x = {
+    desktop = true;
+
     primary-user = {
       name = "john";
       email = "john@jm0.io";
       full-name = "John Muchovej";
       uid = 501;
-    };
-    homebrew = {
-      enable = true;
-      mas.enable = true;
     };
     notunes.enable = true;
   };
@@ -18,11 +16,10 @@
     includes = [
       <rbn/suite/desktop>
       <rbn/suite/development>
-      <rbn/programs/media/spotify>
       <rbn/services/zerotier>
     ];
 
-    darwin = {
+    macos = {
       networking = {
         computerName = "John's Macbook Pro";
         hostName = "da-n1x";

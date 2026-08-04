@@ -1,13 +1,11 @@
 {
-  rbn.programs._.development._.web.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.web.hm = { pkgs, ... }: {
     programs.bun = {
       enable = true;
       enableGitIntegration = true;
     };
 
-    home.packages = with pkgs; [
-      deno
-    ];
+    home.packages = [ pkgs.deno ];
 
     programs.vscode = {
       profiles.default.extensions = with pkgs.open-vsx; [
@@ -80,6 +78,22 @@
           tab_size = 2;
           formatter = "auto";
         };
+        lsp.vstls =
+          let
+            shared-settings = {
+              updateImportsOnFileMove.enabled = "always";
+              suggest.completeFunctionCalls = true;
+              tsserver = {
+                watch.usePolling = false;
+                maxTsServerMemory = 8092;
+              };
+            };
+          in
+          {
+            settings.typescript = shared-settings // { };
+            settings.javascript = shared-settings // { };
+            enable_lsp_tasks = true;
+          };
       };
     };
   };

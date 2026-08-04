@@ -8,9 +8,9 @@
   flake-file.inputs.deploy.url = "github:serokell/deploy-rs";
 
   flake.deploy.nodes = lib.mapAttrs (
-    hostname: nixosCfg:
+    hostname: cfg:
     let
-      inherit (nixosCfg.pkgs.stdenv.hostPlatform) system;
+      inherit (cfg.pkgs.stdenv.hostPlatform) system;
     in
     {
       inherit hostname;
@@ -19,7 +19,7 @@
       magicRollback = true;
       autoRollback = true;
       remoteBuild = true;
-      profiles.system.path = inputs.deploy.lib.${system}.activate.nixos nixosCfg;
+      profiles.system.path = inputs.deploy.lib.${system}.activate.nixos cfg;
     }
   ) (self.nixosConfigurations or { });
 }

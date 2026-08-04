@@ -1,7 +1,6 @@
 # Shared host schema options — available to all hosts via `host.*`.
 # Individual service schemas are colocated in their aspect files.
 # This file defines cross-cutting options used by many aspects.
-{ lib, den, ... }:
 {
   den.schema.host =
     { config, lib, ... }:
@@ -35,7 +34,7 @@
         hostname = mkOption {
           type = str;
           default = config.name;
-          description = "Full hostname (same as host name)";
+          description = "Full hostname (same as host.name)";
         };
         # ── Cluster domain (plaintext; not secret — access control, not
         #    obscurity, is the boundary) ─────────────────────────────────

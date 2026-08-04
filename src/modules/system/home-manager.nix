@@ -12,12 +12,10 @@
     darwin.imports = [
       inputs.home-manager.darwinModules.home-manager
     ];
-    homeManager =
-      { lib, ... }:
-      {
-        home.stateVersion = lib.mkDefault "25.11";
-        home.sessionPath = [ "$HOME/.local/bin" ];
-      };
+    homeManager = { lib, ... }: {
+      home.stateVersion = lib.mkDefault "25.11";
+      home.sessionPath = [ "$HOME/.local/bin" ];
+    };
   };
 
   den.schema.user.classes = lib.mkDefault [ "homeManager" ];
@@ -55,7 +53,7 @@
   # ── HM wiring aspect ──────────────────────────────────────────────
   rbn.system._.home-manager = {
     os =
-      { host, lib, ... }:
+      { host, ... }:
       let
         username = host.primary-user.name;
       in
@@ -74,7 +72,6 @@
         };
       };
 
-    # NixOS: wire HM for primary user
     nixos =
       { host, lib, ... }:
       let
@@ -84,8 +81,7 @@
         users.users.${username}.home = lib.mkDefault (/. + "/home/${username}");
       };
 
-    # Darwin: wire HM for primary user
-    darwin =
+    macos =
       { host, lib, ... }:
       let
         username = host.primary-user.name;

@@ -1,12 +1,11 @@
-_: {
-  den.schema.host =
-    { lib, ... }:
-    let
-      inherit (lib) mkOption;
-      inherit (lib.types) listOf submodule str;
-    in
-    {
-      options.nfs = {
+{
+  den.schema.host = { lib, ... }: {
+    options.nfs =
+      let
+        inherit (lib) mkOption;
+        inherit (lib.types) listOf submodule str;
+      in
+      {
         exports = mkOption {
           type = listOf (submodule {
             options = {
@@ -68,58 +67,56 @@ _: {
           description = "Remote NFS exports to mount on this host.";
         };
       };
-    };
-
-  rbn.services._.nfs = {
-    nixos =
-      {
-        host,
-        lib,
-        config,
-        ...
-      }:
-      let
-        enable-exports = host.nfs.exports != [ ];
-        enable-mounts = host.nfs.mounts != [ ];
-      in
-      {
-        services.nfs.server = lib.mkIf enable-exports {
-          enable = true;
-          exports =
-            (lib.concatMapStringsSep "\n" (e: "${e.path} ${e.clients}(${e.options})") host.nfs.exports) + "\n";
-        };
-        networking.firewall.allowedTCPPorts = lib.mkIf enable-exports [ 2049 ];
-
-        fileSystems = lib.listToAttrs (
-          map (
-            m:
-            lib.nameValuePair m.local {
-              device = "${m.server}:${m.remote}";
-              fsType = "nfs";
-              inherit (m) options;
-            }
-          ) host.nfs.mounts
-        );
-
-        systemd.services.systemd-tmpfiles-setup.serviceConfig.ExecStart =
-          let
-            mounts = [ "/dev" ] ++ map (m: m.local) host.nfs.mounts;
-            # each list element becomes its own `ExecStart=` line, so the full
-            # command must be a single string — bare flags are silently ignored
-            exec-start' = lib.concatStringsSep " " (
-              [
-                "${config.systemd.package}/bin/systemd-tmpfiles"
-                "--create"
-                "--remove"
-                "--boot"
-              ]
-              ++ map (mount: "--exclude-prefix=${mount}") mounts
-            );
-          in
-          lib.mkIf enable-mounts [
-            "" # reset the upstream ExecStart before redefining it
-            exec-start'
-          ];
-      };
   };
+
+  rbn.services._.nfs.nixos =
+    {
+      host,
+      lib,
+      config,
+      ...
+    }:
+    let
+      enable-exports = host.nfs.exports != [ ];
+      enable-mounts = host.nfs.mounts != [ ];
+    in
+    {
+      services.nfs.server = lib.mkIf enable-exports {
+        enable = true;
+        exports =
+          (lib.concatMapStringsSep "\n" (e: "${e.path} ${e.clients}(${e.options})") host.nfs.exports) + "\n";
+      };
+      networking.firewall.allowedTCPPorts = lib.mkIf enable-exports [ 2049 ];
+
+      fileSystems = lib.listToAttrs (
+        map (
+          m:
+          lib.nameValuePair m.local {
+            device = "${m.server}:${m.remote}";
+            fsType = "nfs";
+            inherit (m) options;
+          }
+        ) host.nfs.mounts
+      );
+
+      systemd.services.systemd-tmpfiles-setup.serviceConfig.ExecStart =
+        let
+          mounts = [ "/dev" ] ++ map (m: m.local) host.nfs.mounts;
+          # each list element becomes its own `ExecStart=` line, so the full
+          # command must be a single string — bare flags are silently ignored
+          exec-start' = lib.concatStringsSep " " (
+            [
+              "${config.systemd.package}/bin/systemd-tmpfiles"
+              "--create"
+              "--remove"
+              "--boot"
+            ]
+            ++ map (mount: "--exclude-prefix=${mount}") mounts
+          );
+        in
+        lib.mkIf enable-mounts [
+          "" # reset the upstream ExecStart before redefining it
+          exec-start'
+        ];
+    };
 }

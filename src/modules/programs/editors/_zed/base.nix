@@ -3,6 +3,8 @@
   settings = lib.mkMerge [
     # https://zed.dev/docs/configuring-zed#auto-indent
     { auto_indent = true; }
+    # https://zed.dev/docs/configuring-zed#code-lens
+    { code_lens = "on"; }
     # https://zed.dev/docs/configuring-zed#auto-indent-on-paste
     { auto_indent_on_paste = true; }
     # https://zed.dev/docs/configuring-zed#autosave

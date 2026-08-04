@@ -1,11 +1,9 @@
 {
   rbn.programs._.development._.powershell = {
-    homeManager =
-      { pkgs, lib, ... }:
-      lib.mkIf pkgs.stdenv.isLinux {
-        home.packages = [ pkgs.powershell ];
-      };
+    hm-linux = { pkgs, ... }: {
+      home.packages = [ pkgs.powershell ];
+    };
 
-    darwin.homebrew.casks = [ "powershell" ];
+    macos.homebrew.casks = [ "powershell" ];
   };
 }

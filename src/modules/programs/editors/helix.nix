@@ -1,5 +1,5 @@
-_: {
-  rbn.programs._.editors._.helix.homeManager =
+{
+  rbn.programs._.editors._.helix.hm =
     { lib, pkgs, ... }:
     let
       languages = import ./_helix-languages.nix { inherit pkgs lib; };

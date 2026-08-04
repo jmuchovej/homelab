@@ -1,9 +1,6 @@
 # TODO look into what's required to package with Nerd Fonts / FontForge
-{
-  stdenv,
-  ...
-}:
-stdenv.mkDerivation rec {
+{ stdenv, ... }:
+stdenv.mkDerivation {
   pname = "brandon-text";
   version = "0.1.0";
 

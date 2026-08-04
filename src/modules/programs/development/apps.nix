@@ -2,16 +2,16 @@
 {
   rbn.programs._.development._.apps = {
     includes = [ (den.batteries.unfree [ "android-studio" ]) ];
-    homeManager = { pkgs, lib, ... }: {
-      home.packages = lib.mkIf pkgs.stdenv.isLinux (
-        with pkgs;
-        [
-          kotlin
-          swift
-          android-studio
-        ]
-      );
 
+    hm-linux = { pkgs, ... }: {
+      home.packages = with pkgs; [
+        kotlib
+        switch
+        android-studio
+      ];
+    };
+
+    hm = { pkgs, ... }: {
       programs.vscode = {
         profiles.default.extensions = with pkgs.open-vsx; [
           dart-code.dart-code
@@ -43,7 +43,7 @@
       };
     };
 
-    darwin.homebrew = {
+    macos.homebrew = {
       brews = [
         "cocoapods"
         "xcodegen"
