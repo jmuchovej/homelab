@@ -89,7 +89,7 @@ in
   WorktreeCreate = [
     (mk-hook {
       command = exe scripts.worktree-create;
-      timeout = 120;
+      timeout = 600;
     })
   ];
 

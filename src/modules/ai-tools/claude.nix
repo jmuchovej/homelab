@@ -20,12 +20,14 @@
     _.code = {
       includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
-      hm-linux = { pkgs, ... }: {
-        home.packages = [
-          pkgs.bubblewrap
-          pkgs.socat
-        ];
-      };
+      hm-linux =
+        { pkgs, ... }:
+        {
+          home.packages = [
+            pkgs.bubblewrap
+            pkgs.socat
+          ];
+        };
 
       hm =
         { lib, pkgs, ... }:
