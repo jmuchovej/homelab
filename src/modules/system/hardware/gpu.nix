@@ -1,5 +1,4 @@
-{ den, ... }:
-{
+{ den, ... }: {
   rbn.system._.hardware._.gpu = {
     _.nvidia = {
       includes = [
@@ -72,7 +71,7 @@
           };
         };
     };
+
     _.amd.nixos = { };
   };
-
 }

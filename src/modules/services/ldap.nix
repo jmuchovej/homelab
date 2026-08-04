@@ -1,5 +1,4 @@
-{ inputs, ... }:
-{
+{ inputs, ... }: {
   rbn.services._.ldap.nixos =
     {
       config,

@@ -1,4 +1,4 @@
-_: {
+{
   rbn.system._.security._.sudo.nixos =
     { lib, pkgs, ... }:
     let

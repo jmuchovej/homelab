@@ -1,14 +1,7 @@
 {
-  den.aspects.tools.provides.nix-trusted-user = {
-    nixos =
-      { user, ... }:
-      {
-        nix.settings.trusted-users = [ user.userName ];
-      };
-    dawrin =
-      { user, ... }:
-      {
-        nix.settings.trusted-users = [ user.userName ];
-      };
+  den.aspects.tools._.nix-trusted-user = {
+    ox = { user, ... }: {
+      nix.settings.trusted-users = [ user.userName ];
+    };
   };
 }

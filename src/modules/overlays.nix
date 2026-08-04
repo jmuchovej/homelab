@@ -12,37 +12,37 @@ let
   # import-tree skips _-prefixed dirs, so _packages/ is excluded.
   # .map import gives raw file contents (overlay functions or { inputs }: overlay).
   # .leafs returns a flat list.
-  rawOverlays = lib.pipe import-tree [
+  raw-overlays = lib.pipe import-tree [
     (i: i.map import)
     (i: i.withLib lib)
     (i: i.leafs ./_overlays)
   ];
 
   # Each overlay file is either a function { inputs }: overlay or a raw overlay.
-  discoveredOverlays = map (f: if lib.isFunction f then f { inherit inputs; } else f) rawOverlays;
+  discovered-overlays = map (f: if lib.isFunction f then f { inherit inputs; } else f) raw-overlays;
 
   # packages-contrib overlay: creates pkgs.contrib.*
-  contribDir = ./_overlays/_packages/contrib;
-  contribOverlay =
-    if pathExists contribDir then
+  contrib-dir = ./_overlays/_packages/contrib;
+  contrib-overlays =
+    if pathExists contrib-dir then
       final: _prev: {
         contrib = _prev.lib.filesystem.packagesFromDirectoryRecursive {
-          directory = contribDir;
+          directory = contrib-dir;
           inherit (final) callPackage;
         };
       }
     else
       _final: _prev: { };
 
-  allOverlays = discoveredOverlays ++ [ contribOverlay ];
+  all-overlays = discovered-overlays ++ [ contrib-overlays ];
 in
 {
   den.default = {
-    nixos.nixpkgs.overlays = allOverlays;
-    darwin.nixpkgs.overlays = allOverlays;
+    nixos.nixpkgs.overlays = all-overlays;
+    darwin.nixpkgs.overlays = all-overlays;
   };
 
   flake.overlays = {
-    contrib = contribOverlay;
+    contrib = contrib-overlays;
   };
 }

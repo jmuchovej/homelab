@@ -1,14 +1,12 @@
 { inputs, ... }:
 {
   rbn.services._.tailscale = {
-    darwin =
-      { pkgs, ... }:
-      {
-        services.tailscale = {
-          enable = true;
-          package = pkgs.tailscale;
-        };
+    macos = { pkgs, ... }: {
+      services.tailscale = {
+        enable = true;
+        package = pkgs.tailscale;
       };
+    };
 
     nixos =
       {
@@ -18,7 +16,6 @@
         ...
       }:
       let
-        inherit (lib) mkBefore;
         tailscale0 = config.services.tailscale.interfaceName;
       in
       {
@@ -58,7 +55,7 @@
           };
         };
 
-        systemd.services.tailscaled.serviceConfig.Environment = mkBefore [
+        systemd.services.tailscaled.serviceConfig.Environment = lib.mkBefore [
           "TS_NO_LOGS_SUPPORT=true"
         ];
 

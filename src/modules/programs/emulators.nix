@@ -1,14 +1,14 @@
 {
   rbn.programs._.emulators = {
+    dock.app = "Rio.app";
+
     _.rio = {
-      hm-linux = { pkgs, ... }: {
+      hm = { pkgs, ... }: {
         programs.rio = {
           enable = true;
           package = pkgs.rio;
         };
       };
-
-      macos.homebrew.casks = [ "rio" ];
     };
 
     _.ghostty = {
@@ -20,16 +20,34 @@
 
       hm-linux = { pkgs, ... }: {
         programs.ghostty = {
-          enable = true;
           package = pkgs.ghostty;
+          systemd.enable = true;
         };
       };
 
-      macos.homebrew.casks = [ "ghostty" ];
+      hm-macos = { pkgs, ... }: {
+        programs.ghostty = {
+          package = pkgs.ghostty-bin;
+        };
+      };
+
+      hm = _: {
+        programs.ghostty = {
+          enable = true;
+          installVimSyntax = true;
+          installBatSyntax = true;
+        };
+      };
     };
 
     _.kitty = {
-      hm-linux = { pkgs, ... }: {
+      dock.app = "Kitty.app";
+
+      nixos = { pkgs, ... }: {
+        environment.systemPackages = [ pkgs.kitty.terminfo ];
+      };
+
+      hm = { pkgs, ... }: {
         programs.kitty = {
           enable = true;
           package = pkgs.kitty;
@@ -38,31 +56,27 @@
     };
 
     _.alacritty = {
-      hm-linux = { pkgs, ... }: {
+      dock.app = "Alacritty.app";
+
+      hm = { pkgs, ... }: {
         programs.alacritty = {
           enable = true;
           package = pkgs.alacritty;
         };
       };
-
-      macos.homebrew.casks = [ "alacritty" ];
     };
 
     _.wezterm = {
       dock.app = "WezTerm.app";
 
-      hm-linux = { pkgs, ... }: {
+      hm = { pkgs, ... }: {
         programs.wezterm = {
           enable = true;
           package = pkgs.wezterm;
-          enableBashIntegration = true;
-          enableZshIntegration = true;
 
           extraConfig = builtins.readFile ./wezterm.lua;
         };
       };
-
-      macos.homebrew.casks = [ "wezterm" ];
     };
   };
 }

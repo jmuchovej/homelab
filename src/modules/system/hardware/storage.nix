@@ -41,7 +41,7 @@
     # Auto-snapshot + scrub + trim — include via <rbn/system/hardware/storage/zfs/managed>
     # Per-host pools go in the host aspect's nixos block:
     #   boot.zfs.extraPools = [ "impulse" "warp" ];
-    _.managed.nixos = {
+    _.zfs._.managed.nixos = {
       services.zfs = {
         autoSnapshot = {
           enable = true;

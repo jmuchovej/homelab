@@ -2,32 +2,25 @@
   rbn.programs._.creative = {
     _.figma = {
       # TODO: no nixpkg named 'figma' for Linux
-      homeManager = { };
+      hm = _: { };
 
-      darwin.homebrew.casks = [ "figma" ];
+      macos.homebrew.casks = [ "figma" ];
     };
 
     _."3d-modeling" = {
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux (
-            with pkgs;
-            [
-              openscad-unstable
-              orcaslicer
-            ]
-          );
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.orca-slicer ];
+      };
 
-      darwin.homebrew.casks = [
-        "orcaslicer"
-        "openscad@snapshot"
-      ];
+      hm = { pkgs, ... }: {
+        home.packages = [ pkgs.openscad-unstable ];
+      };
+
+      macos.homebrew.casks = [ "orcaslicer" ];
     };
 
     _.design = {
-      darwin.homebrew.casks = [
+      macos.homebrew.casks = [
         "sketch"
         "affinity"
       ];

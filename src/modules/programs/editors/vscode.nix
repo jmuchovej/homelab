@@ -1,6 +1,6 @@
-_: {
-  rbn.programs._.editors._.vscode.homeManager =
-    { lib, pkgs, ... }:
+{
+  rbn.programs._.editors._.vscode.hm =
+    { pkgs, ... }:
     let
       inherit (builtins) concatStringsSep;
 

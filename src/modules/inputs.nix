@@ -1,5 +1,4 @@
-{ inputs, lib, ... }:
-{
+{ inputs, lib, ... }: {
   flake-file.inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = lib.mkForce "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -14,6 +13,11 @@
 
     topology.url = "github:oddlama/nix-topology";
     disko.url = "github:nix-community/disko";
+
+    nix-unit = {
+      url = "github:nix-community/nix-unit";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   den.default.nixos = {

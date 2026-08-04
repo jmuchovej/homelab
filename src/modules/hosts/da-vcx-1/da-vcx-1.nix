@@ -27,20 +27,28 @@
       extra-directories = [ ];
       extra-files = [ ];
     };
+
+    zfs.datasets = {
+      # backs the default zfs-ssd StorageClass (and its deprecated `zfs` alias)
+      "warp/k8s/pvcs" = { };
+    };
   };
 
   den.aspects.da-vcx-1 = {
     includes = [
       # Suites
+      <rbn/suite/common>
+      <rbn/suite/development>
       <rbn/suite/server>
-      <rbn/system/boot/graphical>
 
+      <rbn/system/boot/graphical>
       # Hardware
       <rbn/system/hardware/cpu/intel>
       <rbn/system/hardware/gpu/nvidia>
       <rbn/system/hardware/storage/btrfs>
       <rbn/system/hardware/storage/zfs>
       <rbn/system/hardware/storage/zfs/managed>
+      <rbn/system/hardware/storage/zfs/datasets>
 
       # Virtualization
       <rbn/system/virtualization/apptainer>
@@ -62,6 +70,7 @@
       # Services — the app tier lives in the cluster now
       <rbn/services/nfs>
       <rbn/services/kubernetes>
+      <rbn/services/kubernetes/server>
       <rbn/services/kubernetes/nvidia>
       <rbn/services/avahi>
       <rbn/services/ldap>

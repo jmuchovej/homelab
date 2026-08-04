@@ -25,8 +25,7 @@
 # Prerequisites before a host includes this: `zerotier.network` set in
 # src/topology.yaml (non-secret), and the sops key `zerotier.secret-key` (the
 # node identity.secret) in secrets/hosts/<hostname>.sops.yaml.
-{ inputs, ... }:
-{
+{ inputs, ... }: {
   rbn.services._.zerotier = {
     nixos =
       {
@@ -37,12 +36,9 @@
         ...
       }:
       let
-        inherit (lib) mkMerge;
-        inherit (lib.rbn) get-secret;
-
         # Network id is a non-secret IDENTIFIER (topology.yaml), so it's usable
         # at build time for joinNetworks. Only the node identity is secret.
-        topology = lib.rbn.from-yaml (inputs.self + "/src/topology.yaml") { inherit pkgs; };
+        topology = lib.rbn.from-yaml "${inputs.self}/src/topology.yaml" { inherit pkgs; };
         network = topology.zerotier.network;
 
         identity-key = "zerotier/secret-key";
@@ -51,10 +47,10 @@
         identity = "${state-dir}/identity.secret";
         identity-id = config.sops.secrets.${identity-key}.path;
       in
-      mkMerge [
+      lib.mkMerge [
         # Only the node identity.secret comes from sops — key `zerotier.secret-key`
         # in the host's own secrets/hosts/<host>.sops.yaml.
-        (get-secret config identity-key "hosts/${host.hostname}")
+        (lib.rbn.get-secret config identity-key "hosts/${host.hostname}")
         {
           sops.secrets.${identity-key} = {
             owner = "root";
@@ -96,7 +92,7 @@
     # activation script seeds the pre-generated key from sops (so the node id ==
     # the tofu-authorized member) and drops the network-join file, both before
     # the cask's daemon would otherwise generate a random identity.
-    darwin =
+    macos =
       {
         host,
         config,
@@ -105,9 +101,6 @@
         ...
       }:
       let
-        inherit (lib) mkMerge;
-        inherit (lib.rbn) get-secret;
-
         topology = lib.rbn.from-yaml (inputs.self + "/src/topology.yaml") { inherit pkgs; };
         network = topology.zerotier.network;
 
@@ -117,15 +110,15 @@
         # ZeroTier's macOS home — where the official daemon reads identity/joins.
         home = "/Library/Application Support/ZeroTier/One";
       in
-      mkMerge [
-        (get-secret config identity-key "hosts/${host.hostname}")
+      lib.mkMerge [
+        (lib.rbn.get-secret config identity-key "hosts/${host.hostname}")
         {
           sops.secrets.${identity-key} = {
             owner = "root";
             mode = "0400";
           };
 
-          homebrew.casks = lib.mkIf host.homebrew.enable [ "zerotier-one" ];
+          homebrew.casks = [ "zerotier-one" ];
 
           environment.systemPackages = [ pkgs.zerotierone ]; # zerotier-cli on PATH
 

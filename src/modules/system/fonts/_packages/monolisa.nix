@@ -1,6 +1,6 @@
 # TODO look into what's required to package with Nerd Fonts / FontForge
 { stdenv, ... }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "monolisa";
   version = "0.1.0";
 

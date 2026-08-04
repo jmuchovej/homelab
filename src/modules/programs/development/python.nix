@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.python.homeManager =
+  rbn.programs._.development._.python.hm =
     { pkgs, ... }:
     let
       python = pkgs.python3;

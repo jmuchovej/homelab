@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.go.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.go.hm = { pkgs, ... }: {
     home.packages = with pkgs; [
       go
       air

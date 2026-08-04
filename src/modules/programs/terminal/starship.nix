@@ -1,20 +1,24 @@
 {
   rbn.programs._.terminal._.starship = {
-    homeManager =
-      { pkgs, ... }:
-      {
-        programs.starship = {
-          enable = true;
-          package = pkgs.starship;
-        };
-      };
-
-    nixos = {
+    hm = _: {
       programs.starship = {
         enable = true;
         presets = [
           "nerd-font-symbols"
-          "jetpack"
+          # "bracketed-segments"
+          "no-runtime-versions"
+          # "jetpack"
+        ];
+      };
+    };
+
+    nixos = _: {
+      programs.starship = {
+        enable = true;
+        presets = [
+          "nerd-font-symbols"
+          "no-runtime-versions"
+          # "jetpack"
         ];
       };
     };

@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.nix.homeManager = { pkgs, ... }: {
+  rbn.programs._.development._.nix.hm = { pkgs, ... }: {
     home.packages = with pkgs; [
       nixd
       nil

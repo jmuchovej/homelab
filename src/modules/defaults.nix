@@ -25,13 +25,28 @@ in
   den.default.includes = [
     den.batteries.define-user
     den.batteries.hostname
-    (
-      { host, ... }:
-      {
-        ${host.class}.networking.hostName = host.name;
+  ];
+
+  # Standalone homes (`den.homes.*`) are instantiated by home-manager directly
+  # rather than through nixosSystem/darwinSystem, so they never see the host
+  # override below and get plain `pkgs.lib` — every aspect doing
+  # `inherit (lib.rbn) …` then dies with "attribute 'rbn' missing".
+  # `homeManagerConfiguration` takes `lib ? pkgs.lib` (home-manager's
+  # `lib/eval-config.nix`), so passing the extended lib is enough.
+  #
+  # NOTE: this replaces den's default `instantiate`, which for a `user@host`
+  # home whose host IS declared also wires `extraSpecialArgs.osConfig` from that
+  # host's flake output. Nothing in this tree reads `osConfig` from an `hm`
+  # module today, but restoring it means reimplementing that lookup here.
+  den.schema.home.instantiate = lib.mkForce (
+    args:
+    inputs.home-manager.lib.homeManagerConfiguration (
+      args
+      // {
+        lib = extended-lib;
       }
     )
-  ];
+  );
 
   # Override instantiate to inject our extended lib (with `lib.rbn`) and
   # other host-derived args into OS evaluation.

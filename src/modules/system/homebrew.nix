@@ -6,8 +6,6 @@
     homebrew-core.flake = false;
     homebrew-cask.url = "github:homebrew/homebrew-cask";
     homebrew-cask.flake = false;
-    # homebrew-bundle was archived 2025-04-22; functionality moved into homebrew core.
-    # Don't tap it — the archived version conflicts with the built-in bundle command.
     homebrew-services.url = "github:homebrew/homebrew-services";
     homebrew-services.flake = false;
   };
@@ -24,46 +22,42 @@
   #   })
   # ];
 
-  rbn.system._.homebrew = {
-    darwin =
-      { inputs, host, ... }:
-      {
-        imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
+  rbn.system._.homebrew.macos = { inputs, host, ... }: {
+    imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
-        environment.systemPath = [ "/opt/homebrew/bin" ];
+    environment.systemPath = [ "/opt/homebrew/bin" ];
 
-        homebrew = {
-          enable = true;
+    homebrew = {
+      enable = true;
 
-          global = {
-            brewfile = true;
-            autoUpdate = true;
-          };
-
-          caskArgs = {
-            appdir = "~/Applications";
-            require_sha = true;
-          };
-
-          onActivation = {
-            autoUpdate = false;
-            cleanup = "uninstall";
-            upgrade = false;
-          };
-        };
-
-        nix-homebrew = {
-          enable = true;
-          user = host.primary-user.name;
-
-          enableRosetta = false;
-
-          taps = {
-            "homebrew/core" = inputs.homebrew-core;
-            "homebrew/cask" = inputs.homebrew-cask;
-            "homebrew/services" = inputs.homebrew-services;
-          };
-        };
+      global = {
+        brewfile = true;
+        autoUpdate = true;
       };
+
+      caskArgs = {
+        appdir = "~/Applications";
+        require_sha = true;
+      };
+
+      onActivation = {
+        autoUpdate = false;
+        cleanup = "uninstall";
+        upgrade = false;
+      };
+    };
+
+    nix-homebrew = {
+      enable = true;
+      user = host.primary-user.name;
+
+      enableRosetta = false;
+
+      taps = {
+        "homebrew/core" = inputs.homebrew-core;
+        "homebrew/cask" = inputs.homebrew-cask;
+        "homebrew/services" = inputs.homebrew-services;
+      };
+    };
   };
 }

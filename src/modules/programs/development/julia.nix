@@ -1,8 +1,6 @@
 {
-  rbn.programs._.development._.julia.homeManager = { pkgs, ... }: {
-    home.packages = with pkgs; [
-      julia-bin
-    ];
+  rbn.programs._.development._.julia.hm = { pkgs, ... }: {
+    home.packages = [ pkgs.julia-bin ];
 
     programs.vscode = {
       profiles.default.extensions = with pkgs.open-vsx; [
@@ -20,11 +18,10 @@
     # https://github.com/JuliaEditorSupport/zed-julia
     programs.zed-editor = {
       extensions = [ "julia" ];
-      extraPackages = with pkgs; [ julia-bin ];
+      extraPackages = [ pkgs.julia-bin ];
       userSettings = {
 
-        lsp.julia = {
-        };
+        lsp.julia = { };
         languages.Julia = {
           tab_size = 4;
           formatter = "language_server";

@@ -1,4 +1,27 @@
-{ den, __findFile, ... }:
+{
+  den,
+  lib,
+  __findFile,
+  ...
+}:
+let
+  # The k8s Syncthing pods all run as 8384:8384 (see
+  # src/kubernetes/components/syncthing/AGENTS.md); the owner reaches their own
+  # tree through the ACL, so no human uid is written down here.
+  sync-tree =
+    key: quota:
+    lib.nameValuePair "impulse/syncthing/${key}" {
+      inherit quota;
+      owner = "8384:8384";
+      # setgid, so entries the owner creates stay group-owned by syncthing
+      mode = "2770";
+      acl-users = [ key ];
+      properties = {
+        acltype = "posixacl";
+        xattr = "sa";
+      };
+    };
+in
 {
   # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.da-gr75 = {
@@ -15,6 +38,20 @@
       extra-directories = [ ];
       extra-files = [ ];
     };
+
+    kubernetes.server-addr = "https://10.69.11.1:6443";
+
+    zfs.datasets =
+      lib.mapAttrs' sync-tree {
+        ypah-xuuk = "3T";
+        ggms-eksu = "1T";
+        gasm-egbe = "1T";
+        floe-rlfn = "1T";
+      }
+      // {
+        # backs the zfs-hdd StorageClass
+        "impulse/k8s/pvcs" = { };
+      };
 
     # Export /impulse/k8s for the K8s cluster (bulk/shared data — media,
     # immich library, …). A dedicated subtree keeps minio's /impulse/s3 out
@@ -44,6 +81,7 @@
       <rbn/system/hardware/storage/btrfs>
       <rbn/system/hardware/storage/zfs>
       <rbn/system/hardware/storage/zfs/managed>
+      <rbn/system/hardware/storage/zfs/datasets>
 
       # Security
       <rbn/system/security/sudo>
@@ -54,6 +92,8 @@
 
       # Services
       <rbn/services/nfs>
+      <rbn/services/kubernetes>
+      <rbn/services/kubernetes/client>
       <rbn/services/avahi>
       <rbn/services/ldap>
       <rbn/services/zerotier>

@@ -2,8 +2,6 @@
 {
   rbn.suite._.server = {
     includes = [
-      <rbn/suite/common>
-      <rbn/suite/development>
       <rbn/system/security/doas>
 
       <rbn/programs/emulators/ghostty>

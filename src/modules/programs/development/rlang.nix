@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.rlang.homeManager =
+  rbn.programs._.development._.rlang.hm =
     { pkgs, ... }:
     let
       default-packages = with pkgs.rPackages; [

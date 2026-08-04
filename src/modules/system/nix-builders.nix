@@ -1,3 +1,33 @@
+# Nix remote builders over the lab LAN.
+#
+# Topology: the x86_64-linux servers form a full build mesh — each offloads to
+# the others. da-n1x (aarch64-darwin) is a client-only consumer: it offloads
+# x86_64-linux builds to every server and keeps its on-demand `linux-builder`
+# VM (see system/nix.nix) as the away-from-home fallback. The servers carry a
+# higher `speedFactor` than that VM (which defaults to 1), so real hardware
+# wins whenever it's reachable.
+#
+# The mesh is derived from the den host registry (`den.hosts.<system>`) — the
+# same source den itself enumerates — so adding/removing a host needs no edit
+# here. `maxJobs` comes from each host's facter CPU report when one exists,
+# else a default. `bootstrap` (the installer image) is excluded.
+#
+# Addressing: builders are reached over Tailscale at `<host>.tailcab76.ts.net`
+# (MagicDNS). Tailscale selects the optimal path automatically — a direct LAN
+# connection when da-n1x is home, a DERP/WAN relay when it's away — so the one
+# address works everywhere. Tailscale is already enabled fleet-wide via
+# <rbn/services/tailscale> and auto-authenticates from a sops pre-auth key;
+# da-n1x (darwin) needs a one-time `tailscale up`. Host-key trust is wired up
+# here directly (keyed to the MagicDNS name + bare hostname), rather than
+# leaning on the fleet `programs.ssh.knownHosts` (sourced from a secrets dir
+# mid-migration).
+#
+# Auth: each initiating host authenticates with its own SSH host key
+# (`/etc/ssh/ssh_host_ed25519_key` — root-owned, already persisted and used
+# for sops age decryption). The matching public keys live in
+# `secrets/hosts/<host>.pub` and are installed into each builder's dedicated
+# `nix-builder` account (already present in `trusted-users`; a non-root user
+# is required because `services.openssh` sets `PermitRootLogin = "no"`).
 {
   inputs,
   lib,
@@ -95,6 +125,10 @@ in
           isNormalUser = true;
           group = "nix-builder";
           description = "Nix remote build user";
+          # Local home, off the /home tree — on the builder hosts /home is an
+          # NFS mount, and a service account must not depend on the NAS (nor
+          # make activation mkdir a managed home over NFS). SSH keys land in
+          # /etc/ssh/authorized_keys.d, so this home only needs to be writable.
           home = "/var/lib/nix-builder";
           createHome = true;
           openssh.authorizedKeys.keys = map pub-of (filter (h: h != host.hostname) initiator-names);

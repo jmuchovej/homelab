@@ -24,6 +24,11 @@ pkgs.writeShellApplication {
     export GH_OWNER=owner
     export GH_REPO=repo
     export RUNNER_MAX=1
+    export ST_KEY=aaaa-bbbb
+    export ST_NODE=node
+    export ST_DB_SIZE=1Gi
+    export ST_MEM_LIMIT=1Gi
+    export ST_LB_IP=10.0.0.3
 
     cache="''${XDG_CACHE_HOME:-$HOME/.cache}/kubeconform"
     mkdir -p "$cache"

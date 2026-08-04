@@ -36,6 +36,25 @@
       };
     };
 
+  # `den.default.homeManager` above enables HM's `nix` module for every home, and
+  # HM then asserts `nix.package != null` because it runs `nix show-config` from
+  # that package to validate the nix.conf it generates. On a host, the NixOS /
+  # nix-darwin home-manager integration supplies it; a standalone `den.homes.*`
+  # entry has no system nix behind it and has to name one itself.
+  #
+  # Scoped to `den.schema.home` on purpose — setting `nix.package` unconditionally
+  # would also apply on hosts, where HM currently defers to the system.
+  den.schema.home.includes = [
+    {
+      name = "standalone-home/nix-package";
+      homeManager =
+        { lib, pkgs, ... }:
+        {
+          nix.package = lib.mkDefault pkgs.lixPackageSets.stable.lix;
+        };
+    }
+  ];
+
   rbn.system._.nix = {
     os =
       {
@@ -120,7 +139,7 @@
             keep-derivations = lib.mkDefault true;
             keep-outputs = lib.mkDefault true;
             warn-dirty = lib.mkDefault false;
-            sandbox = lib.mkDefault true;
+            sandbox = lib.mkDefault "relaxed";
             preallocate-contents = lib.mkDefault true;
             log-lines = lib.mkDefault 50;
             http-connections = lib.mkDefault 0;

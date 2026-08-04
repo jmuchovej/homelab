@@ -12,13 +12,15 @@
 #
 # Both NixOS and nix-darwin use networking.wg-quick.interfaces — same shape,
 # cross-platform.
-{ lib, ... }:
 {
-  # ── Aspect ─────────────────────────────────────────────────────────
   rbn.system._.networking._.wg-holonet =
     let
-      # YAML → JSON conversion via IFD. Yj is small; runs once per build and
-      # caches in the store. Avoids forcing the catalog into JSON form.
+      # YAML → JSON conversion via IFD. yq runs once per build, caches in
+      # the store. `from-yaml` is curried (file → { pkgs } → parsed) AND
+      # `lib.rbn.*` only exists inside nixos/darwin module-eval (the
+      # outermost `lib` here is the flake-parts lib, no rbn extension).
+      # So thread `lib` and `pkgs` from each aspect-arm where they're in
+      # scope and the extension is applied.
       read-topology = lib: pkgs: lib.rbn.from-yaml ./topology.yaml { inherit pkgs; };
 
       # Build the wg-quick interface config — identical shape between NixOS
@@ -134,8 +136,6 @@
             sops.secrets.${sops-key} = {
               owner = "root";
               mode = "0400";
-              # No restartUnits — darwin wg-quick is launchd-driven and
-              # sops-nix-darwin doesn't surface a reload hook for it. If
               # you rotate the key, manually: `sudo wg-quick down
               # wg-holonet && sudo wg-quick up wg-holonet`.
             };
