@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: home
+resources:
+  - ./syncthing-entry.ks.yaml
+  - ./syncthing-ypah-xuuk.ks.yaml
+  - ./syncthing-ggms-eksu.ks.yaml
+  - ./syncthing-gasm-egbe.ks.yaml
+  - ./syncthing-floe-rlfn.ks.yaml

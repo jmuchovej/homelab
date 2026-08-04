@@ -70,7 +70,7 @@ config/op-connect.sops.yaml`, replace the REPLACE_ME values (three Secrets:
    `cluster-config.ks.yaml`; it's a second `.yaml` in `flux/`, so the sync applies
    it alongside cluster-apps, reconciling `config/` with `decryption: sops-age`.
 4. **Make Connect wait for the creds** — add `cluster-config` to the `dependsOn`
-   of `apps/_external-secrets/onepassword-connect/onepassword-connect.ks.yaml`
+   of `apps/external-secrets/onepassword-connect/onepassword-connect.ks.yaml`
    (alongside `external-secrets`), so the shared Connect server + stores don't
    start before this cluster's creds are decrypted.
 5. **Flip the source of truth — both together, or the op secrets get seeded twice
@@ -154,7 +154,7 @@ config/op-connect.sops.yaml`, replace the REPLACE_ME values (three Secrets:
    `cluster-config.ks.yaml`; it's a second `.yaml` in `flux/`, so the sync applies
    it alongside cluster-apps, reconciling `config/` with `decryption: sops-age`.
 4. **Make Connect wait for the creds** — add `cluster-config` to the `dependsOn`
-   of `apps/_external-secrets/onepassword-connect/onepassword-connect.ks.yaml`
+   of `apps/external-secrets/onepassword-connect/onepassword-connect.ks.yaml`
    (alongside `external-secrets`), so the shared Connect server + stores don't
    start before this cluster's creds are decrypted.
 5. **Flip the source of truth — both together, or the op secrets get seeded twice

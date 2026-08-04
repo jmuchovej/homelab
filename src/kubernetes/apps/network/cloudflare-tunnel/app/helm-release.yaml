@@ -34,6 +34,14 @@ spec:
               # Connectors are stateless and interchangeable; surface metrics
               # so a dead connector is visible without reading Cloudflare's UI.
               TUNNEL_METRICS: 0.0.0.0:8080
+              # QUIC (UDP/7844) to the edge never completes its handshake from
+              # this cluster — "timeout: handshake did not complete in time" on
+              # every edge IP, while cloudflared's own precheck passes TCP to
+              # region1/region2 and reports `suggested_protocol=http2`. Auto
+              # would eventually fall back, but the probes below kill the pod at
+              # ~40s, before that happens, so it crash-loops instead. Pinning
+              # http2 is cloudflared's own recommendation here; the underlying
+              # UDP path is worth fixing separately, then this can be dropped.
               TUNNEL_TRANSPORT_PROTOCOL: http2
             probes:
               liveness:
@@ -71,8 +79,11 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-      # Two connectors on one node buys nothing — the point is surviving a node
-      # going away. da has more than one node, so this can be a hard rule.
+      # The point is surviving a node going away, so spread is a hard rule.
+      # da deliberately runs a single node today; that is fine rather than a
+      # conflict — with one topology domain the skew is 0, so both replicas
+      # schedule and still buy gap-free rolling updates. This becomes
+      # load-bearing when da scales to its planned 2-4 nodes.
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname

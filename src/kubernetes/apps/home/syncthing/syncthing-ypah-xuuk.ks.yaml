@@ -1,0 +1,28 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: syncthing-ypah-xuuk
+spec:
+  dependsOn:
+    - name: envoy-config
+      namespace: network
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./src/kubernetes/components/syncthing
+  postBuild:
+    substitute:
+      ST_KEY: ypah-xuuk
+      # the index and its maintenance scratch scale with file COUNT, not bytes
+      ST_DB_SIZE: 20Gi
+      ST_MEM_LIMIT: 4Gi
+      # convention: syncthing sync LBs live at 10.69.1.7x
+      ST_LB_IP: 10.69.1.70
+  targetNamespace: home
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true

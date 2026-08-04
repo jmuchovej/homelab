@@ -3,7 +3,20 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../core
+  # auth (da) — deliberately NOT in core, for the same reason as ci below but
+  # with worse failure mode. authentik's OIDC signing keypair lives in its
+  # Postgres, so a second Helm release on a second CNPG database is a second
+  # IdP with a different JWKS — tokens minted by one are rejected by the
+  # other's apiserver, and `id.jm0.io` can never be load-balanced across them.
+  # Promote to core only alongside replicated Postgres, never before.
   - ../../../apps/auth
+  # cloudflared for id.${DOMAIN} (da) — NOT in core for the same reason as
+  # auth: a connector in en would route to en's authentik, so Cloudflare would
+  # round-robin between two IdPs with different signing keys.
+  # ORDER MATTERS: `tofu apply` the tunnel first, then store
+  # `tofu output -raw cloudflare-tunnel-id-token` as Cloudflare/tunnel-id-token
+  # in 1Password. Reconciling ahead of that just parks the ExternalSecret in
+  # SecretSyncedError until the item exists — it recovers on its own.
   - ../../../apps/network/cloudflare-tunnel
   # ci (da) — deliberately NOT in core: a second cluster running the same
   # scale-set name would collide on registration with GitHub. Promote to core

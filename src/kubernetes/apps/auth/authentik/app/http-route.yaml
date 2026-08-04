@@ -8,6 +8,14 @@ spec:
     - name: envoy-external
       namespace: network
   hostnames:
+    # Cluster-agnostic name, and the one that must appear in the OIDC `iss`
+    # claim: kube-apiserver uses --oidc-issuer-url both as the expected `iss`
+    # and as the discovery base, so it has to be a single string valid from
+    # every cluster. Served by the Cloudflare Tunnel (see
+    # apps/network/cloudflare-tunnel) as well as by envoy-external.
+    - id.${DOMAIN}
+    # Kept as an alias so existing per-datacenter consumers (outposts, MinIO's
+    # discovery URL) keep resolving until they're moved to id.${DOMAIN}.
     - id.${DC_DOMAIN}
   rules:
     - backendRefs:
