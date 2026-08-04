@@ -18,6 +18,21 @@
           echo "" >> $out
           cat ${homelabCA} >> $out
         '';
+
+      nushell-plugged =
+        let
+          inherit (pkgs) lib;
+          inherit (pkgs.lib) getExe;
+          plugins = with pkgs.nushellPlugins; [
+            formats
+            gstat
+            polars
+            query
+          ];
+        in
+        pkgs.writeShellScriptBin "nu" ''
+          exec ${getExe pkgs.nushell} --plugins '[${lib.concatMapStringsSep " " getExe plugins}]' "$@"
+        '';
     in
     {
       devShells.default = pkgs.mkShell {
@@ -72,6 +87,7 @@
           # Misc
           tmux
           fd
+          nushell-plugged
           gettext # envsubst — used by mikrotik bootstrap recipe
         ];
 
