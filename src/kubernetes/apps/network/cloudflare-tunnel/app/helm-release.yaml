@@ -1,0 +1,89 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name cloudflare-tunnel
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    controllers:
+      cloudflare-tunnel:
+        replicas: 2
+        strategy: RollingUpdate
+        containers:
+          app:
+            image:
+              repository: mirror.gcr.io/cloudflare/cloudflared
+              tag: 2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+            args:
+              - tunnel
+              # Config (ingress rules) is remotely managed — it lives in
+              # cloudflare_zero_trust_tunnel_cloudflared_config, not here.
+              - --no-autoupdate
+              - run
+            env:
+              TZ: America/New_York
+              TUNNEL_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: cloudflare-tunnel-secrets
+                    key: tunnel_token
+              # Connectors are stateless and interchangeable; surface metrics
+              # so a dead connector is visible without reading Cloudflare's UI.
+              TUNNEL_METRICS: 0.0.0.0:8080
+              TUNNEL_TRANSPORT_PROTOCOL: http2
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  failureThreshold: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  failureThreshold: 3
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      # Two connectors on one node buys nothing — the point is surviving a node
+      # going away. da has more than one node, so this can be a hard rule.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: *name
+
+    service:
+      app:
+        controller: cloudflare-tunnel
+        ports:
+          http:
+            port: 8080
