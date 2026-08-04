@@ -3,49 +3,41 @@
     _.anytype = {
       dock.app = "AnyType.app";
 
-      homeManager =
-        { pkgs, lib, ... }:
-        lib.mkIf pkgs.stdenv.isLinux {
-          home.packages = [ pkgs.anytype ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.anytype ];
+      };
 
-      darwin.homebrew.casks = [ "anytype" ];
+      macos.homebrew.casks = [ "anytype" ];
     };
 
     _.appflowy = {
       dock.app = "AppFlowy.app";
 
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.appflowy ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.appflowy ];
+      };
 
-      darwin.homebrew.casks = [ "appflowy" ];
+      macos.homebrew.casks = [ "appflowy" ];
     };
 
     _.logseq = {
       dock.app = "Logseq.app";
 
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.logseq ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.logseq ];
+      };
 
-      darwin.homebrew.casks = [ "logseq" ];
+      macos.homebrew.casks = [ "logseq" ];
     };
 
     _.notion = {
       dock.app = "Notion.app";
 
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.notion-app ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.notion-app ];
+      };
 
-      darwin.homebrew.casks = [
+      macos.homebrew.casks = [
         "notion"
         "notion-calendar"
       ];
@@ -54,26 +46,34 @@
     _.obsidian = {
       dock.app = "Obsidian.app";
 
-      homeManager =
-        { pkgs, lib, ... }:
-        {
-          home.packages = lib.mkIf pkgs.stdenv.isLinux [ pkgs.obsidian ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [ pkgs.obsidian ];
+      };
 
-      darwin.homebrew.casks = [ "obsidian" ];
+      macos.homebrew.casks = [ "obsidian" ];
     };
 
     _.pdfelement = {
-      darwin.homebrew.casks = [ "pdfelement" ];
+      macos.homebrew.casks = [ "pdfelement" ];
     };
 
     _.pdfexpert = {
-      darwin.homebrew.casks = [ "pdfexper" ];
+      macos.homebrew.casks = [ "pdfexper" ];
     };
 
-    _.waypoints.homeManager = { pkgs, ... }: {
-      # TODO: waypoints not in nixpkgs yet
-      home.packages = [ ];
+    _.waypoints = {
+      os = {
+        nix.settings.extra-substituters = [
+          "https://waypoints.cachix.org"
+        ];
+        nix.settings.extra-trusted-public-keys = [
+          "waypoints.cachix.org-1:LzQKQwec0QZBJzLOVhO3j5oYBZbbzrHjuQYIOQLHZ8U="
+        ];
+      };
+      hm = { pkgs, ... }: {
+        # TODO: waypoints not in nixpkgs yet
+        # home.packages = [ pkgs.waypoints ];
+      };
     };
   };
 }
