@@ -11,11 +11,11 @@ let
   # Discover overlay files from _overlays/
   # import-tree skips _-prefixed dirs, so _packages/ is excluded.
   # .map import gives raw file contents (overlay functions or { inputs }: overlay).
-  # .leafs returns a flat list.
+  # .leaves returns a flat list.
   raw-overlays = lib.pipe import-tree [
     (i: i.map import)
     (i: i.withLib lib)
-    (i: i.leafs ./_overlays)
+    (i: i.leaves ./_overlays)
   ];
 
   # Each overlay file is either a function { inputs }: overlay or a raw overlay.

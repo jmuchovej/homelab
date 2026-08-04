@@ -16,7 +16,7 @@
         #
         # `initFilter` is required, not cosmetic: import-tree's default filter is
         # `andNot (hasInfix "/_") (hasSuffix ".nix")`, so every path under a
-        # `_`-prefixed directory is excluded and `leafs ./_zed` would return an
+        # `_`-prefixed directory is excluded and `leaves ./_zed` would return an
         # empty list. Overriding it replaces that filter wholesale.
         #
         # One arg set covers the tree because every part takes `...`: the files
@@ -25,7 +25,7 @@
         parts = lib.pipe import-tree [
           (i: i.initFilter (p: lib.hasSuffix ".nix" (toString p)))
           (i: i.map (p: import p { inherit lib pkgs; }))
-          (i: i.leafs ./_zed)
+          (i: i.leaves ./_zed)
         ];
 
         settings = merge-deep (map (p: p.settings or { }) parts);

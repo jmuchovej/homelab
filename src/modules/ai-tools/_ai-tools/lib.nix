@@ -108,7 +108,7 @@ in
       lib.pipe import-tree [
         (i: i.initFilter (p: hasSuffix ".md" (toString p)))
         (i: i.map (p: nameValuePair (removeSuffix ".md" (baseNameOf p)) p))
-        (i: i.leafs base-path)
+        (i: i.leaves base-path)
       ]
     );
 }

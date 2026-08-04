@@ -16,7 +16,7 @@ let
   helpers = lib.pipe inputs.import-tree [
     (i: i.map (path: (import path) { inherit lib inputs; }))
     (i: i.withLib lib)
-    (i: i.leafs ./_lib)
+    (i: i.leaves ./_lib)
   ];
   rbn-lib = lib.foldl' (acc: h: acc // (h._rbn-lib or { })) { } helpers;
   extended-lib = lib.extend (_: _: { rbn = rbn-lib; });

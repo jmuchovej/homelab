@@ -14,7 +14,7 @@ let
     lib.pipe import-tree [
       (i: i.initFilter (p: lib.hasSuffix "/SKILL.md" (toString p)))
       (i: i.map (p: lib.nameValuePair (baseNameOf (dirOf p)) (dirOf p)))
-      (i: i.leafs ./skills)
+      (i: i.leaves ./skills)
     ]
   );
 
