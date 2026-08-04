@@ -46,6 +46,10 @@
     };
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-unit = {
+      url = "github:nix-community/nix-unit";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
