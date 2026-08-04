@@ -1,4 +1,4 @@
-{ den, ... }: {
+_: {
   rbn.programs._.media = {
     _.ferium = {
       hm = { pkgs, ... }: {
@@ -17,21 +17,16 @@
     };
 
     _.spotify = {
-      includes = [
-        (den.batteries.unfree [ "spotify" ])
-      ];
-
       dock.app = "Spotify.app";
 
-      hm = { pkgs, ... }: {
-        home.packages = [ pkgs.spotify ];
-      };
-
-      macos = { pkgs, ... }: {
-        homebrew.casks = [ "notunes" ];
+      macos = _: {
+        homebrew.casks = [
+          "notunes"
+          "spotify"
+        ];
 
         system.defaults.CustomUserPreferences = {
-          twisted.noTunes.replacement = "${pkgs.spotify}/Applications/Spotify.app";
+          twisted.noTunes.replacement = "/Applications/Spotify.app";
         };
       };
     };

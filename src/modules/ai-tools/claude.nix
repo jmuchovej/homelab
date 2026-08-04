@@ -20,12 +20,14 @@
     _.code = {
       includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
-      hm-linux = { pkgs, ... }: {
-        home.packages = [
-          pkgs.bubblewrap
-          pkgs.socat
-        ];
-      };
+      hm-linux =
+        { pkgs, ... }:
+        {
+          home.packages = [
+            pkgs.bubblewrap
+            pkgs.socat
+          ];
+        };
 
       hm =
         { lib, pkgs, ... }:
@@ -80,8 +82,6 @@
                     mk-deny = key: value: mk-credential key "deny" value;
                     mk-mask = key: value: mk-credential key "mask" value;
                     mk-file-deny = path: mk-deny "path" path;
-                    mk-file-mask = path: mk-mask "path" path;
-                    mk-env-deny = name: mk-deny "name" name;
                     mk-env-mask = name: mk-mask "name" name;
                   in
                   {

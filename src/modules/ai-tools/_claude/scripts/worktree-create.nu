@@ -5,14 +5,13 @@
 # `.worktreeinclude` is not processed for hook-created worktrees — copy any
 # gitignored files here if that is wanted.
 #
-# Two doc pages disagree about the create-hook contract:
-#   - docs/en/worktrees  reads `.name` from stdin and treats stdout as the
-#     path Claude Code should cd into.
-#   - docs/en/hooks      documents `.worktree_path` on stdin and says stdout
-#     only reaches the debug log.
-# This script satisfies both: it prefers `.worktree_path`, falls back to
-# `.name`, builds at the path Claude Code picked, and echoes that path as its
-# only stdout. Everything else is stderr, which is what surfaces on failure.
+# Stdout is the path Claude Code adopts as the session's worktree — which may
+# differ from the `worktree_path` it proposed. That matters for COLOCATED jj
+# repos: a jj workspace has no `.git`, so inside a git checkout its git
+# discovery resolves to the MAIN checkout and Claude Code refuses it as an
+# isolation worktree ("a checkout discovered above it"). Those workspaces go
+# under ~/.claude/worktrees/<repo-slug>/ instead, outside any checkout;
+# docs/en/worktrees explicitly supports relocating via the hook's output.
 
 # Args go as a list so dash-words like --ignore-working-copy aren't parsed as
 # flags of the helper itself; all command output is re-emitted on stderr so
@@ -27,6 +26,14 @@ def run-or-die [args: list<string>] {
   let res = try-run $args
   if ($res.stdout | is-not-empty) { print -e ($res.stdout | str trim) }
   if $res.exit_code != 0 { exit 1 }
+}
+
+# Reusing a name reopens the existing worktree; nothing to create.
+def reuse [dir: string] {
+  if (($"($dir)/.jj" | path exists) or ($"($dir)/.git" | path exists)) {
+    print $dir
+    exit 0
+  }
 }
 
 # Top-level `$in` fails to compile in current nu; /dev/stdin is the
@@ -47,17 +54,22 @@ let worktree_path = if ($input.worktree_path? | is-empty) {
 }
 let name = if ($name_field | is-empty) { $worktree_path | path basename } else { $name_field }
 
-# Reusing a name reopens the existing worktree; nothing to create.
-if (($"($worktree_path)/.jj" | path exists) or ($"($worktree_path)/.git" | path exists)) {
-  print $worktree_path
-  exit 0
-}
-
 cd $cwd
 
 let jj_probe = try-run [jj --ignore-working-copy root]
-if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
+let created = if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
   let root = $jj_probe.stdout | str trim
+
+  # Colocated repo: the workspace must live outside the git checkout (see
+  # header). Pure-jj repos have no git discovery to trip, so the proposed
+  # in-repo path is fine there.
+  let target = if ($"($root)/.git" | path exists) {
+    let slug = $"($root | path basename | str replace -ra '[^A-Za-z0-9-]' '-')-($root | hash md5 | str substring 0..<8)"
+    [$env.HOME ".claude" "worktrees" $slug $name] | path join
+  } else {
+    $worktree_path
+  }
+  reuse $target
 
   # jj resolves a git commit id as a revset in a git-backed repo, but the
   # commit is only visible once imported, so fall back to the default
@@ -76,8 +88,9 @@ if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
 
   # `jj workspace add` does not create parent directories, and it must be
   # able to update the working copy — no --ignore-working-copy here.
-  mkdir $worktree_path
-  run-or-die ([jj -R $root workspace add --name $name] ++ $revision ++ [$worktree_path])
+  mkdir $target
+  run-or-die ([jj -R $root workspace add --name $name] ++ $revision ++ [$target])
+  $target
 } else {
   let git_probe = try-run [git rev-parse --show-toplevel]
   if $git_probe.exit_code != 0 or ($git_probe.stdout | str trim | is-empty) {
@@ -86,6 +99,7 @@ if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
   }
   let root = $git_probe.stdout | str trim
   let branch = $"worktree-($name)"
+  reuse $worktree_path
 
   mkdir ($worktree_path | path dirname)
   let res = do { ^git -C $root show-ref --verify --quiet $"refs/heads/($branch)" } | complete
@@ -95,6 +109,7 @@ if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
     let base = if ($base_commit | is-empty) { "HEAD" } else { $base_commit }
     run-or-die [git -C $root worktree add -b $branch $worktree_path $base]
   }
+  $worktree_path
 }
 
 # Devenv provisioning: local overrides are gitignored, so a fresh checkout
@@ -103,8 +118,8 @@ if $jj_probe.exit_code == 0 and ($jj_probe.stdout | str trim | is-not-empty) {
 if ($cwd | path join "devenv.nix" | path exists) {
   for f in ["devenv.local.nix"] {
     let src = $cwd | path join $f
-    if ($src | path exists) { cp $src ($worktree_path | path join $f) }
+    if ($src | path exists) { cp $src ($created | path join $f) }
   }
 }
 
-print $worktree_path
+print $created

@@ -7,11 +7,9 @@
 { pkgs, ... }:
 let
   inherit (pkgs) lib;
+  inherit (lib) getExe;
+  inherit (pkgs) writeShellScript;
   notify = import ./notify.nix { inherit pkgs; };
-
-  nu-check = pkgs.writeShellScript "nu-check" ''
-    ${lib.getExe pkgs.nushell} --no-config-file --commands "if not (nu-check --debug '$1') { exit 1 }"
-  '';
 
   # `bins` end up on the script's wrapped PATH; nu built-ins cover the rest
   # (mkdir/rm/date), so scripts list only their external commands.
@@ -19,8 +17,29 @@ let
     name:
     {
       bins ? [ ],
+      plugins ? [ ],
     }:
-    pkgs.writers.writeNuBin name {
+    let
+      # Assembled from a list so the no-plugin case has no trailing space —
+      # Linux passes the shebang tail as ONE argument, spaces included.
+      nu = lib.concatStringsSep " " (
+        [
+          (getExe pkgs.nushell)
+          "--no-config-file"
+        ]
+        ++ lib.optionals (plugins != [ ]) [
+          "--plugins"
+          "'[${lib.concatMapStringsSep " " getExe plugins}]'"
+        ]
+      );
+      interpreter =
+        if plugins == [ ] then nu else toString (writeShellScript "nu-plugged" ''exec ${nu} "$@"'');
+      nu-check = writeShellScript "nu-check" ''
+        ${nu} --commands "if not (nu-check --debug '$1') { exit 1 }"
+      '';
+    in
+    pkgs.writers.makeScriptWriter {
+      inherit interpreter;
       check = nu-check;
       makeWrapperArgs = lib.optionals (bins != [ ]) [
         "--prefix"
@@ -28,7 +47,7 @@ let
         ":"
         (lib.makeBinPath bins)
       ];
-    } (builtins.readFile (./scripts + "/${name}.nu"));
+    } "/bin/${name}" (builtins.readFile (./scripts + "/${name}.nu"));
 
   vcs = [
     pkgs.jujutsu
