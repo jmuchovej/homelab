@@ -1,0 +1,66 @@
+---
+# SSD array — warp, da-vcx-1
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: warp/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+# warp/ exists only on da-vcx-1; without this a WaitForFirstConsumer bind on
+# any other node hands the CSI driver a pool that isn't there
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["da-vcx-1"]
+---
+# HDD array — impulse, da-gr75
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs-hdd
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: impulse/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["da-gr75"]
+---
+# DELETE this document once no PVC references it:
+#   kubectl get pvc -A -o jsonpath='{.items[*].spec.storageClassName}' | tr ' ' '\n' | sort -u
+# Getting there is a per-volume data migration, NOT a manifest edit —
+# reclaimPolicy is Delete, so dropping a PVC drops its dataset with it.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: warp/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["da-vcx-1"]

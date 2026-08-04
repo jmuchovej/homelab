@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: syncthing-${ST_KEY}-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # NOT the default zfs-ssd class — that provisions from warp/ on da-vcx-1,
+  # and these pods are pinned to the node holding the bulk pool
+  storageClassName: zfs-hdd
+  resources:
+    requests:
+      storage: ${ST_DB_SIZE}

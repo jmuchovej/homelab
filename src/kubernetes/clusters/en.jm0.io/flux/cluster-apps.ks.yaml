@@ -5,6 +5,14 @@ metadata:
   name: cluster-apps
   namespace: flux-system
 spec:
+  # A PVC created while no default StorageClass exists is stamped with
+  # storageClassName: "" permanently and never binds — the classes live in
+  # cluster-config, so apps must not reconcile ahead of it.
+  # NOTE: en has no storage-classes.yaml yet; it needs one (and an ST_NODE
+  # substitution) before any PVC-claiming app is selected here.
+  dependsOn:
+    - name: cluster-config
+      namespace: flux-system
   interval: 1h
   path: ./src/kubernetes/clusters/en.jm0.io/apps
   prune: true

@@ -1,0 +1,26 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: syncthing-floe-rlfn
+spec:
+  dependsOn:
+    - name: envoy-config
+      namespace: network
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./src/kubernetes/components/syncthing
+  postBuild:
+    substitute:
+      ST_KEY: floe-rlfn
+      ST_DB_SIZE: 5Gi
+      ST_MEM_LIMIT: 1Gi
+      ST_LB_IP: 10.69.1.73
+  targetNamespace: home
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true

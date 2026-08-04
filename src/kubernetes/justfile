@@ -1,0 +1,112 @@
+set script-interpreter := ["bash", "-ueo", "pipefail"]
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# Every StorageClass here is reclaimPolicy: Delete, so deleting a PVC destroys
+# its ZFS dataset. Retain downgrades that to "orphaned, rebindable" for volumes
+# that already exist — the class default only governs volumes provisioned after
+# it changes, so this is the only way to cover the existing fleet.
+[doc('Flip every existing PV to Retain so PVC deletion orphans data instead of destroying it')]
+[script]
+protect:
+    mapfile -t pvs < <(kubectl get pv -o jsonpath='{range .items[?(@.spec.persistentVolumeReclaimPolicy=="Delete")]}{.metadata.name}{"\n"}{end}')
+    if [[ ${#pvs[@]} -eq 0 ]]; then
+        echo "all PVs already Retain"
+        exit 0
+    fi
+    for pv in "${pvs[@]}"; do
+        kubectl patch pv "$pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+    done
+    echo "protected ${#pvs[@]} volume(s)"
+
+[doc('Show every PVC grouped by StorageClass — the check for whether a class is retirable')]
+[script]
+classes:
+    kubectl get pvc -A -o json \
+      | yq -p json -o yaml '[.items[] | {"class": .spec.storageClassName, "claim": (.metadata.namespace + "/" + .metadata.name)}]
+          | group_by(.class)
+          | map({"class": .[0].class, "count": length, "claims": [.[].claim]})'
+
+# Rebinds an existing volume to a differently-named StorageClass. This moves
+# METADATA ONLY — the dataset is never copied — so it is refused unless both
+# classes resolve to the same provisioner and pool. Renaming `zfs` to `zfs-ssd`
+# qualifies; moving an ssd-backed volume to `zfs-hdd` does not, and needs a
+# real data migration instead.
+#
+# If the app's manifest pins `storageClassName`, change it in git and let Flux
+# see the new value BEFORE running this — otherwise Flux recreates the claim
+# with the old class and it will not bind to the relabelled volume.
+[doc('Rebind a PVC to another StorageClass on the same pool, without touching its data')]
+[script]
+migrate-class ns pvc class:
+    ns="{{ ns }}"; pvc="{{ pvc }}"; target="{{ class }}"
+
+    current=$(kubectl get pvc "$pvc" -n "$ns" -o jsonpath='{.spec.storageClassName}')
+    if [[ $current == "$target" ]]; then
+        echo "$ns/$pvc is already on $target"
+        exit 0
+    fi
+
+    pv=$(kubectl get pvc "$pvc" -n "$ns" -o jsonpath='{.spec.volumeName}')
+    [[ -n $pv ]] || { echo "$ns/$pvc is not bound to a PV" >&2; exit 1; }
+
+    # A relabel asserts "this data lives where the target class says it does".
+    # If the pools differ that assertion is a lie and the volume would be
+    # unreachable on the node the target class pins.
+    from_pool=$(kubectl get sc "$current" -o jsonpath='{.parameters.poolname}')
+    to_pool=$(kubectl get sc "$target"  -o jsonpath='{.parameters.poolname}')
+    if [[ $from_pool != "$to_pool" ]]; then
+        echo "REFUSING: $current is pool '$from_pool', $target is pool '$to_pool'." >&2
+        echo "This recipe relabels metadata; it does not move data." >&2
+        exit 1
+    fi
+
+    # A live pod holds the claim open — deletion would hang on pvc-protection.
+    holders=$(kubectl get pods -n "$ns" \
+      -o jsonpath="{range .items[?(@.spec.volumes[*].persistentVolumeClaim.claimName=='$pvc')]}{.metadata.name}{' '}{end}")
+    if [[ -n ${holders// /} ]]; then
+        echo "REFUSING: pod(s) still mounting $ns/$pvc: $holders" >&2
+        echo "Scale the workload to 0 first, then re-run." >&2
+        exit 1
+    fi
+
+    ks=$(kubectl get pvc "$pvc" -n "$ns" -o jsonpath='{.metadata.labels.kustomize\.toolkit\.fluxcd\.io/name}')
+    ks_ns=$(kubectl get pvc "$pvc" -n "$ns" -o jsonpath='{.metadata.labels.kustomize\.toolkit\.fluxcd\.io/namespace}')
+
+    echo "==> $ns/$pvc  $current -> $target  (pv $pv, pool $to_pool)"
+
+    # Retain FIRST: from here on, a mistake orphans the dataset instead of
+    # destroying it.
+    kubectl patch pv "$pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+
+    if [[ -n $ks ]]; then
+        echo "==> suspending flux kustomization $ks_ns/$ks"
+        flux suspend kustomization "$ks" -n "$ks_ns"
+    fi
+
+    kubectl delete pvc "$pvc" -n "$ns" --wait=true
+
+    # Relabel, then reserve the volume for the claim that is about to reappear.
+    # The claimRef must carry no uid — a stale one blocks rebinding.
+    kubectl patch pv "$pv" -p "{\"spec\":{\"storageClassName\":\"$target\"}}"
+    kubectl patch pv "$pv" --type=json \
+      -p "[{\"op\":\"replace\",\"path\":\"/spec/claimRef\",\"value\":{\"namespace\":\"$ns\",\"name\":\"$pvc\"}}]"
+
+    if [[ -n $ks ]]; then
+        echo "==> resuming flux kustomization $ks_ns/$ks"
+        flux resume kustomization "$ks" -n "$ks_ns" --wait=false
+    else
+        echo "!! PVC was not flux-managed — recreate it yourself with storageClassName: $target" >&2
+    fi
+
+    echo "==> waiting for $ns/$pvc to rebind"
+    kubectl wait --for=jsonpath='{.status.phase}'=Bound "pvc/$pvc" -n "$ns" --timeout=300s
+
+    got=$(kubectl get pvc "$pvc" -n "$ns" -o jsonpath='{.spec.volumeName}')
+    if [[ $got != "$pv" ]]; then
+        echo "!! rebound to $got, expected $pv — the original dataset is retained but orphaned" >&2
+        exit 1
+    fi
+    echo "==> $ns/$pvc now on $target, still on $pv. Scale the workload back up."

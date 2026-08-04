@@ -1,0 +1,26 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: syncthing
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: syncthing
+  extAuth:
+    # without this the header the redirect rules match on is only ever the
+    # client-supplied one — the route is chosen before ext-auth runs
+    recomputeRoute: true
+    headersToExtAuth:
+      - cookie
+    http:
+      backendRefs:
+        - name: ak-outpost-proxy
+          namespace: auth
+          port: 9000
+      path: /outpost.goauthentik.io/auth/envoy
+      headersToBackend:
+        - set-cookie
+        # the identity the redirect rules select on
+        - x-authentik-username

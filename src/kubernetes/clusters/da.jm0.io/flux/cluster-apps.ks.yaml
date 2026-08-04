@@ -5,6 +5,12 @@ metadata:
   name: cluster-apps
   namespace: flux-system
 spec:
+  # A PVC created while no default StorageClass exists is stamped with
+  # storageClassName: "" permanently and never binds — the classes live in
+  # cluster-config, so apps must not reconcile ahead of it.
+  dependsOn:
+    - name: cluster-config
+      namespace: flux-system
   interval: 1h
   path: ./src/kubernetes/clusters/da.jm0.io/apps
   prune: true
@@ -29,6 +35,9 @@ spec:
               DC_DOMAIN: da.jm0.io
               DOMAIN: jm0.io
               ADMIN_CIDR: 10.99.0.0/16
+              # node owning the bulk pool — pool PATHS are a portable
+              # convention, node names are not
+              ST_NODE: da-gr75
           patches:
             - target:
                 group: helm.toolkit.fluxcd.io
