@@ -59,7 +59,23 @@
         macos.homebrew.casks = [ "monitorcontrol" ];
       };
       _.raycast = {
-        macos.homebrew.casks = [ "raycast" ];
+        macos =
+          { lib, ... }:
+          let
+            inherit (lib.rbn.macos) keycode symbolic-hotkey;
+          in
+          {
+            homebrew.casks = [ "raycast" ];
+            system.defaults.CustomUserPreferences = {
+              "com.raycast.macos".raycastGlobalHotkey = "Command-${toString (keycode " ")}";
+              # Spotlight search (⌘Space) and Finder search window (⌥⌘Space),
+              # disabled so Raycast owns ⌘Space.
+              "com.apple.symbolichotkeys".AppleSymbolicHotKeys = {
+                "64" = symbolic-hotkey false "cmd + ' '";
+                "65" = symbolic-hotkey false "alt + cmd + ' '";
+              };
+            };
+          };
       };
       _.sf-symbols = {
         macos.homebrew.casks = [ "sf-symbols" ];
