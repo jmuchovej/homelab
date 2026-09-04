@@ -442,6 +442,18 @@
         "type": "github"
       }
     },
+    "mac-keycodes": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-h1nnXimgmZp4YJbmywsJXBLJA1cN70SWbY4s5mHYgR4=",
+        "type": "file",
+        "url": "https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes"
+      }
+    },
     "mcp-servers": {
       "inputs": {
         "nixpkgs": "nixpkgs_7"
@@ -880,6 +892,22 @@
         "type": "github"
       }
     },
+    "oh-my-tmux": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786203437,
+        "narHash": "sha256-YDzbZVFhrAMBhOI8HVDxR3rEPkrEwG57IUbnZicmfn4=",
+        "owner": "gpakosz",
+        "repo": ".tmux",
+        "rev": "58a3dcc0d718ec0fa1c0d5a2fddd640a1ad7a5b7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gpakosz",
+        "repo": ".tmux",
+        "type": "github"
+      }
+    },
     "pre-commit": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -919,6 +947,7 @@
         "import-tree": "import-tree",
         "lanzaboote": "lanzaboote",
         "llm-agents": "llm-agents",
+        "mac-keycodes": "mac-keycodes",
         "mcp-servers": "mcp-servers",
         "nh": "nh",
         "nix-darwin": "nix-darwin",
@@ -929,6 +958,7 @@
         "nixos-facter-modules": "nixos-facter-modules",
         "nixpkgs": "nixpkgs_11",
         "nixvirt": "nixvirt",
+        "oh-my-tmux": "oh-my-tmux",
         "sops-nix": "sops-nix",
         "topology": "topology",
         "treefmt-nix": "treefmt-nix_3"

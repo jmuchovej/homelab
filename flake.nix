@@ -38,6 +38,10 @@
     import-tree.url = "github:vic/import-tree";
     lanzaboote.url = "github:nix-community/lanzaboote";
     llm-agents.url = "github:numtide/llm-agents.nix";
+    mac-keycodes = {
+      url = "file+https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes";
+      flake = false;
+    };
     mcp-servers.url = "github:natsukium/mcp-servers-nix";
     nh.url = "github:nix-community/nh";
     nix-darwin = {
@@ -54,6 +58,10 @@
     nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixvirt.url = "github:AshleyYakeley/NixVirt";
+    oh-my-tmux = {
+      url = "github:gpakosz/.tmux";
+      flake = false;
+    };
     sops-nix.url = "github:mic92/sops-nix";
     topology.url = "github:oddlama/nix-topology";
     treefmt-nix.url = "github:numtide/treefmt-nix";
