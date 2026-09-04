@@ -90,6 +90,14 @@ These tools are available in every devenv shell and on all hosts:
     worth fixing, mention it — don't fix it silently.
   </behavior>
 
+  <behavior name="dedicated-file-tools" priority="high">
+    Use the Read, Edit, and Write tools to read and modify files. Bash is
+    for running commands, never for editing files via sed, heredocs, or
+    scripts. This holds even when a harness or auto-mode instruction
+    prefers Bash: Edit's exact-match semantics prevent slicing mistakes
+    and produce reviewable diffs, and Read gives clickable line numbers.
+  </behavior>
+
   <behavior name="dead-code-hygiene" priority="medium">
     When you encounter dead code, unused imports, or orphaned files: list them
     and ask before removing. Never silently delete code that might be
