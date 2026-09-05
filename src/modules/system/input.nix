@@ -17,6 +17,11 @@
         userKeyMapping = [ ];
       };
 
+      # What the fn/globe key does on its own. Needs a restart to take effect.
+      system.defaults.hitoolbox.AppleFnUsageType = "Show Emoji & Symbols";
+
+      system.defaults.magicmouse.MouseButtonMode = "OneButton";
+
       system.defaults.trackpad = {
         ActuateDetents = true;
         ActuationStrength = 0;

@@ -97,5 +97,42 @@
         reduceMotion = false;
         reduceTransparency = true;
       };
+
+      # Stage Manager stays off; window tiling on, without margins.
+      system.defaults.WindowManager = {
+        GloballyEnabled = false;
+        AutoHide = false;
+        AppWindowGroupingBehavior = true;
+        HideDesktop = true;
+        StageManagerHideWidgets = false;
+
+        EnableStandardClickToShowDesktop = true;
+        StandardHideDesktopIcons = false;
+        StandardHideWidgets = false;
+
+        EnableTilingByEdgeDrag = true;
+        EnableTopTilingByEdgeDrag = true;
+        EnableTilingOptionAccelerator = true;
+        EnableTiledWindowMargins = false;
+      };
+
+      # Only the battery toggle is declared: nix-darwin can express the other
+      # menu bar items solely as always-shown or always-hidden, never
+      # "when active", which is what they are set to here.
+      system.defaults.controlcenter.BatteryShowPercentage = true;
+
+      system.defaults.screensaver = {
+        askForPassword = true;
+        askForPasswordDelay = 0;
+      };
+
+      system.defaults.ActivityMonitor = {
+        OpenMainWindow = true;
+        ShowCategory = 100;
+      };
+
+      system.defaults.LaunchServices.LSQuarantine = true;
+
+      system.defaults.SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false;
     };
 }
