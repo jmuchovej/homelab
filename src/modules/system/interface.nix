@@ -10,15 +10,12 @@
       system.defaults.spaces.spans-displays = false;
       system.defaults.NSGlobalDomain.AppleSpacesSwitchOnActivate = false;
 
-      system.defaults.CustomSystemPreferences = {
-        finder = {
-          DisableAllAnimations = true;
-          ShowExternalHardDrivesOnDesktop = false;
-          ShowHardDrivesOnDesktop = false;
-          ShowMountedServersOnDesktop = false;
-          ShowRemovableMediaOnDesktop = false;
-          _FXSortFoldersFirst = true;
-        };
+      # Keys nix-darwin has no typed option for. These are user preferences, so
+      # they must go through `CustomUserPreferences` with full domain names;
+      # `CustomSystemPreferences` writes root's plists and never reaches the
+      # login user.
+      system.defaults.CustomUserPreferences = {
+        "com.apple.finder".DisableAllAnimations = true;
 
         NSGlobalDomain = {
           AppleAccentColor = 1;
@@ -56,8 +53,13 @@
         FXEnableExtensionChangeWarning = false;
         FXPreferredViewStyle = "Nlsv";
         QuitMenuItem = true;
+        ShowExternalHardDrivesOnDesktop = false;
+        ShowHardDrivesOnDesktop = false;
+        ShowMountedServersOnDesktop = false;
+        ShowRemovableMediaOnDesktop = false;
         ShowStatusBar = true;
         _FXShowPosixPathInTitle = true;
+        _FXSortFoldersFirst = true;
       };
 
       system.defaults.loginwindow = {
