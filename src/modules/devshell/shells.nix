@@ -84,6 +84,9 @@
           d2
           nixos-render-docs
 
+          # AI tooling
+          inputs'.llm-agents.packages.openspec
+
           # Misc
           tmux
           fd
