@@ -1,5 +1,5 @@
 {
-  # Virtual keycode table consumed by `lib.rbn.symbolic-hotkey`.
+  # Virtual keycode table consumed by `lib.rbn.macos.symbolic-hotkey`.
   flake-file.inputs.mac-keycodes = {
     flake = false;
     url = "file+https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes";

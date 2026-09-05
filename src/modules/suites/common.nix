@@ -24,6 +24,7 @@
 
       # macOS infrastructure (no-ops on NixOS)
       <rbn/system/homebrew>
+      <rbn/system/input>
 
       # CLI tools
       <rbn/programs/baseline>
