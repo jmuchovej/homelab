@@ -101,8 +101,6 @@
         # `switch` activations. Pin until we can plan a reboot.
         services.dbus.implementation = "dbus";
 
-        environment.sessionVariables.KEYTIMEOUT = 0;
-
         environment.variables = {
           SYSTEMD_PAGERSECURE = "true";
           SYSTEMD_LESS = lib.concatStringsSep " " (

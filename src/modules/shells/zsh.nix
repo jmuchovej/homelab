@@ -19,7 +19,6 @@
 
         autocd = true;
         enableCompletion = true;
-        defaultKeymap = "vicmd";
 
         dotDir = "${config.xdg.configHome}/zsh";
 
@@ -44,7 +43,6 @@
 
         sessionVariables = {
           LC_ALL = "en_US.UTF-8";
-          KEYTIMEOUT = 0;
         };
 
         antidote = {
