@@ -32,18 +32,115 @@
         { lib, pkgs, ... }:
         let
           inherit (inputs) import-tree;
-          inherit (import ./_lib.nix { inherit lib import-tree; }) load-tools;
+          inherit (import ./_lib.nix { inherit lib import-tree; }) load-tools mk-nu-script;
+          inherit (lib) getExe;
 
-          # Hook scripts live in the shared `hooks/` tree; the wiring into
-          # Claude's settings stays Claude-specific under `_claude/`.
-          hooks = import ./_claude/hooks.nix {
+          notify = import ./_claude/notify.nix { inherit pkgs; };
+          vcs = [
+            pkgs.jujutsu
+            pkgs.git
+          ];
+
+          # One row per `hooks/<name>.nu`: what it needs on PATH (`bins`) and
+          # which Claude events run it (`on.<Event> = { matcher?, timeout? }`).
+          # `status-line` is built the same way but is not a hook.
+          hook-scripts = {
+            # Regex-based security checks the permission lists can't express.
+            pre-tool-use.on.PreToolUse = {
+              matcher = "Bash|Write|Edit|MultiEdit|Read";
+              timeout = 5;
+            };
+            pre-tool-audit.on.PreToolUse = {
+              matcher = "*";
+              timeout = 10;
+            };
+            post-tool-audit.on.PostToolUse = {
+              matcher = "*";
+              timeout = 10;
+            };
+            post-tool-validate.on.PostToolUse = {
+              matcher = "Write|Edit";
+              timeout = 5;
+            };
+            pre-compact = {
+              bins = [ pkgs.git ];
+              on.PreCompact.matcher = "*";
+            };
+            session-start = {
+              bins = vcs;
+              on.SessionStart.matcher = "*";
+            };
+            session-end = {
+              bins = [ pkgs.git ];
+              on.SessionEnd.matcher = "*";
+            };
+            subagent-stop = {
+              bins = [ notify ];
+              on.SubagentStop = {
+                matcher = "*";
+                timeout = 10;
+              };
+            };
+            # Label bridge-session jj workspaces after their task; the label may
+            # improve between the first prompt and the first stop (AI title).
+            worktree-rename = {
+              bins = [ pkgs.jujutsu ];
+              on = {
+                UserPromptSubmit.timeout = 10;
+                Stop.timeout = 10;
+              };
+            };
+            worktree-create = {
+              bins = vcs;
+              on.WorktreeCreate.timeout = 600;
+            };
+            worktree-remove = {
+              bins = vcs;
+              on.WorktreeRemove.timeout = 120;
+            };
+            status-line.bins = [ pkgs.git ];
+          };
+
+          mk-script = mk-nu-script {
             inherit pkgs;
             hooks-dir = ./hooks;
           };
-          scripts = import ./_claude/scripts.nix {
-            inherit pkgs;
-            hooks-dir = ./hooks;
-          };
+          scripts = lib.mapAttrs (name: row: mk-script name { bins = row.bins or [ ]; }) hook-scripts;
+
+          mk-hook =
+            {
+              command,
+              matcher ? "",
+              timeout ? null,
+            }:
+            {
+              inherit matcher;
+              hooks = [
+                (
+                  {
+                    type = "command";
+                    inherit command;
+                  }
+                  // lib.optionalAttrs (timeout != null) { inherit timeout; }
+                )
+              ];
+            };
+
+          # Invert the table into Claude's shape, event -> [hook], and add the
+          # inline notifier, which has no script of its own.
+          hooks = lib.zipAttrsWith (_: lib.concatLists) (
+            [
+              {
+                Notification = [ (mk-hook { command = "${getExe notify} 'Claude Code' 'Awaiting your input'"; }) ];
+              }
+            ]
+            ++ lib.mapAttrsToList (
+              name: row:
+              lib.mapAttrs (_: spec: [ (mk-hook (spec // { command = getExe scripts.${name}; })) ]) (
+                row.on or { }
+              )
+            ) hook-scripts
+          );
         in
         {
           xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;

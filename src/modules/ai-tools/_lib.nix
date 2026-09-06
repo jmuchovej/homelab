@@ -1,5 +1,7 @@
-## AI-tools helpers: markdown frontmatter parsing for cross-tool translation
-## (Claude Code → Antigravity → etc.). Imported explicitly by sibling modules.
+## AI-tools helpers shared by every harness aspect: markdown loaders and
+## frontmatter parsing for the `commands/`, `agents/`, and `skills/` trees, and
+## the checked nushell builder for `hooks/*.nu`. Imported explicitly by
+## sibling modules.
 { lib, import-tree }:
 let
   inherit (lib)
@@ -111,4 +113,51 @@ in
         (i: i.leaves base-path)
       ]
     );
+
+  ## Build `<hooks-dir>/<name>.nu` into a runnable, checked binary.
+  ##
+  ## `writers.writeNuBin` has no shellcheck equivalent built in, so `check`
+  ## runs `nu-check` at build time; `--debug` makes a parse failure throw,
+  ## failing the derivation with the diagnostic. Scripts run on the
+  ## nixpkgs-pinned nushell, independent of the interactive shell's nu.
+  ## `bins` end up on the script's wrapped PATH; nu built-ins cover the rest
+  ## (mkdir/rm/date), so scripts list only their external commands.
+  #@ { pkgs, hooks-dir } -> String -> { bins?, plugins? } -> Derivation
+  mk-nu-script =
+    { pkgs, hooks-dir }:
+    name:
+    {
+      bins ? [ ],
+      plugins ? [ ],
+    }:
+    let
+      inherit (lib) getExe;
+      # Assembled from a list so the no-plugin case has no trailing space —
+      # Linux passes the shebang tail as ONE argument, spaces included.
+      nu = concatStringsSep " " (
+        [
+          (getExe pkgs.nushell)
+          "--no-config-file"
+        ]
+        ++ lib.optionals (plugins != [ ]) [
+          "--plugins"
+          "'[${lib.concatMapStringsSep " " getExe plugins}]'"
+        ]
+      );
+      interpreter =
+        if plugins == [ ] then nu else toString (pkgs.writeShellScript "nu-plugged" ''exec ${nu} "$@"'');
+      nu-check = pkgs.writeShellScript "nu-check" ''
+        ${nu} --commands "if not (nu-check --debug '$1') { exit 1 }"
+      '';
+    in
+    pkgs.writers.makeScriptWriter {
+      inherit interpreter;
+      check = nu-check;
+      makeWrapperArgs = lib.optionals (bins != [ ]) [
+        "--prefix"
+        "PATH"
+        ":"
+        (lib.makeBinPath bins)
+      ];
+    } "/bin/${name}" (builtins.readFile (hooks-dir + "/${name}.nu"));
 }
