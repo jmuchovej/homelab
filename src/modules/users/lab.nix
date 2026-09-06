@@ -25,7 +25,7 @@
       <rbn/programs/terminal/topgrade>
 
       # Core
-      <rbn/programs/ai-tools/claude/code>
+      <rbn/programs/ai-tools/claude/cli>
       <rbn/programs/ai-tools/mcp>
 
       # Editors

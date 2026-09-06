@@ -13,11 +13,11 @@
 
   rbn.programs._.ai-tools._.claude = {
     includes = [
-      <rbn/programs/ai-tools/claude/code>
+      <rbn/programs/ai-tools/claude/cli>
       (rbn-policies.when-desktop "claude" <rbn/programs/ai-tools/claude/desktop>)
     ];
 
-    _.code = {
+    _.cli = {
       includes = [ (den.batteries.unfree [ "claude-code" ]) ];
 
       hm-linux =
