@@ -81,6 +81,9 @@
 
               env = {
                 USE_BUILTIN_RIPGREP = "0";
+                # Plain output from jj, eza and friends; escape codes break
+                # parsing. Applies to the session and its subprocesses.
+                NO_COLOR = "1";
               };
 
               statusLine = {
