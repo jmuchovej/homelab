@@ -86,6 +86,22 @@ in
     })
   ];
 
+  # Label bridge-session jj workspaces after their task; the label may
+  # improve between the first prompt and the first stop (AI title).
+  UserPromptSubmit = [
+    (mk-hook {
+      command = exe scripts.worktree-rename;
+      timeout = 10;
+    })
+  ];
+
+  Stop = [
+    (mk-hook {
+      command = exe scripts.worktree-rename;
+      timeout = 10;
+    })
+  ];
+
   WorktreeCreate = [
     (mk-hook {
       command = exe scripts.worktree-create;

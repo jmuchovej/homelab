@@ -66,4 +66,5 @@ in
   subagent-stop = mk-script "subagent-stop" { bins = [ notify ]; };
   worktree-create = mk-script "worktree-create" { bins = vcs; };
   worktree-remove = mk-script "worktree-remove" { bins = vcs; };
+  worktree-rename = mk-script "worktree-rename" { bins = [ pkgs.jujutsu ]; };
 }
