@@ -1,10 +1,10 @@
-# Builds each scripts/*.nu file into a runnable, checked binary.
+# Builds each `<hooks-dir>/*.nu` file into a runnable, checked binary.
 #
 # `writers.writeNuBin` has no shellcheck equivalent built in, so `check` runs
 # `nu-check` at build time; `--debug` makes a parse failure throw, failing the
 # derivation with the diagnostic. Scripts run on the nixpkgs-pinned nushell,
 # independent of the interactive shell's nu.
-{ pkgs, ... }:
+{ pkgs, hooks-dir, ... }:
 let
   inherit (pkgs) lib;
   inherit (lib) getExe;
@@ -47,7 +47,7 @@ let
         ":"
         (lib.makeBinPath bins)
       ];
-    } "/bin/${name}" (builtins.readFile (./scripts + "/${name}.nu"));
+    } "/bin/${name}" (builtins.readFile (hooks-dir + "/${name}.nu"));
 
   vcs = [
     pkgs.jujutsu

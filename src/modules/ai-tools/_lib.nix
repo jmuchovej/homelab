@@ -99,8 +99,8 @@ in
   ## `programs.claude-code.{commands,agents}` is `attrsOf (either lines path)`,
   ## so a path works and avoids a `readFile` per file at eval time.
   ##
-  ## As in `default.nix`, `initFilter` must be overridden — the default filter
-  ## rejects everything under `_ai-tools/` because the path contains `/_`.
+  ## `initFilter` must be overridden: import-tree's default filter only admits
+  ## `.nix` files, and these trees hold markdown.
   #@ Path -> Attrs
   load-tools =
     base-path:

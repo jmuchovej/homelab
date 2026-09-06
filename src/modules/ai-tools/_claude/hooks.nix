@@ -1,7 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, hooks-dir, ... }:
 let
   inherit (pkgs) lib;
-  scripts = import ./scripts.nix { inherit pkgs; };
+  scripts = import ./scripts.nix { inherit pkgs hooks-dir; };
   notify = import ./notify.nix { inherit pkgs; };
 
   mk-hook =

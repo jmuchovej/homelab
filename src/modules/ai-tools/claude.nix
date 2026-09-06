@@ -6,11 +6,6 @@
   ...
 }:
 {
-  flake-file.inputs.anthropic-skills = {
-    flake = false;
-    url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
-  };
-
   rbn.programs._.ai-tools._.claude = {
     includes = [
       <rbn/programs/ai-tools/claude/cli>
@@ -21,6 +16,7 @@
       includes = [
         (den.batteries.unfree [ "claude-code" ])
         <rbn/programs/ai-tools/skills>
+        <rbn/programs/ai-tools/skills/claude>
       ];
 
       hm-linux =
@@ -33,42 +29,31 @@
         };
 
       hm =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
+        { lib, pkgs, ... }:
         let
           inherit (inputs) import-tree;
+          inherit (import ./_lib.nix { inherit lib import-tree; }) load-tools;
 
-          ai-tools = import ./_ai-tools {
-            inherit lib import-tree;
-            anthropic-skills-src = inputs.anthropic-skills;
+          # Hook scripts live in the shared `hooks/` tree; the wiring into
+          # Claude's settings stays Claude-specific under `_claude/`.
+          hooks = import ./_claude/hooks.nix {
+            inherit pkgs;
+            hooks-dir = ./hooks;
           };
-          inherit (ai-tools) claude-code;
-
-          hooks = import ./_claude/hooks.nix { inherit pkgs; };
-          scripts = import ./_claude/scripts.nix { inherit pkgs; };
+          scripts = import ./_claude/scripts.nix {
+            inherit pkgs;
+            hooks-dir = ./hooks;
+          };
         in
         {
           xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
-
-          # Skills come from the shared `~/.agents/skills` root (skills.nix).
-          # `~/.claude/skills/` has to stay a real directory because home-manager
-          # installs plugin skills into it, so each skill is linked individually.
-          home.file = lib.mapAttrs' (
-            name: _:
-            lib.nameValuePair ".claude/skills/${name}" {
-              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/skills/${name}";
-            }
-          ) ai-tools.skills;
 
           programs.claude-code = {
             enable = true;
             enableMcpIntegration = true;
 
-            inherit (claude-code) agents commands;
+            commands = load-tools ./commands;
+            agents = load-tools ./agents;
 
             settings = {
               inherit hooks;
@@ -139,7 +124,7 @@
               };
             };
 
-            context = ./_ai-tools/BASE.md;
+            context = ./_system-prompt.md;
           };
         };
 
