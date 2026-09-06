@@ -33,6 +33,23 @@
         pkgs.writeShellScriptBin "nu" ''
           exec ${getExe pkgs.nushell} --plugins '[${lib.concatMapStringsSep " " getExe plugins}]' "$@"
         '';
+
+      openspec = inputs'.llm-agents.packages.openspec;
+
+      # Project skills for the shared `.agents/skills` root: hand-written ones
+      # from the top-level `skills/` directory plus openspec's workflow skills,
+      # rendered from the same openspec the shell ships.
+      homelab-skills = pkgs.symlinkJoin {
+        name = "homelab-skills";
+        paths = [
+          (builtins.path {
+            name = "homelab-skills-local";
+            path = "${self}/skills";
+            filter = path: _type: baseNameOf path != ".gitkeep";
+          })
+          (pkgs.callPackage ./_skills/openspec.nix { inherit openspec; })
+        ];
+      };
     in
     {
       devShells.default = pkgs.mkShell {
@@ -85,7 +102,7 @@
           nixos-render-docs
 
           # AI tooling
-          inputs'.llm-agents.packages.openspec
+          openspec
 
           # Misc
           tmux
@@ -103,15 +120,20 @@
         shellHook = ''
           ${config.pre-commit.installationScript}
 
-          # Sync project-specific skills into tool-specific locations.
-          # TODO(jmuchovej): This only supports Claude Code, which has native skill
-          # discovery via `.claude/skills/`. Gemini CLI and OpenCode don't have an
-          # equivalent mechanism — supporting them would require running skills through
-          # the Nix rendering pipeline (`modules/ai-tools/_ai-tools/lib.nix`) to transform
-          # them into each tool's format (e.g., Gemini commands, OpenCode agents).
-          mkdir -p .claude
-          rm -rf .claude/skills
-          ln -snf "$(pwd)/skills" .claude/skills
+          # Project skills live in one shared root, `.agents/skills`, which
+          # Antigravity and Codex read natively. Harnesses that only look in
+          # their own directory get a symlink to it. A path that exists and is
+          # not a symlink is left alone rather than clobbered.
+          link_skills() {
+            if [ -e "$2" ] && [ ! -L "$2" ]; then
+              echo "skills: $2 exists and is not a symlink; not replacing it" >&2
+              return 0
+            fi
+            mkdir -p "$(dirname "$2")"
+            ln -snf "$1" "$2"
+          }
+          link_skills "${homelab-skills}" .agents/skills
+          link_skills "$PWD/.agents/skills" .claude/skills
         '';
       };
     };

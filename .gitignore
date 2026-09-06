@@ -409,3 +409,7 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+
+# AI agent skill roots: symlinks into the Nix store, created by the devshell
+.agents/
+.claude/skills
