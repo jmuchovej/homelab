@@ -59,6 +59,9 @@
           nup = "nix-shell maintainers/scripts/update.nix --argstr package $1";
           num = "nix-shell maintainers/scripts/update.nix --argstr maintainer $1";
           lg = "lazygit";
+          # Interactive-only color for jj pipes (fzf, less); agents run
+          # non-interactive shells without aliases and get NO_COLOR instead.
+          jj = "jj --color always";
         };
 
       programs = {
@@ -169,8 +172,9 @@
               };
             };
 
+            # No ui.color: any value here, even "auto", overrides NO_COLOR,
+            # which agents rely on. Interactive shells alias `jj --color always`.
             ui = {
-              color = "always";
               default-command = "log";
             };
 
