@@ -103,11 +103,16 @@
       {
         home.packages = [ pkgs.tmux ];
 
-        # programs.tmux is intentionally unused because we would end up fighting
-        # for ownership of tmux/tmux.conf.
         xdg.configFile = {
           "tmux/tmux.conf".source = "${inputs.oh-my-tmux}/.tmux.conf";
           "tmux/tmux.conf.local".text = local-text;
+        };
+
+        home.shellAliases = {
+          "ta" = "tmux attach -t";
+          "tl" = "tmux list-sessions";
+          "tkss" = "tmux kill-session -t";
+          "ts" = "tmux new-session -A -s";
         };
       };
   };
