@@ -18,7 +18,10 @@
     ];
 
     _.cli = {
-      includes = [ (den.batteries.unfree [ "claude-code" ]) ];
+      includes = [
+        (den.batteries.unfree [ "claude-code" ])
+        <rbn/programs/ai-tools/skills>
+      ];
 
       hm-linux =
         { pkgs, ... }:
@@ -30,7 +33,12 @@
         };
 
       hm =
-        { lib, pkgs, ... }:
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         let
           inherit (inputs) import-tree;
 
@@ -46,6 +54,16 @@
         {
           xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
 
+          # Skills come from the shared `~/.agents/skills` root (skills.nix).
+          # `~/.claude/skills/` has to stay a real directory because home-manager
+          # installs plugin skills into it, so each skill is linked individually.
+          home.file = lib.mapAttrs' (
+            name: _:
+            lib.nameValuePair ".claude/skills/${name}" {
+              source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/skills/${name}";
+            }
+          ) ai-tools.skills;
+
           programs.claude-code = {
             enable = true;
             enableMcpIntegration = true;
@@ -53,7 +71,6 @@
             inherit (claude-code) agents commands;
 
             settings = {
-              inherit (ai-tools) skills;
               inherit hooks;
 
               theme = "auto";

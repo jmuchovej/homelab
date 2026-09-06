@@ -33,7 +33,8 @@ let
     map (name: lib.nameValuePair name (anthropic-skills-src + "/skills/${name}")) upstream-skill-names
   );
 
-  # name -> path attrset; consumed directly by the claude-code HM module.
+  # name -> path attrset; published to `~/.agents/skills` by `skills.nix` and
+  # linked per harness from there.
   # No symlinkJoin = no derivation = no IFD = no cross-arch build needed.
   skills = local-skills // upstream-skills;
 in
