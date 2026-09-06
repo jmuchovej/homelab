@@ -14,6 +14,12 @@
       hm =
         { config, ... }:
         {
+          # Gemini CLI loads ~/.gemini/.env into its process environment, so the
+          # shell tool's subprocesses inherit it. Same intent as Claude's env.
+          home.file.".gemini/.env".text = ''
+            NO_COLOR=1
+          '';
+
           programs.antigravity-cli = {
             enable = true;
 
@@ -34,6 +40,35 @@
             context = {
               GEMINI = ./_ai-tools/BASE.md;
             };
+
+            commands = {
+              changelog = {
+                prompt = ''
+                  Your task is to parse the version, change type, and message from the input
+                  and update the CHANGELOG.md file accordingly following
+                  conventional commit standards.
+                '';
+                description = "Update CHANGELOG.md with new entry following conventional commit standards";
+              };
+
+              review = {
+                prompt = ''
+                  Analyze the staged git changes and provide a thorough
+                  code review with suggestions for improvement, focusing on
+                  code quality, security, and maintainability.
+                '';
+                description = "Analyze staged git changes and provide thorough code review";
+              };
+
+              "git/commit-msg" = {
+                prompt = ''
+                  Generate a conventional commit message based on the
+                  staged changes, following the project's commit standards.
+                  Analyze the changes and create an appropriate commit message.
+                '';
+                description = "Generate conventional commit message based on staged changes";
+              };
+            };
           };
 
           # Skills come from the shared `~/.agents/skills` root (skills.nix).
@@ -45,6 +80,10 @@
           home.file.".gemini/antigravity-cli/skills".source =
             config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.agents/skills";
         };
+    };
+
+    _.desktop = {
+      macos.homebrew.casks = [ "google-gemini" ];
     };
   };
 }

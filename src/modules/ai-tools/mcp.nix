@@ -15,6 +15,11 @@
           args = [ "mcp" ];
         };
       };
+
+      programs.claude-code.enableMcpIntegration = true;
+      programs.antigravity-cli.enableMcpIntegration = true;
+      programs.opencode.enableMcpIntegration = true;
+      programs.codex.enableMcpIntegration = true;
     };
 
     _.sequential-thinking.hm = _: {
