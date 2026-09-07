@@ -40,7 +40,7 @@ metadata:
   labels:
     authentik.rbn/enabled: "true"
   annotations:
-    authentik.rbn/name: Hubitat
+    authentik.rbn/name: Hubitat (${DATACENTER})
     authentik.rbn/group: Home
     authentik.rbn/icon: di:hubitat
     authentik.rbn/access: home
