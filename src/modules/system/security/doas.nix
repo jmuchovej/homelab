@@ -1,7 +1,7 @@
 {
   rbn.system._.security._.doas.nixos =
     {
-      host,
+      user,
       lib,
       pkgs,
       ...
@@ -17,7 +17,7 @@
         enable = true;
         extraRules = [
           {
-            users = [ host.primary-user.name ];
+            users = [ user.userName ];
             noPass = true;
             keepEnv = true;
           }

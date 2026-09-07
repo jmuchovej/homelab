@@ -58,7 +58,6 @@
   rbn.system._.nix = {
     os =
       {
-        host,
         pkgs,
         system,
         ...
@@ -113,13 +112,11 @@
               "root"
               "@wheel"
               "nix-builder"
-              host.primary-user.name
             ];
             allowed-users = [
               "root"
               "@wheel"
               "nix-builder"
-              host.primary-user.name
             ];
 
             substituters = substituter-urls substituters;

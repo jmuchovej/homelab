@@ -2,20 +2,11 @@
 {
   den.hosts.aarch64-darwin.da-n1x = {
     desktop = true;
-
-    primary-user = {
-      name = "john";
-      email = "john@jm0.io";
-      full-name = "John Muchovej";
-      uid = 501;
-    };
-    notunes.enable = true;
   };
 
   den.aspects.da-n1x = {
     includes = [
       <rbn/suite/desktop>
-      <rbn/suite/development>
       <rbn/services/zerotier>
     ];
 

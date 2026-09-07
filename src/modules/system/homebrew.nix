@@ -22,7 +22,7 @@
   #   })
   # ];
 
-  rbn.system._.homebrew.macos = { inputs, host, ... }: {
+  rbn.system._.homebrew.macos = { inputs, user, ... }: {
     imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
     environment.systemPath = [ "/opt/homebrew/bin" ];
@@ -49,7 +49,7 @@
 
     nix-homebrew = {
       enable = true;
-      user = host.primary-user.name;
+      user = user.userName;
 
       enableRosetta = false;
 

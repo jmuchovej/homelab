@@ -6,13 +6,7 @@
     { config, lib, ... }:
     let
       inherit (lib) mkOption;
-      inherit (lib.types)
-        str
-        int
-        nullOr
-        listOf
-        attrs
-        ;
+      inherit (lib.types) str;
 
       # Derive datacenter/nodename/hostname from host name
       # e.g., "da-vcx-1" → datacenter="da", nodename="vcx-1", hostname="da-vcx-1"
@@ -47,44 +41,6 @@
           type = str;
           default = "${config.datacenter}.${config.domain}";
           description = "Per-datacenter subdomain (derived: <datacenter>.<domain>)";
-        };
-        # ── Primary user ───────────────────────────────────────────────
-        # Named `primary-user` rather than `user` to avoid colliding with
-        # den's fx-pipeline `user` context binding (host.user is implicitly
-        # passed as the `user` arg to user-scoped parametric aspects).
-        primary-user = {
-          name = mkOption {
-            type = str;
-            default = "lab";
-            description = "Primary user account name";
-          };
-          full-name = mkOption {
-            type = str;
-            default = "lab";
-            description = "User's full name";
-          };
-          email = mkOption {
-            type = str;
-            default = "homelab@jm0.io";
-            description = "User's email";
-          };
-          uid = mkOption {
-            type = nullOr int;
-            default = null;
-            description = "User UID (null = auto)";
-          };
-          extra = {
-            groups = mkOption {
-              type = listOf str;
-              default = [ ];
-              description = "Extra groups to assign";
-            };
-            options = mkOption {
-              type = attrs;
-              default = { };
-              description = "Extra options for users.users.<name>";
-            };
-          };
         };
       };
     };

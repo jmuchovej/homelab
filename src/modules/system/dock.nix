@@ -4,8 +4,7 @@
 # Future: den fx pipeline will enable aspect-driven resolution where programs
 # declare dock.app and users set dock.{group,order} on the aspect.
 # See memory/dock-class-design.md for implementation plan.
-{ den, lib, ... }:
-{
+{ den, lib, ... }: {
   # ── User schema: dock entries ──────────────────────────────────────
   den.schema.user =
     { lib, ... }:
@@ -48,7 +47,7 @@
   # ── Darwin aspect: build dock layout ───────────────────────────────
   rbn.system._.dock.macos =
     {
-      host,
+      user,
       lib,
       ...
     }:
@@ -64,12 +63,11 @@
         sort
         ;
 
-      primaryUser = host.primary-user.name;
-      userAppsDir = "/Users/${primaryUser}/Applications";
+      userAppsDir = "/Users/${user.userName}/Applications";
       hmAppsDir = "${userAppsDir}/Home Manager Apps";
       nixAppsDir = "/Applications/Nix Apps";
 
-      allEntries = host.users.${primaryUser}.dock or [ ];
+      allEntries = user.dock or [ ];
 
       resolve =
         entry:

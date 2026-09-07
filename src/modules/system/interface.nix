@@ -1,8 +1,8 @@
 {
   rbn.system._.interface.macos =
-    { host, ... }:
+    { user, ... }:
     let
-      username = host.primary-user.name;
+      username = user.userName;
     in
     {
       home-manager.users.${username}.home.file."Pictures/Screenshots/.keep".text = "";
