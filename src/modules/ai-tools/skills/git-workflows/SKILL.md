@@ -18,9 +18,9 @@ conflict resolution.
 
 ## Detailed Reference Material
 
-- [examples.md](examples.md) - Common workflows, including Feature Branch,
+- [examples.md](./examples.md) - Common workflows, including Feature Branch,
   Trunk-Based, Conflict Resolution, and fixup/autosquash examples.
-- [reference.md](reference.md) - Branch naming conventions, conflict strategies,
+- [reference.md](./reference.md) - Branch naming conventions, conflict strategies,
   command reference tables, and fixup/autosquash strategy.
 
 ## Quick Summary

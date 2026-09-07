@@ -1,9 +1,32 @@
 {
   commands = {
+    "treefmt" = "allow";
+
+    "devenv update:*" = "allow";
+    "devenv inputs:*" = "allow";
+    "devenv shell:*" = "allow";
+    "devenv tasks:*" = "allow";
+    "devenv eval:*" = "allow";
+    "devenv info:*" = "allow";
+    "devenv test:*" = "allow";
+    "devenv mcp:*" = "allow";
+    "devenv up:*" = "allow";
+    "devenv gc:*" = "deny";
+
+    "secretspec export:*" = "deny";
+    "secretspec check:*" = "allow";
+    "secretspec init:*" = "deny";
+    "secretspec run:*" = "allow";
+    "secretspec get:*" = "deny";
+    "secretspec set:*" = "ask";
+
+    "overspec:*" = "allow";
+
     "fd:*" = "allow";
     "find:*" = "deny";
     "rg:*" = "allow";
     "grep:*" = "deny";
+    "just:*" = "allow";
 
     "gh search issues:*" = "allow";
     "gh search prs:*" = "allow";
@@ -13,6 +36,10 @@
 
     "jj op:*" = "allow";
     "jj log:*" = "allow";
+    "jj commit:*" = "allow";
+    "jj desc*" = "allow";
+    "jj squash:*" = "allow";
+    "jj new:*" = "allow";
     "jj bookmark:*" = "allow";
     "jj show:*" = "allow";
     "jj status:*" = "allow";
@@ -66,6 +93,11 @@
     "kubectl certificate:*" = "deny";
     "kubectl auth reconcile:*" = "deny";
     "kubectl cluster-info dump:*" = "deny";
+  };
+
+  files = {
+    "Read(./.env*)" = "deny";
+    "Read(./.secret*)" = "deny";
   };
 
   domains = {

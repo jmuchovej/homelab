@@ -42,11 +42,7 @@
             hooks-dir = ./hooks;
           };
           inherit (ai-tools-lib) load-tools mk-nu-script;
-          inherit (lib)
-            getExe
-            mapAttrs
-            optionalAttrs
-            ;
+          inherit (lib) getExe mapAttrs optionalAttrs;
 
           vcs = [
             pkgs.jujutsu
@@ -56,8 +52,9 @@
           # One row per `hooks/<name>.nu`: what it needs on PATH (`bins`) and
           # which Claude events run it
           # (`on.<Event> = { matcher?, timeout?, condition? }`). `condition` is
-          # the hook's `if` field: permission-rule syntax the harness evaluates
-          # before spawning the command.
+          # the hook's `if` field: uses the permission-rule syntax but evaluates
+          # before spawning the command. Multiple conditions can be specified
+          # as a list.
           # `status-line` is built the same way but is not a hook.
           hook-scripts = {
             # Regex-based security checks the permission lists can't express.
@@ -68,6 +65,19 @@
             pre-tool-audit.on.PreToolUse = {
               matcher = "*";
               timeout = 10;
+            };
+            assisted-by.on.PreToolUse = {
+              matcher = "Bash";
+              condition = [
+                "Bash(jj commit *)"
+                "Bash(jj ci *)"
+                "Bash(jj describe *)"
+                "Bash(jj desc *)"
+                "Bash(jj squash *)"
+                "Bash(jj split *)"
+                "Bash(jj new *)"
+              ];
+              timeout = 5;
             };
             prune-comments = {
               bins = [ pkgs.jujutsu ];
@@ -136,12 +146,12 @@
                 type = "command";
                 command = getExe script;
               }
-              // optionalAttrs (timeout != null) { inherit timeout; }
-              // optionalAttrs (condition != null) { "if" = condition; };
+              // optionalAttrs (timeout != null) { inherit timeout; };
+              conditions = map (c: this-hook // { "if" = c; }) (lib.toList condition);
             in
             {
               inherit matcher;
-              hooks = [ this-hook ];
+              hooks = if condition == null then [ this-hook ] else conditions;
             };
 
           # Invert the table into Claude's shape, event -> [hook]. The event
@@ -168,6 +178,7 @@
 
               theme = "auto";
               editorMode = "vim";
+              defaultMode = "auto";
 
               verbose = true;
               includeCoAuthoredBy = false;
@@ -175,6 +186,7 @@
               env = {
                 USE_BUILTIN_RIPGREP = "0";
                 NO_COLOR = "1";
+                CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
               };
 
               statusLine = {
@@ -250,7 +262,7 @@
 
       autonomous.hm = _: {
         programs.claude-code.settings.permissions = {
-          inherit ((import ./_claude/permissions.nix).autanomous) allow ask deny;
+          inherit ((import ./_claude/permissions.nix).autonomous) allow ask deny;
           defaultMode = "autonomous";
         };
       };

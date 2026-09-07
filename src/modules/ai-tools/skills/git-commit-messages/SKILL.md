@@ -40,9 +40,9 @@ _Example:_ `programs/waybar: update config`
 
 ## Detailed Reference Material
 
-- [reference.md](reference.md) - **Commit Types** table, Scope determination,
+- [reference.md](./reference.md) - **Commit Types** table, Scope determination,
   **Breaking Changes**, and **Alternative Conventions**.
-- [examples.md](examples.md) - Good and bad examples for various scenarios.
+- [examples.md](./examples.md) - Good and bad examples for various scenarios.
 
 ## Analyzing Changes for Commit Type
 

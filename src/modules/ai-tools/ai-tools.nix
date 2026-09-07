@@ -1,15 +1,13 @@
 { inputs, lib, ... }:
 let
-  inherit
-    (import ./_lib.nix {
-      inherit lib;
-      inherit (inputs) import-tree;
-    })
-    load-skills
-    ;
+  ai-tools-lib = import ./_lib.nix {
+    inherit lib;
+    inherit (inputs) import-tree;
+    hooks-dir = ./hooks;
+  };
 
   # Local skills: each `skills/<name>/SKILL.md` is one skill.
-  local-skills = load-skills ./skills;
+  local-skills = ai-tools-lib.load-skills ./skills;
 
   # Upstream Anthropic skills (subset; rev pinned via the flake input).
   upstream-skills = lib.genAttrs [
@@ -24,7 +22,6 @@ let
   ] (name: inputs.anthropic-skills + "/skills/${name}");
 
   skills = local-skills // upstream-skills;
-
   skills-tree = ".agents/skills";
 in
 {
@@ -47,16 +44,8 @@ in
   };
 
   rbn.programs._.ai-tools._.mcp = {
-    hm = { lib, pkgs, ... }: {
+    hm = _: {
       programs.mcp.enable = true;
-
-      mcp-servers.settings.servers = {
-        devenv = {
-          type = "stdio";
-          command = lib.getExe pkgs.devenv;
-          args = [ "mcp" ];
-        };
-      };
 
       programs.claude-code.enableMcpIntegration = true;
       programs.antigravity-cli.enableMcpIntegration = true;
@@ -73,6 +62,8 @@ in
 
       programs.claude-code.skills = skills;
       programs.antigravity-cli.skills = skills;
+      programs.codex.skills = skills;
+      programs.opencode.skills = skills;
 
       home.packages = [ pkgs.llm-agents.openspec ];
     };

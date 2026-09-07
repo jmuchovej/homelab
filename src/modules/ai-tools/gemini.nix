@@ -3,7 +3,12 @@
 ## `programs.antigravity-cli` in May 2026; the option surface is unchanged).
 ## The aspect is named for the models, not the toolchain. Only the CLI is
 ## managed here; the Antigravity IDE and desktop app are deliberately not.
-{ __findFile, den, ... }:
+{
+  __findFile,
+  den,
+  inputs,
+  ...
+}:
 {
   rbn.programs._.ai-tools._.gemini = {
     includes = [ <rbn/programs/ai-tools/gemini/cli> ];
@@ -14,7 +19,7 @@
         (den.batteries.unfree [ "antigravity-cli" ])
       ];
 
-      hm = _: {
+      hm = { lib, pkgs, ... }: {
         # Gemini CLI loads ~/.gemini/.env into its process environment, so the
         # shell tool's subprocesses inherit it. Same intent as Claude's env.
         home.file.".gemini/.env".text = ''
