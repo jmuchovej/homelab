@@ -20,9 +20,7 @@
         "--border=rounded"
       ];
 
-      tmux = {
-        enableShellIntegration = true;
-      };
+      tmux.enableShellIntegration = true;
     };
   };
 }

@@ -9,8 +9,12 @@
       { lib, pkgs, ... }:
       let
         inherit (inputs) import-tree;
-
-        merge-deep = lib.foldl' lib.recursiveUpdate { };
+        inherit (lib)
+          foldl'
+          unique
+          concatMap
+          recursiveUpdate
+          ;
 
         # One walk over the whole `_zed` tree instead of two `import-dir` calls.
         #
@@ -24,11 +28,10 @@
         # `{ pkgs, ... }`, and both tolerate the other.
         parts = import-tree (i: i.map (p: import p { inherit lib pkgs; })) (i: i.leaves ./_zed);
 
-        settings = merge-deep (map (p: p.settings or { }) parts);
-
-        lsp-packages = lib.unique (lib.concatMap (p: p.packages or [ ]) parts);
-        lsp-extensions = lib.unique (lib.concatMap (p: p.extensions or [ ]) parts);
-        keybinds = lib.unique (lib.concatMap (p: p.keybinds or [ ]) parts);
+        settings = foldl' recursiveUpdate { } (map (p: p.settings or { }) parts);
+        packages = unique (concatMap (p: p.packages or [ ]) parts);
+        extensions = unique (concatMap (p: p.extensions or [ ]) parts);
+        keybinds = unique (concatMap (p: p.keybinds or [ ]) parts);
       in
       {
         home.shellAliases.zed = "zeditor";
@@ -44,17 +47,13 @@
           # Per-language servers, extensions and settings live in
           # `programs/development/{data,languages}`; only editor-generic
           # extensions stay here.
-          extraPackages = lsp-packages ++ [ pkgs.treefmt ];
-          extensions = lsp-extensions ++ [
-            "just"
+          extraPackages = packages;
+          extensions = extensions ++ [
             "env"
             "comment"
           ];
-          userSettings = lib.recursiveUpdate settings {
+          userSettings = recursiveUpdate settings {
             prettier.allowed = false;
-            languages.Just = {
-              tab_size = 2;
-            };
           };
           userKeymaps = keybinds;
         };
