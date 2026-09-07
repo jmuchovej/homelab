@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/components/**"
+---
+
 # components/ — reusable cross-app building blocks
 
 Two shapes live here, and the distinction matters:

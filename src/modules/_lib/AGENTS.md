@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/_lib/**"
+---
+
 # _lib/ — `lib.rbn` helpers
 
 `_`-prefixed: skipped by flake-level auto-discovery; `defaults.nix` imports

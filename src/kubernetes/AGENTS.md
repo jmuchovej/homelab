@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/**"
+---
+
 # src/kubernetes — Flux-managed cluster manifests
 
 GitOps tree for the K3s clusters, one per cluster keyed by full domain (`clusters/da.jm0.io`, `clusters/en.jm0.io`). A NixOS-managed `FluxInstance` (`src/modules/services/kubernetes/kubernetes.nix`) syncs this repo per cluster — its sync path is `src/kubernetes/clusters/${host.dc-domain}/flux`, a dir holding **only** the root `cluster-apps.ks.yaml` (so Flux actually applies it — a `kustomization.yaml` beside it would shadow it and silently drop its HelmRelease patch). That root reconciles `clusters/<domain>/apps`, whose selection fans out to the shared `core/` bundle plus the cluster's own apps.

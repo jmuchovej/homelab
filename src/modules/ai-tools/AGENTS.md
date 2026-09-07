@@ -11,10 +11,10 @@ These aspects build the **user's global agent config** — `~/.claude/`,
 `~/.gemini/`, `~/.agents/skills/` — through home-manager. Nothing here
 configures agents _for the Rebellion repo_.
 
-Repo-scoped agent instructions live in `rules/*.md` at the repo root (this
-file's own tree), which the devshell renders and links into each harness. If the
-guidance you are about to write is "when working in this repo, do X", it does
-not belong in this directory.
+Repo-scoped agent instructions live in directory-level `AGENTS.md` files linked
+into `.agents/rules/` (this file is one of them). If the guidance you are about
+to write is "when working in this repo, do X", it does not belong in this
+directory.
 
 ## Layout
 

@@ -1,0 +1,1 @@
+../../src/modules/classes/AGENTS.md

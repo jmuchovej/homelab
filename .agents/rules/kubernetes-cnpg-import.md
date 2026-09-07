@@ -1,0 +1,1 @@
+../../src/kubernetes/components/cnpg-import/AGENTS.md

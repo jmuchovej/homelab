@@ -1,8 +1,8 @@
 # AGENTS.md — The Rebellion Homelab
 
 Agent guidance for "The Rebellion", a Nix-based homelab. This file holds only
-repo-wide identity, policy, and the index — domain knowledge lives in the
-path-scoped rules under `rules/`, not here.
+repo-wide identity, policy, and the index — domain knowledge lives in
+directory-level `AGENTS.md` files linked into `.agents/rules/`, not here.
 
 ## What this repo is
 
@@ -29,38 +29,29 @@ nh os switch / nh darwin switch   # rebuild helper
 
 ## Agent documentation layout
 
-Domain knowledge lives in **`rules/*.md`** at the repo root — one flat,
-reviewable set, each file scoped by a `paths:` glob in its frontmatter. This
-file holds only repo-wide identity, policy, and the index.
+Domain knowledge lives **next to the code it describes**, in directory-level
+`AGENTS.md` files, each scoped by a `paths:` glob in its frontmatter. This file
+holds only repo-wide identity, policy, and the index.
 
-Why one directory rather than per-directory `AGENTS.md`: **Claude Code does not
-read `AGENTS.md` at all** (it reads `CLAUDE.md` and `.claude/rules/`), so the
-scattered files rotted unread — three husks in a row proved it. A flat set can
-be audited in one sitting; a glob that stops matching is a visible defect.
+Harnesses disagree on what they load, so every rule has one source and one
+link:
 
-### Source trees no agent loads
+| Harness                      | Reads                                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Codex, opencode, Antigravity | `AGENTS.md` per directory as they descend; `.agents/rules`, `.agents/skills`                                    |
+| Claude Code                  | `CLAUDE.md` (a symlink to this file); `.claude/rules` and `.claude/skills`, themselves symlinks into `.agents/` |
 
-`rules/` and `skills/` sit at the repo root **precisely because nothing reads
-them there**. That is what makes them a source rather than a copy: the devshell
-renders each into the shape a given harness wants and links the result, so a
-rule is loaded exactly once, and a harness needing a different dialect gets a
-transform instead of a second hand-maintained file.
+**Claude Code does not read `AGENTS.md` at all**, so each directory-level file
+is symlinked into `.agents/rules/<name>.md`. Cross-cutting rules that belong to
+no single directory (`den-style.md`, `nix-style.md`) are plain files in
+`.agents/rules/`. Repo-scoped skills are directories under
+`.agents/skills/<name>/SKILL.md`. Everything under `.agents/` and `.claude/` is
+tracked and hand-maintained — nothing generates it.
 
-Wiring lives in `src/modules/devshell/shells.nix`; everything it produces is
-gitignored generated output.
-
-| Harness            | Reads                   | Produced by                  |
-| ------------------ | ----------------------- | ---------------------------- |
-| Antigravity, Codex | `.agents/rules`         | devshell ← `rules/`          |
-| Claude Code        | `.claude/rules`         | devshell → `.agents/rules`   |
-| Claude Code (root) | `CLAUDE.md`             | one-line `@AGENTS.md` import |
-| Codex, opencode, … | `AGENTS.md` (this file) | root index, hand-written     |
-
-Adding a rule takes two steps: **`jj file track rules/<name>.md`**, then
-re-enter the shell (`nix develop`, or let direnv do it). The derivation is built
-from the flake source, which is the _git tree_ — an untracked rule renders as
-nothing, silently — and the links themselves are only refreshed by the shell
-hook.
+Adding a rule: write `<dir>/AGENTS.md` with `paths:` frontmatter, add a
+relative symlink to it at `.agents/rules/<name>.md` (see `ai-tools.md` for the
+shape), and `jj file track` both. A rule without a link is invisible to Claude;
+a link without frontmatter loads into every session.
 
 ### Writing a rule
 
@@ -74,13 +65,17 @@ hook.
 4. Rules are for durable structure and constraints — not for "currently
    broken" notes, which rot the moment they are fixed.
 
-### Migration status
+### Link status
 
-`src/modules/ai-tools/` is done (`rules/ai-tools.md`). Still per-directory
-`AGENTS.md`, pending their own passes: `src/modules/` and its children,
-`src/kubernetes/`, `src/terraform/`. Other `src/*` children (`consul/`, `nomad/`,
-`vault/`, `mikrotik/`, `bootstrap/`, `homelab/`, `packages/`) are a mixture of
-live tooling and unflagged dead code — do not assume either way without checking.
+Every non-empty `AGENTS.md` has `paths:` frontmatter and a link in
+`.agents/rules/`. Link names carry a domain prefix — `nix-` for `src/modules`,
+`kubernetes-` for `src/kubernetes`, `tofu` for `src/terraform` — then the
+directory path joined with `-` (`src/modules/_lib` → `nix-lib.md`,
+`src/kubernetes/components/syncthing` → `kubernetes-syncthing.md`). Two empty
+husks are unlinked for now: `src/AGENTS.md` and
+`src/kubernetes/apps/kube-system/zfs-localpv/AGENTS.md`. Other `src/*` children
+(`bootstrap/`, `homelab/`, `mikrotik/`, `vault/`) are a mixture of live tooling
+and unflagged dead code — do not assume either way without checking.
 
 ### Comments vs rules (two-phase policy)
 

@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/hosts/**"
+---
+
 # hosts/ — machines
 
 One directory per host: `hosts/<name>/<name>.nix` + `facter.json` (hardware

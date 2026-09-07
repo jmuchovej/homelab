@@ -1,0 +1,1 @@
+../../src/modules/hosts/AGENTS.md

@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/users/**"
+---
+
 # users/ — people and accounts
 
 One file per user. Each defines:

@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/programs/**"
+---
+
 # programs/ — application & tool configs
 
 One aspect per program: `rbn.programs._.<category>._.<name>`, referenced as

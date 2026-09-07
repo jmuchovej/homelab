@@ -1,0 +1,1 @@
+../../src/modules/shells/AGENTS.md

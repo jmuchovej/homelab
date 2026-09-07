@@ -1,3 +1,8 @@
+---
+paths:
+  - src/modules/shells/**
+---
+
 # shells/ — login shells
 
 One file per shell (`rbn.shells._.{zsh,bash,nushell}`). Split: the `os` key

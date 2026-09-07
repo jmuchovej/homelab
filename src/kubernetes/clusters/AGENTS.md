@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/clusters/**"
+---
+
 # src/kubernetes/clusters — per-cluster roots
 
 One directory per cluster, keyed by full domain (`da.jm0.io`, `en.jm0.io`). The

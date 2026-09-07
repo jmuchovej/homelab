@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/components/syncthing/**"
+---
+
 # syncthing — one instance per user
 
 Syncthing has no multi-tenancy: one instance is one device identity, one config, one GUI, one admin. Per-user therefore means per-_deployment_, so this is a parameterised component consumed as the `spec.path` of `apps/home/syncthing/syncthing-<key>.ks.yaml` (the `cnpg-database` shape), not an app directory.

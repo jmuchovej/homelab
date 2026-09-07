@@ -1,0 +1,1 @@
+../../src/kubernetes/apps/kube-system/AGENTS.md

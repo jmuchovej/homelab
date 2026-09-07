@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/components/cnpg-import/**"
+---
+
 # cnpg-import
 
 One-off migration bootstrap: patches a `cnpg-database` Cluster so its first `initdb` imports `${APP}` from the NixOS postgres (`${HOST}`, normally da-vcx-1 / 10.69.11.1). The source is only ever read; rollback = keep using the NixOS DB.

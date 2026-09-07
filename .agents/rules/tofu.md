@@ -1,0 +1,1 @@
+../../src/terraform/AGENTS.md

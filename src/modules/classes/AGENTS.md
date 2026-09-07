@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/classes/**"
+---
+
 # classes/ — cross-cutting host/user behaviors
 
 Not aspects but **den schema/forwarding machinery** — behaviors that key off

@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/components/cnpg-database/**"
+---
+
 # cnpg-database — per-app postgres
 
 CNPG `Cluster` + app-user creds (`ExternalSecret`) + `NetworkPolicy`. A plain Kustomization consumed as the `spec.path` of a per-app Flux Kustomization (`<app>-db.ks.yaml`, `targetNamespace` = the app's namespace) that the app's main ks `dependsOn`. The db ks itself must `dependsOn`:

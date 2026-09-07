@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/services/**"
+---
+
 # services/ — system daemons
 
 One aspect per service: `rbn.services._.<name>`, referenced as

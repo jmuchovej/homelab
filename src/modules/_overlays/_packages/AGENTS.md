@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/_overlays/_packages/**"
+---
+
 # _packages/ — custom derivations
 
 Not auto-discovered (double `_`-shield); wired by `../../overlays.nix`.

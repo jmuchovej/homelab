@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/services/kubernetes/**"
+---
+
 # modules/services/kubernetes
 
 `@marker@` substitution over a static YAML file — the schema stays with the YAML (`$schema` modeline + kubeconform below); Nix only fills values. `sops` placeholders are ordinary eval-time strings, so secrets need no separate mechanism.

@@ -1,0 +1,1 @@
+../../secrets/AGENTS.md

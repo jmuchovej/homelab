@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/_overlays/**"
+---
+
 # _overlays/ — package overlays
 
 `_`-prefixed: skipped by flake-level auto-discovery; `overlays.nix` (one level

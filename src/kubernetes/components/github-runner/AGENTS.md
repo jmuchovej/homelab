@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/kubernetes/components/github-runner/**"
+---
+
 # github-runner/ — one ARC scale set per GitHub repository
 
 A shared-path Kustomization holding the single `HelmRelease` that makes up an

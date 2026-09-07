@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/system/**"
+---
+
 # system/ — platform plumbing
 
 Aspects under `rbn.system._.<name>`: boot, networking, hardware, nix itself,

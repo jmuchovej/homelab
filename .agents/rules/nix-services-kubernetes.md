@@ -1,0 +1,1 @@
+../../src/modules/services/kubernetes/AGENTS.md

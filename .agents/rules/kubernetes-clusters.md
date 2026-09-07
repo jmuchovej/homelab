@@ -1,0 +1,1 @@
+../../src/kubernetes/clusters/AGENTS.md

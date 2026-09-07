@@ -1,0 +1,1 @@
+../../src/modules/_overlays/_packages/AGENTS.md

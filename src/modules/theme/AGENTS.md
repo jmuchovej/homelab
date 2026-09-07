@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/modules/theme/**"
+---
+
 # theme/ — palette & theming
 
 Current theme: catppuccin. `catppuccin/_colors.nix` is the single palette
