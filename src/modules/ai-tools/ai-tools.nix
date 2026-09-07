@@ -37,9 +37,14 @@ in
     mcp-servers.url = "github:natsukium/mcp-servers-nix";
   };
 
-  # den does not honour `imports` on an aspect; the module has to be imported
-  # at class level for the `mcp-servers.*` options to exist.
-  den.default.homeManager.imports = [ inputs.mcp-servers.homeManagerModules.default ];
+  den.default = {
+    hm = {
+      imports = [ inputs.mcp-servers.homeManagerModules.default ];
+    };
+    os = {
+      nixpkgs.overlays = [ inputs.llm-agents.overlays.shared-nixpkgs ];
+    };
+  };
 
   rbn.programs._.ai-tools._.mcp = {
     hm = { lib, pkgs, ... }: {
@@ -61,39 +66,15 @@ in
   };
 
   rbn.programs._.ai-tools._.skills = {
-    hm = { lib, ... }: {
+    hm = { pkgs, lib, ... }: {
       home.file = lib.mapAttrs' (
         name: path: lib.nameValuePair "${skills-tree}/${name}" { source = path; }
       ) skills;
+
+      programs.claude-code.skills = skills;
+      programs.antigravity-cli.skills = skills;
+
+      home.packages = [ pkgs.llm-agents.openspec ];
     };
-
-    # `~/.claude/skills/` has to stay a real directory because home-manager
-    # installs plugin skills into it, so each skill is linked individually.
-    _.claude.hm =
-      { config, lib, ... }:
-      let
-        home-skills = "${config.home.homeDirectory}/${skills-tree}";
-        mk-symlink = config.lib.file.mkOutOfStoreSymlink;
-      in
-      {
-        home.file = lib.mapAttrs' (
-          name: _:
-          lib.nameValuePair ".claude/skills/${name}" {
-            source = mk-symlink "${home-skills}/${name}";
-          }
-        ) skills;
-      };
-
-    # Whole-root link, not `programs.antigravity-cli.skills`: that option copies
-    # its source into the store and so cannot point at $HOME.
-    _.gemini.hm =
-      { config, ... }:
-      let
-        home-skills = "${config.home.homeDirectory}/${skills-tree}";
-        mk-symlink = config.lib.file.mkOutOfStoreSymlink;
-      in
-      {
-        home.file.".gemini/antigravity-cli/skills".source = mk-symlink home-skills;
-      };
   };
 }

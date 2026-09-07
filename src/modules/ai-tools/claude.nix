@@ -16,7 +16,6 @@
       includes = [
         (den.batteries.unfree [ "claude-code" ])
         <rbn/programs/ai-tools/skills>
-        <rbn/programs/ai-tools/skills/claude>
       ];
 
       hm-linux =

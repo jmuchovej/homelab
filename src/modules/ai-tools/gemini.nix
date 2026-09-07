@@ -11,7 +11,6 @@
     _.cli = {
       includes = [
         <rbn/programs/ai-tools/skills>
-        <rbn/programs/ai-tools/skills/gemini>
         (den.batteries.unfree [ "antigravity-cli" ])
       ];
 
