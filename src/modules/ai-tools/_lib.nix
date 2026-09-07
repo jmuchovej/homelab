@@ -18,6 +18,7 @@ let
     splitString
     hasSuffix
     trim
+    getExe
     ;
 
   ## Strip surrounding double-quotes from a string.
@@ -31,6 +32,13 @@ let
       m = builtins.match "([^:]+): (.*)" line;
     in
     nameValuePair (trim (elemAt m 0)) (strip-quotes (trim (elemAt m 1)));
+
+  ## import-tree over markdown files. Values stay *paths*: stripping `.md`
+  ## from a path coerces it to a store-path string minus its suffix, which
+  ## Nix rejects, so the stem is only ever taken from the basename for keys.
+  walk-md = import-tree (
+    i: i.addAPI { to-keys = self: self.map (p: nameValuePair (removeSuffix ".md" (baseNameOf p)) p); }
+  ) (i: i.initFilter (p: hasSuffix ".md" (toString p)));
 in
 {
   ## Parse YAML-like frontmatter from a markdown string into an attrset.
@@ -104,14 +112,17 @@ in
   ## `initFilter` must be overridden: import-tree's default filter only admits
   ## `.nix` files, and these trees hold markdown.
   #@ Path -> Attrs
-  load-tools =
+  load-tools = base-path: listToAttrs (walk-md (i: i.to-keys) (i: i.leaves base-path));
+
+  ## Load skills from a directory: each `<name>/SKILL.md` yields `<name>` ->
+  ## its directory path, so the whole skill directory is what gets linked.
+  #@ Path -> Attrs
+  load-skills =
     base-path:
     listToAttrs (
-      lib.pipe import-tree [
-        (i: i.initFilter (p: hasSuffix ".md" (toString p)))
-        (i: i.map (p: nameValuePair (removeSuffix ".md" (baseNameOf p)) p))
-        (i: i.leaves base-path)
-      ]
+      walk-md (i: i.filter (p: hasSuffix "/SKILL.md" (toString p))) (i: i.map dirOf) (i: i.to-keys) (
+        i: i.leaves base-path
+      )
     );
 
   ## Build `<hooks-dir>/<name>.nu` into a runnable, checked binary.
@@ -131,7 +142,6 @@ in
       plugins ? [ ],
     }:
     let
-      inherit (lib) getExe;
       # Assembled from a list so the no-plugin case has no trailing space —
       # Linux passes the shebang tail as ONE argument, spaces included.
       nu = concatStringsSep " " (
@@ -144,14 +154,13 @@ in
           "'[${lib.concatMapStringsSep " " getExe plugins}]'"
         ]
       );
-      interpreter =
-        if plugins == [ ] then nu else toString (pkgs.writeShellScript "nu-plugged" ''exec ${nu} "$@"'');
+      nu-plugged = pkgs.writeShellScript "nu-plugged" ''exec ${nu} "$@"'';
       nu-check = pkgs.writeShellScript "nu-check" ''
         ${nu} --commands "if not (nu-check --debug '$1') { exit 1 }"
       '';
     in
     pkgs.writers.makeScriptWriter {
-      inherit interpreter;
+      interpreter = if plugins == [ ] then nu else toString nu-plugged;
       check = nu-check;
       makeWrapperArgs = lib.optionals (bins != [ ]) [
         "--prefix"

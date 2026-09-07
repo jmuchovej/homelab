@@ -1,13 +1,15 @@
 { inputs, lib, ... }:
 let
+  inherit
+    (import ./_lib.nix {
+      inherit lib;
+      inherit (inputs) import-tree;
+    })
+    load-skills
+    ;
+
   # Local skills: each `skills/<name>/SKILL.md` is one skill.
-  local-skills = lib.listToAttrs (
-    lib.pipe inputs.import-tree [
-      (i: i.initFilter (p: lib.hasSuffix "/SKILL.md" (toString p)))
-      (i: i.map (p: lib.nameValuePair (baseNameOf (dirOf p)) (dirOf p)))
-      (i: i.leaves ./skills)
-    ]
-  );
+  local-skills = load-skills ./skills;
 
   # Upstream Anthropic skills (subset; rev pinned via the flake input).
   upstream-skills = lib.genAttrs [
