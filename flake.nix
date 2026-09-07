@@ -1,4 +1,4 @@
-# DO-NOT-EDIT. This file was auto-generated using github:vic/flake-file.
+# DO-NOT-EDIT. This file was auto-generated using github:denful/flake-file.
 # Use `nix run .#write-flake` to regenerate it.
 {
   outputs =
@@ -35,7 +35,7 @@
       flake = false;
     };
     impermanence.url = "github:nix-community/impermanence";
-    import-tree.url = "github:vic/import-tree";
+    import-tree.url = "github:denful/import-tree";
     lanzaboote.url = "github:nix-community/lanzaboote";
     llm-agents.url = "github:numtide/llm-agents.nix";
     mac-keycodes = {
