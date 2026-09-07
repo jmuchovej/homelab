@@ -31,8 +31,6 @@
       hm =
         { lib, pkgs, ... }:
         let
-          # The identity every hook reads through `hooks/lib/harness.nu`: data
-          # dir suffix, notification title and icon, macOS sender.
           harness = {
             name = "claude-code";
             app = "Claude Code";
@@ -45,7 +43,11 @@
             hooks-dir = ./hooks;
           };
           inherit (ai-tools-lib) load-tools mk-nu-script;
-          inherit (lib) getExe;
+          inherit (lib)
+            getExe
+            mapAttrs
+            optionalAttrs
+            ;
 
           vcs = [
             pkgs.jujutsu
@@ -68,10 +70,6 @@
               matcher = "*";
               timeout = 10;
             };
-            # Prune generation-scratch comments from `@` before `jj commit`
-            # lands it. Runs a headless agent, hence the generous timeout; the
-            # script fails open. `claude` comes from the session PATH, not
-            # `bins`, so the unfree package stays out of the wrapper closure.
             prune-comments = {
               bins = [ pkgs.jujutsu ];
               on.PreToolUse = {
@@ -100,15 +98,11 @@
               bins = [ pkgs.git ];
               on.SessionEnd.matcher = "*";
             };
-            # Both notify through `lib/notify.nu`; `mk-nu-script` puts the
-            # notifier's tools on every script's PATH, so no `bins` here.
             subagent-stop.on.SubagentStop = {
               matcher = "*";
               timeout = 10;
             };
             notify.on.Notification = { };
-            # Label bridge-session jj workspaces after their task; the label may
-            # improve between the first prompt and the first stop (AI title).
             worktree-rename = {
               bins = [ pkgs.jujutsu ];
               on = {
@@ -124,39 +118,41 @@
               bins = vcs;
               on.WorktreeRemove.timeout = 120;
             };
-            status-line.bins = [ pkgs.git ];
           };
 
-          scripts = lib.mapAttrs (name: row: mk-nu-script name { bins = row.bins or [ ]; }) hook-scripts;
+          status-line = mk-nu-script "status-line" { bins = [ pkgs.git ]; };
 
           mk-hook =
+            name:
             {
-              command,
-              matcher ? "",
               timeout ? null,
               condition ? null,
+              bins ? [ ],
+              matcher ? "",
+              ...
             }:
+            let
+              script = mk-nu-script name { inherit bins; };
+              this-hook = {
+                type = "command";
+                command = getExe script;
+              }
+              // optionalAttrs (timeout != null) { inherit timeout; }
+              // optionalAttrs (condition != null) { "if" = condition; };
+            in
             {
               inherit matcher;
-              hooks = [
-                (
-                  {
-                    type = "command";
-                    inherit command;
-                  }
-                  // lib.optionalAttrs (timeout != null) { inherit timeout; }
-                  // lib.optionalAttrs (condition != null) { "if" = condition; }
-                )
-              ];
+              hooks = [ this-hook ];
             };
 
-          # Invert the table into Claude's shape, event -> [hook].
+          # Invert the table into Claude's shape, event -> [hook]. The event
+          # spec is spread into `mk-hook`'s arguments, not nested under a key.
           hooks = lib.zipAttrsWith (_: lib.concatLists) (
             lib.mapAttrsToList (
-              name: row:
-              lib.mapAttrs (_: spec: [ (mk-hook (spec // { command = getExe scripts.${name}; })) ]) (
-                row.on or { }
-              )
+              script-name: script-row:
+              mapAttrs (_: spec: [
+                (mk-hook script-name ({ bins = script-row.bins or [ ]; } // spec))
+              ]) script-row.on
             ) hook-scripts
           );
         in
@@ -179,14 +175,12 @@
 
               env = {
                 USE_BUILTIN_RIPGREP = "0";
-                # Plain output from jj, eza and friends; escape codes break
-                # parsing. Applies to the session and its subprocesses.
                 NO_COLOR = "1";
               };
 
               statusLine = {
                 type = "command";
-                command = lib.getExe scripts.status-line;
+                command = lib.getExe status-line;
               };
 
               sandbox = {
