@@ -5,7 +5,7 @@
       dynamic-gateway-conf = "/run/dnsmasq/dynamic-gateway.conf";
     in
     {
-      networking.networkmanager.dns = "dnsmasq";
+      networking.networkmanager.dns = "none"; # prevent NM from spawning its own `dnsmasq`
       services.resolved.enable = lib.mkForce false;
 
       services.dnsmasq = {
