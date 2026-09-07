@@ -1,13 +1,9 @@
 {
   __findFile,
-  inputs,
   den,
   rbn-policies,
   ...
 }:
-let
-  sops-file = kind: name: "${inputs.self}/secrets/${kind}/${name}.sops.yaml";
-in
 {
   rbn.programs._.security = {
     macos.homebrew.casks = [ "gpg-suite" ];
@@ -125,21 +121,12 @@ in
     };
 
     _.sops = {
-      nixos = { host, pkgs, ... }: {
+      nixos = { pkgs, ... }: {
         environment.systemPackages = with pkgs; [
           age
           sops
           ssh-to-age
         ];
-
-        sops = {
-          defaultSopsFile = sops-file "hosts" host.hostname;
-
-          age = {
-            sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-            generateKey = false;
-          };
-        };
       };
 
       hm =
@@ -160,9 +147,6 @@ in
           ];
 
           sops = {
-            defaultSopsFile = sops-file "users" config.home.username;
-            defaultSopsFormat = "yaml";
-
             age = {
               keyFile = lib.mkDefault "${home}/.config/sops/age/keys.txt";
               sshKeyPaths = [

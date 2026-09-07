@@ -1,4 +1,7 @@
 { inputs, ... }:
+let
+  secrets = "${inputs.self}/secrets";
+in
 {
   flake-file.inputs = {
     sops-nix.url = "github:mic92/sops-nix";
@@ -7,8 +10,13 @@
   den.default = {
     os = { host, lib, ... }: {
       sops = {
-        defaultSopsFile = lib.mkDefault ./hosts/${host.name}.sops.yaml;
+        defaultSopsFile = lib.mkDefault "${secrets}/hosts/${host.name}.sops.yaml";
         defaultSopsFormat = "yaml";
+
+        age = {
+          sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+          generateKey = false;
+        };
       };
     };
 
@@ -20,11 +28,11 @@
       imports = [ inputs.sops-nix.darwinModules.sops ];
     };
 
-    hm = { user, lib, ... }: {
+    hm = { config, lib, ... }: {
       imports = [ inputs.sops-nix.homeManagerModules.sops ];
 
       sops = {
-        defaultSopsFile = lib.mkDefault ./users/${user.userName}.sops.yaml;
+        defaultSopsFile = lib.mkDefault "${secrets}/users/${config.home.username}.sops.yaml";
         defaultSopsFormat = "yaml";
       };
     };

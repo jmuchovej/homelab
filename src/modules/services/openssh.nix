@@ -6,10 +6,17 @@
     os =
       { lib, ... }:
       let
-        secrets-keys = import "${inputs.self}/secrets" { inherit lib; };
+        inherit (inputs) import-tree;
+
+        host-name = host: baseNameOf (lib.removeSuffix ".pub" host);
+        host-keys = lib.listToAttrs (
+          import-tree (i: i.initFilter (lib.hasSuffix ".pub")) (i: i.map lib.unsafeDiscardStringContext) (
+            i: i.map (host: lib.nameValuePair (host-name host) (lib.fileContents host))
+          ) (i: i.leaves "${inputs.self}/secrets/hosts")
+        );
       in
       {
-        programs.ssh.knownHosts = lib.mapAttrs (_: pub: { publicKey = pub; }) secrets-keys.systems-ssh;
+        programs.ssh.knownHosts = lib.mapAttrs (_: pub: { publicKey = pub; }) host-keys;
       };
 
     nixos = { lib, ... }: {

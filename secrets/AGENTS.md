@@ -1,3 +1,8 @@
+---
+paths:
+  - "secrets/**"
+---
+
 # secrets/ — sops material for modules
 
 Layout: `hosts/<hostname>.sops.yaml` (per-host; `minimal.sops.yaml` for
@@ -5,7 +10,7 @@ bootstrap), `users/<username>.sops.yaml` (per-user), plus domain files
 (`da.sops.yaml`, `en.sops.yaml`, `authentik.sops.yaml`, `secrets.sops.yaml`).
 `secrets.nix` wires sops-nix into all three classes via `den.default`:
 `defaultSopsFile` is `hosts/${host.name}.sops.yaml` for nixos/darwin and
-`users/${host.primary-user.name}.sops.yaml` for homeManager.
+`users/${user.userName}.sops.yaml` for homeManager.
 
 Key facts:
 
