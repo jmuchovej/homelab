@@ -39,6 +39,14 @@ spec:
       name: *secrets
       valuesKey: email_password
       targetPath: authentik.email.password
+    - kind: Secret
+      name: *secrets
+      valuesKey: email_from
+      targetPath: authentik.email.from
+    - kind: Secret
+      name: *secrets
+      valuesKey: email_host
+      targetPath: authentik.email.host
   values:
     global:
       volumes:
@@ -66,10 +74,8 @@ spec:
         conn_max_age: 300
         conn_health_checks: true
       email:
-        host: smtp.mailgun.org
         port: 587
         use_tls: true
-        from: homelab@${DOMAIN}
 
     postgresql:
       enabled: false
