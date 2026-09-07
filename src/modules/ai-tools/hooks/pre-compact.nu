@@ -1,17 +1,15 @@
 #!/usr/bin/env nu
 
-def run-quiet [args: list<string>] {
-  do { ^($args | first) ...($args | skip 1) } | complete
-}
+use lib *
 
-let input = open --raw /dev/stdin | from json
+let input = tools read-input
 let session_id = $input.session_id? | default "unknown"
-let backups = $env.HOME | path join ".local/share/claude-code/context-backups"
+let backups = harness data-dir context-backups
 mkdir $backups
 let backup_file = $backups | path join $"compact-(date now | format date '%Y%m%d-%H%M%S').log"
 
 # Recent tool activity for this session, as "count tool" lines
-let pre_tool = $env.HOME | path join ".local/share/claude-code/audit/pre-tool.jsonl"
+let pre_tool = harness data-dir audit pre-tool.jsonl
 let activity = if ($pre_tool | path exists) {
   open --raw $pre_tool
   | lines
@@ -27,8 +25,8 @@ let activity = if ($pre_tool | path exists) {
   []
 }
 
-let git_status = run-quiet [git status --short]
-let git_diff = run-quiet [git diff --name-only HEAD]
+let git_status = tools run-quiet [git status --short]
+let git_diff = tools run-quiet [git diff --name-only HEAD]
 
 [
   $"=== Context Compaction at (date now) ==="

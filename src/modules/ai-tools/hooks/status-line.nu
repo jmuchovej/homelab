@@ -1,10 +1,8 @@
 #!/usr/bin/env nu
 
-def run-quiet [args: list<string>] {
-  do { ^($args | first) ...($args | skip 1) } | complete
-}
+use lib *
 
-let input = open --raw /dev/stdin | from json
+let input = tools read-input
 let cwd = $input.workspace?.current_dir? | default ""
 let model = $input.model?.display_name? | default ""
 let used_pct = $input.context_window?.used_percentage? | default null
@@ -15,15 +13,15 @@ let dir_display = $cwd | path split | where { |p| $p != "/" } | last 2 | str joi
 print -n $"(ansi cyan_bold)($dir_display)(ansi reset)"
 
 # Git branch with dirty indicator
-let git_dir = run-quiet [git -C $cwd rev-parse --git-dir]
+let git_dir = tools run-quiet [git -C $cwd rev-parse --git-dir]
 if $git_dir.exit_code == 0 {
-  let branch_res = run-quiet [git -C $cwd --no-optional-locks branch --show-current]
+  let branch_res = tools run-quiet [git -C $cwd --no-optional-locks branch --show-current]
   let branch = if $branch_res.exit_code == 0 and ($branch_res.stdout | str trim | is-not-empty) {
     $branch_res.stdout | str trim
   } else {
     "detached"
   }
-  let clean = (run-quiet [git -C $cwd --no-optional-locks diff-index --quiet HEAD --]).exit_code == 0
+  let clean = (tools run-quiet [git -C $cwd --no-optional-locks diff-index --quiet HEAD --]).exit_code == 0
   if $clean {
     print -n $" (ansi attr_bold)on(ansi reset) (ansi green)($branch)(ansi reset)"
   } else {

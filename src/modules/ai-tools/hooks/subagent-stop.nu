@@ -1,9 +1,10 @@
 #!/usr/bin/env nu
 
 # Summarize a finished subagent's transcript and send a desktop notification.
-# `claude-notify` is provided on PATH by scripts.nix.
 
-let input = open --raw /dev/stdin | from json
+use lib *
+
+let input = tools read-input
 let transcript = $input.agent_transcript_path? | default ""
 
 if ($transcript | is-empty) or ($transcript | path type) != "file" { exit 0 }
@@ -64,4 +65,7 @@ let msg = if ($parts | is-not-empty) {
   "Subagent completed"
 }
 
-^claude-notify "Claude Code" $msg
+let assistant_turns = $rows | where { |r| ($r.type? | default "") == "assistant" }
+let model = if ($assistant_turns | is-empty) { "" } else { $assistant_turns | last | get message?.model? | default "" }
+
+notify $msg --model $model

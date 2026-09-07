@@ -31,11 +31,22 @@
       hm =
         { lib, pkgs, ... }:
         let
-          inherit (inputs) import-tree;
-          inherit (import ./_lib.nix { inherit lib import-tree; }) load-tools mk-nu-script;
+          # The identity every hook reads through `hooks/lib/harness.nu`: data
+          # dir suffix, notification title and icon, macOS sender.
+          harness = {
+            name = "claude-code";
+            app = "Claude Code";
+            icon = "claude";
+            sender = "com.anthropic.claudecode";
+          };
+          ai-tools-lib = import ./_lib.nix {
+            inherit lib pkgs harness;
+            inherit (inputs) import-tree;
+            hooks-dir = ./hooks;
+          };
+          inherit (ai-tools-lib) load-tools mk-nu-script;
           inherit (lib) getExe;
 
-          notify = import ./_claude/notify.nix { inherit pkgs; };
           vcs = [
             pkgs.jujutsu
             pkgs.git
@@ -89,13 +100,13 @@
               bins = [ pkgs.git ];
               on.SessionEnd.matcher = "*";
             };
-            subagent-stop = {
-              bins = [ notify ];
-              on.SubagentStop = {
-                matcher = "*";
-                timeout = 10;
-              };
+            # Both notify through `lib/notify.nu`; `mk-nu-script` puts the
+            # notifier's tools on every script's PATH, so no `bins` here.
+            subagent-stop.on.SubagentStop = {
+              matcher = "*";
+              timeout = 10;
             };
+            notify.on.Notification = { };
             # Label bridge-session jj workspaces after their task; the label may
             # improve between the first prompt and the first stop (AI title).
             worktree-rename = {
@@ -116,11 +127,7 @@
             status-line.bins = [ pkgs.git ];
           };
 
-          mk-script = mk-nu-script {
-            inherit pkgs;
-            hooks-dir = ./hooks;
-          };
-          scripts = lib.mapAttrs (name: row: mk-script name { bins = row.bins or [ ]; }) hook-scripts;
+          scripts = lib.mapAttrs (name: row: mk-nu-script name { bins = row.bins or [ ]; }) hook-scripts;
 
           mk-hook =
             {
@@ -143,15 +150,9 @@
               ];
             };
 
-          # Invert the table into Claude's shape, event -> [hook], and add the
-          # inline notifier, which has no script of its own.
+          # Invert the table into Claude's shape, event -> [hook].
           hooks = lib.zipAttrsWith (_: lib.concatLists) (
-            [
-              {
-                Notification = [ (mk-hook { command = "${getExe notify} 'Claude Code' 'Awaiting your input'"; }) ];
-              }
-            ]
-            ++ lib.mapAttrsToList (
+            lib.mapAttrsToList (
               name: row:
               lib.mapAttrs (_: spec: [ (mk-hook (spec // { command = getExe scripts.${name}; })) ]) (
                 row.on or { }
@@ -160,8 +161,6 @@
           );
         in
         {
-          xdg.dataFile."icons/claude.ico".source = ./_claude/assets/claude.ico;
-
           programs.claude-code = {
             enable = true;
             enableMcpIntegration = true;

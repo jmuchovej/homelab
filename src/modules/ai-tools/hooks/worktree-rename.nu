@@ -18,11 +18,9 @@
 # unique and traceable back to the directory.
 #
 # Never writes to stdout: for UserPromptSubmit that would land in the model's
-# context.
+# context. Commands go through `tools run-quiet`, which also keeps their stderr.
 
-def try-run [args: list<string>] {
-  do { ^($args | first) ...($args | skip 1) } | complete
-}
+use lib *
 
 # Lowercase, hyphen-joined, cut at a word boundary within 40 chars.
 def slugify [text: string] {
@@ -66,7 +64,7 @@ let input = open --raw /dev/stdin | from json
 let cwd = if ($input.cwd? | is-empty) { $env.PWD } else { $input.cwd }
 cd $cwd
 
-let root_probe = try-run [jj --ignore-working-copy workspace root]
+let root_probe = tools run-quiet [jj --ignore-working-copy workspace root]
 if $root_probe.exit_code != 0 { exit 0 }
 let root = $root_probe.stdout | str trim
 let opaque = $root | path basename
@@ -74,7 +72,7 @@ if not ($opaque =~ '^bridge-') { exit 0 }
 let suffix = $opaque | split chars | last 4 | str join
 
 # `@` resolves per workspace, so `working_copies` names this one.
-let name_probe = try-run [jj -R $root --ignore-working-copy --color never log -r @ --no-graph -T working_copies]
+let name_probe = tools run-quiet [jj -R $root --ignore-working-copy --color never log -r @ --no-graph -T working_copies]
 if $name_probe.exit_code != 0 { exit 0 }
 let current = $name_probe.stdout | str trim | split row " " | first | str trim -r -c "@"
 
@@ -117,7 +115,7 @@ if $current == $desired { exit 0 }
 if $current != $opaque and not ($current in ($candidates | skip 1)) { exit 0 }
 
 # jj refuses to rename under --ignore-working-copy; it snapshots first.
-let res = try-run [jj -R $root --color never workspace rename $desired]
+let res = tools run-quiet [jj -R $root --color never workspace rename $desired]
 if $res.exit_code != 0 {
   print -e $"worktree-rename: ($res.stderr | str trim)"
 }

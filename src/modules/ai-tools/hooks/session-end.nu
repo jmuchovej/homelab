@@ -1,12 +1,10 @@
 #!/usr/bin/env nu
 
-def run-quiet [args: list<string>] {
-  do { ^($args | first) ...($args | skip 1) } | complete
-}
+use lib *
 
-let input = open --raw /dev/stdin | from json
+let input = tools read-input
 let session_id = $input.session_id? | default "unknown"
-let share = $env.HOME | path join ".local/share/claude-code"
+let share = harness data-dir
 mkdir ($share | path join "sessions") ($share | path join "audit")
 
 {
@@ -24,7 +22,7 @@ let tool_count = if ($pre_tool | path exists) {
   0
 }
 
-let git_status = run-quiet [git status --short]
+let git_status = tools run-quiet [git status --short]
 let git_lines = if $git_status.exit_code == 0 {
   $git_status.stdout | str trim
 } else {

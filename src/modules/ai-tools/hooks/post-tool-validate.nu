@@ -1,6 +1,8 @@
 #!/usr/bin/env nu
 
-let input = open --raw /dev/stdin | from json
+use lib *
+
+let input = tools read-input
 let filepath = $input.tool_input?.file_path? | default ""
 
 if ($filepath | is-not-empty) and ($filepath | path type) == "file" {

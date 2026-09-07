@@ -1,8 +1,10 @@
 #!/usr/bin/env nu
 
 # Compact log entry; excludes potentially large tool_output.
-let input = open --raw /dev/stdin | from json
-let audit_dir = $env.HOME | path join ".local/share/claude-code/audit"
+use lib *
+
+let input = tools read-input
+let audit_dir = harness data-dir audit
 mkdir $audit_dir
 
 {

@@ -2,7 +2,14 @@
 ## frontmatter parsing for the `commands/`, `agents/`, and `skills/` trees, and
 ## the checked nushell builder for `hooks/*.nu`. Imported explicitly by
 ## sibling modules.
-{ lib, import-tree }:
+{
+  lib,
+  import-tree,
+  pkgs ? null,
+  harness ? { },
+  hooks-dir ? ./hooks,
+  ...
+}:
 let
   inherit (lib)
     concatStringsSep
@@ -12,9 +19,11 @@ let
     findFirst
     hasPrefix
     listToAttrs
+    mapAttrsToList
     nameValuePair
     removePrefix
     removeSuffix
+    optionalAttrs
     splitString
     hasSuffix
     trim
@@ -39,6 +48,7 @@ let
   walk-md = import-tree (
     i: i.addAPI { to-keys = self: self.map (p: nameValuePair (removeSuffix ".md" (baseNameOf p)) p); }
   ) (i: i.initFilter (p: hasSuffix ".md" (toString p)));
+
 in
 {
   ## Parse YAML-like frontmatter from a markdown string into an attrset.
@@ -131,42 +141,69 @@ in
   ## runs `nu-check` at build time; `--debug` makes a parse failure throw,
   ## failing the derivation with the diagnostic. Scripts run on the
   ## nixpkgs-pinned nushell, independent of the interactive shell's nu.
+  ## `<hooks-dir>` itself goes on the include path, so scripts share code with
+  ## `use lib *` (see `hooks/lib/mod.nu`) at run time and under nu-check.
   ## `bins` end up on the script's wrapped PATH; nu built-ins cover the rest
   ## (mkdir/rm/date), so scripts list only their external commands.
-  #@ { pkgs, hooks-dir } -> String -> { bins?, plugins? } -> Derivation
+  ## `harness` is the aspect's identity (`name`, `app`, `icon`, `sender`; see
+  ## `hooks/lib/harness.nu`), written to a JSON file that every script of the
+  ## harness finds in `$HARNESS_DETAILS`. `env` adds further variables; the
+  ## writer expands wrapper args unquoted, so names and values must not
+  ## contain whitespace, which is why the identity travels as a file.
+  #@ { pkgs, hooks-dir, harness?, env? } -> String -> { bins?, plugins? } -> Derivation
   mk-nu-script =
-    { pkgs, hooks-dir }:
     name:
     {
+      env ? { },
       bins ? [ ],
       plugins ? [ ],
     }:
     let
-      # Assembled from a list so the no-plugin case has no trailing space —
-      # Linux passes the shebang tail as ONE argument, spaces included.
+      harness-env = optionalAttrs (harness != { }) {
+        HARNESS_DETAILS = "${pkgs.writeText "${harness.name}-harness.json" (builtins.toJSON harness)}";
+      };
       nu = concatStringsSep " " (
         [
           (getExe pkgs.nushell)
           "--no-config-file"
+          "--include-path"
+          "${hooks-dir}"
         ]
         ++ lib.optionals (plugins != [ ]) [
           "--plugins"
           "'[${lib.concatMapStringsSep " " getExe plugins}]'"
         ]
       );
-      nu-plugged = pkgs.writeShellScript "nu-plugged" ''exec ${nu} "$@"'';
+      # The interpreter carries several arguments, and Linux passes a shebang
+      # tail as ONE argument, so it is always a shell script that execs nu.
+      nu-wrapped = pkgs.writeShellScript "nu-hooks" ''exec ${nu} "$@"'';
       nu-check = pkgs.writeShellScript "nu-check" ''
         ${nu} --commands "if not (nu-check --debug '$1') { exit 1 }"
       '';
+
+      inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux;
+      final-bins =
+        bins
+        ## Needed by `hooks/lib/notify.nu`; since it's in `hooks/lib`, add to every `nu` script
+        ++ lib.optionals isDarwin [ pkgs.terminal-notifier ]
+        ++ lib.optionals isLinux [ pkgs.libnotify ];
     in
     pkgs.writers.makeScriptWriter {
-      interpreter = if plugins == [ ] then nu else toString nu-plugged;
+      interpreter = toString nu-wrapped;
       check = nu-check;
-      makeWrapperArgs = lib.optionals (bins != [ ]) [
-        "--prefix"
-        "PATH"
-        ":"
-        (lib.makeBinPath bins)
-      ];
+      makeWrapperArgs =
+        lib.optionals (final-bins != [ ]) [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath final-bins)
+        ]
+        ++ lib.concatLists (
+          mapAttrsToList (n: v: [
+            "--set"
+            n
+            v
+          ]) (harness-env // env)
+        );
     } "/bin/${name}" (builtins.readFile (hooks-dir + "/${name}.nu"));
 }
