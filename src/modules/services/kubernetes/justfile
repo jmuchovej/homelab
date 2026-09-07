@@ -1,4 +1,4 @@
-set script-interpreter := ['bash', '-euo', 'pipefail']
+set script-interpreter := [ "nu" ]
 
 [private]
 default:
@@ -7,66 +7,63 @@ default:
 [doc('Refresh vendored schemas (bump cilium spec.version first; build check enforces sync)')]
 [script]
 update-schemas:
-    manifests="{{ justfile_directory() }}/src/bootstrap/kubernetes"
-    schemas="{{ justfile_directory() }}/vendor/schemas"
-    mkdir -p "$schemas"
+    let root = "{{ justfile_directory() }}"
+    let schemas = ($root | path join "vendor" "schemas")
+    mkdir $schemas
 
-    cilium_version=$(yq 'select(.kind == "HelmChart") | .spec.version' "$manifests/cilium.yaml")
-    [[ -n $cilium_version && $cilium_version != "null" ]] || {
-        echo "could not read spec.version from $manifests/cilium.yaml" >&2
-        exit 1
+    # `open` yields a record for a single-document YAML and a list otherwise.
+    let cilium_version = (
+      [] | append (open ($root | path join "src" "bootstrap" "kubernetes" "cilium.yaml"))
+      | where kind == HelmChart | get -o 0.spec.version
+    )
+    if ($cilium_version | is-empty) {
+      print -e "could not read spec.version from the cilium HelmChart"
+      exit 1
     }
 
-    talos_image=$(yq '.machine.install.image' "{{ justfile_directory() }}/src/bootstrap/talos/machineconfig.yaml")
-    talos_version=${talos_image##*:v}
-    [[ -n $talos_version && $talos_version != "null" ]] || {
-        echo "could not read machine.install.image from the talos machineconfig" >&2
-        exit 1
+    let talos_image = (
+      open ($root | path join "src" "bootstrap" "talos" "machineconfig.yaml")
+      | get -o machine.install.image
+    )
+    if ($talos_image | is-empty) {
+      print -e "could not read machine.install.image from the talos machineconfig"
+      exit 1
     }
+    let talos_version = ($talos_image | split row ":v" | last)
     # Talos schemas are published per minor version, not per patch.
-    talos_minor=${talos_version%.*}
+    let talos_minor = ($talos_version | split row "." | first 2 | str join ".")
 
-    fetch() {
-        echo "fetching $2"
-        curl -fsSL "$1" -o "$schemas/$2"
+    let cilium = "https://raw.githubusercontent.com/cilium/cilium"
+    let crds = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main"
+    let k8s = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict"
+    let sources = [
+      [file, version, url];
+      ["cilium-values.json", $cilium_version, $"($cilium)/v($cilium_version)/install/kubernetes/cilium/values.schema.json"]
+      ["fluxinstance_v1.json", null, $"($crds)/fluxcd.controlplane.io/fluxinstance_v1.json"]
+      ["helmchart_v1.json", null, $"($crds)/helm.cattle.io/helmchart_v1.json"]
+      ["namespace-v1.json", null, $"($k8s)/namespace-v1.json"]
+      ["secret-v1.json", null, $"($k8s)/secret-v1.json"]
+      ["talos-config.json", $talos_version, $"https://docs.siderolabs.com/talos/v($talos_minor)/schemas/config.schema.json"]
+    ]
+
+    for s in $sources {
+      print $"fetching ($s.file)"
+      http get --raw $s.url | save -f ($schemas | path join $s.file)
     }
 
-    url_cilium="https://raw.githubusercontent.com/cilium/cilium/v${cilium_version}/install/kubernetes/cilium/values.schema.json"
-    url_fluxinstance="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/fluxcd.controlplane.io/fluxinstance_v1.json"
-    url_helmchart="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.cattle.io/helmchart_v1.json"
-    url_namespace="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/namespace-v1.json"
-    url_secret="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
-    url_talos="https://docs.siderolabs.com/talos/v${talos_minor}/schemas/config.schema.json"
-
-    fetch "$url_cilium" cilium-values.json
-    fetch "$url_fluxinstance" fluxinstance_v1.json
-    fetch "$url_helmchart" helmchart_v1.json
-    fetch "$url_namespace" namespace-v1.json
-    fetch "$url_secret" secret-v1.json
-    fetch "$url_talos" talos-config.json
-
-    cat > "$schemas/SOURCES.json" <<EOF
-    {
-      "cilium-values.json": {
-        "version": "$cilium_version",
-        "url": "$url_cilium"
-      },
-      "fluxinstance_v1.json": { "url": "$url_fluxinstance" },
-      "helmchart_v1.json": { "url": "$url_helmchart" },
-      "namespace-v1.json": { "url": "$url_namespace" },
-      "secret-v1.json": { "url": "$url_secret" },
-      "talos-config.json": {
-        "version": "$talos_version",
-        "url": "$url_talos"
+    $sources
+    | reduce -f {} {|s, acc|
+        let entry = if ($s.version | is-empty) { { url: $s.url } } else { { version: $s.version, url: $s.url } }
+        $acc | insert $s.file $entry
       }
-    }
-    EOF
+    | to json
+    | $"($in)\n"
+    | save -f ($schemas | path join "SOURCES.json")
 
-    echo "vendored $(ls "$schemas" | wc -l | tr -d ' ') files into $schemas" \
-      "(cilium chart $cilium_version, talos $talos_version)"
+    print $"vendored (ls $schemas | length) files into ($schemas) \(cilium chart ($cilium_version), talos ($talos_version)\)"
 
 [doc('Sync per-cluster kubeconfigs into ~/.kube/config.d/ (all clusters, or one)')]
-[script('nu')]
+[script]
 kubeconfig cluster="":
     # Which node serves a cluster is only expressed in host aspect lists, so
     # this map is maintained by hand.
@@ -91,7 +88,7 @@ kubeconfig cluster="":
     # ~/.kube/config holds only current-context; k9s.nix puts it first in
     # KUBECONFIG so `use-context` writes there and never into a synced file.
     let state = ($nu.home-dir | path join ".kube" "config")
-    if ($state | path exists) and (open $state | get -o clusters | is-not-empty) {
+    if ($state | path exists) and (open --raw $state | from yaml | get -o clusters | is-not-empty) {
       let backup = $"($state).pre-multicluster"
       mv $state $backup
       print $"legacy single-cluster kubeconfig backed up -> ($backup)"
