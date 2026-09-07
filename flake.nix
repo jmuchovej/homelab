@@ -11,6 +11,7 @@
     };
     den.url = "github:denful/den";
     deploy.url = "github:serokell/deploy-rs";
+    devenv.url = "github:cachix/devenv/v2.3.1";
     disko.url = "github:nix-community/disko";
     flake-file.url = "github:denful/flake-file";
     flake-parts = {

@@ -72,8 +72,6 @@
           "numtide.cachix.org" = "1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE=";
         };
         extra-substituters = {
-          "devenv.cachix.org" = "1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-          "nixpkgs-python.cachix.org" = "1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU=";
           "cachix.cachix.org" = "1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM=";
         };
         substituter-urls = subs: map (sub: "https://${sub}") (lib.attrNames subs);
