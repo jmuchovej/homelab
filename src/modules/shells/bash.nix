@@ -6,6 +6,7 @@
 
     hm = { pkgs, ... }: {
       home.shell.enableBashIntegration = true;
+
       programs.bash = {
         enable = true;
         enableCompletion = true;
@@ -24,7 +25,7 @@
         ];
       };
 
-      home.packages = with pkgs; [ nix-bash-completions ];
+      home.packages = [ pkgs.nix-bash-completions ];
     };
   };
 }

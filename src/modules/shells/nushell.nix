@@ -11,8 +11,23 @@
         pkgs,
         ...
       }:
+      let
+        nu = config.programs.nushell;
+        nu-lsp = lib.rbn.mk-lsp {
+          pkg = nu.package;
+          args = [
+            "--config"
+            "${nu.configDir}/config.nu"
+            "--lsp"
+          ];
+          extensions = {
+            ".nu" = "nu";
+          };
+        };
+      in
       {
         home.shell.enableNushellIntegration = true;
+
         programs.nushell = {
           enable = true;
           shellAliases = lib.filterAttrs (_k: v: !lib.hasInfix " && " v) config.home.shellAliases;
@@ -30,20 +45,14 @@
 
         programs.zed-editor = {
           extensions = [ "nu" ];
+          extraPackages = [ nu-lsp.pkg ];
           userSettings = {
-            lsp = {
-              nu = {
-                binary = {
-                  path = config.programs.nushell.package;
-                  arguments = [
-                    "--config"
-                    "${config.programs.nushell.configDir}/config.nu"
-                    "--lsp"
-                  ];
-                };
-              };
-            };
+            lsp.nu = nu-lsp.zed;
           };
+        };
+
+        programs.claude-code.lspServers = {
+          nu = nu-lsp.claude;
         };
       };
   };

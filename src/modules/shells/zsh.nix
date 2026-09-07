@@ -12,6 +12,7 @@
 
     hm = { config, ... }: {
       home.shell.enableZshIntegration = true;
+
       programs.zsh = {
         enable = true;
 
@@ -50,7 +51,6 @@
           useFriendlyNames = true;
           plugins = [
             "romkatv/zsh-defer"
-            "jeffreytse/zsh-vi-mode"
             "zdharma-continuum/fast-syntax-highlighting kind:defer"
             "zsh-users/zsh-completions kind:defer"
             "zsh-users/zsh-autosuggestions kind:defer"
