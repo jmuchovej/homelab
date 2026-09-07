@@ -249,11 +249,6 @@ in
             ];
 
             environment.systemPackages = [ pkgs.talosctl ];
-
-            users.users.${host.primary-user.name}.extraGroups = [
-              "libvirtd"
-              "kvm"
-            ];
           };
       };
 }

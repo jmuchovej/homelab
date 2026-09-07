@@ -50,6 +50,25 @@
           (pkgs.callPackage ./_skills/openspec.nix { inherit openspec; })
         ];
       };
+
+      # Project rules, from the top-level `rules/` tree.
+      #
+      # Neither `rules/` nor `skills/` sits anywhere a harness looks natively,
+      # and that is the point: the source is read exactly once, through the
+      # per-harness renderings below, never also as a stray root-level file that
+      # some agent decides to autoload. It also leaves room to *transform* on
+      # the way out.
+      #
+      # Today this is a passthrough — `rules/*.md` are already written in Claude
+      # Code's dialect (`paths:` frontmatter globs). A harness wanting another
+      # shape gets its own derivation here rather than another symlink to this
+      # one: Antigravity reads `.agents/rules/` but caps a rule at 12k chars,
+      # and Codex has no rules concept at all, only `AGENTS.md`.
+      homelab-rules = builtins.path {
+        name = "homelab-rules";
+        path = "${self}/rules";
+        filter = path: _type: baseNameOf path != ".gitkeep";
+      };
     in
     {
       devShells.default = pkgs.mkShell {
@@ -70,6 +89,7 @@
           # Formatting / pre-commit
           config.treefmt.build.wrapper
           prek
+          zizmor
 
           # Secrets
           sops
@@ -125,15 +145,18 @@
           # their own directory get a symlink to it. A path that exists and is
           # not a symlink is left alone rather than clobbered.
           link_skills() {
+          link_tree() {
             if [ -e "$2" ] && [ ! -L "$2" ]; then
-              echo "skills: $2 exists and is not a symlink; not replacing it" >&2
+              echo "devshell: $2 exists and is not a symlink; not replacing it" >&2
               return 0
             fi
             mkdir -p "$(dirname "$2")"
             ln -snf "$1" "$2"
           }
-          link_skills "${homelab-skills}" .agents/skills
-          link_skills "$PWD/.agents/skills" .claude/skills
+          link_tree "${homelab-skills}" .agents/skills
+          link_tree "$PWD/.agents/skills" .claude/skills
+          link_tree "${homelab-rules}" .agents/rules
+          link_tree "$PWD/.agents/rules" .claude/rules
         '';
       };
     };

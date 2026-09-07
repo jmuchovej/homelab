@@ -1,7 +1,7 @@
 {
+  __findFile,
   den,
   lib,
-  __findFile,
   ...
 }:
 let
@@ -23,7 +23,6 @@ let
     };
 in
 {
-  # Host schema config — read by aspects via `host.*`
   den.hosts.x86_64-linux.da-gr75 = {
     s3 = {
       buckets = [
@@ -53,16 +52,10 @@ in
         "impulse/k8s/pvcs" = { };
       };
 
-    # Export /impulse/k8s for the K8s cluster (bulk/shared data — media,
-    # immich library, …). A dedicated subtree keeps minio's /impulse/s3 out
-    # of the NFS export. `/impulse/k8s` must exist (e.g. `zfs create impulse/k8s`).
     nfs = {
       exports = [
         { path = "/impulse/k8s"; }
         { path = "/impulse/users"; }
-        # Network home directories for the da-vcx-* hosts. Mounted as /home
-        # there; survives their impermanence rollback. `/impulse/home` must
-        # exist (e.g. `zfs create impulse/home`).
         { path = "/impulse/home"; }
         { path = "/impulse/media"; }
       ];
@@ -71,7 +64,6 @@ in
 
   den.aspects.da-gr75 = {
     includes = [
-
       # Suites
       <rbn/suite/server>
       <rbn/system/boot/graphical>
@@ -107,10 +99,7 @@ in
 
     nixos = {
       networking.hostId = "15b9a7a8";
-
-      boot.zfs.extraPools = [
-        "impulse"
-      ];
+      boot.zfs.extraPools = [ "impulse" ];
       system.stateVersion = "24.11";
     };
   };

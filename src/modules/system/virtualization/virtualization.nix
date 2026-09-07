@@ -10,5 +10,12 @@
     _.apptainer._.nvidia.nixos = {
       hardware.nvidia-container-toolkit.enable = true;
     };
+
+    _.operator.nixos = { user, ... }: {
+      users.users.${user.userName}.extraGroups = [
+        "libvirtd"
+        "kvm"
+      ];
+    };
   };
 }

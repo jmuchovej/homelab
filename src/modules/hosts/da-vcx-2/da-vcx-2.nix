@@ -1,8 +1,5 @@
-{ __findFile, ... }:
-{
+{ __findFile, ... }: {
   den.hosts.x86_64-linux.da-vcx-2 = {
-    containers.enable = true;
-
     nfs.mounts = [
       {
         server = "10.69.10.1";
@@ -29,7 +26,7 @@
       <rbn/system/hardware/storage/btrfs>
 
       # Virtualization
-      <rbn/system/virtualization>
+      <rbn/system/virtualization/apptainer>
 
       # Networking (base via suite-common, dns/manager selected here)
       <rbn/system/networking/dns/resolved>

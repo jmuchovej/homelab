@@ -1,4 +1,4 @@
-_: {
+{
   rbn.programs._.media = {
     _.ferium = {
       hm = { pkgs, ... }: {
@@ -26,7 +26,8 @@ _: {
         ];
 
         system.defaults.CustomUserPreferences = {
-          twisted.noTunes.replacement = "/Applications/Spotify.app";
+          "digital.twisted.noTunes".replacement = "/Applications/Spotify.app";
+          "digital.twisted.noTunes".hideIcon = 1;
         };
       };
     };

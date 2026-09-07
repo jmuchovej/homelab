@@ -229,11 +229,6 @@ in
               virtiofsd
             ];
 
-            users.users.${host.primary-user.name}.extraGroups = [
-              "libvirtd"
-              "kvm"
-            ];
-
             # ── GPU-passthrough-only settings ──────────────────────────
             boot.kernelParams = lib.mkIf (gpu != null) [
               "intel_iommu=on"

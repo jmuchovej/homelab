@@ -3,9 +3,7 @@
     _.beeper = {
       dock.app = "Beeper Desktop.app";
 
-      includes = [
-        (den.batteries.unfree [ "beeper" ])
-      ];
+      includes = [ (den.batteries.unfree [ "beeper" ]) ];
 
       hm = { pkgs, ... }: {
         home.packages = [ pkgs.beeper-bridge-manager ];
@@ -21,9 +19,7 @@
     _.zoom = {
       dock.app = "zoom.us.app";
 
-      includes = [
-        (den.batteries.unfree [ "zoom" ])
-      ];
+      includes = [ (den.batteries.unfree [ "zoom" ]) ];
 
       hm = { pkgs, ... }: {
         home.packages = [ pkgs.zoom-us ];

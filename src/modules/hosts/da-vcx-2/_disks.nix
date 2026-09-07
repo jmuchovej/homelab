@@ -29,10 +29,6 @@ in
                 extraArgs = [ "-f" ];
 
                 subvolumes = {
-                  "@home" = {
-                    mountpoint = "/home";
-                    mountOptions = defaultBtrfsOpts;
-                  };
                   "@k8s" = {
                     mountpoint = "/mnt/k8s";
                     mountOptions = defaultBtrfsOpts;

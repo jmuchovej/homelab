@@ -1,11 +1,11 @@
 {
   rbn.programs._.baseline = {
     hm-linux = { pkgs, ... }: {
-      home.packages = with pkgs; [ iproute2 ];
+      home.packages = [ pkgs.iproute2 ];
     };
 
     hm-macos = { pkgs, ... }: {
-      home.packages = with pkgs; [ iproute2mac ];
+      home.packages = [ pkgs.iproute2mac ];
     };
 
     hm = { pkgs, ... }: {
