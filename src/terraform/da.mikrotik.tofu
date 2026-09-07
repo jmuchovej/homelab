@@ -60,6 +60,7 @@ module "da-relay01" {
     asn          = 64512
     lb-pool-cidr = "10.69.1.0/24"
     peers = {
+      da-gr75  = "10.69.10.1"
       da-vcx-1 = "10.69.11.1"
       da-vcx-2 = "10.69.12.1"
     }
@@ -128,15 +129,18 @@ module "da-relay01" {
   # client-id would never match and the lease would fall through to the pool.
   static-leases = merge({
     for addr, device in {
-      "10.69.10.1" = "gr75.eth1",
-      "10.69.11.1" = "vcx-1.eth1",
-      "10.69.12.1" = "vcx-2.eth1",
-      # "10.69.13.1" = "vcx-3.eth1",
-      "10.69.4.2" = "hubitat-c8.eth1",
-      } : "da-${device}" => {
+      "10.69.10.1" = { name = "da-gr75.eth1", vlan = local.vlans.lab.dhcp },
+      "10.69.11.1" = { name = "da-vcx-1.eth1", vlan = local.vlans.lab.dhcp },
+      "10.69.12.1" = { name = "da-vcx-2.eth1", vlan = local.vlans.lab.dhcp },
+      # "10.69.13.1" = { name = "da-vcx-3.eth1", vlan = local.vlans.lab.dhcp },
+      # "10.69.14.1" = { name = "da-vcx-4.eth1", vlan = local.vlans.lab.dhcp },
+      "10.69.4.2" = { name = "da-hubitat-c8.eth1", vlan = local.vlans.lab.dhcp },
+      "10.66.1.2" = { name = "replicator.wifi", vlan = local.vlans.iot.dhcp },
+      "10.99.1.2" = { name = "da-apple-tv.eth1", vlan = local.vlans.guest.dhcp },
+      } : "${device.name}" => {
       address  = addr
-      mac-addr = data.sops_file.topology.data["devices.da-${device}"]
-      server   = local.vlans.lab.dhcp
+      mac-addr = data.sops_file.topology.data["devices.${device.name}"]
+      server   = device.vlan
     }
     }, {
     relay02-mgmt = {

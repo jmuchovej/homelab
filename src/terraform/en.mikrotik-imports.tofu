@@ -65,8 +65,9 @@ import {
 
 import {
   for_each = local.en-ports.relay01
-  to       = module.en-relay01.routeros_interface_bridge_port.port[each.key]
-  id       = "interface=${each.key}"
+
+  to = module.en-relay01.routeros_interface_bridge_port.port[each.key]
+  id = "interface=${each.key}"
 }
 
 # `*N` ids come from: ssh admin@10.42.0.1 '/interface/list/member/print'

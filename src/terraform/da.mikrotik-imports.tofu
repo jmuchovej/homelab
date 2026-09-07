@@ -68,6 +68,7 @@ import {
     for k in keys(local.da-ports.relay01) :
     k => k if startswith(k, "ether")
   }
+
   to = module.da-relay01.routeros_interface_bridge_port.port[each.key]
   id = "interface=${each.key}"
 }
@@ -155,8 +156,9 @@ import {
 
 import {
   for_each = local.da-ports.relay02
-  to       = module.da-relay02.routeros_interface_bridge_port.port[each.key]
-  id       = "interface=${each.key}"
+
+  to = module.da-relay02.routeros_interface_bridge_port.port[each.key]
+  id = "interface=${each.key}"
 }
 
 import {
