@@ -71,9 +71,7 @@
           "nixpkgs-unfree.cachix.org" = "1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs=";
           "numtide.cachix.org" = "1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE=";
         };
-        extra-substituters = {
-          "cachix.cachix.org" = "1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM=";
-        };
+        extra-substituters = { };
         substituter-urls = subs: map (sub: "https://${sub}") (lib.attrNames subs);
         substituter-keys = subs: lib.mapAttrsToList (domain: pkey: "${domain}-${pkey}") subs;
       in
