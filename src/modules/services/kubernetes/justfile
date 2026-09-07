@@ -4,18 +4,9 @@ set script-interpreter := ['bash', '-euo', 'pipefail']
 default:
     @just --justfile {{ module_file() }} --list
 
-# Refresh the vendored schemas under vendor/schemas/. These back both
-# editor validation (relative `# $schema:` comments in the bootstrap
-# manifests) and the build-time kubeconform/check-jsonschema pass in
-# kubernetes.nix (the nix sandbox has no network, hence vendoring).
-#
-# The cilium values schema is CHART-versioned: the version is read from
-# cilium.yaml's spec.version, so bump the chart there first, then run this.
-# The build check fails if the stamp in SOURCES.json lags the chart.
 [doc('Refresh vendored schemas (bump cilium spec.version first; build check enforces sync)')]
 [script]
 update-schemas:
-    # manifests moved to src/bootstrap/kubernetes/; schemas are repo-root vendored
     manifests="{{ justfile_directory() }}/src/bootstrap/kubernetes"
     schemas="{{ justfile_directory() }}/vendor/schemas"
     mkdir -p "$schemas"
@@ -26,15 +17,13 @@ update-schemas:
         exit 1
     }
 
-    # Talos version comes from the machineconfig's installer image tag, the
-    # same way cilium's comes from its HelmChart spec.version.
     talos_image=$(yq '.machine.install.image' "{{ justfile_directory() }}/src/bootstrap/talos/machineconfig.yaml")
     talos_version=${talos_image##*:v}
     [[ -n $talos_version && $talos_version != "null" ]] || {
         echo "could not read machine.install.image from the talos machineconfig" >&2
         exit 1
     }
-    # docs are published per MINOR (v1.13), not per patch (v1.13.7)
+    # Talos schemas are published per minor version, not per patch.
     talos_minor=${talos_version%.*}
 
     fetch() {
@@ -47,8 +36,6 @@ update-schemas:
     url_helmchart="https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/helm.cattle.io/helmchart_v1.json"
     url_namespace="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/namespace-v1.json"
     url_secret="https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.33.1-standalone-strict/secret-v1.json"
-    # Talos machine config — MINOR-versioned docs path (v1.13), not the patch
-    # release, which is what `machine.install.image` pins.
     url_talos="https://docs.siderolabs.com/talos/v${talos_minor}/schemas/config.schema.json"
 
     fetch "$url_cilium" cilium-values.json
@@ -77,3 +64,79 @@ update-schemas:
 
     echo "vendored $(ls "$schemas" | wc -l | tr -d ' ') files into $schemas" \
       "(cilium chart $cilium_version, talos $talos_version)"
+
+[doc('Sync per-cluster kubeconfigs into ~/.kube/config.d/ (all clusters, or one)')]
+[script('nu')]
+kubeconfig cluster="":
+    # Which node serves a cluster is only expressed in host aspect lists, so
+    # this map is maintained by hand.
+    let servers = [
+      [context, node];
+      ["da", "da-vcx-1"]
+      ["en", "en-t65-1"]
+    ]
+
+    let wanted = "{{ cluster }}"
+    let targets = if ($wanted | is-empty) { $servers } else { $servers | where context == $wanted }
+    if ($targets | is-empty) {
+      print -e $"unknown cluster '($wanted)' — known: ($servers.context | str join ', ')"
+      exit 1
+    }
+
+    let topology = (open $"{{ justfile_directory() }}/src/topology.yaml")
+    let dir = ($nu.home-dir | path join ".kube" "config.d")
+    mkdir $dir
+    chmod 700 $dir
+
+    # ~/.kube/config holds only current-context; k9s.nix puts it first in
+    # KUBECONFIG so `use-context` writes there and never into a synced file.
+    let state = ($nu.home-dir | path join ".kube" "config")
+    if ($state | path exists) and (open $state | get -o clusters | is-not-empty) {
+      let backup = $"($state).pre-multicluster"
+      mv $state $backup
+      print $"legacy single-cluster kubeconfig backed up -> ($backup)"
+    }
+    if not ($state | path exists) {
+      { apiVersion: v1, kind: Config, current-context: $targets.0.context } | to yaml | save -f $state
+      chmod 600 $state
+    }
+
+    for t in $targets {
+      let addr = ($topology.clients | get -o $t.node | get -o ip)
+      if ($addr | is-empty) {
+        print -e $"($t.context): ($t.node) has no clients.($t.node).ip in topology.yaml — skipped"
+        continue
+      }
+
+      let res = (^ssh -o ConnectTimeout=8 $"lab@($addr)" cat /etc/rancher/k3s/k3s.yaml | complete)
+      if $res.exit_code != 0 {
+        print -e $"($t.context): ($t.node) unreachable at ($addr) — skipped"
+        print -e ($res.stderr | str trim)
+        continue
+      }
+
+      let src = ($res.stdout | from yaml)
+      let file = ($dir | path join $"($t.context).yaml")
+      # k3s names cluster, user, and context `default` everywhere, so they are
+      # renamed to the datacenter or the merged files collide.
+      #
+      # The served cert lacks the holonet address as a SAN and k3s will not
+      # regrow SANs on restart, so `tls-server-name` pins verification to the
+      # hostname that is in the cert. Drop it once the SANs are regenerated.
+      {
+        apiVersion: v1
+        kind: Config
+        clusters: [{ name: $t.context, cluster: {
+          certificate-authority-data: $src.clusters.0.cluster.certificate-authority-data
+          server: $"https://($addr):6443"
+          tls-server-name: $t.node
+        }}]
+        users: [{ name: $t.context, user: {
+          client-certificate-data: $src.users.0.user.client-certificate-data
+          client-key-data: $src.users.0.user.client-key-data
+        }}]
+        contexts: [{ name: $t.context, context: { cluster: $t.context, user: $t.context } }]
+      } | to yaml | save -f $file
+      chmod 600 $file
+      print $"($t.context) -> ($file)  [($addr), tls-server-name ($t.node)]"
+    }
