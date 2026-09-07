@@ -101,7 +101,7 @@
           sops-key = sops-key-for host;
         in
         mkMerge [
-          (get-secret config sops-key "topology")
+          (get-secret sops-key "topology")
           {
             sops.secrets.${sops-key} = {
               owner = "root";
@@ -131,7 +131,7 @@
           sops-key = sops-key-for host;
         in
         mkMerge [
-          (get-secret config sops-key "topology")
+          (get-secret sops-key "topology")
           {
             sops.secrets.${sops-key} = {
               owner = "root";

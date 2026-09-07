@@ -13,13 +13,13 @@ in
   _rbn-lib = {
     inherit get-file get-secrets;
 
-    get-secret = _config: secret: filepath: {
+    get-secret = secret: filepath: {
       sops.secrets.${secret} = {
         sopsFile = get-secrets filepath;
       };
     };
 
-    get-secret' = _config: secret: {
+    get-secret' = secret: {
       sops.secrets.${secret} = {
         sopsFile = get-secrets "secrets";
       };

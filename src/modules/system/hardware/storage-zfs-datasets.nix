@@ -112,7 +112,7 @@
         '';
       in
       mkIf (datasets != { }) (mkMerge [
-        (mkMerge (map (key: get-secret config (uid-key key) "users") acl-keys))
+        (mkMerge (map (key: get-secret (uid-key key) "users") acl-keys))
 
         {
           systemd.services.zfs-datasets = {

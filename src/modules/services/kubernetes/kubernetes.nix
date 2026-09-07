@@ -106,7 +106,7 @@ in
         );
       in
       lib.mkMerge [
-        (lib.rbn.get-secret' config "kubernetes/flux/${host.dc-domain}/age-key")
+        (lib.rbn.get-secret' "kubernetes/flux/${host.dc-domain}/age-key")
         {
           environment.sessionVariables.KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
           environment.systemPackages = with pkgs; [
@@ -207,7 +207,7 @@ in
         ...
       }:
       lib.mkMerge [
-        (lib.rbn.get-secret' config "kubernetes/k3s/${host.dc-domain}/token")
+        (lib.rbn.get-secret' "kubernetes/k3s/${host.dc-domain}/token")
         {
           services.k3s = {
             role = "agent";

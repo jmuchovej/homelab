@@ -2,7 +2,7 @@
   rbn.services._.cachix.nixos =
     { config, lib, ... }:
     lib.mkMerge [
-      (lib.rbn.get-secret' config "cachix/token")
+      (lib.rbn.get-secret' "cachix/token")
       {
         services.cachix-watch-store = {
           enable = true;

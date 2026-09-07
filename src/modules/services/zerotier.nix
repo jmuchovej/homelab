@@ -50,7 +50,7 @@
       lib.mkMerge [
         # Only the node identity.secret comes from sops — key `zerotier.secret-key`
         # in the host's own secrets/hosts/<host>.sops.yaml.
-        (lib.rbn.get-secret config identity-key "hosts/${host.hostname}")
+        (lib.rbn.get-secret identity-key "hosts/${host.hostname}")
         {
           sops.secrets.${identity-key} = {
             owner = "root";
@@ -111,7 +111,7 @@
         home = "/Library/Application Support/ZeroTier/One";
       in
       lib.mkMerge [
-        (lib.rbn.get-secret config identity-key "hosts/${host.hostname}")
+        (lib.rbn.get-secret identity-key "hosts/${host.hostname}")
         {
           sops.secrets.${identity-key} = {
             owner = "root";

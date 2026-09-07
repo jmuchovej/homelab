@@ -89,7 +89,7 @@
         inherit (lib.rbn) get-secret';
       in
       lib.mkMerge [
-        (get-secret' config "lab/password")
+        (get-secret' "lab/password")
         {
           documentation = {
             enable = lib.mkForce false;
