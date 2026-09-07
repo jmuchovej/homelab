@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.typescript.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      ts-lsp = mk-lsp {
+      ts-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.vtsls;
         args = [ "--stdio" ];
         extensions = {

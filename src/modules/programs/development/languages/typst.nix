@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.typst.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      tinymist-lsp = mk-lsp {
+      tinymist-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.tinymist;
         args = [ "lsp" ];
         extensions.".typ" = "typst";

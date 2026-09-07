@@ -2,10 +2,8 @@
   rbn.programs._.development._.languages._.opentofu.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
       # https://github.com/opentofu/tofu-ls/blob/main/docs/SETTINGS.md
-      tofu-lsp = mk-lsp {
+      tofu-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.tofu-ls;
         args = [ "serve" ];
         extensions = {

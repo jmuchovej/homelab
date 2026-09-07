@@ -2,10 +2,8 @@
   rbn.programs._.development._.languages._.kotlin.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
       # TODO: migrate to `kotlin-lsp` once on nixpkgs
-      kotlin-lsp = mk-lsp {
+      kotlin-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.kotlin-language-server;
         extensions = {
           ".kt" = "kotlin";

@@ -6,11 +6,9 @@
   rbn.programs._.development._.data._.toml.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
       # https://github.com/tombi-toml/tombi/blob/main/docs/src/routes/docs/editors/zed-extension.mdx
       # https://tombi-toml.github.io/tombi/docs/editors/zed-extension
-      toml-lsp = mk-lsp {
+      toml-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.tombi;
         args = [ "lsp" ];
         extensions.".toml" = "toml";

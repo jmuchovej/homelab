@@ -2,9 +2,7 @@
   rbn.programs._.development._.nix.hm =
     { pkgs, lib, ... }:
     let
-      inherit (import ./_lsp.nix { inherit lib; }) mk-lsp;
-
-      nix-lsp = mk-lsp {
+      nix-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.nixd;
         extensions.".nix" = "nix";
         # nixd execs the formatter itself and inherits the harness's bare

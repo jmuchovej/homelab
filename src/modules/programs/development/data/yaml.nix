@@ -2,9 +2,7 @@
   rbn.programs._.development._.data._.yaml.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      yaml-lsp = mk-lsp {
+      yaml-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.yaml-language-server;
         args = [ "--stdio" ];
         extensions = {

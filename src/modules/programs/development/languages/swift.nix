@@ -7,14 +7,14 @@
     hm =
       { lib, pkgs, ... }:
       let
-        inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-        swift-lsp = mk-lsp {
+        swift-lsp = lib.rbn.mk-lsp {
           pkg = pkgs.sourcekit-lsp;
           extensions.".swift" = "swift";
         };
       in
       {
+        home.packages = [ pkgs.swift ];
+
         programs.vscode = {
           profiles.default.extensions = with pkgs.open-vsx; [
             sswg.swift-lang

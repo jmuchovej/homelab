@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.dart.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      dart-lsp = mk-lsp {
+      dart-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.dart;
         args = [
           "language-server"

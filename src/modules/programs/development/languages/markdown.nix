@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.markdown.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      markdown-lsp = mk-lsp {
+      markdown-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.marksman;
         args = [ "server" ];
         extensions.".md" = "markdown";

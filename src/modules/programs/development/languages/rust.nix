@@ -6,9 +6,7 @@
     hm =
       { lib, pkgs, ... }:
       let
-        inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-        rust-lsp = mk-lsp {
+        rust-lsp = lib.rbn.mk-lsp {
           pkg = pkgs.rust-analyzer;
           extensions.".rs" = "rust";
           init = {

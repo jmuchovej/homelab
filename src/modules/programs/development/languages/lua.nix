@@ -10,9 +10,7 @@
   rbn.programs._.development._.languages._.lua.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      lua-lsp = mk-lsp {
+      lua-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.lua-language-server;
         extensions.".lua" = "lua";
         settings.Lua = {

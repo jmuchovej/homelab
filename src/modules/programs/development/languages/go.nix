@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.go.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      go-lsp = mk-lsp {
+      go-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.gopls;
         args = [ "serve" ];
         extensions.".go" = "go";

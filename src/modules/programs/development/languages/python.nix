@@ -6,9 +6,7 @@
     hm =
       { lib, pkgs, ... }:
       let
-        inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-        python-lsp = mk-lsp {
+        python-lsp = lib.rbn.mk-lsp {
           pkg = pkgs.ty;
           args = [ "server" ];
           extensions = {

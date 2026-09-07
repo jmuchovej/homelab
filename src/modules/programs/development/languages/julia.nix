@@ -12,7 +12,6 @@
           mapAttrs
           concatStringsSep
           ;
-        inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
 
         tools = [
           "AbbreviatedStackTraces"
@@ -28,7 +27,7 @@
           # "1.13" = pkgs.julia_113-bin;
         };
 
-        julia-lsp = mk-lsp {
+        julia-lsp = lib.rbn.mk-lsp {
           pkg = pkgs.julia-bin.withPackages [
             "LanguageServer"
             "SymbolServer"

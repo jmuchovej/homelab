@@ -2,9 +2,7 @@
   rbn.programs._.development._.languages._.rlang.hm =
     { lib, pkgs, ... }:
     let
-      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
-
-      air-lsp = mk-lsp {
+      air-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.air-formatter;
         args = [ "language-server" ];
         extensions = {
