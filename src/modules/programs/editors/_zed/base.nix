@@ -25,7 +25,7 @@
     # https://zed.dev/docs/configuring-zed#diagnostics-max-severity
     { diagnostics_max_severity = null; }
     # https://zed.dev/docs/configuring-zed#direnv-integration
-    { load_direnv = "shell_hook"; }
+    { load_direnv = "disabled"; }
     # https://zed.dev/docs/configuring-zed#double-click-in-multibuffer
     { double_click_in_multibuffer = "select"; }
     # https://zed.dev/docs/configuring-zed#drop-target-size
@@ -56,7 +56,5 @@
     { restore_on_startup = "last_session"; }
     # https://zed.dev/docs/configuring-zed#colorize-brackets
     { colorize_brackets = true; }
-    # https://zed.dev/docs/configuring-zed#unnecessary-code-fade
-    { unnecessary_code_fade = 0.3; }
   ];
 }

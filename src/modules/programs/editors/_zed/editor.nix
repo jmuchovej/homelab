@@ -28,13 +28,13 @@
         tab = "→";
       };
 
+      # https://zed.dev/docs/configuring-zed#unnecessary-code-fade
       unnecessary_code_fade = 0.3; # How much to fade out unused code.
 
       # Hide the values of in variables from visual display in private files
       redact_private_values = false;
 
       # Soft-wrap and rulers
-      soft_wrap = "prefer_line"; # none; editor_width; prefer_line; bounded
       preferred_line_length = 88; # Column to soft-wrap
       show_wrap_guides = true; # Show/hide wrap guides (vertical rulers)
       wrap_guides = [

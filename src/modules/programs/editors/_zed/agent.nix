@@ -65,7 +65,7 @@
         "vim::Literal"
         [
           "tab"
-          # "\u0009"
+          (builtins.fromJSON ''"\u0009"'')
         ]
       ];
     }
