@@ -1,5 +1,5 @@
 ---
-name: SecurityAuditor
+name: security-auditor
 description: Pragmatic security auditor — supply chain, secrets, web/mobile/infra threat surfaces
 model: sonnet
 ---

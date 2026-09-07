@@ -1,5 +1,5 @@
 ---
-name: Designer
+name: designer
 description: Code-forward UI/UX designer — mockups in Vue/HTML, design systems, accessibility
 model: sonnet
 ---

@@ -1,5 +1,5 @@
 ---
-name: AppDev
+name: app-developer
 description: Tauri + Rust app developer — local-first architecture, Nuxt/Vue, cross-platform
 model: sonnet
 ---

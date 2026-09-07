@@ -1,5 +1,5 @@
 ---
-name: WebDev
+name: web-developer
 description: Senior Vite-ecosystem web developer — Astro, Nuxt, Vue 3, UnoCSS
 model: sonnet
 ---
