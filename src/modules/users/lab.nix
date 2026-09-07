@@ -1,22 +1,33 @@
 {
-  lib,
-  den,
   __findFile,
+  den,
+  lib,
   ...
 }:
+let
+  profile = {
+    fullname = "Homelab";
+    username = "lab";
+    email = "homelab@jm0.io";
+  };
+in
 {
   den.aspects.lab = {
     meta = {
+      email = "homelab@jm0.io";
       username = "lab";
       authorized-keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3FPLe1ZXSk7KBgSkJud2hlvUAGF5m57g2Pqpccy5SO"
       ];
     };
 
-    includes = [
+    includes = with den.batteries; [
       <rbn/suite/common>
       <rbn/suite/development>
-      (den.batteries.user-shell "zsh")
+      (user-shell "zsh")
+
+      primary-user
+      <rbn/system/security/doas>
 
       # Terminal programs
       <rbn/programs/terminal/zellij>
@@ -123,10 +134,22 @@
     homeManager.home.homeDirectory = lib.mkForce "/lab";
   };
 
-  den.hosts.x86_64-linux.da-vcx-1.users.lab = { };
-  den.hosts.x86_64-linux.da-vcx-2.users.lab = { };
-  den.hosts.x86_64-linux.da-vcx-3.users.lab = { };
-  den.hosts.x86_64-linux.da-gr75.users.lab = { };
+  den.hosts.x86_64-linux = {
+    da-vcx-1.users.lab = {
+      inherit (profile) fullname username email;
+    };
+    da-vcx-2.users.lab = {
+      inherit (profile) fullname username email;
+    };
+    da-vcx-3.users.lab = {
+      inherit (profile) fullname username email;
+    };
+    da-gr75.users.lab = {
+      inherit (profile) fullname username email;
+    };
 
-  den.hosts.x86_64-linux.en-t65-1.users.lab = { };
+    en-t65-1.users.lab = {
+      inherit (profile) fullname username email;
+    };
+  };
 }

@@ -1,10 +1,18 @@
 {
   __findFile,
-  inputs,
-  lib,
   den,
+  inputs,
+  rbn-policies,
   ...
 }:
+let
+  inherit (rbn-policies) when-desktop;
+  profile = {
+    fullname = "John Muchovej";
+    username = "john";
+    email = "git@jmuchovej.com";
+  };
+in
 {
   # ── Dock placement for john's programs ──────────────────────────────
   # Each sets dock.{group,order} on the aspect. The dock builder walks rbn.*
@@ -62,175 +70,69 @@
     order = 620;
   };
 
-  den.homes.aarch64-darwin.john = {
-    includes = [ den.aspects.john ];
-  };
-  den.homes.aarch64-linux.john = {
-    includes = [ den.aspects.john ];
-  };
-  den.homes.x86_64-linux.john = {
-    includes = [ den.aspects.john ];
-  };
-  den.homes.x86_64-linux.jpm268 = {
-    includes = [
-      den.aspects.john
+  den.homes = {
+    aarch64-linux.john.includes = [ den.aspects.john ];
 
-      # Same person, different account name — reuse john's secrets rather than
-      # keying off `home.username`, which would look for a `jpm268.sops.yaml`
-      # that doesn't exist.
-      #
-      # `mkForce` is required: `<rbn/programs/security/sops>` sets
-      # `defaultSopsFile` from `home.username` at normal priority, so a plain
-      # definition here would conflict rather than win.
+    x86_64-linux.john.includes = [ den.aspects.john ];
+    x86_64-linux.jpm268.includes = [
+      den.aspects.john
       {
         name = "jpm268/sops-as-john";
-        homeManager =
-          { lib, ... }:
-          {
-            sops.defaultSopsFile = lib.mkForce "${inputs.self}/secrets/users/john.sops.yaml";
-          };
+        hm = { lib, ... }: {
+          sops.defaultSopsFile = lib.mkForce "${inputs.self}/secrets/users/john.sops.yaml";
+        };
       }
     ];
   };
 
-  den.homes.aarch64-darwin."john@da-n1x" = {
-    includes = [
-      <rbn/services/syncthing>
+  den.aspects.john = _: {
+    includes =
+      with den.batteries;
+      with den.aspects;
+      [
+        define-user
+        (user-shell "zsh")
 
-      # (<rbn/programs/ai-tools/mcp/filesystem> {
-      #   directories = [ "${user.home.homeDirectory}/Syncthing" ];
-      # })
-      <rbn/programs/creative/3d-modeling>
-      <rbn/programs/creative/design>
-      <rbn/programs/browsers/brave>
-      <rbn/programs/media/spotify>
-      <rbn/programs/documents/obsidian>
-      <rbn/programs/documents/logseq>
-      <rbn/programs/documents/appflowy>
-      <rbn/programs/documents/notion>
-      <rbn/programs/documents/anytype>
-      <rbn/programs/social/beeper>
-      <rbn/programs/social/zoom>
-      <rbn/programs/social/zulip>
-      <rbn/programs/media/ferium>
-      <rbn/programs/desktop/openconnect>
-      <rbn/programs/desktop/setapp>
-      <rbn/programs/documents/waypoints>
-      <rbn/programs/emulators/alacritty>
-      <rbn/programs/emulators/ghostty>
-      <rbn/programs/emulators/kitty>
-      <rbn/programs/emulators/rio>
-      <rbn/programs/emulators/wezterm>
-      <rbn/services/ssh-agent>
-      <rbn/programs/editors/zed>
-      <rbn/programs/toolchains/api/bruno>
-      <rbn/programs/toolchains/api/postman>
-      <rbn/programs/databases/beekeeper>
-      <rbn/programs/databases/dbeaver>
+        primary-user
+        tools.nix-trusted-user
+        <rbn/system/dock>
+        <rbn/system/homebrew>
+        <rbn/system/interface>
 
-      <rbn/programs/desktop/superwhisper>
+        <rbn/suite/common>
+        <rbn/suite/development>
 
-      <rbn/programs/desktop/utils/alt-tab>
-      <rbn/programs/desktop/utils/appcleaner>
-      <rbn/programs/desktop/utils/bartender>
-      <rbn/programs/desktop/utils/blueutil>
-      <rbn/programs/desktop/utils/monitorcontrol>
-      <rbn/programs/desktop/utils/raycast>
-      <rbn/programs/desktop/utils/switchaudio>
-      <rbn/programs/desktop/utils/stats>
-    ];
-  };
+        <rbn/programs/terminal/bacon>
+        <rbn/programs/terminal/topgrade>
 
-  den.aspects.john = { config, ... }: {
-    meta = {
-      email = "jmuchovej@pm.me";
-      fullname = "John Muchovej";
-      username = "john";
-    };
-    includes = [
-      den.batteries.primary-user
-      den.batteries.define-user
-      (den.batteries.user-shell "zsh")
+        # Shells
+        <rbn/shells/nushell>
 
-      <rbn/suite/common>
-      <rbn/suite/development>
+        # Editors
+        <rbn/programs/editors/helix>
+        <rbn/programs/editors/micro>
+        <rbn/programs/security/proton>
+        (<rbn/programs/editors/default-editor> "nvim")
 
-      <rbn/programs/terminal/bacon>
-      <rbn/programs/terminal/topgrade>
-      <rbn/programs/terminal/k9s>
-      <rbn/programs/terminal/zellij>
-      <rbn/programs/ai-tools/gemini>
-      <rbn/programs/ai-tools/claude>
-      <rbn/programs/ai-tools/mcp>
+        # Development
+        <rbn/programs/development/go>
+        <rbn/programs/development/python>
+        <rbn/programs/development/web>
+        <rbn/programs/development/nix>
+        <rbn/programs/development/rust>
+        <rbn/programs/development/julia>
+        <rbn/programs/development/typst>
+        <rbn/programs/development/rlang>
+        <rbn/programs/development/app-development>
+        <rbn/programs/development/homelab>
 
-      # Shells
-      <rbn/shells/nushell>
+        (when-desktop "waypoints" <rbn/programs/documents/waypoints>)
 
-      # Editors
-      <rbn/programs/editors/helix>
-      <rbn/programs/editors/micro>
-      (<rbn/programs/editors/default-editor> "nvim")
-
-      # Development
-      <rbn/programs/development/go>
-      <rbn/programs/development/python>
-      <rbn/programs/development/web>
-      <rbn/programs/development/nix>
-      <rbn/programs/development/rust>
-      <rbn/programs/development/julia>
-      <rbn/programs/development/typst>
-      <rbn/programs/development/rlang>
-      <rbn/programs/development/apps>
-      <rbn/programs/development/homelab>
-
-      # Desktop (only on hosts with desktop = true)
-      (
-        { host, ... }:
-        lib.optionalAttrs (host.desktop or false) {
-          includes = [
-            # (<rbn/programs/ai-tools/mcp/filesystem> {
-            #   directories = [ "${user.home.homeDirectory}/Syncthing" ];
-            # })
-            <rbn/programs/browsers/brave>
-            <rbn/programs/media/spotify>
-            <rbn/programs/documents/obsidian>
-            <rbn/programs/documents/logseq>
-            <rbn/programs/documents/appflowy>
-            <rbn/programs/documents/notion>
-            <rbn/programs/documents/anytype>
-            <rbn/programs/social/beeper>
-            <rbn/programs/social/zoom>
-            <rbn/programs/social/zulip>
-            <rbn/programs/media/ferium>
-            <rbn/programs/desktop/openconnect>
-            <rbn/programs/desktop/setapp>
-            <rbn/programs/documents/waypoints>
-            <rbn/programs/emulators/alacritty>
-            <rbn/programs/emulators/ghostty>
-            <rbn/programs/emulators/kitty>
-            <rbn/programs/emulators/rio>
-            <rbn/programs/emulators/wezterm>
-            <rbn/services/ssh-agent>
-            <rbn/programs/editors/zed>
-            <rbn/programs/toolchains/api/bruno>
-            <rbn/programs/toolchains/api/postman>
-            <rbn/programs/databases/beekeeper>
-            <rbn/programs/databases/dbeaver>
-
-            <rbn/programs/desktop/superwhisper>
-
-            <rbn/programs/desktop/utils/alt-tab>
-            <rbn/programs/desktop/utils/appcleaner>
-            <rbn/programs/desktop/utils/bartender>
-            <rbn/programs/desktop/utils/blueutil>
-            <rbn/programs/desktop/utils/monitorcontrol>
-            <rbn/programs/desktop/utils/raycast>
-            <rbn/programs/desktop/utils/switchaudio>
-            <rbn/programs/desktop/utils/stats>
-          ];
-        }
-      )
-    ];
+        <rbn/services/ssh-agent>
+        <rbn/programs/ai-tools/gemini>
+        <rbn/programs/ai-tools/claude>
+        <rbn/programs/ai-tools/mcp>
+      ];
 
     hm = _: {
       programs.ssh.settings = {
@@ -239,134 +141,178 @@
           IdentityFile = "~/.ssh/1p-%h.pub";
         };
       };
+    };
 
+    provides.da-n1x = {
+      includes = [
+        <rbn/programs/editors/zed>
+
+        <rbn/programs/browsers/brave>
+        <rbn/programs/media/spotify>
+
+        <rbn/programs/social/beeper>
+
+        <rbn/programs/emulators/ghostty>
+        <rbn/programs/emulators/wezterm>
+
+        <rbn/programs/databases/beekeeper>
+        <rbn/programs/databases/dbeaver>
+
+        <rbn/programs/desktop/superwhisper>
+        <rbn/programs/desktop/utils/raycast>
+
+        <rbn/programs/terminal/k9s>
+
+        <rbn/programs/creative/3d-modeling>
+        <rbn/programs/creative/design>
+        <rbn/programs/documents/obsidian>
+        <rbn/programs/documents/logseq>
+        <rbn/programs/documents/appflowy>
+        <rbn/programs/documents/notion>
+        <rbn/programs/documents/anytype>
+        <rbn/programs/social/zoom>
+        <rbn/programs/social/zulip>
+        <rbn/programs/media/ferium>
+        <rbn/programs/desktop/openconnect>
+        <rbn/programs/desktop/setapp>
+        <rbn/programs/toolchains/api/bruno>
+        <rbn/programs/toolchains/api/postman>
+
+        <rbn/programs/desktop/utils/alt-tab>
+        <rbn/programs/desktop/utils/appcleaner>
+        <rbn/programs/desktop/utils/bartender>
+        <rbn/programs/desktop/utils/blueutil>
+        <rbn/programs/desktop/utils/monitorcontrol>
+        <rbn/programs/desktop/utils/switchaudio>
+        <rbn/programs/desktop/utils/stats>
+      ];
     };
   };
 
   # den.hosts.x86_64-linux.da-vcx-1.users.john = { };
   # den.hosts.x86_64-linux.da-vcx-2.users.john = { };
   # den.hosts.x86_64-linux.da-vcx-3.users.john = { };
-  den.hosts.aarch64-darwin.da-n1x = {
-    users.john = {
-      # Dock layout — explicit entries for now.
-      # When den's fx pipeline releases, aspect-backed entries will auto-resolve
-      # from dock.{app,group,order} set on rbn.* aspects. See memory/dock-class-design.md.
-      dock = [
-        {
-          name = "Claude.app";
-          source = "user-apps";
-          group = "development";
-          order = 100;
-        }
-        {
-          name = "System Settings.app";
-          source = "system-apps";
-          group = "system";
-          order = 110;
-        }
-        {
-          path = "/System/Applications/Utilities/Activity Monitor.app";
-          group = "system";
-          order = 120;
-        }
-        {
-          name = "Messages.app";
-          source = "system-apps";
-          group = "communication";
-          order = 210;
-        }
-        {
-          name = "Beeper Desktop.app";
-          source = "user-apps";
-          group = "communication";
-          order = 220;
-        }
-        {
-          name = "Spotify.app";
-          source = "hm";
-          group = "media";
-          order = 230;
-        }
-        {
-          name = "Things3.app";
-          source = "root-apps";
-          group = "communication";
-          order = 240;
-        }
-        {
-          name = "Brave Browser.app";
-          source = "user-apps";
-          group = "browsers";
-          order = 310;
-        }
-        # {
-        #   name = "Firefox Developer Edition.app";
-        #   source = "hm";
-        #   group = "browsers";
-        #   order = 320;
-        # }
-        {
-          name = "Safari.app";
-          source = "root-apps";
-          group = "browsers";
-          order = 330;
-        }
-        {
-          name = "Obsidian.app";
-          source = "hm";
-          group = "pkm";
-          order = 410;
-        }
-        {
-          name = "Notion.app";
-          source = "hm";
-          group = "pkm";
-          order = 420;
-        }
-        {
-          name = "Notion Calendar.app";
-          source = "applications";
-          group = "pkm";
-          order = 430;
-        }
-        {
-          name = "Logseq.app";
-          source = "hm";
-          group = "pkm";
-          order = 440;
-        }
-        {
-          name = "AppFlowy.app";
-          source = "hm";
-          group = "pkm";
-          order = 450;
-        }
-        {
-          name = "Zed.app";
-          source = "hm";
-          group = "editors";
-          order = 510;
-        }
-        {
-          name = "Bruno.app";
-          source = "hm";
-          group = "editors";
-          order = 520;
-        }
-        {
-          name = "WezTerm.app";
-          source = "hm";
-          group = "terminals";
-          order = 610;
-        }
-        {
-          name = "Ghostty.app";
-          source = "hm";
-          group = "terminals";
-          order = 620;
-        }
-      ];
-    };
+  den.hosts.aarch64-darwin.da-n1x.users.john = {
+    inherit (profile) fullname username email;
+
+    # Dock layout — explicit entries for now.
+    # When den's fx pipeline releases, aspect-backed entries will auto-resolve
+    # from dock.{app,group,order} set on rbn.* aspects. See memory/dock-class-design.md.
+    dock = [
+      {
+        name = "Claude.app";
+        source = "user-apps";
+        group = "development";
+        order = 500;
+      }
+      {
+        name = "System Settings.app";
+        source = "system-apps";
+        group = "system";
+        order = 110;
+      }
+      {
+        path = "/System/Applications/Utilities/Activity Monitor.app";
+        group = "system";
+        order = 120;
+      }
+      {
+        name = "Messages.app";
+        source = "system-apps";
+        group = "communication";
+        order = 210;
+      }
+      {
+        name = "Beeper Desktop.app";
+        source = "user-apps";
+        group = "communication";
+        order = 220;
+      }
+      {
+        name = "Spotify.app";
+        source = "root-apps";
+        group = "media";
+        order = 230;
+      }
+      {
+        name = "Things3.app";
+        source = "root-apps";
+        group = "communication";
+        order = 240;
+      }
+      {
+        name = "Brave Browser.app";
+        source = "user-apps";
+        group = "browsers";
+        order = 310;
+      }
+      # {
+      #   name = "Firefox Developer Edition.app";
+      #   source = "hm";
+      #   group = "browsers";
+      #   order = 320;
+      # }
+      {
+        name = "Safari.app";
+        source = "root-apps";
+        group = "browsers";
+        order = 330;
+      }
+      {
+        name = "Obsidian.app";
+        source = "hm";
+        group = "pkm";
+        order = 410;
+      }
+      {
+        name = "Notion.app";
+        source = "hm";
+        group = "pkm";
+        order = 420;
+      }
+      {
+        name = "Notion Calendar.app";
+        source = "applications";
+        group = "pkm";
+        order = 430;
+      }
+      {
+        name = "Logseq.app";
+        source = "hm";
+        group = "pkm";
+        order = 440;
+      }
+      {
+        name = "AppFlowy.app";
+        source = "hm";
+        group = "pkm";
+        order = 450;
+      }
+      {
+        name = "Zed.app";
+        source = "hm";
+        group = "development";
+        order = 510;
+      }
+      {
+        name = "Bruno.app";
+        source = "hm";
+        group = "development";
+        order = 520;
+      }
+      {
+        name = "WezTerm.app";
+        source = "hm";
+        group = "terminals";
+        order = 610;
+      }
+      {
+        name = "Ghostty.app";
+        source = "hm";
+        group = "terminals";
+        order = 620;
+      }
+    ];
   };
 
   # den.hosts.x86_64-linux.en-t65-1.users.john = { };
