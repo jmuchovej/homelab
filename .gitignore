@@ -18,6 +18,9 @@ _research/
 !secrets/**/*.pub.age
 # Same for per-cluster Flux sops recipient pubkeys.
 !src/kubernetes/clusters/**/*.pub
+# Same for per-forge signing pubkeys — `forges.<key>.signing-key` reads
+# `<key>.pub` beside the user, so an ignored key silently evaluates to nothing.
+!src/modules/users/**/*.pub
 
 # Private
 .private
@@ -409,7 +412,3 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
-
-# AI agent skill roots: symlinks into the Nix store, created by the devshell
-.agents/
-.claude/skills

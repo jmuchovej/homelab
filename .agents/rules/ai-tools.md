@@ -1,0 +1,1 @@
+../../src/modules/ai-tools/AGENTS.md

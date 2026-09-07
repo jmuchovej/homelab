@@ -21,8 +21,7 @@
 
       nushell-plugged =
         let
-          inherit (pkgs) lib;
-          inherit (pkgs.lib) getExe;
+          inherit (pkgs.lib) getExe concatMapStringsSep;
           plugins = with pkgs.nushellPlugins; [
             formats
             gstat
@@ -31,44 +30,10 @@
           ];
         in
         pkgs.writeShellScriptBin "nu" ''
-          exec ${getExe pkgs.nushell} --plugins '[${lib.concatMapStringsSep " " getExe plugins}]' "$@"
+          exec ${getExe pkgs.nushell} --plugins '[${concatMapStringsSep " " getExe plugins}]' "$@"
         '';
 
       openspec = inputs'.llm-agents.packages.openspec;
-
-      # Project skills for the shared `.agents/skills` root: hand-written ones
-      # from the top-level `skills/` directory plus openspec's workflow skills,
-      # rendered from the same openspec the shell ships.
-      homelab-skills = pkgs.symlinkJoin {
-        name = "homelab-skills";
-        paths = [
-          (builtins.path {
-            name = "homelab-skills-local";
-            path = "${self}/skills";
-            filter = path: _type: baseNameOf path != ".gitkeep";
-          })
-          (pkgs.callPackage ./_skills/openspec.nix { inherit openspec; })
-        ];
-      };
-
-      # Project rules, from the top-level `rules/` tree.
-      #
-      # Neither `rules/` nor `skills/` sits anywhere a harness looks natively,
-      # and that is the point: the source is read exactly once, through the
-      # per-harness renderings below, never also as a stray root-level file that
-      # some agent decides to autoload. It also leaves room to *transform* on
-      # the way out.
-      #
-      # Today this is a passthrough — `rules/*.md` are already written in Claude
-      # Code's dialect (`paths:` frontmatter globs). A harness wanting another
-      # shape gets its own derivation here rather than another symlink to this
-      # one: Antigravity reads `.agents/rules/` but caps a rule at 12k chars,
-      # and Codex has no rules concept at all, only `AGENTS.md`.
-      homelab-rules = builtins.path {
-        name = "homelab-rules";
-        path = "${self}/rules";
-        filter = path: _type: baseNameOf path != ".gitkeep";
-      };
     in
     {
       devShells.default = pkgs.mkShell {
@@ -139,24 +104,6 @@
 
         shellHook = ''
           ${config.pre-commit.installationScript}
-
-          # Project skills live in one shared root, `.agents/skills`, which
-          # Antigravity and Codex read natively. Harnesses that only look in
-          # their own directory get a symlink to it. A path that exists and is
-          # not a symlink is left alone rather than clobbered.
-          link_skills() {
-          link_tree() {
-            if [ -e "$2" ] && [ ! -L "$2" ]; then
-              echo "devshell: $2 exists and is not a symlink; not replacing it" >&2
-              return 0
-            fi
-            mkdir -p "$(dirname "$2")"
-            ln -snf "$1" "$2"
-          }
-          link_tree "${homelab-skills}" .agents/skills
-          link_tree "$PWD/.agents/skills" .claude/skills
-          link_tree "${homelab-rules}" .agents/rules
-          link_tree "$PWD/.agents/rules" .claude/rules
         '';
       };
     };
