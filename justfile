@@ -1,3 +1,4 @@
+set script-interpreter := ["bash", "-euo", "pipefail"]
 mod bootstrap "src/modules/hosts/bootstrap/justfile"
 mod mikrotik "src/terraform/mikrotik.just"
 mod authentik "src/terraform/authentik.just"
@@ -9,13 +10,17 @@ default:
 setup:
     nix profile install nixpkgs#cachix
 
+[private]
+nh-switch os *ARGS:
+    nh {{ os }} switch . --max-jobs $(nproc) --cores $(nproc) {{ ARGS }}
+
 [linux]
-switch:
-    nh os switch . -j 8 --cores 8
+switch *ARGS:
+    @just nh-switch os {{ ARGS }}
 
 [macos]
-switch:
-    nh darwin switch . -j 8 --cores 8
+switch *ARGS:
+    @just nh-switch darwin {{ ARGS }}
 
 regen:
     nix run .#write-flake
@@ -33,9 +38,8 @@ deploy-all:
 # the host. `nix run` fetches facter on the fly (it isn't installed until a host
 # already has a report), and `doas` is the servers' passwordless privilege tool.
 # Usage: just facter da-vcx-2 [ssh-target]   (ssh-target defaults to the host name)
+[script]
 facter host target=host:
-    #!/usr/bin/env bash
-    set -euo pipefail
     dir="src/modules/hosts/{{ host }}"
     [ -d "$dir" ] || { echo "no such host dir: $dir" >&2; exit 1; }
     tmp="$(mktemp)"
