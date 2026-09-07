@@ -16,21 +16,32 @@
 ### Environment
 
 - All machines use NixOS, nix-darwin, or home-manager.
-- Assume `devenv` unless an `AGENTS.md` or project-level `CLAUDE.md` says
-  otherwise. `devenv.nix` must exist in every project — create one if missing.
-  It manages dependencies, toolchains, and formatting.
+- Assume `devenv` unless the project's `AGENTS.md` says otherwise.
+  `devenv.nix` must exist in every project — create one if missing. It manages
+  dependencies, toolchains, and formatting.
+- Secrets are reached through `secretspec`. `secretspec run -- <cmd>` is your
+  primary surface; `secretspec check --explain` tells you what is missing
+  without revealing values. Every call needs a reason (`--reason` or
+  `SECRETSPEC_REASON`) — that is intentional; give an honest one.
 - `just` is the task runner everywhere. Prefer it over Make, npm scripts, or
   any other runner. Check the `justfile` for available recipes before
   improvising commands.
-- **`forked-*` repos**: do not commit any devenv-related files. Use the upstream
-  project's build/dependency toolchain for builds and CI.
+- **Forks** (mostly under `~/Documents/dev/`): a fork is any repo whose
+  `origin` points at a `forked-*` repository and/or that has an `upstream`
+  remote. The directory name is not the signal. In forks, do not commit any
+  devenv-related files (`devenv.nix`, `devenv.yaml`, `devenv.lock`, `.envrc`);
+  use the upstream project's build/dependency toolchain for builds and CI.
 
 ### Workflow
 
-- Use Conventional Commits. Always `git commit --sign`.
-- Check for an `AGENTS.md` in any project — these are freely editable by you.
-  Project-level `CLAUDE.md` files reference `AGENTS.md` for cross-tool
-  compatibility.
+- **Version control is `jj`.** `git` is only for things `jj` cannot do. A repo
+  without `.jj/` is not one of them — `jj git init --colocate` it.
+- Use Conventional Commits.
+- Signing and the `Signed-off-by` / `Assisted-by` trailers are added for you, so
+  you don't need to write trailers or signing flags yourself.
+- Never push. I push.
+- Check for an `AGENTS.md` in any project — it is the single agent-guidance
+  file and is freely editable by you.
 - Don't generate or update READMEs, CHANGELOGs, or other docs unless I ask.
 - Skip explanations of well-known concepts. Focus on non-obvious decisions and
   trade-offs.
@@ -39,10 +50,12 @@
 
 ### Formatting
 
-- Never manually fix formatting. Defer to the project's formatting toolchain:
-  - Use `treefmt` if referenced in `devenv.nix` or a `treefmt.toml` is present.
-  - If a `.pre-commit-config.yaml` exists, check whether it includes formatter
-    hooks before assuming formatting is handled.
+- Never manually fix formatting. Defer to the project's formatting toolchain,
+  and run it before every commit:
+  - `treefmt` (referenced in `devenv.nix`, or a `treefmt.toml` is present):
+    `jj fix` runs it over the changed files.
+  - `.pre-commit-config.yaml`: `prek run`. `jj` never runs git hooks for you.
+    If those hooks don't cover formatting, `treefmt` still applies.
   - If no formatting pipeline is configured, note it — don't guess at setup.
 
 ### Globally Available Tools
@@ -56,6 +69,8 @@ These tools are available in every devenv shell and on all hosts:
 - `yq` — structured data processing (JSON, YAML, XML, TOML, CSV, etc. via
   `-p` flag, e.g., `yq -p json '.key' file.json`). No `jq` — use `yq` for all
   formats.
+- `jj` — version control (colocated with git)
+- `secretspec` — secrets (only ever use `run` and `check`)
 - `sops` — secret encryption/decryption
 - `nh` — NixOS/nix-darwin rebuild helper (`nh os switch`, `nh darwin switch`)
 
@@ -142,7 +157,7 @@ These tools are available in every devenv shell and on all hosts:
    nobody asked for.
 7. **Stale context** — re-read files before editing. Don't rely on memory of
    file contents from earlier in the conversation.
-8. **Ignoring constraints** — re-read CLAUDE.md, AGENTS.md, and project rules
-   before proposing changes that might violate them.
+8. **Ignoring constraints** — re-read AGENTS.md and project rules before
+   proposing changes that might violate them.
 
 </failure-modes>
