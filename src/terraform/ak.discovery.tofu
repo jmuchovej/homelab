@@ -1,7 +1,11 @@
 # An HTTPRoute labeled `authentik.rbn/enabled=true` registers an Authentik
 # app; its `authentik.rbn/*` annotations carry the app metadata.
 provider "kubernetes" {
-  config_path = "~/.kube/config"
+  config_paths = [
+    "~/.kube/config",
+    "~/.kube/config.d/da.yaml",
+    "~/.kube/config.d/en.yaml",
+  ]
 }
 
 locals {

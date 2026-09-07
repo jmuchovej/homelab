@@ -1,5 +1,5 @@
 provider "authentik" {
-  url   = "https://id.${local.domain.da}"
+  url   = "https://id.${local.domain.root}"
   token = data.sops_file.secrets.data["authentik.token"]
 }
 
