@@ -1,11 +1,11 @@
 { __findFile, ... }: {
-  rbn.programs._.development._.toolchains._.android = {
+  rbn.programs._.development._.toolchains._.apple = {
     includes = [
       <rbn/programs/development/languages/swift>
     ];
 
     macos = {
-      brews = [
+      homebrew.brews = [
         "cocoapods"
         "xcodegen"
         "xcodes"

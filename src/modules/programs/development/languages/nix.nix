@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.nix.hm =
+  rbn.programs._.development._.languages._.nix.hm =
     { pkgs, lib, ... }:
     let
       nix-lsp = lib.rbn.mk-lsp {
