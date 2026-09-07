@@ -1,5 +1,4 @@
-{ inputs, ... }:
-{
+{ inputs, ... }: {
   flake-file.inputs.oh-my-tmux = {
     flake = false;
     url = "github:gpakosz/.tmux";
@@ -25,16 +24,18 @@
           "claude"
         ];
 
+        # Shell assignments read by oh-my-tmux.
         engine-knobs = {
           tmux_conf_24b_colour = true;
           tmux_conf_new_pane_retain_current_path = true;
           tmux_conf_copy_to_os_clipboard = true;
           tmux_conf_theme_clock_style = "24";
-          # nix owns plugins (plugins.conf below); the engine must never touch TPM
           tmux_conf_update_plugins_on_launch = false;
           tmux_conf_update_plugins_on_reload = false;
         };
 
+        # `set` options grouped by flag variant. Values are inserted verbatim
+        # (tmux-side quoting required). Lists render one line per element.
         options = {
           "-g" = {
             prefix = "`";
@@ -75,7 +76,11 @@
           "'%' split-window -h -c '#{pane_current_path}'"
         ];
 
+        # Re-applied LAST by `_apply_important`, which only honors
+        # set/bind/unbind lines carrying "#!important" marker.
         important = [
+          # continuum's autosave trigger must land after `_apply_theme` otherwise theme rebuilds clobber it.
+          # continuum needs to loaded like this to preserve its `BASH_SOURCE`-relative lookups.
           ''set -ga status-right "#(${pkgs.tmuxPlugins.continuum}/share/tmux-plugins/continuum/scripts/continuum_save.sh)"''
         ];
 
