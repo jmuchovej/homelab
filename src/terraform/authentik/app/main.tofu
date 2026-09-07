@@ -46,13 +46,11 @@ resource "authentik_provider_proxy" "provider" {
 }
 
 resource "authentik_provider_oauth2" "provider" {
-  count       = var.type == "oauth" ? 1 : 0
-  name        = "tf-${local.slug}-oauth"
-  client_type = var.client_type
-  # newer authentik defaults this to [] — a provider that permits NO grants
-  grant_types = ["authorization_code", "refresh_token"]
-  client_id   = data.sops_file.authentik.data["${local.slug}.client-id"]
-  # ignored by authentik for public clients (PKCE)
+  count                      = var.type == "oauth" ? 1 : 0
+  name                       = "tf-${local.slug}-oauth"
+  client_type                = var.client_type
+  grant_types                = ["authorization_code", "refresh_token"]
+  client_id                  = data.sops_file.authentik.data["${local.slug}.client-id"]
   client_secret              = data.sops_file.authentik.data["${local.slug}.client-secret"]
   authorization_flow         = var.flows.oauth.authorization
   authentication_flow        = var.flows.oauth.authentication
@@ -104,7 +102,19 @@ resource "authentik_application" "app" {
 
 resource "authentik_policy_binding" "app-access" {
   for_each = tomap({ for idx, group in var.access_group : idx => group })
-  target   = authentik_application.app.uuid
-  group    = each.value
-  order    = index(var.access_group, each.value) + 100
+
+  target = authentik_application.app.uuid
+  group  = each.value
+  order  = index(var.access_group, each.value) + 100
+}
+
+# Direct user bindings — no policy object is created, so this is strictly less
+# sprawl than a singleton group per user. Mixing with the group bindings above
+# relies on the application's policy_engine_mode being `any` (the default).
+resource "authentik_policy_binding" "app-access-user" {
+  for_each = tomap({ for idx, user in var.access_user : idx => user })
+
+  target = authentik_application.app.uuid
+  user   = each.value
+  order  = index(var.access_user, each.value) + 200
 }

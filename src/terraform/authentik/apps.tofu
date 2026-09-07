@@ -80,21 +80,24 @@ locals {
       }
       redirect_uris = []
     }
+    # DELETE this entry once the `syncthing` HTTPRoute (apps/home/syncthing/
+    # entry) is applied and discovery has taken over the app — it is kept only
+    # so the app survives the window between tofu apply and Flux reconcile.
     syncthing = {
       name       = "Syncthing"
-      group      = "Admin"
+      group      = "Sync"
       type       = "proxy"
       icon       = "di:syncthing"
-      access     = ["admin"]
-      skip_paths = "/rest/*"
+      access     = ["syncthing"]
+      skip_paths = null
       basic_auth = {
-        enabled  = true
+        enabled  = false
         username = "username"
         password = "password"
       }
       url = {
-        int = "https://syncthing.da-vcx-1.${var.domain.root}"
-        ext = "https://syncthing.da-vcx-1.${var.domain.root}"
+        int = "https://syncthing.${var.domain.da}"
+        ext = "https://syncthing.${var.domain.da}"
       }
       redirect_uris = []
     }
@@ -114,10 +117,12 @@ module "authentik-app" {
   external        = each.value.url.ext
   launch_url      = each.value.url.ext
   skip_path_regex = each.value.skip_paths
-  access_group    = [for access in each.value.access : local.groups[access].id]
-  basic_auth      = each.value.basic_auth
-  redirect_uris   = each.value.redirect_uris
-  signing_key     = authentik_certificate_key_pair.wildcard.id
+  # `access` entries are `group:<key>`, `user:<key>`, or bare (== group).
+  access_group  = [for a in each.value.access : local.groups[trimprefix(a, "group:")].id if !startswith(a, "user:")]
+  access_user   = [for a in each.value.access : tonumber(authentik_user.u[trimprefix(a, "user:")].id) if startswith(a, "user:")]
+  basic_auth    = each.value.basic_auth
+  redirect_uris = each.value.redirect_uris
+  signing_key   = authentik_certificate_key_pair.wildcard.id
 
   flows = {
     ldap = {

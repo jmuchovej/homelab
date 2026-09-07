@@ -40,6 +40,11 @@ variable "access_group" {
   type = list(string)
 }
 
+variable "access_user" {
+  type    = list(number)
+  default = []
+}
+
 variable "internal_host_ssl_validation" {
   type    = bool
   default = true

@@ -152,7 +152,8 @@ resource "authentik_rbac_role" "admin-ro-core" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-core" {
-  for_each   = local.admin-ro-permissions.core
+  for_each = local.admin-ro-permissions.core
+
   role       = authentik_rbac_role.admin-ro-core.id
   permission = lookup(var.permissions, each.value, each.value)
 }
@@ -162,7 +163,8 @@ resource "authentik_rbac_role" "admin-ro-flows-policies" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-flows-policies" {
-  for_each   = local.admin-ro-permissions.flows-policies
+  for_each = local.admin-ro-permissions.flows-policies
+
   role       = authentik_rbac_role.admin-ro-flows-policies.id
   permission = lookup(var.permissions, each.value, each.value)
 }
@@ -172,7 +174,8 @@ resource "authentik_rbac_role" "admin-ro-providers" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-providers" {
-  for_each   = local.admin-ro-permissions.providers
+  for_each = local.admin-ro-permissions.providers
+
   role       = authentik_rbac_role.admin-ro-providers.id
   permission = lookup(var.permissions, each.value, each.value)
 }
@@ -182,7 +185,8 @@ resource "authentik_rbac_role" "admin-ro-events-infra" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-events-infra" {
-  for_each   = local.admin-ro-permissions.events-infra
+  for_each = local.admin-ro-permissions.events-infra
+
   role       = authentik_rbac_role.admin-ro-events-infra.id
   permission = lookup(var.permissions, each.value, each.value)
 }
@@ -192,7 +196,8 @@ resource "authentik_rbac_role" "admin-ro-stages-auth" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-stages-auth" {
-  for_each   = local.admin-ro-permissions.stages-auth
+  for_each = local.admin-ro-permissions.stages-auth
+
   role       = authentik_rbac_role.admin-ro-stages-auth.id
   permission = lookup(var.permissions, each.value, each.value)
 }
@@ -202,7 +207,8 @@ resource "authentik_rbac_role" "admin-ro-stages-other" {
 }
 
 resource "authentik_rbac_permission_role" "admin-ro-stages-other" {
-  for_each   = local.admin-ro-permissions.stages-other
+  for_each = local.admin-ro-permissions.stages-other
+
   role       = authentik_rbac_role.admin-ro-stages-other.id
   permission = lookup(var.permissions, each.value, each.value)
 }

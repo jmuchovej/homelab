@@ -87,6 +87,19 @@ resource "authentik_group" "minecraft-manager" {
   parents = [authentik_group.minecraft.id]
 }
 
+# Gates the syncthing.* entry point only. The four per-user instances behind
+# it bind their owner directly (`authentik.rbn/access: user:<key>`) — a shared
+# group there would let any member open any other member's GUI.
+resource "authentik_group" "syncthing" {
+  name = "syncthing"
+  users = compact([
+    try(authentik_user.u["ypah-xuuk"].id, null),
+    try(authentik_user.u["ggms-eksu"].id, null),
+    try(authentik_user.u["gasm-egbe"].id, null),
+    try(authentik_user.u["floe-rlfn"].id, null),
+  ])
+}
+
 locals {
   groups = {
     "compute"            = authentik_group.compute
@@ -97,6 +110,7 @@ locals {
     "media-managers"     = authentik_group.media-manager
     "minecraft"          = authentik_group.minecraft
     "minecraft-managers" = authentik_group.minecraft-manager
+    "syncthing"          = authentik_group.syncthing
     "admin"              = authentik_group.akadmin
   }
 }
