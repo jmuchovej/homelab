@@ -1,9 +1,13 @@
 {
   __findFile,
+  inputs,
   den,
   rbn-policies,
   ...
 }:
+let
+  sops-file = kind: name: "${inputs.self}/secrets/${kind}/${name}.sops.yaml";
+in
 {
   rbn.programs._.security = {
     macos.homebrew.casks = [ "gpg-suite" ];
@@ -18,10 +22,6 @@
     };
 
     _.onepassword = {
-      # `op` and signature *verification* are wanted everywhere; the desktop app,
-      # the agent socket it publishes, and the `op-ssh-sign` binary that ships
-      # inside it are not. Splitting on that line rather than on the aspect keeps
-      # servers holding the CLI.
       includes = [
         <rbn/programs/security/onepassword/cli>
         (rbn-policies.when-desktop "onepassword" <rbn/programs/security/onepassword/desktop>)
@@ -30,14 +30,6 @@
       _.cli = {
         includes = [ (den.batteries.unfree [ "1password-cli" ]) ];
 
-        # Signing lives here, not in `_.desktop`: on a remote box the key is
-        # reached through a forwarded agent, and ssh-keygen(1) handles that —
-        # "the key used for signing … may refer to either a private key, or a
-        # public key with the private half available via ssh-agent(1)". Git
-        # hands it the public half from `user.signingkey`, the forwarded
-        # `SSH_AUTH_SOCK` supplies the private half, and no 1Password binary
-        # needs to exist locally. `_.desktop` only overrides `gpg.ssh.program`
-        # to the app's `op-ssh-sign` where the app is actually installed.
         hm =
           { config, pkgs, ... }:
           let
@@ -60,9 +52,6 @@
               behavior = "drop";
               backend = "ssh";
               key = signing-key;
-              # Unset without `_.desktop`, and jj has no `gpg.ssh.program` to
-              # inherit from — fall back to the same default git would use.
-              backends.ssh.program = config.programs.git.settings.gpg.ssh.program or "ssh-keygen";
               git.sign-on-push = true;
             };
           };
@@ -85,13 +74,17 @@
           programs.git.settings.gpg.ssh.program = "${pkgs._1password-gui}/bin/op-ssh-sign";
         };
 
-        # Only ever set where the 1Password app runs: on a remote host this
-        # would clobber the agent socket sshd forwards in, which is precisely
-        # what signing there depends on.
         hm = { pkgs, ... }: {
           home = {
             packages = [ pkgs._1password-gui ];
             sessionVariables.SSH_AUTH_SOCK = "$HOME/.1password/agent.sock";
+          };
+
+          mcp-servers.settings.servers = {
+            "1password" = {
+              type = "stdio";
+              command = "1password-mcp";
+            };
           };
         };
 
@@ -128,6 +121,58 @@
           ];
         };
       };
+    };
+
+    _.sops = {
+      nixos = { host, pkgs, ... }: {
+        environment.systemPackages = with pkgs; [
+          age
+          sops
+          ssh-to-age
+        ];
+
+        sops = {
+          defaultSopsFile = sops-file "hosts" host.hostname;
+
+          age = {
+            sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+            generateKey = false;
+          };
+        };
+      };
+
+      hm =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        let
+          home = config.home.homeDirectory;
+        in
+        {
+          home.packages = with pkgs; [
+            age
+            sops
+            ssh-to-age
+          ];
+
+          sops = {
+            defaultSopsFile = sops-file "users" config.home.username;
+            defaultSopsFormat = "yaml";
+
+            age = {
+              keyFile = lib.mkDefault "${home}/.config/sops/age/keys.txt";
+              sshKeyPaths = [
+                "${home}/.ssh/id_ed25519"
+                "/etc/ssh/ssh_host_ed25519_key"
+              ];
+            };
+
+            secrets."nix-access-tokens" = { };
+          };
+        };
     };
   };
 }
