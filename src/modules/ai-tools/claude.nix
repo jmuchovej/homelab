@@ -42,7 +42,10 @@
           ];
 
           # One row per `hooks/<name>.nu`: what it needs on PATH (`bins`) and
-          # which Claude events run it (`on.<Event> = { matcher?, timeout? }`).
+          # which Claude events run it
+          # (`on.<Event> = { matcher?, timeout?, condition? }`). `condition` is
+          # the hook's `if` field: permission-rule syntax the harness evaluates
+          # before spawning the command.
           # `status-line` is built the same way but is not a hook.
           hook-scripts = {
             # Regex-based security checks the permission lists can't express.
@@ -53,6 +56,18 @@
             pre-tool-audit.on.PreToolUse = {
               matcher = "*";
               timeout = 10;
+            };
+            # Prune generation-scratch comments from `@` before `jj commit`
+            # lands it. Runs a headless agent, hence the generous timeout; the
+            # script fails open. `claude` comes from the session PATH, not
+            # `bins`, so the unfree package stays out of the wrapper closure.
+            prune-comments = {
+              bins = [ pkgs.jujutsu ];
+              on.PreToolUse = {
+                matcher = "Bash";
+                condition = "Bash(jj commit *)";
+                timeout = 240;
+              };
             };
             post-tool-audit.on.PostToolUse = {
               matcher = "*";
@@ -112,6 +127,7 @@
               command,
               matcher ? "",
               timeout ? null,
+              condition ? null,
             }:
             {
               inherit matcher;
@@ -122,6 +138,7 @@
                     inherit command;
                   }
                   // lib.optionalAttrs (timeout != null) { inherit timeout; }
+                  // lib.optionalAttrs (condition != null) { "if" = condition; }
                 )
               ];
             };
