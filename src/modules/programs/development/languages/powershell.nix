@@ -1,5 +1,5 @@
 {
-  rbn.programs._.development._.powershell = {
+  rbn.programs._.development._.languages._.powershell = {
     hm-linux = { pkgs, ... }: {
       home.packages = [ pkgs.powershell ];
     };

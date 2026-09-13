@@ -115,16 +115,26 @@ in
         (<rbn/programs/editors/default-editor> "nvim")
 
         # Development
-        <rbn/programs/development/go>
-        <rbn/programs/development/python>
-        <rbn/programs/development/web>
-        <rbn/programs/development/nix>
-        <rbn/programs/development/rust>
-        <rbn/programs/development/julia>
-        <rbn/programs/development/typst>
-        <rbn/programs/development/rlang>
-        <rbn/programs/development/app-development>
-        <rbn/programs/development/homelab>
+        <rbn/programs/development/data/csv>
+        <rbn/programs/development/data/json>
+        <rbn/programs/development/data/xml>
+        <rbn/programs/development/data/yaml>
+        <rbn/programs/development/languages/go>
+        <rbn/programs/development/languages/python>
+        <rbn/programs/development/languages/typescript>
+        <rbn/programs/development/languages/markdown>
+        <rbn/programs/development/languages/nix>
+        <rbn/programs/development/languages/rust>
+        <rbn/programs/development/languages/julia>
+        <rbn/programs/development/languages/lua>
+        <rbn/programs/development/languages/typst>
+        <rbn/programs/development/languages/rlang>
+        <rbn/programs/development/toolchains/astro>
+        <rbn/programs/development/toolchains/nuxt>
+        <rbn/programs/development/toolchains/tauri>
+        <rbn/programs/development/toolchains/android>
+        <rbn/programs/development/toolchains/apple>
+        <rbn/programs/development/languages/opentofu>
 
         (when-desktop "waypoints" <rbn/programs/documents/waypoints>)
 

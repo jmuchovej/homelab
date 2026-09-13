@@ -41,79 +41,19 @@
           # defaultEditor = true;
           # TODO: make this contingent on whether i'm on a server/cluster
           installRemoteServer = true;
-          extraPackages =
-            lsp-packages
-            ++ (with pkgs; [
-              treefmt
-              jsonfmt
-              marksman
-              tombi
-              yamlfmt
-              yaml-language-server
-            ]);
+          # Per-language servers, extensions and settings live in
+          # `programs/development/{data,languages}`; only editor-generic
+          # extensions stay here.
+          extraPackages = lsp-packages ++ [ pkgs.treefmt ];
           extensions = lsp-extensions ++ [
-            "xml"
-            "rainbow-csv"
             "just"
             "env"
             "comment"
-            "tombi"
-            "marksman"
           ];
           userSettings = lib.recursiveUpdate settings {
             prettier.allowed = false;
-            languages = {
-              YAML = {
-                tab_size = 2;
-                formatter = "language_server";
-                language_servers = [ "yaml-language-server" ];
-              };
-              TOML = {
-                tab_size = 2;
-                formatter = "language_server";
-                language_servers = [ "tombi" ];
-              };
-              Markdown = {
-                tab_size = 2;
-                formatter = "language_server";
-                language_servers = [ "marksman" ];
-              };
-              JSON = {
-                tab_size = 2;
-                formatter = "language_server";
-                language_servers = [ "json-language-server" ];
-              };
-              JSONC = {
-                tab_size = 2;
-                formatter = "language_server";
-                language_servers = [ "json-language-server" ];
-              };
-              Just = {
-                tab_size = 2;
-              };
-            };
-            lsp = {
-              json-language-server = { };
-              marksman = { };
-              # https://github.com/tombi-toml/tombi/blob/main/docs/src/routes/docs/editors/zed-extension.mdx
-              # https://tombi-toml.github.io/tombi/docs/editors/zed-extension
-              tombi = {
-                binary = {
-                  arguments = [
-                    "lsp"
-                    "-v"
-                  ];
-                  env = {
-                    NO_COLOR = "true";
-                  };
-                };
-              };
-              yaml-language-server = {
-                settings = {
-                  yaml.keyOrdering = false;
-                  format.singleQuote = false;
-                };
-              };
+            languages.Just = {
+              tab_size = 2;
             };
           };
           userKeymaps = keybinds;

@@ -1,7 +1,18 @@
 {
-  rbn.programs._.development._.rlang.hm =
-    { pkgs, ... }:
+  rbn.programs._.development._.languages._.rlang.hm =
+    { lib, pkgs, ... }:
     let
+      inherit (import ../_lsp.nix { inherit lib; }) mk-lsp;
+
+      air-lsp = mk-lsp {
+        pkg = pkgs.air-formatter;
+        args = [ "language-server" ];
+        extensions = {
+          ".R" = "r";
+          ".r" = "r";
+        };
+      };
+
       default-packages = with pkgs.rPackages; [
         # Tidyverse and friends
         tidyverse
@@ -34,7 +45,7 @@
           "air"
         ];
         extraPackages = [
-          pkgs.air-formatter
+          air-lsp.pkg
           (pkgs.rWrapper.override {
             packages = with pkgs.rPackages; [
               air
@@ -44,12 +55,17 @@
           })
         ];
         userSettings = {
-          lsp.air = { };
+          lsp.air = air-lsp.zed;
           languages.R = {
             tab_size = 2;
+            formatter = "language_server";
             language_servers = [ "air" ];
           };
         };
+      };
+
+      programs.claude-code.lspServers = {
+        r = air-lsp.claude;
       };
     };
 }
