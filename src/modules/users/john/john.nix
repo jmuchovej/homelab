@@ -2,6 +2,7 @@
   __findFile,
   den,
   inputs,
+  lib,
   rbn-policies,
   ...
 }:
@@ -11,6 +12,44 @@ let
     fullname = "John Muchovej";
     username = "john";
     email = "git@jmuchovej.com";
+  };
+
+  read-key = name: lib.trim (builtins.readFile (./. + "/${name}.pub"));
+  mk-forge = host: forge: forge // { signing-key = read-key host; };
+  ## Forge identities, keyed by the directory under `~/Documents/src`. The
+  ## signing key is read from `<key>.pub` beside this file, so adding a forge
+  ## means dropping in one more public key — the name cannot drift.
+  forges = lib.mapAttrs mk-forge {
+    "github.com" = {
+      host = "github.com";
+      short = "github";
+      email = "5000729+jmuchovej@users.noreply.github.com";
+    };
+    "gitlab.com" = {
+      host = "gitlab.com";
+      short = "gitlab";
+      email = "880641-jmuchovej@users.noreply.gitlab.com";
+    };
+    "sr.ht" = {
+      host = "git.sr.ht";
+      short = "sr.ht";
+      email = "sr.ht.b4i3k@passmail.com";
+    };
+    "tangled.org" = {
+      host = "tangled.org";
+      short = "tangled";
+      email = "did:plc:wjsziyvr5xuqyzykxp7eydg7";
+    };
+    "git.yale.edu" = {
+      host = "git.yale.edu";
+      short = "yale";
+      email = "john.muchovej@yale.edu";
+    };
+    "github.mit.edu" = {
+      host = "github.mit.edu";
+      short = "mit";
+      email = "muchovej@mit.edu";
+    };
   };
 in
 {
@@ -204,6 +243,7 @@ in
   # den.hosts.x86_64-linux.da-vcx-3.users.john = { };
   den.hosts.aarch64-darwin.da-n1x.users.john = {
     inherit (profile) fullname username email;
+    inherit forges;
 
     # Dock layout — explicit entries for now.
     # When den's fx pipeline releases, aspect-backed entries will auto-resolve

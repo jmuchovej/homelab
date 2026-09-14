@@ -1,36 +1,45 @@
 {
-  rbn.programs._.terminal._.git.hm = { user, ... }: {
+  rbn.programs._.terminal._.git.hm = { user, lib, ... }: {
     home.shellAliases = {
       lg = "lazygit";
     };
 
-    programs.git = {
-      enable = true;
-      signing.format = null;
-      settings = {
-        user = {
-          name = user.fullname;
-          inherit (user) email;
+    programs.git =
+      let
+        ssh-to-https =
+          _: forge:
+          lib.nameValuePair "git@${forge.host}:" {
+            insteadOf = [
+              "${forge.short}:"
+              "https://${forge.host}"
+            ];
+          };
+      in
+      {
+        enable = true;
+        signing.format = null;
+        settings = {
+          user = {
+            name = user.fullname;
+            inherit (user) email;
+          };
+
+          ## `forge:owner/repo` shorthand, plus https -> ssh. jj honors these
+          ## too, so `jj clone github:owner/repo` resolves through git config.
+          url = lib.mapAttrs' ssh-to-https user.forges;
+
+          color.ui = true;
+          init.defaultBranch = "main";
+          pull.ff = "only";
+          push = {
+            default = "current";
+            autoSetupRemote = true;
+          };
+          lfs.enable = true;
         };
 
-        color.ui = true;
-        init.defaultBranch = "main";
-        pull.ff = "only";
-        push = {
-          default = "current";
-          autoSetupRemote = true;
-        };
-        lfs.enable = true;
+        ignores = lib.splitString "\n" (builtins.readFile ./gitignore);
       };
-
-      ignores = [
-        "_research/"
-        ".scratch/"
-        ".arxiv/"
-        ".devenv/"
-        ".direnv/"
-      ];
-    };
 
     programs.lazygit = {
       enable = true;
