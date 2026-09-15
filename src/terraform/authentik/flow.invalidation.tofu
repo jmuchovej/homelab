@@ -1,7 +1,5 @@
-# Invalidation (logout) flow
-# PILOT: adopt authentik's built-in `default-invalidation-flow` (imported at root
-# in ak.tofu via local.authentik-builtins) rather than creating a parallel copy.
-# Resource config mirrors authentik's default so the import is a clean no-op.
+# Adopts authentik's default flow (imported in ak.tofu), so names and slugs
+# must stay as shipped.
 
 resource "authentik_flow" "invalidation" {
   name               = "Logout"

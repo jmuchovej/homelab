@@ -1,7 +1,3 @@
-# Recovery flow
-# Password reset via email verification.
-# Flow: identify user → send recovery email → new password prompt → write → login
-
 resource "authentik_flow" "recovery" {
   name               = "Password Recovery"
   slug               = "recovery"
@@ -11,8 +7,6 @@ resource "authentik_flow" "recovery" {
   compatibility_mode = true
   policy_engine_mode = "any"
 }
-
-# --- Stages ---
 
 resource "authentik_stage_identification" "recovery" {
   name        = "recovery-identification"
@@ -66,17 +60,12 @@ resource "authentik_stage_user_login" "recovery" {
   name = "recovery-login"
 }
 
-# --- Policies ---
-
-# Skip identification if the user has already been restored (e.g. via email link)
 resource "authentik_policy_expression" "recovery-skip-if-restored" {
   name       = "recovery-skip-if-restored"
   expression = <<-EOT
     return bool(request.context.get('is_restored', True))
   EOT
 }
-
-# --- Flow Stage Bindings ---
 
 resource "authentik_flow_stage_binding" "recovery-identification" {
   target               = authentik_flow.recovery.uuid
@@ -109,8 +98,6 @@ resource "authentik_flow_stage_binding" "recovery-login" {
   stage  = authentik_stage_user_login.recovery.id
   order  = 100
 }
-
-# --- Policy Bindings ---
 
 resource "authentik_policy_binding" "recovery-skip-if-restored" {
   target = authentik_flow_stage_binding.recovery-identification.id

@@ -1,6 +1,5 @@
-# Password change flow — adopt authentik's `default-password-change`
-# (imported at root in ak.tofu). Resource addresses kept (cross-file refs hold);
-# names/slug mirror authentik's defaults so the import is clean.
+# Adopts authentik's default flow (imported in ak.tofu), so names and slugs
+# must stay as shipped.
 
 resource "authentik_flow" "password-change" {
   name               = "Change Password"
@@ -11,8 +10,6 @@ resource "authentik_flow" "password-change" {
   policy_engine_mode = "any"
 }
 
-# --- Shared password policy (referenced by enrollment + recovery, which are ours) ---
-
 resource "authentik_policy_password" "password-policy" {
   name                   = "default-password-change-password-policy"
   error_message          = "Password must be at least 8 characters."
@@ -22,8 +19,6 @@ resource "authentik_policy_password" "password-policy" {
   zxcvbn_score_threshold = 2
   password_field         = "password"
 }
-
-# --- Prompt Fields ---
 
 resource "authentik_stage_prompt_field" "password-change" {
   name        = "default-password-change-field-password"
@@ -45,8 +40,6 @@ resource "authentik_stage_prompt_field" "password-change-repeat" {
   order       = 301
 }
 
-# --- Stages ---
-
 resource "authentik_stage_prompt" "password-change" {
   name = "default-password-change-prompt"
   fields = [
@@ -62,8 +55,6 @@ resource "authentik_stage_user_write" "password-change" {
   name               = "default-password-change-write"
   user_creation_mode = "never_create"
 }
-
-# --- Flow Stage Bindings ---
 
 resource "authentik_flow_stage_binding" "password-change-prompt" {
   target = authentik_flow.password-change.uuid

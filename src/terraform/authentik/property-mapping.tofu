@@ -1,6 +1,5 @@
-# OAuth/OIDC scope mappings — owned wholesale by tofu (no import, no reliance on
-# authentik's managed `goauthentik.io/providers/oauth2/scope-*` defaults). Names are
-# deliberately custom so they don't collide with authentik's shipped mappings.
+# Created, not imported. Names are custom so they do not collide with
+# authentik's shipped `goauthentik.io/providers/oauth2/scope-*` mappings.
 
 resource "authentik_property_mapping_provider_scope" "profile" {
   name        = "OIDC profile"

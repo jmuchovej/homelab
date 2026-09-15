@@ -1,7 +1,5 @@
-# User settings flow — adopt authentik's `default-user-settings-flow`
-# (imported at root in ak.tofu). Names mirror authentik's defaults for a clean
-# import; addresses kept. authentik also ships a `username` prompt field we don't
-# manage — our prompt stage lists only name/email/locale, so it's left untouched.
+# Adopts authentik's default flow (imported in ak.tofu), so names and slugs
+# must stay as shipped. The shipped `username` prompt field is left unmanaged.
 
 resource "authentik_flow" "user-settings" {
   name               = "User Settings"
@@ -13,8 +11,6 @@ resource "authentik_flow" "user-settings" {
   layout             = "stacked"
   authentication     = "require_authenticated"
 }
-
-# --- Prompt Fields ---
 
 resource "authentik_stage_prompt_field" "settings-name" {
   name                     = "default-user-settings-field-name"
@@ -67,8 +63,6 @@ resource "authentik_stage_prompt_field" "settings-locale" {
   order                    = 202
 }
 
-# --- Validation Policy ---
-
 resource "authentik_policy_expression" "settings-authorization" {
   name       = "default-user-settings-authorization"
   expression = <<-EOT
@@ -97,8 +91,6 @@ resource "authentik_policy_expression" "settings-authorization" {
   EOT
 }
 
-# --- Stages ---
-
 resource "authentik_stage_prompt" "settings" {
   name = "default-user-settings"
   fields = [
@@ -115,8 +107,6 @@ resource "authentik_stage_user_write" "settings" {
   name               = "default-user-settings-write"
   user_creation_mode = "never_create"
 }
-
-# --- Flow Stage Bindings ---
 
 resource "authentik_flow_stage_binding" "settings-profile" {
   target = authentik_flow.user-settings.uuid

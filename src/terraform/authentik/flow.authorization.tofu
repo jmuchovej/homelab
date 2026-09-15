@@ -1,5 +1,5 @@
-# Authorization flows — adopt authentik's `default-provider-authorization-*`
-# (imported at root in ak.tofu). Managed with our config layered on top.
+# Adopts authentik's default flows (imported in ak.tofu), so names and slugs
+# must stay as shipped.
 
 resource "authentik_flow" "authz-explicit" {
   name               = "Explicit Authorization"

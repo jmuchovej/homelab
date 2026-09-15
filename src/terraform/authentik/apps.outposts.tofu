@@ -16,15 +16,8 @@ locals {
   ]
 }
 
-# Authentik auto-creates a managed `ak-outpost-<uuid>` service account + a
-# non-expiring API token for each outpost — that's the credential the outpost
-# connects with, and it can't be substituted with a hand-rolled SA. The token
-# isn't exposed by the provider, so it's pulled from the REST API and synced to
-# sops out-of-band: `just -f authentik/justfile sync-outpost-tokens`.
-
-# With a local kubernetes service connection, authentik deploys and manages
-# the outpost workloads itself (`ak-outpost-<slug(name)>` Deployment+Service
-# in its own namespace) — no token syncing, no hand-rolled manifests.
+# A local service connection lets authentik deploy and manage the outpost
+# workloads itself, so no outpost tokens or manifests are handled here.
 resource "authentik_service_connection_kubernetes" "local" {
   name  = "local-cluster"
   local = true

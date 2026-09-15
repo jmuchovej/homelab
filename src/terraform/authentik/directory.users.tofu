@@ -1,6 +1,5 @@
-# NOTE: the `admin` user is intentionally NOT managed by tofu. Break-glass is
-# authentik's bootstrap `akadmin` (reached via the default-brand trapdoor URL).
-# The sops `u` users below exclude `admin.*` keys, so no admin user is created.
+# The admin user is intentionally unmanaged; break-glass is authentik's
+# bootstrap `akadmin`. The `admin.*` sops keys are excluded below.
 
 data "authentik_users" "all" {}
 

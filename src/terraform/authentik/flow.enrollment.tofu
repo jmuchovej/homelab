@@ -1,9 +1,3 @@
-# Enrollment flow
-# Admin-created user accounts receive an email to verify their address
-# and set up their initial password + MFA.
-#
-# Flow: invitation gate → password prompt → MFA setup → user write → email verification → login
-
 resource "authentik_flow" "enrollment" {
   name               = "User Enrollment"
   slug               = "enrollment"
@@ -13,8 +7,6 @@ resource "authentik_flow" "enrollment" {
   compatibility_mode = true
   policy_engine_mode = "any"
 }
-
-# --- Stages ---
 
 resource "authentik_stage_invitation" "enrollment" {
   name                             = "enrollment-invitation"
@@ -78,8 +70,6 @@ resource "authentik_stage_email" "enrollment-verification" {
 resource "authentik_stage_user_login" "enrollment" {
   name = "enrollment-login"
 }
-
-# --- Flow Stage Bindings ---
 
 resource "authentik_flow_stage_binding" "enrollment-invitation" {
   target = authentik_flow.enrollment.uuid

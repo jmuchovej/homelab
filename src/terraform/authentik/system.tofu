@@ -28,7 +28,7 @@ resource "authentik_brand" "external" {
 }
 
 resource "authentik_system_settings" "default" {
-  event_retention              = "days=730" # 2 years
+  event_retention              = "days=730"
   avatars                      = "gravatar,initials"
   default_token_duration       = "minutes=30"
   default_token_length         = 60

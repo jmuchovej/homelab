@@ -1,7 +1,5 @@
-# Authentication flow — adopt authentik's `default-authentication-flow`
-# (imported at root in ak.tofu) and manage it with our config. The captcha
-# stage + its binding/policy/policy-binding are OURS (no authentik default),
-# created not imported, inserted at order 40 between MFA (30) and login (100).
+# Adopts authentik's default flow (imported in ak.tofu), so names and slugs
+# must stay as shipped. The captcha stage and its policies are created here.
 
 resource "authentik_flow" "authn" {
   name               = "Login"
@@ -50,14 +48,11 @@ resource "authentik_stage_user_login" "authn" {
   name = "default-authentication-login"
 }
 
-# Captcha — ours, no authentik default. Created, not imported.
 resource "authentik_stage_captcha" "authn" {
   name        = "authn-captcha"
   public_key  = data.sops_file.secrets.data["captcha.public-key"]
   private_key = data.sops_file.secrets.data["captcha.secret-key"]
 }
-
-# --- Flow Stage Bindings ---
 
 resource "authentik_flow_stage_binding" "authn-identification" {
   target = authentik_flow.authn.uuid
@@ -79,7 +74,6 @@ resource "authentik_flow_stage_binding" "authn-mfa" {
   re_evaluate_policies = true
 }
 
-# Ours (captcha) — created.
 resource "authentik_flow_stage_binding" "authn-captcha" {
   target               = authentik_flow.authn.uuid
   stage                = authentik_stage_captcha.authn.id
@@ -94,9 +88,6 @@ resource "authentik_flow_stage_binding" "authn-login" {
   order  = 100
 }
 
-# --- Policies ---
-
-# Skip password stage if user authenticated via passkey (WebAuthn passwordless)
 resource "authentik_policy_expression" "authn-password-required" {
   name       = "default-authentication-flow-password-stage"
   expression = <<-EOT
@@ -109,7 +100,6 @@ resource "authentik_policy_expression" "authn-password-required" {
   EOT
 }
 
-# Skip MFA stage if user already authenticated via passkey
 resource "authentik_policy_expression" "authn-mfa-required" {
   name       = "default-authentication-flow-authenticator-validate-stage"
   expression = <<-EOT
@@ -122,15 +112,12 @@ resource "authentik_policy_expression" "authn-mfa-required" {
   EOT
 }
 
-# Conditional captcha based on reputation score — ours, created.
 resource "authentik_policy_reputation" "authn-captcha" {
   name           = "authn-conditional-captcha"
   check_ip       = true
   check_username = true
   threshold      = -5
 }
-
-# --- Policy Bindings ---
 
 resource "authentik_policy_binding" "authn-password-required" {
   target         = authentik_flow_stage_binding.authn-password.id
@@ -146,7 +133,6 @@ resource "authentik_policy_binding" "authn-mfa-required" {
   failure_result = true
 }
 
-# Ours (captcha) — created.
 resource "authentik_policy_binding" "authn-captcha-conditional" {
   target = authentik_flow_stage_binding.authn-captcha.id
   policy = authentik_policy_reputation.authn-captcha.id

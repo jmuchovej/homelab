@@ -1,14 +1,6 @@
-# LDAP authentication flow
-# Used for LDAP simple binds from servers (SSH/PAM) and non-OIDC apps
-# (e.g. Jellyfin, Grocy). LDAP binds are non-interactive, so MFA cannot
-# be prompted here — MFA is enforced at web login, and LDAP clients
-# authenticate via password or app-password (token).
-#
-# Flow: identification (username) → password → MFA check → login
-#
-# The MFA validation stage uses not_configured_action = "skip" so that
-# app-password (token) logins pass through, while interactive sessions
-# that somehow reach this flow still get MFA enforced if configured.
+# LDAP binds are non-interactive, so MFA cannot be prompted here. The MFA
+# stage skips unconfigured users and app-password logins; MFA is enforced
+# at web login instead.
 
 resource "authentik_flow" "ldap" {
   name               = "ldap-authn"
@@ -17,8 +9,6 @@ resource "authentik_flow" "ldap" {
   designation        = "authentication"
   policy_engine_mode = "any"
 }
-
-# --- Stages ---
 
 resource "authentik_stage_identification" "ldap" {
   name           = "ldap-identification"
@@ -45,8 +35,6 @@ resource "authentik_stage_user_login" "ldap" {
   session_duration = "days=14"
 }
 
-# --- Flow Stage Bindings ---
-
 resource "authentik_flow_stage_binding" "ldap-identification" {
   target = authentik_flow.ldap.uuid
   stage  = authentik_stage_identification.ldap.id
@@ -66,9 +54,6 @@ resource "authentik_flow_stage_binding" "ldap-login" {
   order  = 100
 }
 
-# --- Policies ---
-
-# Skip MFA for app-password (token) authentication — these are pre-authorized
 resource "authentik_policy_expression" "ldap-mfa-skip-app-password" {
   name       = "ldap-mfa-skip-app-password"
   expression = <<-EOT

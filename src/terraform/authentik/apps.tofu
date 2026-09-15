@@ -1,9 +1,5 @@
-# Frozen 2026-07-20 from the last consul-tag-discovered state (the mesh that
-# published `authentik.*` tags is gone). Snapshot via `tofu show -json` —
-# same for_each keys, so zero destroys. To migrate an entry: label+annotate
-# its HTTPRoute (`authentik.rbn/*`), wait for Flux to apply it, then delete
-# the frozen entry here — discovery wins on collision, so the plan stays
-# zero-diff throughout.
+# Frozen entries cover apps not yet discovered from HTTPRoutes. Discovery
+# wins on key collision, so an entry can be deleted once its route is labeled.
 locals {
   apps = merge(local.frozen-apps, var.discovered-apps)
 
@@ -80,9 +76,7 @@ locals {
       }
       redirect_uris = []
     }
-    # DELETE this entry once the `syncthing` HTTPRoute (apps/home/syncthing/
-    # entry) is applied and discovery has taken over the app — it is kept only
-    # so the app survives the window between tofu apply and Flux reconcile.
+    # Delete once the syncthing HTTPRoute is discovered.
     syncthing = {
       name       = "Syncthing"
       group      = "Sync"

@@ -1,11 +1,5 @@
-# Directory groups — owned by tofu. The admin USER is not managed here (break-glass
-# is authentik's bootstrap `akadmin`), so no `authentik_user.admin` membership.
-#
-# `rebellion-admins` is OUR app-access admin group (local key "admin"); it is
-# deliberately NOT named "authentik Admins" so it doesn't shadow authentik's
-# bootstrap superuser group (where akadmin lives, as the trapdoor). It starts
-# empty — add a parallel non-superuser test user once one exists.
-
+# Deliberately not named "authentik Admins", so it does not shadow the
+# bootstrap superuser group that holds akadmin.
 resource "authentik_group" "akadmin" {
   name  = "rebellion-admins"
   users = []
@@ -87,9 +81,8 @@ resource "authentik_group" "minecraft-manager" {
   parents = [authentik_group.minecraft.id]
 }
 
-# Gates the syncthing.* entry point only. The four per-user instances behind
-# it bind their owner directly (`authentik.rbn/access: user:<key>`) — a shared
-# group there would let any member open any other member's GUI.
+# Gates the shared entry point only; per-user instances bind their owner
+# directly, since a shared group would expose every member's GUI to the others.
 resource "authentik_group" "syncthing" {
   name = "syncthing"
   users = compact([

@@ -1,7 +1,5 @@
-# Authenticator setup flows + stages.
-# TOTP / static / webauthn adopt authentik's `default-authenticator-*-setup`
-# (imported at root in ak.tofu). Duo is OURS (authentik ships no default) —
-# created, no import.
+# TOTP, static, and webauthn adopt authentik's default setup flows (imported
+# in ak.tofu), so their names and slugs must stay as shipped. Duo is created here.
 
 resource "authentik_flow" "authenticator-totp-setup" {
   name               = "TOTP Setup"
@@ -25,7 +23,6 @@ resource "authentik_flow_stage_binding" "authenticator-totp-setup" {
   order  = 0
 }
 
-# Duo — ours, no authentik default. Created, not imported.
 resource "authentik_flow" "authenticator-duo-setup" {
   name               = "Duo Setup"
   slug               = "authenticator-duo-setup"

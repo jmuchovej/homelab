@@ -1,6 +1,3 @@
-# Unenrollment (account deletion) flow
-# Requires authentication. Confirms and deletes the user account.
-
 resource "authentik_flow" "unenrollment" {
   name               = "Delete Account"
   slug               = "unenrollment"

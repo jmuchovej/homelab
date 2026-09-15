@@ -52,8 +52,7 @@ locals {
       "view_ldapprovider",
       "view_accesstoken",
       "view_authorizationcode",
-      # codename collides across apps (endpoints + oauth2) so it's absent from
-      # the discovered map; written in full form to pass through lookup().
+      # Collides across apps, so absent from var.permissions; full form passes through lookup().
       "authentik_providers_oauth2.view_devicetoken",
       "view_oauth2provider",
       "view_refreshtoken",

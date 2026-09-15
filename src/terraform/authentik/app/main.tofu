@@ -60,10 +60,7 @@ resource "authentik_provider_oauth2" "provider" {
   signing_key                = var.signing_key
   property_mappings          = var.property_mappings
 
-  # Exact-match redirect URIs declared by the service via mesh registration
-  # (`<rbn/mesh/register>` → `authentik.redirect-uris` → consul tag → here).
-  # Empty list means no URIs are allowed — which is more restrictive than the
-  # authentik default but matches the security stance of explicit allowlisting.
+  # An empty list allows no redirect URIs, which is stricter than authentik's default.
   allowed_redirect_uris = [
     for u in var.redirect_uris : {
       matching_mode     = "strict"
@@ -108,9 +105,8 @@ resource "authentik_policy_binding" "app-access" {
   order  = index(var.access_group, each.value) + 100
 }
 
-# Direct user bindings — no policy object is created, so this is strictly less
-# sprawl than a singleton group per user. Mixing with the group bindings above
-# relies on the application's policy_engine_mode being `any` (the default).
+# Mixing user and group bindings relies on the application's default
+# policy_engine_mode of `any`.
 resource "authentik_policy_binding" "app-access-user" {
   for_each = tomap({ for idx, user in var.access_user : idx => user })
 
