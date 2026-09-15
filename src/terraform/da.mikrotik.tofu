@@ -27,12 +27,8 @@ locals {
       ether3 = { role = "access", access = "lab" }
       ether4 = { role = "access", access = "lab" }
       ether5 = { role = "trunk", comment = "Downstream trunk (relay02 ether1)" }
-      # Holonet wifi: default-VLAN guest, untagged frames from clients get
-      # tagged by the bridge's pvid. Future: switch to trunk + per-client
-      # VLAN override via RADIUS (Tunnel-Private-Group-ID) when 802.1X is
-      # wired up. Until then, "join holonet" = "you're a guest."
-      wifi1 = { role = "access", access = "guest", comment = "Holonet wifi → guest VLAN by default" }
-      wifi2 = { role = "access", access = "iot", comment = "Droids wifi → iot VLAN" }
+      wifi1  = { role = "access", access = "guest", comment = "Holonet wifi → guest VLAN by default" }
+      wifi2  = { role = "access", access = "iot", comment = "Droids wifi → iot VLAN" }
     }
     relay02 = {
       ether1 = { role = "trunk", comment = "Trunk uplink (relay01 ether5)" }
@@ -54,8 +50,6 @@ module "da-relay01" {
     routeros = routeros.da-relay01
   }
 
-  # All catalog-derived (vlans, vip, lan-supernet, admin allowlist,
-  # wan-cert, wg-holonet config, mgmt-ip). Module slices by var.relay.
   relay   = "da-relay01"
   catalog = local.catalog
 
@@ -108,7 +102,7 @@ module "da-relay01" {
         country  = "United States"
         mode     = "ap"
         ssid     = "The Droids You're Looking For"
-        tx_power = 12 # dBm (attempting to avoid blasting Zigbee)
+        tx_power = 12 # dBm; kept low so 2.4GHz wifi does not drown out Zigbee
       }
       channel = {
         band              = "2ghz-ax"
@@ -122,11 +116,6 @@ module "da-relay01" {
         ft_over_ds           = null
         passphrase           = null
       }
-      # Planned: MAC-address allowlist (access-list on /interface/wifi/
-      # access-list) so only known IoT devices can associate. RouterOS
-      # supports it via a separate resource; not wired into this module
-      # yet. When it lands, droids stays open at the L2 layer but the
-      # AP rejects associations from unknown MACs.
     }
   }
 
@@ -135,11 +124,8 @@ module "da-relay01" {
     droids  = null
   }
 
-  # Static leases match on mac-addr alone. `client-id` is omitted because
-  # NixOS dhcpcd (and most DHCP clients) send `1:<MAC>` as DHCP option 61
-  # rather than a string identifier — a `client-id = "da-vcx-1"`-style
-  # constraint would never match and the lease would fall through to the
-  # pool.
+  # No `client-id`: clients send `1:<MAC>` as option 61, so a hostname-style
+  # client-id would never match and the lease would fall through to the pool.
   static-leases = merge({
     for addr, device in {
       "10.69.10.1" = "gr75.eth1",

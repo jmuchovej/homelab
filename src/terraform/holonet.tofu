@@ -7,17 +7,16 @@ locals {
 
   vlans = local.topology.vlans
 
-  # ─── Catalog — invariants for the main mikrotik module ──────────────
   catalog = {
     vlans        = local.vlans
     vip          = "10.69.1.1"
     lan-supernet = "10.0.0.0/8"
 
-    holonet-subnets = local.topology.subnets
-
+    holonet-subnets       = local.topology.subnets
     holonet-wg-config-for = local.holonet-wg-config-for
+    holonet-mgmt-ip-for   = local.holonet-peer-mgmt-ip
 
-    holonet-mgmt-ip-for = local.holonet-peer-mgmt-ip
+    zerotier-network-id = zerotier_network.holonet.id
 
     root-domain = local.domain.root
 

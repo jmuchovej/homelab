@@ -1,8 +1,5 @@
-# App discovery from cluster state — the k8s analog of the old consul-tag
-# pipeline. An HTTPRoute labeled `authentik.rbn/enabled=true` registers its
-# app; `authentik.rbn/*` annotations carry the metadata the consul tags used
-# to. Hostnames come from the live route (already substituted in-cluster), so
-# the domain never appears in this repo.
+# An HTTPRoute labeled `authentik.rbn/enabled=true` registers an Authentik
+# app; its `authentik.rbn/*` annotations carry the app metadata.
 provider "kubernetes" {
   config_path = "~/.kube/config"
 }
@@ -16,8 +13,7 @@ data "kubernetes_resources" "namespaces" {
   kind        = "Namespace"
 }
 
-# kubernetes_resources is namespace-scoped (omitted namespace = `default`,
-# NOT cluster-wide), so fan the query out over every namespace.
+# kubernetes_resources without a namespace queries `default`, not the cluster.
 data "kubernetes_resources" "authentik-apps" {
   for_each = toset([
     for ns in data.kubernetes_resources.namespaces.objects : ns.metadata.name
@@ -53,7 +49,7 @@ locals {
         int = "https://${r.spec.hostnames[0]}"
         ext = "https://${r.spec.hostnames[0]}"
       }
-      # `;`-separated, mirroring the consul-era delimiter (`,` is taken by access)
+      # `;`-separated because `,` is the delimiter for `access`.
       redirect_uris = [
         for u in split(";", lookup(r.metadata.annotations, "${local.ak-ann}/redirect-uris", "")) :
         u if u != ""

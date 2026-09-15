@@ -1,6 +1,5 @@
-# Disabled 2026-07-20: the NixOS openbao deployment was torn down with the
-# service mesh. Kept as reference for the bao-in-cluster re-integration —
-# re-add the `vault` provider to __main__.tofu when reviving.
+# Disabled until openbao runs in-cluster; re-add the `vault` provider to
+# __main__.tofu when reviving.
 #
 # provider "vault" {
 #   alias   = "da"

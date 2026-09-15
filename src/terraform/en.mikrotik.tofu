@@ -30,8 +30,6 @@ module "en-relay01" {
     routeros = routeros.en-relay01
   }
 
-  # All catalog-derived (vlans, vip, lan-supernet, admin allowlist,
-  # wan-cert, wg-holonet config, mgmt-ip). Module slices by var.relay.
   relay   = "en-relay01"
   catalog = local.catalog
 

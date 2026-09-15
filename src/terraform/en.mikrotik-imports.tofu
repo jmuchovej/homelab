@@ -1,4 +1,3 @@
-# --- Relay01 --------------------------------------------------------------------------
 import {
   to = module.en-relay01.routeros_system_user_group.terraform
   id = "name=terraform"
@@ -70,7 +69,7 @@ import {
   id       = "interface=${each.key}"
 }
 
-# ssh admin@10.42.0.1 '/interface/list/member/print'
+# `*N` ids come from: ssh admin@10.42.0.1 '/interface/list/member/print'
 import {
   to = module.en-relay01.routeros_interface_list_member.bridge-in-lan
   id = "*1"
@@ -101,7 +100,6 @@ import {
   id = "*4"
 }
 
-# --- ZeroTier ------------------------------------------------------------------
 import {
   to = module.en-relay01.routeros_zerotier.zt1
   id = "name=zt1"

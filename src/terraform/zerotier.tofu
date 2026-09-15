@@ -2,7 +2,6 @@ provider "zerotier" {
   zerotier_central_token = data.sops_file.secrets.data["zerotier.token"]
 }
 
-# an import id).
 import {
   to = zerotier_network.holonet
   id = local.topology.zerotier.network

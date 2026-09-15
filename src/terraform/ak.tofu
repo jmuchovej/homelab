@@ -83,7 +83,6 @@ import {
   id = var.authentik-builtins.bindings["default-authenticator-webauthn-setup|0"]
 }
 
-# Password-change flow
 import {
   to = module.authentik.authentik_flow.password-change
   id = "default-password-change"
@@ -117,7 +116,7 @@ import {
   id = var.authentik-builtins.bindings["default-password-change|1"]
 }
 
-# User-settings flow (username prompt field left unmanaged)
+# The username prompt field is intentionally left unmanaged.
 import {
   to = module.authentik.authentik_flow.user-settings
   id = "default-user-settings-flow"
@@ -155,7 +154,7 @@ import {
   id = var.authentik-builtins.bindings["default-user-settings-flow|100"]
 }
 
-# Authentication flow (captcha stage/binding/policy/policy-binding are ours — not imported)
+# The captcha stage, binding, policy, and policy binding are created here, not imported.
 import {
   to = module.authentik.authentik_flow.authn
   id = "default-authentication-flow"
