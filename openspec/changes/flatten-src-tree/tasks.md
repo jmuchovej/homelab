@@ -1,23 +1,23 @@
 ## 1. Baseline (worktree)
 
-- [ ] 1.1 Record the pre-move Nix baseline: run `nix flake show` and `nix eval` of `toplevel.drvPath` for `da-gr75`, `da-n1x`, and the darwin host, plus `nix build .#checks.<system>.den-tests`; note which succeed so 6.x compares like for like
+- [ ] 1.1 Record the pre-move Nix baseline: run `nix flake show` and `nix eval` of `toplevel.drvPath` for the NixOS hosts without the server aspect (`da-gr75`, `da-vcx-2`, `da-vcx-3`) and for the darwin host `da-n1x` under `darwinConfigurations`, plus `nix build .#checks.<system>.den-tests`; note which succeed so 6.x compares like for like (the `bootstrap` host is expected to fail on the missing `secrets/keys/iso-key.pub`)
 - [ ] 1.2 Record the pre-move reference inventory: `rg -n 'src/' --glob '!vendor/**' --glob '!*.lock' --glob '!openspec/**'` count and file list, saved to a scratch note, so 5.1 can confirm every hit was handled
 - [ ] 1.3 Snapshot both clusters before anything merges: `kubectl get helmreleases -A` and per-namespace pod counts saved to the scratch note, so 9.6 has a baseline to compare against
 
 ## 2. Move the trees (worktree)
 
 - [ ] 2.1 `jj`/`git mv` `src/modules` to `modules`, `src/kubernetes` to `kubernetes`, `src/mikrotik` to `mikrotik`, `src/terraform` to `tofu`, `src/topology.yaml` to `topology.yaml`; verify `ls src` shows only `homelab`
-- [ ] 2.2 Re-link `tofu/secrets` (one directory up) and `mikrotik/bootstrap/secrets` (two directories up); leave both `topology.yaml` links as-is; verify `readlink` on all four and `sops -d tofu/secrets/secrets.sops.yaml >/dev/null` succeeds
+- [ ] 2.2 Re-link `tofu/secrets` (one directory up) and `mikrotik/bootstrap/secrets` (two directories up); leave the three `topology.yaml` links as-is (`tofu/`, `mikrotik/bootstrap/`, `modules/system/networking/`); verify `readlink` on all five resolves to an existing file and `sops -d tofu/secrets/secrets.sops.yaml >/dev/null` succeeds
 
 ## 3. Rewrite tracked references (worktree)
 
 - [ ] 3.1 `modules/inputs.nix`: change `flake-file.outputs` to `import-tree ./modules` and update the comment; run `just regen` and verify `flake.nix` line 5 reads `./modules` and `git diff flake.nix` shows only that line
 - [ ] 3.2 Root `justfile`: update the three `mod` paths to `modules/hosts/bootstrap/justfile`, `tofu/mikrotik.just`, `tofu/authentik.just` and the `facter` recipe's `dir` to `modules/hosts/{{ host }}`; verify `just --list` and `just bootstrap --list`, `just mikrotik --list`, `just authentik --list` all succeed
-- [ ] 3.3 Nix `inputs.self` paths: `kubernetes.nix` (`bootstrap/kubernetes`, `topology.yaml`), `zerotier.nix` (both `topology.yaml`), `talos.nix` (`bootstrap/talos/machineconfig.yaml`), `nix-builders.nix` (`modules/hosts/${host}/facter.json`); verify `rg 'inputs.self.*src/|self}/src/' modules` returns nothing
+- [ ] 3.3 Nix `inputs.self` paths: `kubernetes.nix` (`bootstrap/kubernetes`, `topology.yaml`), `zerotier.nix` (both `topology.yaml`), `talos.nix` (`bootstrap/talos/machineconfig.yaml`), `nix-builders.nix` (`modules/hosts/${host}/facter.json`); verify `rg 'inputs.self.*src/|self}/src/' modules` returns nothing. Relative path: `hosts/bootstrap/bootstrap.nix`, both `fileContents` calls for `secrets/keys/iso-key.pub`, drop from four parent-directory hops to three; verify `rg -n 'fileContents \.\.' modules/hosts/bootstrap` shows three hops on both lines
 - [ ] 3.4 Flux Kustomization paths: rewrite `path: ./src/kubernetes/` to `path: ./kubernetes/` across `kubernetes/**/*.ks.yaml`; verify `rg -c 'path: ./kubernetes/' kubernetes | wc -l` equals the 59 counted in 1.2 and `rg 'src/kubernetes' kubernetes` is empty
-- [ ] 3.5 Tooling patterns: `.envrc` `watch_file modules/devshell/*.nix`; `.gitignore` `!kubernetes/clusters/**/*.pub`; `.sops.yaml` two cluster `path_regex` values to `kubernetes/clusters/...`; `modules/devshell/checks.nix` `files` and three `excludes` regexes to `^kubernetes/`; `.zed/settings.json` every `./src/kubernetes/**` glob to `./kubernetes/**`; verify `rg 'src/' .envrc .gitignore .sops.yaml .zed modules/devshell` is empty
+- [ ] 3.5 Tooling patterns: `.envrc` `watch_file modules/devshell/*.nix`; `.gitignore` `!kubernetes/clusters/**/*.pub`; `.sops.yaml` two cluster `path_regex` values to `kubernetes/clusters/...`; `modules/devshell/checks.nix` `files` and three `excludes` regexes to `^kubernetes/`; `.zed/settings.json` every `./src/kubernetes/**` glob to `./kubernetes/**`; `rules/ai-tools.md` `paths:` glob to `modules/ai-tools/**`; verify `rg 'src/' .envrc .gitignore .sops.yaml .zed rules modules/devshell` is empty
 - [ ] 3.6 `modules/services/kubernetes/justfile`: `bootstrap/kubernetes` and `bootstrap/talos/machineconfig.yaml`; verify by reading the two `manifests=`/`talos_image=` lines
-- [ ] 3.7 Comments, AGENTS.md headings, and `.tofu` strings: `modules/AGENTS.md`, `kubernetes/AGENTS.md`, `kubernetes/clusters/AGENTS.md`, `modules/secrets/AGENTS.md`, `modules/services/kubernetes/AGENTS.md` and `kubernetes.nix` comment, `zerotier.nix`, `wg-holonet.nix` (fix to `topology.yaml`), `da-gr75.nix`, `tofu/ak.variables.tofu`, `tofu/mikrotik/users.tofu` (fix to `mikrotik/bootstrap/justfile`), `kubernetes/apps/network/cloudflare-tunnel/app/external-secret.yaml`, `kubernetes/apps/media/recyclarr/app/resources/recyclarr.yml`; verify `rg -n 'src/(modules|kubernetes|terraform|mikrotik|bootstrap|topology)' --glob '!vendor/**' --glob '!openspec/**'` is empty
+- [ ] 3.7 Comments, AGENTS.md headings, and `.tofu` strings: `modules/AGENTS.md`, `kubernetes/AGENTS.md`, `kubernetes/clusters/AGENTS.md`, `kubernetes/components/cnpg-import/AGENTS.md` (prefix only; the cited `postgres.nix` does not exist), `modules/secrets/AGENTS.md`, `modules/services/kubernetes/AGENTS.md` and `kubernetes.nix` comment, `rules/ai-tools.md` heading, `zerotier.nix`, `wg-holonet.nix` (fix to `topology.yaml`), `da-gr75.nix`, `tofu/ak.variables.tofu`, `tofu/mikrotik/users.tofu` (fix to `mikrotik/bootstrap/justfile`), `kubernetes/apps/network/cloudflare-tunnel/app/external-secret.yaml`, `kubernetes/apps/media/recyclarr/app/resources/recyclarr.yml`; verify `rg -n 'src/(modules|kubernetes|terraform|mikrotik|bootstrap|topology)' --glob '!vendor/**' --glob '!openspec/**'` is empty
 
 ## 4. Format and hooks (worktree)
 
@@ -26,8 +26,8 @@
 
 ## 5. Reference sweep (worktree)
 
-- [ ] 5.1 Diff the `src/` inventory from 1.2 against the post-change grep; verify the only remaining `src/` hits are `src/homelab`, `vendor/**`, `uv.lock`, and the generic examples under `modules/ai-tools/_ai-tools/**`
-- [ ] 5.2 Verify `.claude/rules/*.md` `paths:` globs and `.github/workflows/flux-local.yaml` were not modified (pre-existing mismatches, out of scope) and note them in the change description
+- [ ] 5.1 Diff the `src/` inventory from 1.2 against the post-change grep; verify the only remaining `src/` hits are `src/homelab`, `vendor/**`, `uv.lock`, the generic examples under `modules/ai-tools/skills/**` and `modules/ai-tools/commands/**`, the `~/Documents/src/...` home paths in `modules/programs/terminal/{jujutsu.nix,jj-clone-forge.nu,topgrade.nix}`, and the upstream URL in `modules/programs/development/data/toml.nix`
+- [ ] 5.2 Verify `.github/workflows/flux-local.yaml` was not modified (pre-existing `flux/cluster` mismatch, out of scope) and note it in the change description
 
 ## 6. Nix and Flux gates (worktree)
 

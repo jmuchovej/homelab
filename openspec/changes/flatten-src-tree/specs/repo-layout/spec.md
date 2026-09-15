@@ -23,6 +23,11 @@ The repository SHALL place each tool-specific tree directly under the repository
 - **WHEN** a module resolves `topology.yaml`, a host's `facter.json`, or a `bootstrap/` seed file through `inputs.self`
 - **THEN** the path is `<self>/topology.yaml`, `<self>/modules/hosts/<host>/facter.json`, or `<self>/bootstrap/...` and the file is found
 
+#### Scenario: Relative paths into the repo root keep their target
+
+- **WHEN** a module under `modules/` reaches the repo root by a relative path or symlink (the `bootstrap` host's `secrets/keys/iso-key.pub`, the `networking/topology.yaml` link)
+- **THEN** the path still resolves to the repo-root `secrets/` directory or `topology.yaml`, with no hop into a parent of the repository
+
 ### Requirement: Python package is the sole occupant of `src/`
 
 The repository SHALL keep the `homelab` Python package at `src/homelab/` and SHALL NOT place any non-Python tree under `src/`.
@@ -72,7 +77,7 @@ Every Flux `Kustomization` `spec.path` in the repository SHALL begin with `./kub
 
 ### Requirement: Repo tooling patterns match the flattened tree
 
-Path patterns in repo-root tooling (`.sops.yaml` creation rules, `.gitignore` negations, `.envrc` watch paths, `.zed/settings.json` schema globs, and pre-commit hook `files`/`excludes` regexes) SHALL match paths under `kubernetes/` and `modules/` and SHALL NOT reference `src/kubernetes` or `src/modules`.
+Path patterns in repo-root tooling (`.sops.yaml` creation rules, `.gitignore` negations, `.envrc` watch paths, `.zed/settings.json` schema globs, pre-commit hook `files`/`excludes` regexes, and the `paths:` frontmatter globs in `rules/*.md`) SHALL match paths under `kubernetes/` and `modules/` and SHALL NOT reference `src/kubernetes` or `src/modules`.
 
 #### Scenario: sops picks the cluster recipient rule
 
@@ -88,3 +93,8 @@ Path patterns in repo-root tooling (`.sops.yaml` creation rules, `.gitignore` ne
 
 - **WHEN** a file such as `kubernetes/apps/<ns>/<app>/app/helm-release.yaml` is opened in Zed
 - **THEN** the matching home-operations JSON schema is associated with it
+
+#### Scenario: Agent rule globs match the module tree
+
+- **WHEN** a file under `modules/ai-tools/` is edited in an agent session
+- **THEN** the `paths:` glob in `rules/ai-tools.md` (`modules/ai-tools/**`) matches it and the rule applies
