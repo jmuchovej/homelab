@@ -1,15 +1,7 @@
-# /ip dhcp-server
-# /ip dhcp-server lease
-# /ip dhcp-server network
-# /ip dhcp-client
-# /ip cloud
-# /ip cloud advanced
-#
 locals {
   is-router = var.role == "router"
 }
 
-# ─── DHCP servers (one per VLAN — routers only) ───────────────────────────
 resource "routeros_ip_dhcp_server" "vlan" {
   for_each = local.is-router ? local.vlans : {}
 
@@ -19,7 +11,6 @@ resource "routeros_ip_dhcp_server" "vlan" {
   dynamic_lease_identifiers = "client-mac,client-id"
 }
 
-# ─── DHCP networks ────────────────────────────────────────────────────────
 locals {
   vlan_dhcp_networks = (
     local.is-router
@@ -65,7 +56,6 @@ resource "routeros_ip_dhcp_server_network" "extra" {
   comment    = each.value.comment
 }
 
-# ─── DHCP static leases (router only) ─────────────────────────────────────
 resource "routeros_ip_dhcp_server_lease" "static" {
   for_each = local.is-router ? var.static-leases : {}
 
@@ -77,7 +67,6 @@ resource "routeros_ip_dhcp_server_lease" "static" {
   depends_on = [routeros_ip_dhcp_server.vlan]
 }
 
-# ─── DHCP client on WAN ───────────────────────────────────────────────────
 resource "routeros_ip_dhcp_client" "wan" {
   count = local.is-router && var.enable-wan-dhcp ? 1 : 0
 
@@ -87,7 +76,6 @@ resource "routeros_ip_dhcp_client" "wan" {
   # default_route_tables = ["main"]
 }
 
-# ─── IP Cloud (DDNS only — Back-to-Home VPN intentionally OFF) ───────────
 resource "routeros_ip_cloud" "this" {
   count = local.is-router && var.enable-ip-cloud ? 1 : 0
 

@@ -1,9 +1,3 @@
-# /interface vlan
-# /interface list
-# /interface list member
-# /ip address
-# /ip pool
-
 locals {
   relay-counter = tonumber(regex("[0-9]+$", var.relay))
 
@@ -40,7 +34,6 @@ resource "routeros_interface_vlan" "vlan" {
   comment   = each.value.comment
 }
 
-# ─── Interface lists ──────────────────────────────────────────────────────
 resource "routeros_interface_list" "wan" {
   name    = "WAN"
   comment = "defconf"
@@ -59,7 +52,6 @@ resource "routeros_interface_list" "lan" {
   }
 }
 
-# ─── Interface list members ───────────────────────────────────────────────
 resource "routeros_interface_list_member" "bridge-in-lan" {
   list      = routeros_interface_list.lan.name
   interface = routeros_interface_bridge.bridge.name
@@ -79,7 +71,6 @@ resource "routeros_interface_list_member" "vlan-members" {
   interface = routeros_interface_vlan.vlan[each.key].name
 }
 
-# ─── IP pools (router only — switches don't run DHCP) ────────────────────
 resource "routeros_ip_pool" "vlan" {
   for_each = var.role == "router" ? local.vlans : {}
 
@@ -88,7 +79,6 @@ resource "routeros_ip_pool" "vlan" {
   comment = each.value.comment
 }
 
-# ─── IP addresses (router L3 interfaces) ──────────────────────────────────
 resource "routeros_ip_address" "vlan_primary" {
   for_each = local.vlan-ip-assignments
 
@@ -98,7 +88,6 @@ resource "routeros_ip_address" "vlan_primary" {
   comment   = local.vlans[each.key].comment
 }
 
-# Extra addresses (secondary IPs, bridges, etc.).
 resource "routeros_ip_address" "extra" {
   for_each = var.extra-addrs
 

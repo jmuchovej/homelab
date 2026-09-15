@@ -1,7 +1,3 @@
-# /ip firewall filter
-# /ipv6 firewall filter
-# /ipv6 firewall address-list
-#
 locals {
   router-filter = var.role == "router"
 }
@@ -155,7 +151,6 @@ resource "routeros_ip_firewall_filter" "r34_fwd_mgmt_to_homelab_dns_tcp" {
   comment     = "Allow Management VLAN to query Homelab DNS (VIP)"
 }
 
-# ─── VIP access from VLAN clients ────────────────────────────────────────
 resource "routeros_ip_firewall_filter" "fwd_drop_iot_to_vip" {
   count = local.router-filter && contains(keys(local.vlans), "iot") ? 1 : 0
 
@@ -277,7 +272,6 @@ resource "routeros_ipv6_firewall_addr_list" "bad" {
 
 locals {
   v6_filter_rules = [
-    # ── first block ─────────────────────────────────────────────────────
     { id = "v01", chain = "input", action = "accept", connection_state = "established,related,untracked", comment = "defconf: accept established,related,untracked" },
     { id = "v02", chain = "input", action = "drop", connection_state = "invalid", comment = "defconf: drop invalid" },
     { id = "v03", chain = "input", action = "accept", protocol = "icmpv6", comment = "defconf: accept ICMPv6" },
@@ -329,11 +323,8 @@ locals {
       routeros_ip_firewall_filter.r08_input_drop_invalid.id,
       routeros_ip_firewall_filter.r09_input_icmp.id,
       routeros_ip_firewall_filter.r10_input_loopback_capsman.id,
-      # input_dns_allow MUST precede r11 (drop !LAN), otherwise lab/
-      # trusted/guest/iot DNS queries to the router get dropped before
-      # this rule can accept them — those VLANs are members of the
-      # `VLAN` interface-list, not `LAN`, so r11's `!LAN` predicate
-      # catches them.
+      # Must precede r11: VLAN interfaces are not in the LAN list, so its
+      # `!LAN` drop would otherwise catch their DNS queries.
       routeros_ip_firewall_filter.input_dns_allow["udp"].id,
       routeros_ip_firewall_filter.input_dns_allow["tcp"].id,
     ],
@@ -351,8 +342,7 @@ locals {
       routeros_ip_firewall_filter.r33_fwd_mgmt_to_homelab_dns_udp[0].id,
       routeros_ip_firewall_filter.r34_fwd_mgmt_to_homelab_dns_tcp[0].id,
     ],
-    # IoT drop MUST precede `fwd_vlans_to_vip` — same dst but more
-    # specific source, otherwise iot would be accepted by the broad rule.
+    # Must precede fwd_vlans_to_vip, whose broader source match would accept iot.
     contains(keys(local.vlans), "iot") ? [routeros_ip_firewall_filter.fwd_drop_iot_to_vip[0].id] : [],
     [
       routeros_ip_firewall_filter.fwd_vlans_to_vip[0].id,
@@ -368,7 +358,6 @@ locals {
     ],
   ) : []
 
-  # IPv6: list-shaped source, so preserving the original ordering is trivial.
   ipv6-filter-order = local.router-filter ? [
     for r in local.v6_filter_rules : routeros_ipv6_firewall_filter.rule[r.id].id
   ] : []

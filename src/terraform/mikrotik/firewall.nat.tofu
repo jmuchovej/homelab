@@ -1,11 +1,5 @@
-# /ip firewall nat
-# /ip firewall connection tracking
-
 locals {
-  # Address-list contents — see resources below. RouterOS NAT
-  # `src-address` is single-valued; multi-value matching requires the
-  # `src-address-list` field, which accepts a named address-list (with
-  # `!` prefix for negation).
+  # RouterOS `src-address` is single-valued; multi-CIDR matching needs an address-list.
   rfc1918-cidrs = toset(["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
 }
 
@@ -42,7 +36,6 @@ resource "routeros_ip_firewall_addr_list" "no_hairpin_dst" {
   comment = each.value.comment
 }
 
-# ─── srcnat masquerade (defconf) ──────────────────────────────────────────
 resource "routeros_ip_firewall_nat" "n01_masq_wan" {
   count = var.role == "router" ? 1 : 0
 
@@ -53,7 +46,6 @@ resource "routeros_ip_firewall_nat" "n01_masq_wan" {
   comment            = "defconf: masquerade"
 }
 
-# ─── External DNATs for Traefik VIP (always on if WAN-facing) ─────────────
 resource "routeros_ip_firewall_nat" "n03_dnat_https_to_vip" {
   count      = var.role == "router" && var.enable-hairpin ? 1 : 0
   depends_on = [routeros_ip_firewall_addr_list.rfc1918]
@@ -62,9 +54,9 @@ resource "routeros_ip_firewall_nat" "n03_dnat_https_to_vip" {
   chain            = "dstnat"
   protocol         = "tcp"
   in_interface     = var.wan-port
-  src_address_list = "!rfc1918" # exclude RFC1918 sources (see addr_list above)
+  src_address_list = "!rfc1918"
   dst_port         = "443"
-  to_addresses     = local.vip # bare IP is correct for to_addresses (target host)
+  to_addresses     = local.vip
   to_ports         = "443"
   log              = true
   log_prefix       = "[vip.ext]"
@@ -88,7 +80,6 @@ resource "routeros_ip_firewall_nat" "n04_dnat_http_to_vip" {
   comment          = "[ext] HTTP to Traefik VIP"
 }
 
-# ─── Hairpin: LAN → router-local IP → VIP ────────────────────────────────
 resource "routeros_ip_firewall_nat" "n09_hairpin_masq_replies" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
 
@@ -110,10 +101,10 @@ resource "routeros_ip_firewall_nat" "n10_hairpin_local_dst_443" {
   chain            = "dstnat"
   protocol         = "tcp"
   dst_address_type = "local"
-  dst_address_list = "!no-hairpin-dst" # don't catch traffic to wg-holonet IP
+  dst_address_list = "!no-hairpin-dst"
   dst_port         = "443"
-  src_address      = local.lan-supernet # broad LAN match
-  src_address_list = "!mgmt-vlan"       # but exclude mgmt — admin REST goes to router itself
+  src_address      = local.lan-supernet
+  src_address_list = "!mgmt-vlan"
   to_addresses     = local.vip
   to_ports         = "443"
   comment          = "Hairpin: LAN  WAN-IP:443  VIP"
@@ -151,7 +142,6 @@ resource "routeros_ip_firewall_nat" "n12_hairpin_masq_client_src" {
   comment     = "Hairpin masquerade: rewrite client src so VIP replies via router"
 }
 
-# ─── Connection tracking timeouts ─────────────────────────────────────────
 resource "routeros_ip_firewall_connection_tracking" "this" {
   generic_timeout = "1m"
 }

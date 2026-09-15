@@ -17,7 +17,6 @@ locals {
   bgp-enabled = local.is-router && var.bgp != null
 }
 
-# Accept only the advertised LB pool from the peer; reject everything else.
 resource "routeros_routing_filter_rule" "k8s-lb" {
   count = local.bgp-enabled ? 1 : 0
 
@@ -26,7 +25,6 @@ resource "routeros_routing_filter_rule" "k8s-lb" {
   comment = "K8s LoadBalancer pool"
 }
 
-# Shared settings for every node peer.
 resource "routeros_routing_bgp_template" "k8s" {
   count = local.bgp-enabled ? 1 : 0
 
@@ -57,7 +55,6 @@ resource "routeros_routing_bgp_instance" "k8s" {
   comment       = "K8s"
 }
 
-# One iBGP session per cluster node.
 resource "routeros_routing_bgp_connection" "k8s" {
   for_each = local.bgp-enabled ? var.bgp.peers : {}
 

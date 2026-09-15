@@ -7,13 +7,7 @@ terraform {
 
 variable "relay" {
   type        = string
-  description = <<-EOT
-    This router's key in the catalog (e.g. "da-relay01", "en-relay02").
-    Used to look up the per-relay slice in `var.catalog.holonet-wg-config-for`,
-    derive the DC ("da-relay01" → "da") for admin-source allowlists, and
-    set the RouterOS `/system identity` (the suffix after the first
-    hyphen — "da-relay01" → "relay01").
-  EOT
+  description = "This router's key in the catalog, '<dc>-<name>' (e.g. \"da-relay01\")."
 
   validation {
     condition     = length(split("-", var.relay)) == 2
@@ -23,28 +17,7 @@ variable "relay" {
 
 variable "catalog" {
   type        = any
-  description = <<-EOT
-    The shared catalog object — built once in mk.holonet.tofu, passed
-    verbatim to every relay's module call. Expected shape:
-
-      {
-        vlans                 = <local.vlans>
-        holonet               = <local.holonet>           # subnets, port, …
-        holonet-peers-for     = <local.holonet-peers-for>
-        holonet-wg-config-for = <local.holonet-wg-config-for>
-
-        vip          = string  # cluster VIP for hairpin / DNAT
-        lan-supernet = string  # broad-match CIDR for firewall rules
-
-        certificates = {
-          holonet = { crt = string, key = string }
-        }
-      }
-
-    Typed as `any` because the schema is internal to this homelab and
-    documenting it as a typed object adds maintenance burden without
-    catching real bugs (it'd just duplicate the catalog definition).
-  EOT
+  description = "Shared catalog built in holonet.tofu and passed verbatim to every relay. Typed `any` so the schema lives only in the caller."
 }
 
 variable "role" {
@@ -60,41 +33,30 @@ variable "role" {
 
 variable "public-ip" {
   type        = string
-  description = "Public WAN IPv4 used by hairpin NAT rules. Source from sops. Unused when role=switch."
+  description = "Public WAN IPv4 used by hairpin NAT rules. Unused when role=switch."
   sensitive   = true
   default     = null
 }
 
 variable "bridge-mac" {
   type        = string
-  description = "Static MAC for the bridge (auto-mac disabled). Use the bridge MAC from the .rsc export so it survives reboots predictably."
+  description = "Static MAC for the bridge; use the value from the device's .rsc export."
 }
 
 variable "wan-port" {
   type        = string
-  description = "Physical interface name used as the WAN uplink. Set comment=WAN and used as in-interface for WAN-input drops."
+  description = "Physical interface name used as the WAN uplink."
 }
 
 variable "ports" {
   type = map(object({
     role    = string           # "trunk" | "access"
-    access  = optional(string) # VLAN key from var.vlans (required when role=access)
+    access  = optional(string) # catalog vlans key (required when role=access)
     comment = optional(string)
   }))
   description = <<-EOT
-    Per-device physical port layout.
-
-    Each interface has a `role`:
-      - `trunk`  — carries every VLAN tagged (typical: uplink between routers/switches,
-                   the local end of a tagged downlink). pvid defaults to 1.
-      - `access` — carries one VLAN untagged. `access` must reference a key from
-                   var.vlans (e.g. "mgmt", "lab", "iot"). pvid = that VLAN's id.
-
-    The module derives bridge port pvids and the bridge VLAN tagged/untagged table
-    from this map. The bridge interface itself is always tagged on every VLAN that
-    appears in var.vlans, since it terminates L3 (or, on switches, the mgmt VLAN).
-
-    Wifi interfaces are valid keys.
+    Physical port layout keyed by interface name (wifi interfaces are valid keys).
+    `trunk` carries every VLAN tagged; `access` carries one VLAN untagged.
   EOT
   default     = {}
 
@@ -119,7 +81,7 @@ variable "extra-addrs" {
     network   = string
     comment   = optional(string)
   }))
-  description = "Additional IP addresses beyond the per-VLAN gateway. e.g. relay01 has 10.42.1.1/24 on vlan2."
+  description = "Additional IP addresses beyond the per-VLAN gateway."
   default     = {}
 }
 
@@ -130,7 +92,7 @@ variable "static-leases" {
     client-id = optional(string)
     server    = string
   }))
-  description = "Static DHCP reservations. Server names must match the dhcp-server entries (dhcp1..dhcp5 or defconf)."
+  description = "Static DHCP reservations. `server` must name an existing dhcp-server."
   default     = {}
 }
 
@@ -142,7 +104,7 @@ variable "enable-wan-dhcp" {
 
 variable "enable-ip-cloud" {
   type        = bool
-  description = "Whether to enable MikroTik IP Cloud DDNS + Back-to-Home VPN."
+  description = "Whether to enable MikroTik IP Cloud DDNS."
   default     = false
 }
 
@@ -161,7 +123,7 @@ variable "wifi" {
     channel       = map(string)
     security      = optional(map(string), {})
   }))
-  description = "WiFi interfaces to adopt (set empty if this router has no radio). Keys are logical labels."
+  description = "WiFi interfaces to manage, keyed by logical label."
   default     = {}
 }
 
@@ -170,28 +132,15 @@ variable "wifi-passphrases" {
   sensitive   = true
   default     = {}
   description = <<-EOT
-    PSK passphrases per wifi key, e.g. { holonet = "supersecret" }.
-    Keyed by var.wifi map key; entries here override / extend the
-    `security` map on the corresponding wifi resource.
-
-    Separated from var.wifi to keep the wifi catalog non-sensitive —
-    putting passphrases inside `security` would taint the whole map as
-    sensitive, blocking `for_each` and forcing `nonsensitive()` wrappers
-    that risk leaking other security fields (auth-types, ft, wps, etc.)
-    into plan output.
-
-    Wifi keys with no entry here get no passphrase (open network or
-    handled out-of-band). Typically: pass sops-decrypted values like
-    `wifi-passphrases = { holonet = data.sops_file.da.data["network.wifi"] }`.
+    PSK passphrases keyed by var.wifi key. Kept out of var.wifi so the
+    sensitive taint does not spread to the map used for `for_each`.
   EOT
 }
 
 locals {
-  # ─── Identity decomposition ──────────────────────────────────────────
   dc       = split("-", var.relay)[0]
   identity = split("-", var.relay)[1]
 
-  # ─── Catalog slices ──────────────────────────────────────────────────
   vlans        = var.catalog.vlans
   vip          = var.catalog.vip
   lan-supernet = var.catalog.lan-supernet
@@ -218,17 +167,17 @@ locals {
 }
 
 output "vlans" {
-  description = "Resolved local.vlans (caller overrides + module defaults)."
+  description = "The catalog vlans map as seen by this module."
   value       = local.vlans
 }
 
 output "ddns_name" {
-  description = "MikroTik IP Cloud DDNS hostname (<serial>.sn.mynetname.net). Null if IP Cloud is disabled or hasn't registered yet."
+  description = "MikroTik IP Cloud DDNS hostname. Null if IP Cloud is disabled or not yet registered."
   value       = var.role == "router" && var.enable-ip-cloud ? try(routeros_ip_cloud.this[0].dns_name, null) : null
 }
 
 output "public_ip" {
-  description = "Public IPv4 reported to MikroTik IP Cloud. Null if IP Cloud is disabled. Note: this is what the cloud server sees from its end, NOT necessarily what's on the router's WAN interface (see use_local_address in dhcp.tofu)."
+  description = "Public IPv4 as seen by the MikroTik IP Cloud server, which may differ from the WAN interface address. Null if IP Cloud is disabled."
   value       = var.role == "router" && var.enable-ip-cloud ? try(routeros_ip_cloud.this[0].public_address, null) : null
 }
 

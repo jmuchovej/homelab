@@ -1,5 +1,3 @@
-# /user
-# /user/group
 locals {
   terraform-user-policy = [
     "api", "rest-api", "read", "write", "sensitive", "policy",
@@ -18,7 +16,7 @@ resource "routeros_system_user" "terraform" {
   name    = "terraform"
   group   = routeros_system_user_group.terraform.name
   address = local.admin-allowed-sources
-  comment = "Managed by tofu. Password rotated via src/mikrotik/justfile."
+  comment = "Managed by tofu. Password rotated via src/terraform/mikrotik.just."
 
   lifecycle {
     ignore_changes = [password]

@@ -1,5 +1,4 @@
-# /interface wifi   (RouterOS 7.13+ new WiFi stack)
-
+# RouterOS 7.13+ wifi stack, not the legacy /interface wireless.
 resource "routeros_wifi" "this" {
   for_each = var.wifi
 
