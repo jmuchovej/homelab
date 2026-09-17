@@ -41,9 +41,17 @@ if ($input.tool_name? | default "") == "Bash" {
     }
   }
 } else {
-  # Path traversal in any tool_input value
-  let vals = $input.tool_input? | default {} | values | to json -r
-  if $vals =~ '\.\./' {
+  # Path traversal in path-bearing fields ONLY. Scanning every value also
+  # searched file CONTENT, so an edit was denied whenever the text it touched
+  # happened to contain a relative parent reference — kustomize overlays,
+  # relative imports in JS/Python, even prose.
+  let ti = $input.tool_input? | default {}
+  let paths = [
+    ($ti.file_path? | default "")
+    ($ti.path? | default "")
+    ($ti.notebook_path? | default "")
+  ]
+  if ($paths | any { |p| $p =~ '\.\./' }) {
     tools deny "Path traversal attempt detected"
   }
 }
