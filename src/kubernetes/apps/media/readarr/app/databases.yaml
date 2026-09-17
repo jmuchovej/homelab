@@ -1,7 +1,6 @@
 ---
 # Readarr's metadata cache lives in a SECOND database on the same cluster.
-# Declarative (not imported): the cache rebuilds itself, so only the main db
-# goes through cnpg-import.
+# Declarative: the cache rebuilds itself, so it was never worth migrating.
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:

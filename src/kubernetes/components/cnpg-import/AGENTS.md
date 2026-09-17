@@ -5,7 +5,7 @@ paths:
 
 # cnpg-import
 
-One-off migration bootstrap: patches a `cnpg-database` Cluster so its first `initdb` imports `${APP}` from the NixOS postgres (`${HOST}`, normally da-vcx-1 / 10.69.11.1). The source is only ever read; rollback = keep using the NixOS DB.
+One-off migration bootstrap: patches a `cnpg-database` Cluster so its first `initdb` imports `${APP}` from an existing postgres at `${HOST}`. The original migration read the NixOS instance on da-vcx-1 / 10.69.11.1; the one remaining consumer reads another in-cluster CNPG Cluster. The source is only ever read; rollback = keep using the source DB.
 
 ## Source-side (NixOS) prerequisites
 
@@ -34,6 +34,10 @@ The import is single-shot BY CONSTRUCTION: CNPG consults `bootstrap` only when c
 - the `cnpg-database` base sets `prune: disabled` on the Cluster, so Flux can never delete a database (and thereby arm a re-bootstrap);
 - once the NixOS source is retired, its removed pg_hba entries make any zombie re-import fail LOUDLY at connect. (A "graceful" failure here would be silent data loss — empty DB, app runs migrations; loud is correct.)
 
-## Lifecycle — no dedicated removal commit needed
+## Lifecycle — remove it as soon as the app has migrated
 
-After first bootstrap the import block is inert (CNPG never re-reads `bootstrap` for a live cluster), and `prune: disabled` means re-bootstrap requires deliberate human action — so leaving `../cnpg-import` in an app's ks indefinitely is safe. Remove it opportunistically, folded into the commit that wires **backups/recovery** for that app (it edits the same `bootstrap` block anyway) — never as its own commit. Once the last app has migrated off the NixOS postgres, delete this whole component.
+After first bootstrap the import is inert **for that cluster** — CNPG never re-reads `bootstrap` for a live Cluster. It is _not_ inert for a new one: a second cluster bootstraps from nothing, re-runs the import, and fails against a source it has no reason to reach. en hit exactly this on 2026-09-17 — `No route to host` to 10.69.11.1, leaving `hass-db` stuck in `Cluster is unrecoverable` and blocking home-assistant's recorder.
+
+So drop the component from an app's ks as soon as that app has migrated. Do **not** defer it to the commit that wires backups/recovery: that was written when this repo had one cluster, and deferral now plants a guaranteed bootstrap failure in every cluster added later.
+
+`homebox` is the only remaining consumer, and deliberately so — its source is the retired in-cluster `home-automation` cluster (a namespace move; CNPG clusters can't cross namespaces), not the NixOS instance, and it carried post-migration changes. Delete that source cluster deliberately once proven, drop the component from `homebox-db.ks.yaml`, then delete this whole directory.

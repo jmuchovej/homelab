@@ -11,17 +11,13 @@ spec:
       namespace: external-secrets
   interval: 1h
   path: ./src/kubernetes/components/cnpg-database
-  components:
-    # one-off NixOS import — inert after first bootstrap; remove alongside
-    # future backup wiring, not before (see components/cnpg-import/AGENTS.md).
-    # Source-side pg_cron was DROPPED pre-import (CNPG images lack it); the
-    # recurring-expense scheduler is a known gap until an image carries it.
-    - ../cnpg-import
   postBuild:
     substitute:
+      # pg_cron was DROPPED when this DB moved off NixOS (CNPG images lack
+      # it); the recurring-expense scheduler is a known gap until an image
+      # carries it.
       APP: split-pro
       DB_SIZE: 2Gi
-      HOST: 10.69.11.1
       # convention: DB LBs live at 10.69.1.5x/6x
       DB_LB_IP: 10.69.1.60
   targetNamespace: home

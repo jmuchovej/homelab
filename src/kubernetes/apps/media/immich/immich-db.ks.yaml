@@ -12,9 +12,6 @@ spec:
   interval: 1h
   path: ./src/kubernetes/components/cnpg-database
   components:
-    # one-off NixOS import — inert after first bootstrap; remove alongside
-    # future backup wiring, not before (see components/cnpg-import/AGENTS.md)
-    - ../cnpg-import
     # VectorChord image + preload — MUST be a component: the cluster-apps
     # parent clobbers per-app ks spec.patches (see the component's header)
     - ../cnpg-vectorchord
@@ -22,7 +19,6 @@ spec:
     substitute:
       APP: immich
       DB_SIZE: 10Gi
-      HOST: 10.69.11.1
       # convention: DB LBs live at 10.69.1.5x
       DB_LB_IP: 10.69.1.59
   targetNamespace: media

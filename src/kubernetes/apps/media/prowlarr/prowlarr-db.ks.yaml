@@ -11,15 +11,10 @@ spec:
       namespace: external-secrets
   interval: 1h
   path: ./src/kubernetes/components/cnpg-database
-  components:
-    # one-off NixOS import — inert after first bootstrap; remove alongside
-    # future backup wiring, not before (see components/cnpg-import/AGENTS.md)
-    - ../cnpg-import
   postBuild:
     substitute:
       APP: prowlarr
       DB_SIZE: 5Gi
-      HOST: 10.69.11.1
       # convention: DB LBs live at 10.69.1.5x
       DB_LB_IP: 10.69.1.57
   targetNamespace: media
