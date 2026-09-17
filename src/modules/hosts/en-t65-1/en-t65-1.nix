@@ -43,6 +43,8 @@ in
       // {
         # backs the zfs-hdd StorageClass
         "impulse/k8s/pvcs" = { };
+        # backs the zfs-ssd StorageClass (and the `zfs` alias)
+        "warp/k8s/pvcs" = { };
       };
 
     nfs.exports = [

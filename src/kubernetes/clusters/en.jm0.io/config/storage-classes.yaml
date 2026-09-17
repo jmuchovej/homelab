@@ -1,0 +1,68 @@
+---
+# SSD array — warp, en-t65-1
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs-ssd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: warp/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+# Unlike da, both pools sit on one node here — en-t65-1 is the only node today,
+# so this pins the bind before a second node can attract it to a host with no
+# warp/
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["en-t65-1"]
+---
+# HDD array — impulse, en-t65-1
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs-hdd
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: impulse/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["en-t65-1"]
+---
+# Alias of zfs-ssd. en has no pre-split volumes, but the app manifests shared
+# with da hardcode `storageClassName: zfs` (home-assistant, plex, authentik,
+# github-runner) and that field is immutable — editing them to drop it would
+# stall Flux on da's already-bound PVCs. DELETE this document only as part of a
+# migration that retires the name on both clusters at once.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+provisioner: zfs.csi.openebs.io
+parameters:
+  poolname: warp/k8s/pvcs
+  fstype: zfs
+  shared: "yes"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values: ["en-t65-1"]
