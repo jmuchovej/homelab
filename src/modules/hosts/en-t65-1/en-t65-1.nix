@@ -24,11 +24,14 @@ let
 in
 {
   den.hosts.x86_64-linux.en-t65-1 = {
-    persistence = {
-      device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300ABBB23101818352";
-      extra-directories = [ ];
-      extra-files = [ ];
-    };
+    # STAGED — do NOT uncomment until this host can withstand root being
+    # destroyed and fully reinstalled: enabling it hands the boot disk to
+    # disko's btrfs @/@-blank layout, which conflicts with the live ext4 root.
+    # persistence = {
+    #   device = "/dev/disk/by-id/nvme-Patriot_M.2_P300_256GB_P300ABBB23101818352";
+    #   extra-directories = [ ];
+    #   extra-files = [ ];
+    # };
 
     zfs.datasets =
       lib.mapAttrs' sync-tree {

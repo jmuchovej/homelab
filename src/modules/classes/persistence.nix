@@ -11,7 +11,7 @@ let
     den.batteries.forward {
       each = lib.optional (host.class == "nixos" && host.persistence != null) true;
       fromClass = _: "persistence";
-      intoClass = _: class;
+      intoClass = _: host.class;
       intoPath = _: [ ];
       fromAspect = _: lib.head aspect-chain;
     };
