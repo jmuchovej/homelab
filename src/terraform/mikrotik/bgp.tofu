@@ -17,6 +17,30 @@ locals {
   bgp-enabled = local.is-router && var.bgp != null
 }
 
+resource "routeros_ip_firewall_addr_list" "bgp_peers" {
+  for_each = local.bgp-enabled ? var.bgp.peers : {}
+
+  list    = "bgp-peers"
+  address = each.value
+  comment = each.key
+}
+
+# Cilium dials the router; nothing listens on :179 cluster-side. Nodes sit on
+# a VLAN interface, which is not in the LAN list, so r11's `!LAN` drop eats
+# the session without this — same carve-out DNS already needs.
+resource "routeros_ip_firewall_filter" "input_accept_bgp" {
+  count = local.bgp-enabled ? 1 : 0
+
+  chain            = "input"
+  action           = "accept"
+  protocol         = "tcp"
+  dst_port         = "179"
+  src_address_list = "bgp-peers"
+  comment          = "Accept BGP from k8s nodes (tcp/179)"
+
+  depends_on = [routeros_ip_firewall_addr_list.bgp_peers]
+}
+
 resource "routeros_routing_filter_rule" "k8s-lb" {
   count = local.bgp-enabled ? 1 : 0
 

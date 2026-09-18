@@ -141,8 +141,9 @@ locals {
   dc       = split("-", var.relay)[0]
   identity = split("-", var.relay)[1]
 
-  vlans        = var.catalog.vlans
-  vip          = var.catalog.vip
+  vlans        = var.catalog.vlans-for[local.dc]
+  k8s          = var.catalog.k8s-for[local.dc]
+  vip          = local.k8s.vip
   lan-supernet = var.catalog.lan-supernet
 
   wg-holonet = var.catalog.holonet-wg-config-for[var.relay]
@@ -154,11 +155,10 @@ locals {
 
   mgmt-ip = "${var.catalog.holonet-mgmt-ip-for[var.relay]}/${split("/", local.vlans.mgmt.cidr)[1]}"
 
-  admin-allowed-sources = join(",", [
-    var.catalog.vlans.mgmt.cidr,
-    var.catalog.holonet-subnets[local.dc],
-    var.catalog.holonet-subnets.clients,
-  ])
+  admin-allowed-sources = join(",", concat(
+    [local.vlans.mgmt.cidr],
+    values(var.catalog.holonet-subnets)
+  ))
 
   has-wan-cert        = try(var.catalog.certificates.holonet.crt, null) != null
   wan-certificate     = local.has-wan-cert ? "holonet" : ""

@@ -329,6 +329,7 @@ locals {
       routeros_ip_firewall_filter.input_dns_allow["tcp"].id,
     ],
     var.role == "router" ? [routeros_ip_firewall_filter.input_accept_holonet[0].id] : [],
+    local.bgp-enabled ? [routeros_ip_firewall_filter.input_accept_bgp[0].id] : [],
     [
       routeros_ip_firewall_filter.r11_input_drop_not_lan.id,
       routeros_ip_firewall_filter.r12_fwd_ipsec_in[0].id,
