@@ -37,11 +37,11 @@ spec:
               ADMIN_CIDR: 10.99.0.0/16
               # must track topology.yaml `networks.en` — lab.cidr,
               # lab.gateway, k8s.lb-pool, and lb-pool's first three octets
-              LAB_CIDR: 10.36.0.0/16
-              LAB_GATEWAY: 10.36.0.1
-              LAB_PREFIX: 10.36
-              LB_POOL_CIDR: 10.36.1.0/24
-              LB_PREFIX: 10.36.1
+              LAB_CIDR: "10.36.0.0/16"
+              LAB_GATEWAY: "10.36.0.1"
+              LAB_PREFIX: "10.36"
+              LB_POOL_CIDR: "10.36.1.0/24"
+              LB_PREFIX: "10.36.1"
           patches:
             - target:
                 group: helm.toolkit.fluxcd.io

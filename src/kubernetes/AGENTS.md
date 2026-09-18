@@ -83,6 +83,17 @@ components/                         reusable cross-app building blocks → compo
 
 ## Substitution variables
 
+**Quote any substitute value or `${VAR}` scalar that could parse as a number.**
+Flux requires every `postBuild.substitute` value to be a _string_, and YAML
+types an unquoted scalar before Flux ever sees it — so `LAB_PREFIX: 10.32` is
+the float `10.32` and the whole `cluster-apps` patch fails its dry-run,
+blocking every child Kustomization at once. Three-or-more-octet values
+(`10.32.1.51`) are safe by accident; two-octet prefixes are not. On the
+consuming side the same rule applies after substitution: an undefined var
+turns `lbipam.cilium.io/ips: ${LB_PREFIX}.2` into `.2` → the float `0.2`, and
+`cidr: ${LB_POOL_CIDR}` into null. Quote both ends and the failure becomes a
+loud missing-variable error instead of a type error three files away.
+
 `${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}` are injected into every app's `postBuild.substitute` by the **per-cluster** `clusters/<domain>/flux/cluster-apps.ks.yaml` patch — static, hand-written per cluster (the domain differs per cluster, so unlike a single-cluster repo it can't be hardcoded in the manifests). There is **no `cluster-settings` Secret and no NixOS seeding of it**; the values are plaintext identity, not secrets. Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
 
 ## Images & charts

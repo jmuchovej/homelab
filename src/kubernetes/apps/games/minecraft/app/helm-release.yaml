@@ -80,7 +80,7 @@ spec:
       app:
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: ${LB_PREFIX}.40
+          lbipam.cilium.io/ips: "${LB_PREFIX}.40"
         externalTrafficPolicy: Local
         ports:
           minecraft:

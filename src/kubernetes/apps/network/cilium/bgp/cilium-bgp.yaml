@@ -7,7 +7,7 @@ metadata:
 spec:
   allowFirstLastIPs: "No"
   blocks:
-    - cidr: ${LB_POOL_CIDR}
+    - cidr: "${LB_POOL_CIDR}"
 ---
 # $schema: https://k8s-schemas.home-operations.com/cilium.io/ciliumbgpadvertisement_v2.json
 apiVersion: cilium.io/v2
@@ -60,6 +60,6 @@ spec:
       peers:
         - name: mikrotik
           peerASN: 64512
-          peerAddress: ${LAB_GATEWAY}
+          peerAddress: "${LAB_GATEWAY}"
           peerConfigRef:
             name: mikrotik

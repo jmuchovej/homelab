@@ -22,7 +22,7 @@ spec:
   externalClusters:
     - name: ${SOURCE_NAME}
       connectionParameters:
-        host: ${SOURCE_HOST}
+        host: "${SOURCE_HOST}"
         user: streaming_replica
         sslmode: verify-ca
         dbname: postgres

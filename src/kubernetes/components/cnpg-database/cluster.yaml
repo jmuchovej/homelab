@@ -22,7 +22,7 @@ spec:
             metadata:
               name: ${APP}-db-lb
               annotations:
-                lbipam.cilium.io/ips: ${DB_LB_IP}
+                lbipam.cilium.io/ips: "${DB_LB_IP}"
             spec:
               type: LoadBalancer
               externalTrafficPolicy: Local

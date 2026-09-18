@@ -12,6 +12,6 @@ ports:
     protocol: TCP
 endpoints:
   - addresses:
-      - ${LAB_PREFIX}.4.2
+      - "${LAB_PREFIX}.4.2"
     conditions:
       ready: true
