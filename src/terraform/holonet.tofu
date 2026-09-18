@@ -20,6 +20,15 @@ locals {
 
   k8s-for = { for dc in local.dcs : dc => local.topology.networks[dc].k8s }
 
+  # Consumed by the ZeroTier network's managed routes: each DC's lab, reached
+  # via that DC's relay01 overlay address.
+  lab-routes = {
+    for dc in local.dcs : dc => {
+      target = local.topology.networks[dc].lab.cidr
+      via    = local.topology.network["${dc}-relay01"].ip
+    }
+  }
+
   catalog = {
     vlans-for    = local.vlans-for
     k8s-for      = local.k8s-for

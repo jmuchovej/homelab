@@ -27,6 +27,19 @@ resource "zerotier_network" "holonet" {
     target = local.topology.zerotier.overlay
   }
 
+  # Each DC's lab reachable from every member via that DC's relay01. Without
+  # these, ZeroTier carries only the overlay itself, so cross-site traffic can
+  # address nothing but node overlay IPs — no LoadBalancer VIPs, no NAS, no
+  # non-k8s devices. Relies on the labs being unique per site.
+  dynamic "route" {
+    for_each = local.lab-routes
+
+    content {
+      target = route.value.target
+      via    = route.value.via
+    }
+  }
+
   flow_rules = <<-EOT
     #
     # Default rule set: allow IPv4/IPv6/ARP, otherwise behave like a standard
