@@ -8,7 +8,7 @@ variable "bgp" {
   description = <<-EOT
     K8s LoadBalancer BGP. Set only on the cluster's relay; null disables.
       asn          = iBGP AS, both ends (e.g. 64512)
-      lb-pool-cidr = CiliumLoadBalancerIPPool CIDR (e.g. 10.69.1.0/24)
+      lb-pool-cidr = CiliumLoadBalancerIPPool CIDR (e.g. 10.32.1.0/24)
       peers        = { "<node>" = "<lab IP>" }  — one iBGP session each
   EOT
 }

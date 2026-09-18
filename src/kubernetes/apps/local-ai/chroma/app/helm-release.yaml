@@ -67,7 +67,7 @@ spec:
 
     route:
       # chroma has NO auth of its own — LAN-only via the internal gateway
-      # (10.69.1.2), same posture as tautulli; needs a router DNS record.
+      # (${LB_PREFIX}.2), same posture as tautulli; needs a router DNS record.
       # In-cluster consumers use chroma.local-ai.svc:8000 directly.
       app:
         hostnames:

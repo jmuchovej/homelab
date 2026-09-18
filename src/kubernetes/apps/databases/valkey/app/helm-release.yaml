@@ -62,7 +62,7 @@ spec:
       app:
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: 10.69.1.61
+          lbipam.cilium.io/ips: ${LB_PREFIX}.61
         externalTrafficPolicy: Local
         ports:
           valkey:

@@ -3,7 +3,12 @@
     options.nfs =
       let
         inherit (lib) mkOption;
-        inherit (lib.types) listOf submodule str;
+        inherit (lib.types)
+          listOf
+          nullOr
+          submodule
+          str
+          ;
       in
       {
         exports = mkOption {
@@ -14,9 +19,12 @@
                 description = "Filesystem path to export, e.g. /impulse/k8s.";
               };
               clients = mkOption {
-                type = str;
-                default = "10.69.0.0/16";
-                description = "Client match (CIDR or hostname).";
+                type = nullOr str;
+                default = null;
+                description = ''
+                  Client match (CIDR or hostname). Null resolves to this
+                  host's own lab CIDR, which differs per datacenter.
+                '';
               };
               options = mkOption {
                 type = str;
@@ -37,7 +45,7 @@
             options = {
               server = mkOption {
                 type = str;
-                description = "NFS server address, e.g. 10.69.10.1 (da-gr75).";
+                description = "NFS server address, e.g. 10.32.10.1 (da-gr75).";
               };
               remote = mkOption {
                 type = str;
@@ -74,17 +82,25 @@
       host,
       lib,
       config,
+      pkgs,
+      inputs,
       ...
     }:
     let
       enable-exports = host.nfs.exports != [ ];
       enable-mounts = host.nfs.mounts != [ ];
+
+      topology = lib.rbn.from-yaml "${inputs.self}/src/topology.yaml" { inherit pkgs; };
+      lab-cidr = topology.networks.${host.datacenter}.lab.cidr;
     in
     {
       services.nfs.server = lib.mkIf enable-exports {
         enable = true;
         exports =
-          (lib.concatMapStringsSep "\n" (e: "${e.path} ${e.clients}(${e.options})") host.nfs.exports) + "\n";
+          (lib.concatMapStringsSep "\n" (
+            e: "${e.path} ${if e.clients == null then lab-cidr else e.clients}(${e.options})"
+          ) host.nfs.exports)
+          + "\n";
       };
       networking.firewall.allowedTCPPorts = lib.mkIf enable-exports [ 2049 ];
 

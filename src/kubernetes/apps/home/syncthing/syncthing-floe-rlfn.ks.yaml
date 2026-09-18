@@ -16,7 +16,7 @@ spec:
       ST_KEY: floe-rlfn
       ST_DB_SIZE: 5Gi
       ST_MEM_LIMIT: 1Gi
-      ST_LB_IP: 10.69.1.73
+      ST_LB_IP: ${LB_PREFIX}.73
   targetNamespace: home
   prune: true
   sourceRef:

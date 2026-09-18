@@ -16,7 +16,7 @@ spec:
       ST_KEY: gasm-egbe
       ST_DB_SIZE: 5Gi
       ST_MEM_LIMIT: 1Gi
-      ST_LB_IP: 10.69.1.72
+      ST_LB_IP: ${LB_PREFIX}.72
   targetNamespace: home
   prune: true
   sourceRef:

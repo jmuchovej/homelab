@@ -64,15 +64,12 @@ vlans:
     dhcp: "dhcp1"
     pool: "pool1"
 
+  # Addressing is per-DC in `networks` below — lab is the VLAN k8s lives on,
+  # and it must differ between sites. Do not add a cidr/gateway/ranges here.
   lab:
     id: 2
     vlan_id: 69
     name: "lab"
-    cidr: "10.69.0.0/16"
-    gateway: "10.69.0.1"
-    # k8s.lb-pool sits INSIDE this VLAN here; the split range is what keeps
-    # DHCP off it. en overrides both and does not need the split.
-    ranges: ["10.69.0.20-10.69.0.255", "10.69.2.0-10.69.255.254"]
     comment: "Homelab"
     dhcp: "dhcp2"
     pool: "pool2"
@@ -110,22 +107,34 @@ vlans:
     dhcp: "dhcp5"
     pool: "pool5"
 
-k8s:
-  lb-pool: "10.69.1.0/24"
-  vip: "10.69.1.1"
-
-# Per-DC overrides, merged over `vlans` / `k8s` above. List ONLY what must
-# differ between sites: the ranges that carry cross-DC k8s traffic. That is
-# the lab VLAN (the node is the SNAT source for pod egress) and the
-# LoadBalancer pool (where per-app DB LBs live). mgmt/trusted/guest/iot never
-# appear in a cross-DC flow and stay shared — do not renumber them here
-# without a reason that is actually about routing.
+# Per-DC addressing, merged over the shared `vlans` above. Only what must
+# differ between sites is here: the lab VLAN (k8s lives on it, and the node is
+# the SNAT source for pod egress) and its LoadBalancer pool. mgmt/trusted/
+# guest/iot never appear in a cross-DC flow and stay shared — do not renumber
+# them here without a reason that is actually about routing.
+#
+# Each DC takes one /16, numbered to match its holonet subnet: da 10.42.32.0/24
+# → 10.32.0.0/16, en 10.42.36.0/24 → 10.36.0.0/16. Host structure inside is
+# identical at both sites (.0.1 gateway, .1.0/24 LB pool, .1.1 ingress,
+# .1.5x per-app DB LBs, .10.1 NAS, .1x.1 k8s nodes), so only the second octet
+# distinguishes them.
 networks:
+  da:
+    lab:
+      cidr: "10.32.0.0/16"
+      gateway: "10.32.0.1"
+      # k8s.lb-pool sits INSIDE this VLAN; the split is what keeps DHCP off it
+      ranges: ["10.32.0.20-10.32.0.255", "10.32.2.0-10.32.255.254"]
+    k8s:
+      lb-pool: "10.32.1.0/24"
+      vip: "10.32.1.1"
+
   en:
     lab:
-      cidr: "10.36.69.0/24"
-      gateway: "10.36.69.1"
-      ranges: ["10.36.69.50-10.36.69.250"]
+      cidr: "10.36.0.0/16"
+      gateway: "10.36.0.1"
+      # k8s.lb-pool sits INSIDE this VLAN; the split is what keeps DHCP off it
+      ranges: ["10.36.0.20-10.36.0.255", "10.36.2.0-10.36.255.254"]
     k8s:
       lb-pool: "10.36.1.0/24"
       vip: "10.36.1.1"

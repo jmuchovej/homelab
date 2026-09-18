@@ -17,8 +17,8 @@ spec:
       # the index and its maintenance scratch scale with file COUNT, not bytes
       ST_DB_SIZE: 20Gi
       ST_MEM_LIMIT: 4Gi
-      # convention: syncthing sync LBs live at 10.69.1.7x
-      ST_LB_IP: 10.69.1.70
+      # convention: syncthing sync LBs live at ${LB_PREFIX}.7x
+      ST_LB_IP: ${LB_PREFIX}.70
   targetNamespace: home
   prune: true
   sourceRef:

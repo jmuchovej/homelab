@@ -10,6 +10,14 @@ provider "routeros" {
 }
 
 locals {
+  # Lab reservations, same structure as da — `.1.0/24` is the k8s LB pool,
+  # `.4.x` devices, `.1x.1` k8s nodes. The BGP peer below reads t65-1 from
+  # here so the two can never drift.
+  en-lab-hosts = {
+    "t65-1.eth1"      = "10.36.11.1"
+    "hubitat-c8.eth1" = "10.36.4.2"
+  }
+
   en-ports = {
     relay01 = {
       ether2 = { role = "access", access = "mgmt" }
@@ -38,9 +46,9 @@ module "en-relay01" {
 
   bgp = {
     asn          = 64512
-    lb-pool-cidr = "10.69.1.0/24"
+    lb-pool-cidr = local.catalog.k8s-for["en"].lb-pool
     peers = {
-      en-t65-1 = "10.69.11.1"
+      en-t65-1 = local.en-lab-hosts["t65-1.eth1"]
     }
   }
 
@@ -52,15 +60,11 @@ module "en-relay01" {
 
   ports = local.en-ports.relay01
 
-  static-leases = merge({
-    for addr, device in {
-      "10.69.11.1" = "t65-1.eth1",
-      "10.69.4.2"  = "hubitat-c8.eth1",
-      } : device => {
+  static-leases = {
+    for device, addr in local.en-lab-hosts : device => {
       address  = addr
       mac-addr = data.sops_file.topology.data["devices.en-${device}"]
       server   = local.vlans.lab.dhcp
     }
-    },
-  )
+  }
 }

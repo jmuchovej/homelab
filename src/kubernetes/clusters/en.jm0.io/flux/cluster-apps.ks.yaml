@@ -8,8 +8,6 @@ spec:
   # A PVC created while no default StorageClass exists is stamped with
   # storageClassName: "" permanently and never binds — the classes live in
   # cluster-config, so apps must not reconcile ahead of it.
-  # NOTE: en has no storage-classes.yaml yet; it needs one (and an ST_NODE
-  # substitution) before any PVC-claiming app is selected here.
   dependsOn:
     - name: cluster-config
       namespace: flux-system
@@ -37,6 +35,13 @@ spec:
               DC_DOMAIN: en.jm0.io
               DOMAIN: jm0.io
               ADMIN_CIDR: 10.99.0.0/16
+              # must track topology.yaml `networks.en` — lab.cidr,
+              # lab.gateway, k8s.lb-pool, and lb-pool's first three octets
+              LAB_CIDR: 10.36.0.0/16
+              LAB_GATEWAY: 10.36.0.1
+              LAB_PREFIX: 10.36
+              LB_POOL_CIDR: 10.36.1.0/24
+              LB_PREFIX: 10.36.1
           patches:
             - target:
                 group: helm.toolkit.fluxcd.io

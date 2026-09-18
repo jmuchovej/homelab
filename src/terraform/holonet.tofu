@@ -18,10 +18,7 @@ locals {
     }
   }
 
-  k8s-for = {
-    for dc in local.dcs : dc =>
-    merge(local.topology.k8s, try(local.topology.networks[dc].k8s, {}))
-  }
+  k8s-for = { for dc in local.dcs : dc => local.topology.networks[dc].k8s }
 
   catalog = {
     vlans-for    = local.vlans-for

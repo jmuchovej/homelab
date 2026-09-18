@@ -64,7 +64,7 @@ spec:
 
     route:
       # LAN-only, matching the old mesh `public: false` — the internal
-      # gateway (10.69.1.2); needs a router DNS record pointing there
+      # gateway (${LB_PREFIX}.2); needs a router DNS record pointing there
       app:
         hostnames:
           - tautulli.${DC_DOMAIN}

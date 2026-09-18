@@ -18,8 +18,8 @@ spec:
       # carries it.
       APP: split-pro
       DB_SIZE: 2Gi
-      # convention: DB LBs live at 10.69.1.5x/6x
-      DB_LB_IP: 10.69.1.60
+      # convention: DB LBs live at ${LB_PREFIX}.5x/6x
+      DB_LB_IP: ${LB_PREFIX}.60
   targetNamespace: home
   prune: true
   sourceRef:

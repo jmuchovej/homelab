@@ -38,7 +38,7 @@ in
       extra-files = [ ];
     };
 
-    kubernetes.server-addr = "https://10.69.11.1:6443";
+    kubernetes.server-addr = "https://10.32.11.1:6443";
 
     zfs.datasets =
       lib.mapAttrs' sync-tree {

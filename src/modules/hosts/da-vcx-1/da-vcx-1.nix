@@ -11,12 +11,12 @@
 
     nfs.mounts = [
       {
-        server = "10.69.10.1";
+        server = "10.32.10.1";
         remote = "/impulse/home";
         local = "/home";
       }
       {
-        server = "10.69.10.1";
+        server = "10.32.10.1";
         remote = "/impulse/media";
         local = "/srv/media";
       }

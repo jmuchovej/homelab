@@ -21,6 +21,18 @@ provider "routeros" {
 }
 
 locals {
+  # Lab reservations. `.1.0/24` is the k8s LB pool, `.4.x` devices, `.10.1`
+  # NAS, `.1x.1` k8s nodes — the BGP peers above read their addresses from
+  # here so a reservation and its peer can never drift apart.
+  da-lab-hosts = {
+    "da-gr75.eth1"  = "10.32.10.1"
+    "da-vcx-1.eth1" = "10.32.11.1"
+    "da-vcx-2.eth1" = "10.32.12.1"
+    # "da-vcx-3.eth1"   = "10.32.13.1"
+    # "da-vcx-4.eth1"   = "10.32.14.1"
+    "da-hubitat-c8.eth1" = "10.32.4.2"
+  }
+
   da-ports = {
     relay01 = {
       ether2 = { role = "access", access = "mgmt" }
@@ -58,11 +70,11 @@ module "da-relay01" {
 
   bgp = {
     asn          = 64512
-    lb-pool-cidr = "10.69.1.0/24"
+    lb-pool-cidr = local.catalog.k8s-for["da"].lb-pool
     peers = {
-      da-gr75  = "10.69.10.1"
-      da-vcx-1 = "10.69.11.1"
-      da-vcx-2 = "10.69.12.1"
+      da-gr75  = local.da-lab-hosts["da-gr75.eth1"]
+      da-vcx-1 = local.da-lab-hosts["da-vcx-1.eth1"]
+      da-vcx-2 = local.da-lab-hosts["da-vcx-2.eth1"]
     }
   }
 
@@ -128,19 +140,16 @@ module "da-relay01" {
   # No `client-id`: clients send `1:<MAC>` as option 61, so a hostname-style
   # client-id would never match and the lease would fall through to the pool.
   static-leases = merge({
-    for addr, device in {
-      "10.69.10.1" = { name = "da-gr75.eth1", vlan = local.vlans.lab.dhcp },
-      "10.69.11.1" = { name = "da-vcx-1.eth1", vlan = local.vlans.lab.dhcp },
-      "10.69.12.1" = { name = "da-vcx-2.eth1", vlan = local.vlans.lab.dhcp },
-      # "10.69.13.1" = { name = "da-vcx-3.eth1", vlan = local.vlans.lab.dhcp },
-      # "10.69.14.1" = { name = "da-vcx-4.eth1", vlan = local.vlans.lab.dhcp },
-      "10.69.4.2" = { name = "da-hubitat-c8.eth1", vlan = local.vlans.lab.dhcp },
-      "10.66.1.2" = { name = "replicator.wifi", vlan = local.vlans.iot.dhcp },
-      "10.99.1.2" = { name = "da-apple-tv.eth1", vlan = local.vlans.guest.dhcp },
-      } : "${device.name}" => {
-      address  = addr
-      mac-addr = data.sops_file.topology.data["devices.${device.name}"]
-      server   = device.vlan
+    for name, lease in merge(
+      { for n, addr in local.da-lab-hosts : n => { address = addr, vlan = local.vlans.lab.dhcp } },
+      {
+        "replicator.wifi"  = { address = "10.66.1.2", vlan = local.vlans.iot.dhcp }
+        "da-apple-tv.eth1" = { address = "10.99.1.2", vlan = local.vlans.guest.dhcp }
+      }
+      ) : name => {
+      address  = lease.address
+      mac-addr = data.sops_file.topology.data["devices.${name}"]
+      server   = lease.vlan
     }
     }, {
     relay02-mgmt = {

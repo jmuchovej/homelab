@@ -15,8 +15,8 @@ spec:
     substitute:
       APP: readarr
       DB_SIZE: 5Gi
-      # convention: DB LBs live at 10.69.1.5x
-      DB_LB_IP: 10.69.1.56
+      # convention: DB LBs live at ${LB_PREFIX}.5x
+      DB_LB_IP: ${LB_PREFIX}.56
   targetNamespace: media
   prune: true
   sourceRef:

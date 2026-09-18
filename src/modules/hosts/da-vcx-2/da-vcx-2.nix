@@ -2,7 +2,7 @@
   den.hosts.x86_64-linux.da-vcx-2 = {
     nfs.mounts = [
       {
-        server = "10.69.10.1";
+        server = "10.32.10.1";
         remote = "/impulse/home";
         local = "/home";
       }
