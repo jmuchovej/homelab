@@ -23,7 +23,7 @@ resource "routeros_ip_dns_record" "dc-vip-split-horizon" {
 
   type            = "A"
   name            = "${local.dc}.${var.catalog.root-domain}"
-  address         = var.catalog.vip
+  address         = local.vip
   match_subdomain = true
   comment         = "split-horizon: *.${local.dc}.${var.catalog.root-domain} → VIP"
 }

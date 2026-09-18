@@ -22,7 +22,7 @@ resource "routeros_ip_dns_record" "da-apex" {
   provider = routeros.da-relay01
   type     = "CNAME"
   name     = local.domain.da
-  cname    = local.catalog.vip
+  cname    = local.catalog.k8s-for["da"].vip
   ttl      = 60
   comment  = "da datacenter apex — tracks da-relay01 DDNS"
 }
@@ -31,7 +31,7 @@ resource "routeros_ip_dns_record" "da-wildcard" {
   provider = routeros.da-relay01
   type     = "CNAME"
   name     = "*.${local.domain.da}"
-  cname    = local.catalog.vip
+  cname    = local.catalog.k8s-for["da"].vip
   ttl      = 60
   comment  = "da datacenter wildcard — tracks da-relay01 DDNS"
 }

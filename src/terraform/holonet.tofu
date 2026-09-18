@@ -7,9 +7,25 @@ locals {
 
   vlans = local.topology.vlans
 
+  dcs = toset([for k, _ in local.topology.network : split("-", k)[0]])
+
+  # Shared `vlans` / `k8s` with `networks.<dc>` merged over them. A DC that
+  # differs nowhere needs no `networks` entry at all.
+  vlans-for = {
+    for dc in local.dcs : dc => {
+      for k, v in local.topology.vlans : k =>
+      merge(v, try(local.topology.networks[dc][k], {}))
+    }
+  }
+
+  k8s-for = {
+    for dc in local.dcs : dc =>
+    merge(local.topology.k8s, try(local.topology.networks[dc].k8s, {}))
+  }
+
   catalog = {
-    vlans        = local.vlans
-    vip          = "10.69.1.1"
+    vlans-for    = local.vlans-for
+    k8s-for      = local.k8s-for
     lan-supernet = "10.0.0.0/8"
 
     holonet-subnets       = local.topology.subnets
@@ -63,8 +79,6 @@ locals {
     for rk, _ in local.topology.network : rk =>
     contains(values(local.holonet-client-home-relay), rk)
   }
-
-  holonet-mgmt-base = join(".", slice(split(".", cidrhost(local.vlans.mgmt.cidr, 0)), 0, 3))
 
   holonet-peer-mgmt-ip = {
     for k, _ in local.topology.network : k =>

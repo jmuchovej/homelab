@@ -70,8 +70,8 @@ vlans:
     name: "lab"
     cidr: "10.69.0.0/16"
     gateway: "10.69.0.1"
-    # 10.69.1.0/24 carved out for the K8s LoadBalancer pool (Cilium LB-IPAM +
-    # BGP). Ingress lands on 10.69.1.1; DHCP must not hand those out.
+    # k8s.lb-pool sits INSIDE this VLAN here; the split range is what keeps
+    # DHCP off it. en overrides both and does not need the split.
     ranges: ["10.69.0.20-10.69.0.255", "10.69.2.0-10.69.255.254"]
     comment: "Homelab"
     dhcp: "dhcp2"
@@ -109,3 +109,23 @@ vlans:
     comment: "IoT"
     dhcp: "dhcp5"
     pool: "pool5"
+
+k8s:
+  lb-pool: "10.69.1.0/24"
+  vip: "10.69.1.1"
+
+# Per-DC overrides, merged over `vlans` / `k8s` above. List ONLY what must
+# differ between sites: the ranges that carry cross-DC k8s traffic. That is
+# the lab VLAN (the node is the SNAT source for pod egress) and the
+# LoadBalancer pool (where per-app DB LBs live). mgmt/trusted/guest/iot never
+# appear in a cross-DC flow and stay shared — do not renumber them here
+# without a reason that is actually about routing.
+networks:
+  en:
+    lab:
+      cidr: "10.36.69.0/24"
+      gateway: "10.36.69.1"
+      ranges: ["10.36.69.50-10.36.69.250"]
+    k8s:
+      lb-pool: "10.36.1.0/24"
+      vip: "10.36.1.1"

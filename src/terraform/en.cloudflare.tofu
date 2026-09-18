@@ -22,7 +22,7 @@ resource "routeros_ip_dns_record" "en-apex" {
   provider = routeros.en-relay01
   type     = "CNAME"
   name     = local.domain.en
-  cname    = local.catalog.vip
+  cname    = local.catalog.k8s-for["en"].vip
   ttl      = 60
   comment  = "en datacenter apex — tracks en-relay01 DDNS"
 }
@@ -31,7 +31,7 @@ resource "routeros_ip_dns_record" "en-wildcard" {
   provider = routeros.en-relay01
   type     = "CNAME"
   name     = "*.${local.domain.en}"
-  cname    = local.catalog.vip
+  cname    = local.catalog.k8s-for["en"].vip
   ttl      = 60
   comment  = "en datacenter wildcard — tracks en-relay01 DDNS"
 }
