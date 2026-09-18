@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # the app-user creds, shared with the primary — the replica inherits the
+  # role from pg_basebackup, but the secret must exist for the app to use
+  # after a promotion
+  - ../cnpg-database/external-secret.yaml
+  - ./external-secret.yaml
+  - ./cluster.yaml
