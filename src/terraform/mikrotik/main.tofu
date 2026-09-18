@@ -90,9 +90,13 @@ variable "static-leases" {
     address   = string
     mac-addr  = string
     client-id = optional(string)
-    server    = string
+    vlan      = string # catalog vlans key, same as ports' `access`
   }))
-  description = "Static DHCP reservations. `server` must name an existing dhcp-server."
+  description = <<-EOT
+    Static DHCP reservations, keyed by device name.
+    `vlan` names the catalog VLAN whose dhcp-server issues the lease — the
+    resource resolves it to that server, so the lease cannot outlive it.
+  EOT
   default     = {}
 }
 

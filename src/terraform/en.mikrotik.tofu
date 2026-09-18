@@ -64,7 +64,7 @@ module "en-relay01" {
     for device, addr in local.en-lab-hosts : device => {
       address  = addr
       mac-addr = data.sops_file.topology.data["devices.en-${device}"]
-      server   = local.vlans.lab.dhcp
+      vlan     = "lab"
     }
   }
 }

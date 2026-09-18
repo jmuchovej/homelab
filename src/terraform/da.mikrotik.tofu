@@ -141,21 +141,21 @@ module "da-relay01" {
   # client-id would never match and the lease would fall through to the pool.
   static-leases = merge({
     for name, lease in merge(
-      { for n, addr in local.da-lab-hosts : n => { address = addr, vlan = local.vlans.lab.dhcp } },
+      { for n, addr in local.da-lab-hosts : n => { address = addr, vlan = "lab" } },
       {
-        "replicator.wifi"  = { address = "10.66.1.2", vlan = local.vlans.iot.dhcp }
-        "da-apple-tv.eth1" = { address = "10.99.1.2", vlan = local.vlans.guest.dhcp }
+        "replicator.wifi"  = { address = "10.66.1.2", vlan = "iot" }
+        "da-apple-tv.eth1" = { address = "10.99.1.2", vlan = "guest" }
       }
       ) : name => {
       address  = lease.address
       mac-addr = data.sops_file.topology.data["devices.${name}"]
-      server   = lease.vlan
+      vlan     = lease.vlan
     }
     }, {
     relay02-mgmt = {
       address  = "10.42.0.2"
       mac-addr = data.sops_file.da-relay02.data["bridge-mac"]
-      server   = local.vlans.mgmt.dhcp
+      vlan     = "mgmt"
     }
   })
 }

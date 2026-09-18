@@ -12,52 +12,45 @@ resource "routeros_ip_dhcp_server" "vlan" {
 }
 
 locals {
-  vlan_dhcp_networks = (
-    local.is-router
-    ? {
-      for k, v in local.vlans : k => {
-        cidr       = v.cidr
-        gateway    = v.gateway
-        dns_server = v.gateway
-      }
-    }
-    : {}
-  )
+  vlan_dhcp_networks = local.is-router ? { for k, v in local.vlans : k => v.cidr } : {}
 
   extra_dhcp_networks = (
     local.is-router
     ? {
       for k, v in var.extra-addrs : k => {
-        cidr       = "${v.network}/${split("/", v.address)[1]}"
-        gateway    = split("/", v.address)[0]
-        dns_server = split("/", v.address)[0]
-        comment    = try(v.comment, null)
+        cidr    = "${v.network}/${split("/", v.address)[1]}"
+        comment = try(v.comment, null)
       }
     }
     : {}
   )
 }
 
+# gateway/dns_server READ THE ADDRESS RESOURCE rather than the topology literal
+# they're both derived from. Holding the same fact twice is what let a failed
+# address update ship a DHCP scope pointing at a gateway that was never
+# created, stranding every client on the VLAN; the reference also makes the
+# dependency implicit, so a failure here skips instead of applying.
+locals {
+  vlan_gateway  = { for k, _ in local.vlan_dhcp_networks : k => split("/", routeros_ip_address.vlan_primary[k].address)[0] }
+  extra_gateway = { for k, _ in local.extra_dhcp_networks : k => split("/", routeros_ip_address.extra[k].address)[0] }
+}
+
 resource "routeros_ip_dhcp_server_network" "vlan" {
   for_each = local.vlan_dhcp_networks
 
-  address    = each.value.cidr
-  gateway    = each.value.gateway
-  dns_server = [each.value.dns_server]
+  address    = each.value
+  gateway    = local.vlan_gateway[each.key]
+  dns_server = [local.vlan_gateway[each.key]]
   comment    = "${local.vlans[each.key].comment} DHCP"
-
-  # `gateway` is a topology literal, not a reference to the address resource,
-  # so without this tofu will happily tell clients to use a gateway whose
-  # creation failed. That combination strands every DHCP client on the VLAN.
-  depends_on = [routeros_ip_address.vlan_primary]
 }
 
 resource "routeros_ip_dhcp_server_network" "extra" {
   for_each = local.extra_dhcp_networks
 
   address    = each.value.cidr
-  gateway    = each.value.gateway
-  dns_server = [each.value.dns_server]
+  gateway    = local.extra_gateway[each.key]
+  dns_server = [local.extra_gateway[each.key]]
   comment    = each.value.comment
 }
 
@@ -67,9 +60,7 @@ resource "routeros_ip_dhcp_server_lease" "static" {
   address     = each.value.address
   mac_address = each.value.mac-addr
   client_id   = each.value.client-id
-  server      = each.value.server
-
-  depends_on = [routeros_ip_dhcp_server.vlan]
+  server      = routeros_ip_dhcp_server.vlan[each.value.vlan].name
 }
 
 resource "routeros_ip_dhcp_client" "wan" {
