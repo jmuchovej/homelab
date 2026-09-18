@@ -77,8 +77,17 @@ resource "routeros_ip_pool" "vlan" {
   name    = "pool${each.value.id}"
   ranges  = each.value.ranges
   comment = each.value.comment
+
+  # If the VLAN's primary address fails to set, the address pool shouldn't be
+  # updated. (Since this will cause leases to mismatch the actual target IP.)
+  depends_on = [routeros_ip_address.vlan_primary]
 }
 
+# Until terraform-routeros#944 is resolved, this can't be altered once set via
+# `tofu`. RouterOS returns `vrf` as read-only and provider 1.99.1 echoes it back
+# on update – the REST API answers 400 "unknown parameter vrf".
+# NOTE: Update fails *and* the provider still writes the new value into state.
+# NOTE: This must be PATCHed by hand OR `tofu apply -replace=`.
 resource "routeros_ip_address" "vlan_primary" {
   for_each = local.vlan-ip-assignments
 

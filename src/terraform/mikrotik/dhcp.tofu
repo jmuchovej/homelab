@@ -45,6 +45,11 @@ resource "routeros_ip_dhcp_server_network" "vlan" {
   gateway    = each.value.gateway
   dns_server = [each.value.dns_server]
   comment    = "${local.vlans[each.key].comment} DHCP"
+
+  # `gateway` is a topology literal, not a reference to the address resource,
+  # so without this tofu will happily tell clients to use a gateway whose
+  # creation failed. That combination strands every DHCP client on the VLAN.
+  depends_on = [routeros_ip_address.vlan_primary]
 }
 
 resource "routeros_ip_dhcp_server_network" "extra" {

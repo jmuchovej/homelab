@@ -45,6 +45,31 @@ read-only fields; the warnings are benign). Pass-through args work:
   doesn't depend on that relay's wifi.
 - BGP timers: pin `keepalive_time` on the RouterOS **connection** resource
   (not just the template), or Cilium sessions flap with hold-timer-expired.
+- **A failed update still lands in state.** When the REST call errors, the
+  provider returns the _planned_ value anyway, so tofu records a change the
+  device never made. The next plan is clean while reality has drifted — and
+  because the error is per-resource, the rest of the apply proceeds around it.
+  After any partially-failed apply, verify against the device (`curl -k -u
+terraform:<pw> https://<relay>/rest/<path>`) before trusting a plan; treat
+  the clean plan as the symptom, not the all-clear.
+
+## Partial applies split a device against itself
+
+A single relay is many resources with no edges between them, so one failure
+leaves the rest applied. The dangerous pairs are the ones that only agree
+because they read the same `topology.yaml` literal — nothing in the graph
+knows they must move together. The 2026-09-18 renumber hit exactly this: the
+lab `routeros_ip_address` failed while its pool and DHCP network applied, so
+both relays handed out leases pointing at a gateway that did not exist and
+every node on the VLAN lost its default route (including the k8s nodes, which
+took Tailscale and ZeroTier down with them, leaving only the relays
+reachable).
+
+Where a device-side invariant spans resources, spell it out with `depends_on`
+so a failure skips the dependents instead of stranding clients — the DHCP pool
+and server network now depend on `routeros_ip_address.vlan_primary` for this
+reason. When adding a resource that hands clients addressing, ask what must
+already exist on the device for that config to be valid, and encode it.
 
 ## Control-plane access
 
