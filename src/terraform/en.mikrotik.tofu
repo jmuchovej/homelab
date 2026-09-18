@@ -36,6 +36,14 @@ module "en-relay01" {
   role     = "router"
   wan-port = "ether1"
 
+  bgp = {
+    asn          = 64512
+    lb-pool-cidr = "10.69.1.0/24"
+    peers = {
+      en-t65-1 = "10.69.11.1"
+    }
+  }
+
   bridge-mac = data.sops_file.en-relay01.data["bridge-mac"]
 
   enable-wan-dhcp = true
