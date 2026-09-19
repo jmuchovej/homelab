@@ -2,5 +2,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # The SAME grant the primary site applies. Cross-namespace backendRefs are
+  # denied without one, so a SecurityPolicy here is rejected with "not
+  # permitted by any ReferenceGrant" and ext-auth fails closed — a 500 on
+  # every gated route. It is shared rather than copied so the `from`
+  # namespaces cannot drift between sites; `${AK_OUTPOST_PROXY}` resolves to
+  # whichever outpost authentik deployed into THIS cluster.
+  - ../../authentik/app/reference-grant.yaml
   - ./oci-repository.yaml
   - ./helm-release.yaml
