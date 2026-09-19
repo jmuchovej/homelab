@@ -8,6 +8,20 @@ spec:
     kind: OCIRepository
     name: *name
   interval: 1h
+  # Chart 2.1.0 sets `app.kubernetes.io/version` from `.Chart.Version` without
+  # the `replace "+" "_"` it applies to `helm.sh/chart` two lines earlier. Flux
+  # reports an OCIRepository chart as `2.1.0+<digest>`, and `+` is illegal in a
+  # label value, so every object in the release is rejected at apply. The label
+  # is pure metadata — nothing selects on it — so it is dropped rather than
+  # rewritten, which would just pin a version that drifts.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: (ServiceAccount|Secret|Role|RoleBinding|ClusterRole|ClusterRoleBinding)
+            patch: |
+              - op: remove
+                path: /metadata/labels/app.kubernetes.io~1version
   values:
     # RBAC ONLY — no authentik runs here. The chart is a ServiceAccount plus
     # the permissions the PRIMARY site's authentik needs to deploy and manage
