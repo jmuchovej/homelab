@@ -45,7 +45,15 @@ resource "authentik_service_connection_kubernetes" "remote" {
 resource "authentik_outpost" "site" {
   for_each = local.active-outposts
 
-  name = "${upper(each.value.site)} ${title(each.value.type)}"
+  # The NAME decides the deployed object names (`ak-outpost-<slug>`), which
+  # every SecurityPolicy and HTTPRoute references. The site authentik runs in
+  # keeps the bare name so those references hold; only remote sites are
+  # prefixed, and each cluster points at its own via ${AK_OUTPOST_PROXY}.
+  name = (
+    contains(var.remote-clusters, each.value.site)
+    ? "${upper(each.value.site)} ${title(each.value.type)}"
+    : title(each.value.type)
+  )
   type = each.value.type
 
   # `local` for the site authentik itself runs in; every other site is reached

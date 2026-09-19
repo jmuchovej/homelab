@@ -17,7 +17,7 @@ spec:
             type: PathPrefix
             value: /outpost.goauthentik.io
       backendRefs:
-        - name: ak-outpost-proxy
+        - name: ${AK_OUTPOST_PROXY}
           namespace: auth
           port: 9000
 ---

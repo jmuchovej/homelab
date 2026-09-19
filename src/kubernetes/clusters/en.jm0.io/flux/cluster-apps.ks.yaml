@@ -42,6 +42,10 @@ spec:
               LAB_PREFIX: "10.36"
               LB_POOL_CIDR: "10.36.1.0/24"
               LB_PREFIX: "10.36.1"
+              # the proxy outpost da's authentik deploys INTO this cluster.
+              # Prefixed because this is a REMOTE site — see the outpost
+              # naming in terraform/authentik/apps.outposts.tofu.
+              AK_OUTPOST_PROXY: "ak-outpost-en-proxy"
           patches:
             - target:
                 group: helm.toolkit.fluxcd.io

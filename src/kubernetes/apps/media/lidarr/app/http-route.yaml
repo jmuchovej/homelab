@@ -18,7 +18,7 @@ spec:
             type: PathPrefix
             value: /outpost.goauthentik.io
       backendRefs:
-        - name: ak-outpost-proxy
+        - name: ${AK_OUTPOST_PROXY}
           namespace: auth
           port: 9000
     # The API bypasses ext-auth at the ROUTE layer (X-Api-Key-authenticated

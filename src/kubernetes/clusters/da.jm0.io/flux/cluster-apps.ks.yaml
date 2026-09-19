@@ -42,6 +42,10 @@ spec:
               LAB_PREFIX: "10.32"
               LB_POOL_CIDR: "10.32.1.0/24"
               LB_PREFIX: "10.32.1"
+              # the proxy outpost authentik deploys INTO this cluster. Tracks
+              # the tofu outpost name: bare at the site authentik runs in,
+              # `<site>-` prefixed at remote ones.
+              AK_OUTPOST_PROXY: "ak-outpost-proxy"
               # node owning the bulk pool — pool PATHS are a portable
               # convention, node names are not
               ST_NODE: da-gr75

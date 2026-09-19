@@ -16,7 +16,7 @@ spec:
     http:
       backendRefs:
         # authentik-deployed from the tofu-managed "Proxy" outpost
-        - name: ak-outpost-proxy
+        - name: ${AK_OUTPOST_PROXY}
           namespace: auth
           port: 9000
       path: /outpost.goauthentik.io/auth/envoy
