@@ -2,6 +2,28 @@ variable "name" {
   type = string
 }
 
+variable "site" {
+  type        = string
+  description = <<-EOT
+    Datacenter this instance of the app lives in. Decides which site's outpost
+    carries its provider, and by default suffixes the slug — so the same
+    service at two sites gets two identities, which it needs because the two
+    serve different hostnames.
+  EOT
+}
+
+variable "site-scoped" {
+  type        = bool
+  default     = false
+  description = <<-EOT
+    Whether the slug carries `-<site>`. Set only when the SAME service runs at
+    more than one DC: those are two applications serving two hostnames, so
+    they need separate providers and OAuth clients. An app at a single site
+    cannot collide, and suffixing it would rename its authentik objects and
+    its secrets/authentik.sops.yaml keys for nothing.
+  EOT
+}
+
 variable "group" {
   type = string
 }

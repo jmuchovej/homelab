@@ -6,7 +6,13 @@ terraform {
 }
 
 locals {
-  slug = replace(replace(lower(var.name), " ", "-"), "/[^-a-z0-9]/", "")
+  base-slug = replace(replace(lower(var.name), " ", "-"), "/[^-a-z0-9]/", "")
+
+  # When a service does run at both DCs, `-<site>` belongs in the SLUG and not
+  # just the map key: the slug names the authentik objects and keys this app's
+  # credentials in secrets/authentik.sops.yaml, so without it the two sites
+  # collide on one application and share one OAuth client.
+  slug = var.site-scoped ? "${local.base-slug}-${var.site}" : local.base-slug
 }
 
 data "sops_file" "authentik" {

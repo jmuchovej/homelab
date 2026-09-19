@@ -62,8 +62,14 @@ variable "remote-cluster-kubeconfigs" {
 }
 
 variable "discovered-apps" {
+  # This type is a FILTER, not just a check: tofu coerces the incoming value
+  # to it and silently drops any attribute missing here. An attribute added in
+  # ak.discovery.tofu but not added below simply never arrives, and the only
+  # symptom is an "object does not have an attribute" error at the consumer.
   type = map(object({
     name        = string
+    site        = string
+    site-scoped = optional(bool, false)
     group       = string
     type        = string
     client_type = optional(string, "confidential")

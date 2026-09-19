@@ -71,6 +71,41 @@ and server network now depend on `routeros_ip_address.vlan_primary` for this
 reason. When adding a resource that hands clients addressing, ask what must
 already exist on the device for that config to be valid, and encode it.
 
+## authentik is one instance, many sites
+
+Core (server, worker, database) runs only at da. Other sites install the
+`authentik-remote-cluster` chart — RBAC only — and da's authentik reaches
+their Kubernetes API to deploy **outposts into them**. An app at another site
+authenticates against an outpost in its own cluster, so there is never a
+second authentik, second database, or second signing keypair.
+
+Everything cross-site is addressed over **ZeroTier**, the only link between
+the datacenters and only at node level: a lab address is not routable from
+another site, and the ZeroTier address is an explicit `--tls-san` while lab
+IPs are in the apiserver cert only because k3s adds the current node IP.
+
+- **One `kubernetes` provider per DC, `config_context` pinned.** An unaliased
+  provider follows whatever context is current, so discovery silently reported
+  one cluster's routes as the whole homelab.
+- **Only apps discovered at MORE than one DC are keyed and slugged
+  `<name>-<site>`.** The same service at two sites serves two hostnames, so it
+  is two applications with two providers and two OAuth clients, and the slug —
+  not just the map key — has to carry the site, because the slug names the
+  authentik objects and keys the app's credentials in
+  `secrets/authentik.sops.yaml`. An app at one site cannot collide and keeps
+  its bare name; suffixing it would rename its objects and sops keys for
+  nothing.
+- That split is **derived from where routes are actually discovered**, not
+  declared, so it cannot drift from reality. The cost: selecting an existing
+  app into a second cluster renames the first one's slug. It surfaces in the
+  plan as a replace, and its sops keys must move with it.
+- **Outposts are per site AND type**, each bound to that site's service
+  connection — `local` for da, a remote kubeconfig elsewhere. A provider on
+  the wrong site's outpost is proxied by a pod that cannot route to it.
+- Renaming an app's key or slug needs a `moved` block (`ak.moved.tofu`), or
+  tofu destroys and recreates the application, discarding its provider and
+  every consent bound to it.
+
 ## Control-plane access
 
 Direction of travel: ZeroTier as the management path (native on RouterOS);

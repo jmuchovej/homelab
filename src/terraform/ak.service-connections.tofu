@@ -2,20 +2,7 @@
 # INSIDE another cluster, so apps there authenticate against a local outpost
 # instead of needing a second authentik. The kubeconfig is assembled from the
 # ServiceAccount that cluster's `authentik-remote-cluster` chart creates.
-#
-# `config_context` is pinned: the unaliased provider in ak.discovery.tofu
-# follows whatever context is current, which is fine with one cluster and
-# wrong the moment there are two.
-provider "kubernetes" {
-  alias = "en"
-  config_paths = [
-    "~/.kube/config",
-    "~/.kube/config.d/da.yaml",
-    "~/.kube/config.d/en.yaml",
-  ]
-  config_context = "en"
-}
-
+# Providers are defined in ak.discovery.tofu.
 data "kubernetes_secret_v1" "authentik-remote-en" {
   provider = kubernetes.en
 

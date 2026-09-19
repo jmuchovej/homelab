@@ -6,6 +6,7 @@ locals {
   frozen-apps = {
     openbao = {
       name       = "OpenBao"
+      site       = "da"
       group      = "Compute"
       type       = "oauth"
       icon       = "sh:openbao"
@@ -24,6 +25,7 @@ locals {
     }
     relay01 = {
       name       = "Router: Relay01"
+      site       = "da"
       group      = "Home"
       type       = "proxy"
       icon       = "di:mikrotik"
@@ -42,6 +44,7 @@ locals {
     }
     relay02 = {
       name       = "Router: Relay02"
+      site       = "da"
       group      = "Home"
       type       = "proxy"
       icon       = "di:mikrotik"
@@ -60,6 +63,7 @@ locals {
     }
     s3 = {
       name       = "MinIO"
+      site       = "da"
       group      = "Compute"
       type       = "oauth"
       icon       = "di:minio"
@@ -79,6 +83,7 @@ locals {
     # Delete once the syncthing HTTPRoute is discovered.
     syncthing = {
       name       = "Syncthing"
+      site       = "da"
       group      = "Sync"
       type       = "proxy"
       icon       = "di:syncthing"
@@ -103,6 +108,8 @@ module "authentik-app" {
   for_each = local.apps
 
   name            = each.value.name
+  site            = each.value.site
+  site-scoped     = try(each.value.site-scoped, false)
   group           = each.value.group
   type            = each.value.type
   client_type     = try(each.value.client_type, "confidential")
@@ -145,7 +152,10 @@ module "authentik-app" {
 module "authentik-app-tailscale" {
   source = "./app"
 
-  name  = "Tailscale"
+  name = "Tailscale"
+  # SaaS, not a workload at either site: it is reached at tailscale.com, so
+  # there is nothing to suffix and no outpost to place.
+  site  = "da"
   group = "Compute"
   type  = "oauth"
   icon  = "di:tailscale"
