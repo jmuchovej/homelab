@@ -40,6 +40,27 @@ variable "permissions" {
 }
 
 # Apps discovered from cluster HTTPRoutes in ak.discovery.tofu at root.
+variable "remote-clusters" {
+  type        = set(string)
+  description = <<-EOT
+    Sites whose Kubernetes API authentik may deploy outposts into, keyed by
+    site (e.g. "en"). Each needs the `authentik-remote-cluster` chart
+    installed there. da is not listed — it uses a `local` connection.
+  EOT
+  default     = []
+}
+
+variable "remote-cluster-kubeconfigs" {
+  type        = map(string)
+  sensitive   = true
+  default     = {}
+  description = <<-EOT
+    JSON kubeconfig per site from `remote-clusters`. Kept OUT of that set so
+    the sensitive taint does not spread to the value used for `for_each`,
+    which tofu rejects — same split as mikrotik's `wifi-passphrases`.
+  EOT
+}
+
 variable "discovered-apps" {
   type = map(object({
     name        = string

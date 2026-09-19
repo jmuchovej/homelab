@@ -1,0 +1,24 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &name authentik-remote-cluster
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: *name
+  interval: 1h
+  values:
+    # RBAC ONLY — no authentik runs here. The chart is a ServiceAccount plus
+    # the permissions the PRIMARY site's authentik needs to deploy and manage
+    # outposts into this cluster over its Kubernetes API.
+    serviceAccountSecret:
+      # a `kubernetes.io/service-account-token` Secret, so the token does not
+      # expire the way a projected/bound token would. tofu reads it to build
+      # the service connection's kubeconfig.
+      enabled: true
+    clusterRole:
+      # the namespaced Role covers the outpost workloads; the ClusterRole adds
+      # `list` on CRDs, which authentik uses to detect what it may create
+      # (HTTPRoute vs Ingress vs Traefik middleware) before deploying.
+      enabled: true

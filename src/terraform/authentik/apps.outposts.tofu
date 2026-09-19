@@ -23,6 +23,17 @@ resource "authentik_service_connection_kubernetes" "local" {
   local = true
 }
 
+# The same mechanism aimed at another cluster's API. An app at a remote site
+# then authenticates against an outpost deployed INTO that site, rather than
+# needing an authentik of its own — which would mean a second database, and
+# so a second signing keypair.
+resource "authentik_service_connection_kubernetes" "remote" {
+  for_each = var.remote-clusters
+
+  name       = "${each.value}-cluster"
+  kubeconfig = var.remote-cluster-kubeconfigs[each.value]
+}
+
 resource "authentik_outpost" "proxy" {
   count              = length(local.proxy-providers) > 0 ? 1 : 0
   name               = "Proxy"

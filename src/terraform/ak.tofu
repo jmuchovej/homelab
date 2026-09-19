@@ -11,9 +11,11 @@ module "authentik" {
     authentik = authentik
   }
 
-  domain          = local.domain
-  permissions     = var.authentik-builtins.permissions
-  discovered-apps = local.ak-discovered-apps
+  domain                     = local.domain
+  permissions                = var.authentik-builtins.permissions
+  discovered-apps            = local.ak-discovered-apps
+  remote-clusters            = keys(local.ak-remote-clusters)
+  remote-cluster-kubeconfigs = local.ak-remote-kubeconfigs
 }
 
 import {

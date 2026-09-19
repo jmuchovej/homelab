@@ -3,6 +3,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../core
+  # auth (en) — RBAC ONLY. authentik itself runs at da and reaches this
+  # cluster's API to deploy outposts into it, so anything here gated by
+  # `authentik.rbn/*` gets a LOCAL ak-outpost to authenticate against without
+  # a second IdP. Needs the matching service connection in tofu.
+  - ../../../apps/auth/namespace.yaml
+  - ../../../apps/auth/remote-cluster
   # en-specific apps go here as en's role is defined. App-level, e.g.:
   # - ../../../apps/local-ai/namespace.yaml
   # - ../../../apps/local-ai/ollama       # GPU inference on en-t65-1
