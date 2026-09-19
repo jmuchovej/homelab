@@ -1,1 +1,0 @@
-../../src/kubernetes/components/cnpg-replica/AGENTS.md

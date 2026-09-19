@@ -9,7 +9,6 @@ resources:
   - ./helm-release.yaml
   - ./http-route.yaml
   - ./reference-grant.yaml
-  - ./push-secret.yaml
 
 configMapGenerator:
   - name: authentik-blueprints

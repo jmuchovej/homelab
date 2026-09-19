@@ -3,14 +3,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../core
-  # auth (en) — the DATABASE ONLY, as a warm standby streaming from da.
-  # authentik itself is deliberately absent: a second Helm release on a
-  # second database is a second IdP with a different JWKS, and id.${DOMAIN}
-  # can never be load-balanced across them. The HelmRelease goes in HERE,
-  # by hand, only as part of a promotion — see
-  # components/cnpg-replica/AGENTS.md.
-  - ../../../apps/auth/namespace.yaml
-  - ../../../apps/auth/authentik/replica
   # en-specific apps go here as en's role is defined. App-level, e.g.:
   # - ../../../apps/local-ai/namespace.yaml
   # - ../../../apps/local-ai/ollama       # GPU inference on en-t65-1

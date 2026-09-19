@@ -27,8 +27,6 @@ each directory's `AGENTS.md` holds its parameters and rationale:
 
 - `cnpg-database/` — per-app postgres (CNPG `Cluster` + creds + NetworkPolicy)
 - `cnpg-import/` — one-off migration of an app's DB from the NixOS postgres
-- `cnpg-replica/` — cross-DC warm standby streaming from a primary in the
-  other datacenter; read-only until deliberately promoted
 
 ## Adding a building block
 
