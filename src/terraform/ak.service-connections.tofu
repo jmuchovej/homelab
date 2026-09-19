@@ -3,12 +3,29 @@
 # instead of needing a second authentik. The kubeconfig is assembled from the
 # ServiceAccount that cluster's `authentik-remote-cluster` chart creates.
 # Providers are defined in ak.discovery.tofu.
+# Kubernetes creates this ServiceAccount token, so tofu can only ever READ it:
+# the k8s half has to land first. A missing Secret does not fail the read — the
+# provider hands back a null `data` — so without this postcondition the error
+# surfaces much later as "attempt to index null value" in the kubeconfig.
 data "kubernetes_secret_v1" "authentik-remote-en" {
   provider = kubernetes.en
 
   metadata {
     name      = "authentik-remote-cluster"
     namespace = "auth"
+  }
+
+  lifecycle {
+    postcondition {
+      condition     = self.data != null && lookup(self.data, "token", "") != ""
+      error_message = <<-EOT
+        No populated `authentik-remote-cluster` ServiceAccount token in en's
+        `auth` namespace. Push the Kubernetes side and let Flux reconcile
+        `apps/auth/remote-cluster` first — tofu reads this token, it cannot
+        create it. Check with:
+          kubectl --context en get secret authentik-remote-cluster -n auth
+      EOT
+    }
   }
 }
 
