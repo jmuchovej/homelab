@@ -23,9 +23,9 @@ spec:
       APP: homebox
       DB_SIZE: 2Gi
       HOST: homebox-db-rw.home-automation.svc.cluster.local
-      # convention: DB LBs live at ${LB_PREFIX}.5x (IP frees when the old
-      # cluster's LB is deleted; pending until then is harmless)
-      DB_LB_IP: ${LB_PREFIX}.58
+      # convention: DB LBs live at .5x within the cluster's LB pool (IP frees
+      # when the old cluster's LB is deleted; pending until then is harmless)
+      DB_LB_OCTET: "58"
   targetNamespace: home
   prune: true
   sourceRef:

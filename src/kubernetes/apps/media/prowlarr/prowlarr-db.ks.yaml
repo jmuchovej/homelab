@@ -15,8 +15,8 @@ spec:
     substitute:
       APP: prowlarr
       DB_SIZE: 5Gi
-      # convention: DB LBs live at ${LB_PREFIX}.5x
-      DB_LB_IP: ${LB_PREFIX}.57
+      # convention: DB LBs live at .5x within the cluster's LB pool
+      DB_LB_OCTET: "57"
   targetNamespace: media
   prune: true
   sourceRef:

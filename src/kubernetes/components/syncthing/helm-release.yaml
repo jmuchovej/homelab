@@ -102,7 +102,7 @@ spec:
         forceRename: syncthing-${ST_KEY}-sync
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: "${ST_LB_IP}"
+          lbipam.cilium.io/ips: "${LB_PREFIX}.${ST_LB_OCTET}"
         ports:
           tcp:
             port: 22000

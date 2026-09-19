@@ -18,8 +18,8 @@ spec:
       # carries it.
       APP: split-pro
       DB_SIZE: 2Gi
-      # convention: DB LBs live at ${LB_PREFIX}.5x/6x
-      DB_LB_IP: ${LB_PREFIX}.60
+      # convention: DB LBs live at .5x/.6x within the cluster's LB pool
+      DB_LB_OCTET: "60"
   targetNamespace: home
   prune: true
   sourceRef:

@@ -22,7 +22,11 @@ spec:
             metadata:
               name: ${APP}-db-lb
               annotations:
-                lbipam.cilium.io/ips: "${DB_LB_IP}"
+                # composed HERE, not handed in whole: Flux substitutes into
+                # manifests in a single pass and never re-scans a substitute
+                # VALUE, so a ks passing "${LB_PREFIX}.51" would reach LB-IPAM
+                # with the literal unexpanded and silently get a pool address
+                lbipam.cilium.io/ips: "${LB_PREFIX}.${DB_LB_OCTET}"
             spec:
               type: LoadBalancer
               externalTrafficPolicy: Local

@@ -94,6 +94,17 @@ turns `lbipam.cilium.io/ips: ${LB_PREFIX}.2` into `.2` → the float `0.2`, and
 `cidr: ${LB_POOL_CIDR}` into null. Quote both ends and the failure becomes a
 loud missing-variable error instead of a type error three files away.
 
+**Substitution is single-pass — a `${VAR}` inside a substitute VALUE is never
+expanded.** Flux substitutes into the built manifests, then stops; it does not
+re-scan what it just wrote, and it never expands one `substitute:` entry into
+another. So an app ks setting `DB_LB_IP: ${LB_PREFIX}.51` hands the component
+the literal string, and the failure is silent in the worst way: LB-IPAM cannot
+parse it, ignores the requested address, and assigns an arbitrary pool one
+instead — which on 2026-09-18 let a database LB take `.1` out from under the
+ingress gateway. Compose in the **manifest**, where every variable is in scope
+at once (`"${LB_PREFIX}.${DB_LB_OCTET}"`), and pass only the leaf part from the
+ks. A `substitute:` value must be a literal.
+
 `${DATACENTER}`, `${DC_DOMAIN}`, `${DOMAIN}` are injected into every app's `postBuild.substitute` by the **per-cluster** `clusters/<domain>/flux/cluster-apps.ks.yaml` patch — static, hand-written per cluster (the domain differs per cluster, so unlike a single-cluster repo it can't be hardcoded in the manifests). There is **no `cluster-settings` Secret and no NixOS seeding of it**; the values are plaintext identity, not secrets. Component parameters (`${APP}`, `${DB_SIZE}`, …) are per-app literals set in the attaching `ks.yaml` — see `components/AGENTS.md`.
 
 ## Images & charts

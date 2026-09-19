@@ -16,7 +16,7 @@ spec:
       ST_KEY: ggms-eksu
       ST_DB_SIZE: 5Gi
       ST_MEM_LIMIT: 1Gi
-      ST_LB_IP: ${LB_PREFIX}.71
+      ST_LB_OCTET: "71"
   targetNamespace: home
   prune: true
   sourceRef:
