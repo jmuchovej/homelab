@@ -32,7 +32,7 @@ spec:
               N8N_ADDITIONAL_NON_UI_ROUTES: auth
               EXTERNAL_FRONTEND_HOOKS_URLS: /assets/oidc-frontend-hook.js
               N8N_TRUST_PROXY: "true"
-              OIDC_ISSUER_URL: https://id.${DC_DOMAIN}/application/o/n8n-oauth/
+              OIDC_ISSUER_URL: https://id.${DOMAIN}/application/o/n8n-${DATACENTER}-oauth/
               OIDC_REDIRECT_URI: https://n8n.${DC_DOMAIN}/auth/oidc/callback
             envFrom:
               - secretRef:

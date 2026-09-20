@@ -44,7 +44,7 @@ spec:
               HBOX_OIDC_ALLOWED_GROUPS: home
               # authentik application slug is <slug>-<type> (see app module);
               # homebox appends /.well-known/openid-configuration itself
-              HBOX_OIDC_ISSUER_URL: https://id.${DC_DOMAIN}/application/o/homebox-oauth/
+              HBOX_OIDC_ISSUER_URL: https://id.${DOMAIN}/application/o/homebox-oauth/
               HBOX_OPTIONS_ALLOW_LOCAL_LOGIN: "false"
               HBOX_OPTIONS_ALLOW_REGISTRATION: "true"
               HBOX_OPTIONS_TRUST_PROXY: "true"

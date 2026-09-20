@@ -27,7 +27,7 @@ spec:
               OAUTH_PROVIDER_NAME: authentik
               OAUTH_SCOPES: openid email profile
               # authentik application slug is <slug>-<type> (see app module)
-              OPENID_PROVIDER_URL: https://id.${DC_DOMAIN}/application/o/open-webui-oauth/.well-known/openid-configuration
+              OPENID_PROVIDER_URL: https://id.${DOMAIN}/application/o/open-webui-oauth/.well-known/openid-configuration
             envFrom:
               - secretRef:
                   name: open-webui-secret

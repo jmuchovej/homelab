@@ -23,7 +23,7 @@ spec:
               # speak the same HTTP API and would break behind a login proxy
               ACTUAL_LOGIN_METHOD: openid
               ACTUAL_OPENID_PROVIDER_NAME: authentik
-              ACTUAL_OPENID_DISCOVERY_URL: https://id.${DC_DOMAIN}/application/o/actual-oauth/.well-known/openid-configuration
+              ACTUAL_OPENID_DISCOVERY_URL: https://id.${DOMAIN}/application/o/actual-${DATACENTER}-oauth/.well-known/openid-configuration
               # redirect_uri = <server_hostname>/openid/callback (verified in
               # sync-server source)
               ACTUAL_OPENID_SERVER_HOSTNAME: https://actual.${DC_DOMAIN}
