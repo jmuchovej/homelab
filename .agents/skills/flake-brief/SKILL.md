@@ -6,7 +6,7 @@ allowed-tools:
   - Read(//nix/store/**)
   - Read(flake.lock)
   - Read(flake.nix)
-  - Read(src/modules/**)
+  - Read(modules/**)
   - Read(**/AGENTS.md)
   - Read(.agents/rules/**)
   - Bash(git show *)
@@ -52,7 +52,7 @@ old-rev, new-rev)` for each changed watched input. If none changed, say so
    names, module options, function signatures, README/docs deltas). This is
    ground truth; commit messages are only hints.
 5. **Intersect with this repo**: for every changed/renamed/removed symbol,
-   `rg` `src/modules/` for call sites. A change without a call site is
+   `rg` `modules/` for call sites. A change without a call site is
    noise; a change WITH one is a finding — cite `file:line`.
 6. **Check the contract** (den only): read `.agents/rules/den-style.md` —
    the den stamp and the "Invariants (hard-won)" section. For each

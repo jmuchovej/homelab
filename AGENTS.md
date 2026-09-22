@@ -8,11 +8,11 @@ directory-level `AGENTS.md` files linked into `.agents/rules/`, not here.
 
 - **den** (`github:denful/den`) — aspect-oriented, feature-first layer above
   NixOS / nix-darwin / Home Manager, under the custom namespace `rbn`. This is
-  NOT traditional per-host NixOS organization → `src/modules/AGENTS.md`.
+  NOT traditional per-host NixOS organization → `modules/AGENTS.md`.
 - **flake-parts** with `import-tree` auto-discovery; `flake-file` regenerates
   `flake.nix` from `flake-file.inputs` declarations colocated with consumers.
-- **K3s + Flux GitOps** for containers → `src/kubernetes/AGENTS.md`.
-- **OpenTofu** for network/SaaS infra → `src/terraform/AGENTS.md`.
+- **K3s + Flux GitOps** for containers → `kubernetes/AGENTS.md`.
+- **OpenTofu** for network/SaaS infra → `tofu/AGENTS.md`.
 - **sops + age** for secrets (host-SSH-derived identities).
 - Multi-site: `da` (Dantooine) datacenter live, `en` (Endor) emerging. Hosts
   are named `<site>-<node>` (e.g. `da-vcx-1`).
@@ -68,13 +68,13 @@ a link without frontmatter loads into every session.
 ### Link status
 
 Every non-empty `AGENTS.md` has `paths:` frontmatter and a link in
-`.agents/rules/`. Link names carry a domain prefix — `nix-` for `src/modules`,
-`kubernetes-` for `src/kubernetes`, `tofu` for `src/terraform` — then the
-directory path joined with `-` (`src/modules/_lib` → `nix-lib.md`,
-`src/kubernetes/components/syncthing` → `kubernetes-syncthing.md`). Two empty
+`.agents/rules/`. Link names carry a domain prefix — `nix-` for `modules`,
+`kubernetes-` for `kubernetes`, `tofu` for `tofu` — then the
+directory path joined with `-` (`modules/_lib` → `nix-lib.md`,
+`kubernetes/components/syncthing` → `kubernetes-syncthing.md`). Two empty
 husks are unlinked for now: `src/AGENTS.md` and
-`src/kubernetes/apps/kube-system/zfs-localpv/AGENTS.md`. Other `src/*` children
-(`bootstrap/`, `homelab/`, `mikrotik/`, `vault/`) are a mixture of live tooling
+`kubernetes/apps/kube-system/zfs-localpv/AGENTS.md`. Other `src/*` children
+(`bootstrap/`, `homelab/`, `vault/`) are a mixture of live tooling
 and unflagged dead code — do not assume either way without checking.
 
 ### Comments vs rules (two-phase policy)

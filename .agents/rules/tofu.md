@@ -1,1 +1,1 @@
-../../src/terraform/AGENTS.md
+../../tofu/AGENTS.md

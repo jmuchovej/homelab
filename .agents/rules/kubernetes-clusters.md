@@ -1,1 +1,1 @@
-../../src/kubernetes/clusters/AGENTS.md
+../../kubernetes/clusters/AGENTS.md

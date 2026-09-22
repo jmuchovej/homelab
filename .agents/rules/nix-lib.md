@@ -1,1 +1,1 @@
-../../src/modules/_lib/AGENTS.md
+../../modules/_lib/AGENTS.md

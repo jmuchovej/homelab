@@ -1,1 +1,1 @@
-../../src/kubernetes/components/cnpg-import/AGENTS.md
+../../kubernetes/components/cnpg-import/AGENTS.md

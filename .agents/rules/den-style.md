@@ -1,6 +1,6 @@
 ---
 paths:
-  - "src/modules/**"
+  - "modules/**"
 ---
 
 # den — how this repo uses the framework

@@ -1,1 +1,1 @@
-../../src/kubernetes/components/cnpg-database/AGENTS.md
+../../kubernetes/components/cnpg-database/AGENTS.md

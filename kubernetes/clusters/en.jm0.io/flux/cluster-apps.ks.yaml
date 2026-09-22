@@ -1,0 +1,64 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-apps
+  namespace: flux-system
+spec:
+  # A PVC created while no default StorageClass exists is stamped with
+  # storageClassName: "" permanently and never binds — the classes live in
+  # cluster-config, so apps must not reconcile ahead of it.
+  dependsOn:
+    - name: cluster-config
+      namespace: flux-system
+  interval: 1h
+  path: ./kubernetes/clusters/en.jm0.io/apps
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: false
+  patches:
+    - target:
+        group: kustomize.toolkit.fluxcd.io
+        kind: Kustomization
+      patch: |-
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        metadata:
+          name: _
+        spec:
+          postBuild:
+            substitute:
+              DATACENTER: en
+              DC_DOMAIN: en.jm0.io
+              DOMAIN: jm0.io
+              ADMIN_CIDR: 10.99.0.0/16
+              # must track topology.yaml `networks.en` — lab.cidr,
+              # lab.gateway, k8s.lb-pool, and lb-pool's first three octets
+              LAB_CIDR: "10.36.0.0/16"
+              LAB_GATEWAY: "10.36.0.1"
+              LAB_PREFIX: "10.36"
+              LB_POOL_CIDR: "10.36.1.0/24"
+              LB_PREFIX: "10.36.1"
+              # the proxy outpost da's authentik deploys INTO this cluster.
+              # Prefixed because this is a REMOTE site — see the outpost
+              # naming in terraform/authentik/apps.outposts.tofu.
+              AK_OUTPOST_PROXY: "ak-outpost-en-proxy"
+          patches:
+            - target:
+                group: helm.toolkit.fluxcd.io
+                kind: HelmRelease
+              patch: |-
+                apiVersion: helm.toolkit.fluxcd.io/v2
+                kind: HelmRelease
+                metadata:
+                  name: _
+                spec:
+                  install:
+                    crds: CreateReplace
+                  upgrade:
+                    crds: CreateReplace
+                    remediation:
+                      retries: 2

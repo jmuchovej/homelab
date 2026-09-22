@@ -1,7 +1,7 @@
 set script-interpreter := ["bash", "-euo", "pipefail"]
-mod bootstrap "src/modules/hosts/bootstrap/justfile"
-mod mikrotik "src/terraform/mikrotik.just"
-mod authentik "src/terraform/authentik.just"
+mod bootstrap "modules/hosts/bootstrap/justfile"
+mod mikrotik "tofu/mikrotik.just"
+mod authentik "tofu/authentik.just"
 
 [private]
 default:
@@ -40,7 +40,7 @@ deploy-all:
 # Usage: just facter da-vcx-2 [ssh-target]   (ssh-target defaults to the host name)
 [script]
 facter host target=host:
-    dir="src/modules/hosts/{{ host }}"
+    dir="modules/hosts/{{ host }}"
     [ -d "$dir" ] || { echo "no such host dir: $dir" >&2; exit 1; }
     tmp="$(mktemp)"
     trap 'rm -f "$tmp"' EXIT

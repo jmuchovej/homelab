@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: radarr-db
+spec:
+  dependsOn:
+    - name: cloudnative-pg
+      namespace: databases
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/components/cnpg-database
+  postBuild:
+    substitute:
+      APP: radarr
+      DB_SIZE: 5Gi
+      DB_LB_OCTET: "53"
+  targetNamespace: media
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true

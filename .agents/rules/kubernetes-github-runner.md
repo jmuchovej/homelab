@@ -1,1 +1,1 @@
-../../src/kubernetes/components/github-runner/AGENTS.md
+../../kubernetes/components/github-runner/AGENTS.md

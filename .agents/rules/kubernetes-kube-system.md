@@ -1,1 +1,1 @@
-../../src/kubernetes/apps/kube-system/AGENTS.md
+../../kubernetes/apps/kube-system/AGENTS.md

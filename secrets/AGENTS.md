@@ -1,13 +1,13 @@
 ---
 paths:
   - "secrets/**"
-  - "src/modules/**"
+  - "modules/**"
 ---
 
 # secrets/ — all sops material, one tree
 
 Every secret in the repo lives here and is reached through sops; nothing
-under `src/` holds encrypted material of its own (`src/terraform/secrets` is a
+under `src/` holds encrypted material of its own (`tofu/secrets` is a
 symlink back to this directory).
 
 Layout: `hosts/<hostname>.sops.yaml` (per-host; `minimal.sops.yaml` for
@@ -17,7 +17,7 @@ plus repo-level material: `certificates/` (CA), `keys/` (public identities,
 tracked deliberately — see `.gitignore`), `topology.sops.yaml`,
 `syncthing.sops.yaml`.
 
-`src/modules/secrets.nix` wires sops-nix into all three classes via
+`modules/secrets.nix` wires sops-nix into all three classes via
 `den.default`:
 `defaultSopsFile` is `hosts/${host.name}.sops.yaml` for nixos/darwin and
 `users/${user.userName}.sops.yaml` for homeManager.

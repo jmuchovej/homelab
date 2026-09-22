@@ -1,0 +1,35 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: homebox-db
+spec:
+  dependsOn:
+    - name: cloudnative-pg
+      namespace: databases
+    - name: onepassword-connect
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/components/cnpg-database
+  components:
+    # one-off import — inert after first bootstrap; remove alongside future
+    # backup wiring, not before (see components/cnpg-import/AGENTS.md).
+    # Source = the RETIRED home-automation cluster (namespace move; CNPG
+    # clusters can't cross namespaces), not the NixOS instance — it carried
+    # post-migration changes. Delete that cluster deliberately once proven.
+    - ../cnpg-import
+  postBuild:
+    substitute:
+      APP: homebox
+      DB_SIZE: 2Gi
+      HOST: homebox-db-rw.home-automation.svc.cluster.local
+      # convention: DB LBs live at .5x within the cluster's LB pool (IP frees
+      # when the old cluster's LB is deleted; pending until then is harmless)
+      DB_LB_OCTET: "58"
+  targetNamespace: home
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true

@@ -50,11 +50,11 @@ creation_rules:
   - path_regex: "secrets/users/lab\\.sops\\.(yaml|json|env|ini)$"
     key_groups:
       - age: [*john, *lab]
-  - path_regex: "src/kubernetes/clusters/da\\.jm0\\.io/.*\\.sops\\.yaml$"
+  - path_regex: "kubernetes/clusters/da\\.jm0\\.io/.*\\.sops\\.yaml$"
     encrypted_regex: ^(data|stringData)$
     key_groups:
       - age: [*john, *lab, *da-flux]
-  - path_regex: "src/kubernetes/clusters/en\\.jm0\\.io/.*\\.sops\\.yaml$"
+  - path_regex: "kubernetes/clusters/en\\.jm0\\.io/.*\\.sops\\.yaml$"
     encrypted_regex: ^(data|stringData)$
     key_groups:
       - age: [*john, *lab, *en-flux]

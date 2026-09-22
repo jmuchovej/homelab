@@ -1,1 +1,1 @@
-../../src/kubernetes/components/syncthing/AGENTS.md
+../../kubernetes/components/syncthing/AGENTS.md

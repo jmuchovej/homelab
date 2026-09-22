@@ -1,1 +1,1 @@
-../../src/modules/_overlays/AGENTS.md
+../../modules/_overlays/AGENTS.md

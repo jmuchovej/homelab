@@ -1,1 +1,1 @@
-../../src/modules/hosts/AGENTS.md
+../../modules/hosts/AGENTS.md

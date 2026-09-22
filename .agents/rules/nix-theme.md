@@ -1,1 +1,1 @@
-../../src/modules/theme/AGENTS.md
+../../modules/theme/AGENTS.md
