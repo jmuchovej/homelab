@@ -13,7 +13,8 @@
         # Private fonts — colocated packages
         brandon-text = pkgs.callPackage ./_packages/brandon-text.nix { };
         monolisa = pkgs.callPackage ./_packages/monolisa.nix { };
-        albert-sans = pkgs.callPackage ./_packages/albert-sans.nix { };
+        # albert-sans: _packages/albert-sans.nix was never added. Re-enable
+        # once the rbn packages scope exists (post-flatten).
       in
       {
         nixpkgs.config.input-fonts.acceptLicense = true;
@@ -25,7 +26,6 @@
           packages = [
             brandon-text
             monolisa
-            albert-sans
           ]
           ++ (with pkgs; [
             # Desktop Fonts
