@@ -3,18 +3,15 @@ paths:
   - "modules/_overlays/_packages/**"
 ---
 
-# _packages/ — custom derivations
+# _packages/ — repo-specific derivations
 
-Not auto-discovered (double `_`-shield); wired by `../../overlays.nix`.
+Not auto-discovered (double `_`-shield) and not part of any scope: each file
+here is imported explicitly by the one consumer that needs it (e.g.
+`installer.nix`). These are derivations that only make sense inside this
+repo and may depend on den, host, or secrets wiring.
 
-- **`contrib/`** — upstream-bound packages: nixpkgs-compatible
-  `callPackage`-style derivations with **no den/rebellion dependencies**.
-  Collected via `packagesFromDirectoryRecursive` into `pkgs.contrib.*`
-  (nested dirs become nested attrs: `contrib/fonts/foo.nix` →
-  `pkgs.contrib.fonts.foo`). Also exported as `flake.overlays.contrib`.
-  Keep these clean enough to PR to nixpkgs unchanged.
-- **Repo-specific derivations** (e.g. `installer.nix`) sit beside `contrib/`
-  and are consumed by whatever wires them explicitly.
-
-Create a package here only for novel derivations; to modify an existing
-nixpkgs package, write an overlay in `../` instead (see `../AGENTS.md`).
+A novel `callPackage`-shaped package belongs in the repo-root `packages/`
+tree instead, where `rbn.nix` exposes it as `pkgs.rbn.<name>` (fonts:
+`pkgs.rbn.fonts.<name>`). To modify an existing nixpkgs package, write an
+overlay in the parent directory. Both are described in the parent
+directory's `AGENTS.md`.

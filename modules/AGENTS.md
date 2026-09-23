@@ -40,7 +40,7 @@ service, the two halves of a host file, user-file anatomy, variant selection in
 `den.nix` (namespace + systems + `__findFile` + `denTest`), `schema.nix`
 (cross-cutting host options), `defaults.nix` (`instantiate` overrides that
 inject `lib.rbn` and host specialArgs), `overlays.nix` (overlay discovery +
-`pkgs.contrib.*`), `inputs.nix`, `deploy.nix`, `facter.nix`. `suites.nix` is
+`flake.overlays.rbn`), `inputs.nix`, `deploy.nix`, `facter.nix`. `suites.nix` is
 the one top-level _aspect_ file: every `rbn.suite._.<name>` lives there.
 
 `classes/` is not a directory of aspects either. It holds den-level

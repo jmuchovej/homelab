@@ -1,6 +1,5 @@
-## rbn overlay — the repo-local packages/ tree as the `pkgs.rbn` fixed-point
-## scope (apps at the top level, fonts nested under `pkgs.rbn.fonts`). Layout
-## and resolution rules: AGENTS.md in this directory.
+## Repo-root packages/ as the `pkgs.rbn` scope — layout and resolution rules
+## are in AGENTS.md beside this file.
 { inputs }:
 final: _prev:
 let
@@ -22,12 +21,9 @@ let
 
   packages-root = "${inputs.self}/packages";
 
-  # name -> package.nix for every package under `dir`, at any depth. The
-  # attribute name is the package's own directory, so by-name shards vanish;
-  # import-tree's default filter drops `_`-prefixed paths (parked builders).
-  # Two directories with the same name would otherwise collapse silently.
-  # Paths descend from `inputs.self` and carry store context, which an
-  # attribute name may not, hence the discard on the name only.
+  # name -> package.nix. Paths descend from `inputs.self` (a store path) and
+  # so carry string context, which an attribute name may not: discard it on
+  # the name only. Same-named directories would otherwise collapse silently.
   discover =
     dir:
     let
