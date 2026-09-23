@@ -24,8 +24,8 @@
         dotDir = "${config.xdg.configHome}/zsh";
 
         initContent = ''
-          bindkey '^[[A' history-substring-search-up # or '\eOA'
-          bindkey '^[[B' history-substring-search-down # or '\eOB'
+          bindkey "$terminfo[kcuu1]" history-substring-search-up
+          bindkey "$terminfo[kcud1]" history-substring-search-down
           bindkey -M vicmd 'k' history-substring-search-up
           bindkey -M vicmd 'j' history-substring-search-down
           HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
@@ -54,7 +54,7 @@
             "zdharma-continuum/fast-syntax-highlighting kind:defer"
             "zsh-users/zsh-completions kind:defer"
             "zsh-users/zsh-autosuggestions kind:defer"
-            "zsh-users/zsh-history-substring-search kind:defer"
+            "ohmyzsh/ohmyzsh path:history-substring-search kind:defer"
             "hlissner/zsh-autopair"
             "getantidote/use-omz"
             "ohmyzsh/ohmyzsh path:plugins/git"
