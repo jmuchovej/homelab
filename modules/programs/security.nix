@@ -44,11 +44,13 @@
               user.signingkey = signing-key;
             };
 
-            programs.jujutsu.settings.signing = {
-              behavior = "drop";
-              backend = "ssh";
-              key = signing-key;
-              backends.ssh.program = config.programs.git.settings.gpg.ssh.program or "ssh-keygen";
+            programs.jujutsu.settings = {
+              signing = {
+                behavior = "drop";
+                backend = "ssh";
+                key = signing-key;
+                backends.ssh.program = config.programs.git.settings.gpg.ssh.program or "ssh-keygen";
+              };
               git.sign-on-push = true;
             };
           };
