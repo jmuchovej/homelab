@@ -1,4 +1,4 @@
-{
+{ __findFile, ... }: {
   den.schema.user =
     { lib, ... }:
     let
@@ -34,128 +34,197 @@
       };
     };
 
-  rbn.programs._.terminal._.jujutsu.hm =
-    {
-      user,
-      lib,
-      pkgs,
-      ...
-    }:
-    let
-      inherit (lib) getExe mapAttrsToList;
+  rbn.programs._.terminal._.jujutsu = {
+    includes = [ <rbn/programs/terminal/jj-hooks> ];
+    hm =
+      {
+        user,
+        lib,
+        pkgs,
+        ...
+      }:
+      let
+        inherit (lib) getExe mapAttrsToList;
 
-      dump-forge = key: val: "  ${builtins.toJSON key}: ${builtins.toJSON val}";
-      ## Both the shorthand and the real clone host key the same directory,
-      ## so the helper and git's `insteadOf` cannot disagree.
-      dump-forges = dir: forge: ''
-        ${dump-forge forge.short dir},
-        ${dump-forge forge.host dir},
-      '';
-
-      jj-clone-src = builtins.readFile ./jj-clone-forge.nu;
-      jj-clone-script = lib.replaceString "const FORGES = {} # @@forge-dirs@@" ''
-        const FORGES = {
-          ${lib.trim (lib.concatStrings (mapAttrsToList dump-forges user.forges))}
-        }
-      '' jj-clone-src;
-      ## `writeNuBin` has no checker of its own; `nu-check --debug` turns a
-      ## parse error into a failed build, as `ai-tools/_lib.nix` does.
-      jj-clone = pkgs.writers.writeNuBin "jj-clone-forge" {
-        check = pkgs.writeShellScript "nu-check" ''
-          ${getExe pkgs.nushell} --no-config-file --commands "if not (nu-check --debug '$1') { exit 1 }"
+        dump-forge = key: val: "  ${builtins.toJSON key}: ${builtins.toJSON val}";
+        ## Both the shorthand and the real clone host key the same directory,
+        ## so the helper and git's `insteadOf` cannot disagree.
+        dump-forges = dir: forge: ''
+          ${dump-forge forge.short dir},
+          ${dump-forge forge.host dir},
         '';
-      } jj-clone-script;
-    in
-    {
-      home.packages = with pkgs; [
-        cargo-binstall
-        lazyjj
-        jj-clone
-      ];
 
-      home.shellAliases = {
-        jj = "jj --color always";
+        jj-clone-src = builtins.readFile ./jj-clone-forge.nu;
+        jj-clone-script = lib.replaceString "const FORGES = {} # @@forge-dirs@@" ''
+          const FORGES = {
+            ${lib.trim (lib.concatStrings (mapAttrsToList dump-forges user.forges))}
+          }
+        '' jj-clone-src;
+        ## `writeNuBin` has no checker of its own; `nu-check --debug` turns a
+        ## parse error into a failed build, as `ai-tools/_lib.nix` does.
+        jj-clone = pkgs.writers.writeNuBin "jj-clone-forge" {
+          check = pkgs.writeShellScript "nu-check" ''
+            ${getExe pkgs.nushell} --no-config-file --commands "if not (nu-check --debug '$1') { exit 1 }"
+          '';
+        } jj-clone-script;
+      in
+      {
+        home.packages = [ jj-clone ];
+
+        home.shellAliases = {
+          jj = "jj --color always";
+        };
+
+        programs.jjui = {
+          enable = true;
+          settings = {
+          };
+        };
+
+        programs.jujutsu = {
+          enable = true;
+          settings = {
+            user = {
+              name = user.fullname;
+            };
+            git = {
+              private-commits = "description('wip:*') | description('private:*')";
+              track-default-bookmark-on-clone = true;
+            };
+            aliases.clone = [
+              "util"
+              "exec"
+              "--"
+              (getExe jj-clone)
+            ];
+            "--scope" =
+              let
+                ## Repos live under `~/Documents/src`; the view directories hold
+                ## only symlinks. jj resolves symlinks before matching, so the
+                ## scope must key on the real storage path.
+                mk-forge-scope =
+                  dir: forge:
+                  {
+                    "--when".repositories = [ "~/Documents/src/${dir}" ];
+                    user.email = forge.email;
+                  }
+                  // lib.optionalAttrs (forge.signing-key != "") {
+                    signing.key = forge.signing-key;
+                  };
+              in
+              [
+                {
+                  "--when".commands = [ "status" ];
+                  ui.paginate = "never";
+                }
+              ]
+              ++ mapAttrsToList mk-forge-scope user.forges;
+            remotes = {
+              origin = {
+                auto-track-bookmarks = "*";
+              };
+              upstream = {
+                auto-track-bookmarks = "*";
+              };
+            };
+            snapshot.auto-update-stale = true;
+            ui = {
+              default-command = "log";
+            };
+            template-aliases = {
+              "format_timestamp(timestamp)" = "timestamp.ago()";
+              # "commit_timestamp(commit)" = "commit.author.timestamp()";
+            };
+            templates = {
+              assisted-by-tool = ''config("rbn.assisted-by.tool")'';
+              assisted-by-model = ''config("rbn.assisted-by.model")'';
+              "format_assisted_by_trailer(commit)" = ''
+                if(assisted_by_tool && assisted_by_model,
+                  "Assisted-by: " ++ assisted_by_tool.as_string() ++ " (" ++ assisted_by_model.as_string() ++ ")\n",
+                  "")
+              '';
+              commit-trailers = ''
+                format_signed_off_by_trailer(self)
+                ++ format_assisted_by_trailer(self)
+              '';
+            };
+          };
+        };
+
+        programs.starship = {
+          extraPackages = [ pkgs.jj-starship ];
+          settings = {
+            custom.jj = {
+              when = "jj-starship detect";
+              shell = [ "jj-starship" ];
+              format = "$output";
+            };
+            git_branch.disabled = true;
+            git_status.disabled = true;
+          };
+        };
       };
+  };
 
-      programs.jujutsu = {
-        enable = true;
-        settings = {
-          user = {
-            name = user.fullname;
-          };
-          git = {
-            private-commits = "description('wip:*') | description('private:*')";
-          };
-          aliases.clone = [
+  rbn.programs._.terminal._.jj-hooks.hm = { pkgs, ... }: {
+    home.packages = [ pkgs.rbn.jj-hooks ];
+    programs.jujutsu = {
+      settings = {
+        aliases = {
+          push = [
             "util"
             "exec"
             "--"
-            (getExe jj-clone)
+            "jj-hp"
+            "push"
           ];
-          "--scope" =
-            let
-              ## Repos live under `~/Documents/src`; the view directories hold
-              ## only symlinks. jj resolves symlinks before matching, so the
-              ## scope must key on the real storage path.
-              mk-forge-scope =
-                dir: forge:
-                {
-                  "--when".repositories = [ "~/Documents/src/${dir}" ];
-                  user.email = forge.email;
-                }
-                // lib.optionalAttrs (forge.signing-key != "") {
-                  signing.key = forge.signing-key;
-                };
-            in
-            [
-              {
-                "--when".commands = [ "status" ];
-                ui.paginate = "never";
-              }
-            ]
-            ++ mapAttrsToList mk-forge-scope user.forges;
-          remotes = {
-            origin = {
-              auto-track-bookmarks = "*";
-            };
-            upstream = {
-              auto-track-bookmarks = "*";
-            };
-          };
-          snapshot.auto-update-stale = true;
-          ui = {
-            default-command = "log";
-          };
-          template-aliases = {
-            "format_timestamp(timestamp)" = "timestamp.ago()";
-          };
-          # `rbn.assisted-by.*` are not real jj keys; agent harnesses pass them
-          # per command (`--config rbn.assisted-by.tool=… --config
-          # rbn.assisted-by.model=…`, injected by `ai-tools/hooks/assisted-by.nu`
-          # for Claude Code) and the trailer renders `Assisted-by: <tool> (<model>)`.
-          # All-or-nothing on purpose: a lone key renders nothing, not a
-          # half-filled trailer.
-          templates.commit_trailers = ''
-            format_signed_off_by_trailer(self)
-            ++ if(config("rbn.assisted-by.tool") && config("rbn.assisted-by.model"),
-                  "Assisted-by: " ++ config("rbn.assisted-by.tool").as_string()
-                  ++ " (" ++ config("rbn.assisted-by.model").as_string() ++ ")\n",
-                  "")
-          '';
         };
-      };
 
-      programs.starship = {
-        extraPackages = [ pkgs.jj-starship ];
-        settings = {
-          custom.jj = {
-            when = "jj-starship detect";
-            shell = [ "jj-starship" ];
-            format = "$output";
-          };
-          git_branch.disabled = true;
-          git_status.disabled = true;
+        jj-hooks = {
+          advance-bookmarks = true;
         };
       };
     };
+
+    programs.jjui = {
+      settings = {
+        actions = [
+          {
+            name = "jj-hp-push-selected";
+            lua = ''
+              jj_async("util", "exec", "--", "jj-hp", "push", "-r", context.commit_id())
+              revisions.refresh()
+            '';
+          }
+          {
+            name = "jj-hp-push";
+            lua = ''
+              jj_async("util", "exec", "--", "jj-hp", "push", "--all")
+              revisions.refresh()
+            '';
+          }
+        ];
+        bindings = [
+          {
+            action = "jj-hp-push-selected";
+            desc = "jj-hp push selected bookmark";
+            scope = "revisions";
+            seq = [
+              "x"
+              "p"
+            ];
+          }
+          {
+            action = "jj-hp-push";
+            desc = "jj-hp push all bookmarks";
+            scope = "revisions";
+            seq = [
+              "x"
+              "P"
+            ];
+          }
+        ];
+      };
+    };
+  };
 }
