@@ -79,26 +79,28 @@
       fonts = {
         enableDefaultPackages = true;
 
-        antialiasing = true;
-        hinting.enable = true;
-
-        defaultFonts = {
-          monospace = [
-            "MonaspiceNe Nerd Font"
-            "MonaspiceKr Nerd Font"
-            "Maple Mono Nerd Font"
-          ];
-          serif = [ "Noto Serif" ];
-          sansSerif = [
-            "Albert Sans"
-            "Brandon Text"
-          ];
-          emoji = [ "Noto Color Emoji" ];
-        };
-
         fontDir = {
           enable = true;
           decompressFonts = true;
+        };
+
+        fontconfig = {
+          enable = true;
+          antialias = true;
+          hinting.enable = true;
+          defaultFonts = {
+            monospace = [
+              "MonaspiceNe Nerd Font"
+              "MonaspiceKr Nerd Font"
+              "Maple Mono Nerd Font"
+            ];
+            serif = [ "Noto Serif" ];
+            sansSerif = [
+              "Albert Sans"
+              "Brandon Text"
+            ];
+            emoji = [ "Noto Color Emoji" ];
+          };
         };
       };
     };
