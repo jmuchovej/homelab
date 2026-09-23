@@ -8,7 +8,7 @@ See proposal.md for motivation. The facts that shape the approach:
 - `lib.makeScope newScope f` builds `self = f self` and adds `callPackage`, `newScope`, `overrideScope`, `packages`, and `recurseForDerivations` (via `recurseIntoAttrs`). With `newScope = final.newScope`, the scope's `callPackage` is `callPackageWith (final // self)`, so siblings shadow nixpkgs. A nested scope built with `rbn.newScope` resolves as `final // rbn // nested`.
 - nixpkgs' own `pkgs/top-level/by-name-overlay.nix` does the same two jobs with `readDir` at a fixed depth of two: map `name → package.nix`, then `self.callPackage` on each. Its fixed point is `pkgs` itself; ours is `rbn`.
 - The main checkout has `snapshot.auto-track = none()`, so `packages/` is untracked and invisible to the flake. `modules/system/fonts/_packages/` is tracked (44 files, Brandon Text and MonoLisa binaries included); `albert-sans` there is untracked. `packages/fonts/` duplicates the same three fonts in the flat `<name>.nix` + `<name>/` layout. Albert Sans has never had font files in the repo or its history, only a builder, so it is parked as `_albert-sans` rather than packaged; the live fonts are Brandon Text and MonoLisa.
-- Of the 24 application directories, 9 hold real derivations (`anytype`, `beeper`, `jj-hooks`, `notion-app`, `notion-calendar`, `orca-slicer`, `plex-desktop`, `plexamp`, `zulip`) and 15 are stubs: 14 files that are a bare `{ }` and `no-tunes`, whose function returns `{ }`. No real package currently depends on a sibling. `orca-slicer` keeps `darwin.nix`, `linux.nix`, `patches/`, and `NOTES.md` beside its `package.nix`.
+- Of the 24 application directories, 7 hold evaluable derivations (`anytype`, `beeper`, `jj-hooks`, `orca-slicer`, `plex-desktop`, `plexamp`, `zulip`) and 17 are parked: 14 files that are a bare `{ }`, `no-tunes`, whose function returns `{ }`, and `notion-app` and `notion-calendar`, which read a `source.json` that was never committed and so throw at evaluation. No real package currently depends on a sibling. `orca-slicer` keeps `darwin.nix`, `linux.nix`, `patches/`, and `NOTES.md` beside its `package.nix`.
 - `system/fonts/fonts.nix` has a `nixos` module function that `callPackage`s the three fonts by path, and a `macos` attribute set with Homebrew casks only. nix-darwin exposes `fonts.packages`, installing into `/Library/Fonts/Nix Fonts`.
 - Every host includes `<rbn/system/fonts>` through `suite/common`, so any change to the font derivations changes every host's `toplevel.drvPath`.
 - A store path name may begin with `_` (verified: `builtins.path { name = "_files"; … }` evaluates).
@@ -38,7 +38,7 @@ See proposal.md for motivation. The facts that shape the approach:
 
 ### D2. `pkgs.rbn` is a `makeScope` fixed point over `final.newScope`
 
-Bare-name sibling dependencies are the property that keeps `package.nix` files verbatim-portable. Alternatives: (a) plain `final.callPackage` with `{ rbn }:` arguments works but ties every file to this repo's namespace; (b) merging packages into the top level would replace nixpkgs attributes (`beeper`, `zulip`, `anytype`, `plexamp`, `orca-slicer`) and change what existing aspects install. `recurseIntoAttrs` (implied by `makeScope`) lets `nix search`/`nix-env -qa` descend into the scope when the overlay is used externally.
+Bare-name sibling dependencies are the property that keeps `package.nix` files verbatim-portable. Alternatives: (a) plain `final.callPackage` with `{ rbn }:` arguments works but ties every file to this repo's namespace; (b) merging packages into the top level would replace nixpkgs attributes (`beeper`, `zulip`, `anytype`, `plexamp`, `orca-slicer`) and change what existing aspects install. `recurseIntoAttrs` is applied explicitly to both scopes (`makeScope` alone does not set `recurseForDerivations`) so `nix search`/`nix-env -qa` descend into the scope when the overlay is used externally.
 
 ### D3. `pkgs.rbn.fonts` is a nested scope built with `rbn.newScope`
 
@@ -54,7 +54,7 @@ A local function `scopeFrom root newScope` runs the pipeline and builds a scope.
 
 ### D6. Overlay lives at `modules/_overlays/rbn.nix` in the `{ inputs }:` form
 
-It needs `inputs.import-tree`, which the existing discovery already passes. `overlays.nix` loses the `contrib` block and gains `flake.overlays.rbn = import ./_overlays/rbn.nix { inherit inputs; };`, so the exported overlay is the same function the hosts use. From the overlay file, `packages/` is two parent-directory hops up (`modules/_overlays/` to `modules/` to the repo root) in the post-flatten layout.
+It needs `inputs.import-tree`, which the existing discovery already passes. `overlays.nix` loses the `contrib` block and gains `flake.overlays.rbn = import ./_overlays/rbn.nix { inherit inputs; };`, so the exported overlay is the same function the hosts use. The overlay reaches the tree as `"${inputs.self}/packages"`, the same pattern four other modules use for repo data files, rather than a relative path: the repo's pre-tool-use hook denies any written file containing a parent-directory segment, and `inputs.self` is already the flake's store copy of the tree that a relative path would resolve into.
 
 ### D7. Font files live under `_files/`, package is `src = ./_files`
 
@@ -75,7 +75,7 @@ Matches the repo's existing convention and the user's stated preference. Deletin
 ## Risks / Trade-offs
 
 - [Sibling shadowing is silent] A package in the scope that asks for `zulip` gets `rbn.zulip`, not nixpkgs'. → Intended and documented in `_overlays/AGENTS.md`; the spec scenario "Sibling resolves before nixpkgs" pins it.
-- [`packages/` untracked in the main checkout] The flake would evaluate `rbn = { }` with no error. → Tracking is an explicit task, and the verification step asserts `attrNames pkgs.rbn` contains the 9 expected names.
+- [`packages/` untracked in the main checkout] The flake would evaluate `rbn = { }` with no error. → Tracking is an explicit task, and the verification step asserts `attrNames pkgs.rbn` contains the 7 expected names.
 - [Every host's `drvPath` changes] Font `src` paths move. → Accepted; the diff is three font derivations. Verification inspects `nix derivation show` on one font rather than comparing whole-host `drvPath`.
 - [Unfree packages block full-scope forcing] `plex-desktop` and `plexamp` are `unfree`; forcing their `drvPath` under a host's package set throws unless allowed. → The "every attribute evaluates" check forces `.name`, which does not trigger the unfree check, and builds only free packages and fonts.
 - [Darwin gets `.woff2` files copied into `/Library/Fonts/Nix Fonts`] macOS ignores them. → Harmless; trimming to `.otf`/`.ttf` in the install step is a later cleanup if the clutter bothers.
