@@ -1,10 +1,10 @@
 # TODO look into what's required to package with Nerd Fonts / FontForge
 { stdenv, ... }:
 stdenv.mkDerivation {
-  pname = "monolisa";
+  pname = "brandon-text";
   version = "0.1.0";
 
-  src = ./monolisa;
+  src = ./_files;
   dontConfigure = true;
   dontBuild = true;
 

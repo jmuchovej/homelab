@@ -110,12 +110,12 @@ The fonts aspect SHALL install every derivation in `pkgs.rbn.fonts` on NixOS via
 #### Scenario: NixOS installs repo-local fonts
 
 - **WHEN** a NixOS host including the fonts aspect is built
-- **THEN** its font directory contains Brandon Text, MonoLisa, and Albert Sans
+- **THEN** its font directory contains Brandon Text and MonoLisa
 
 #### Scenario: Darwin installs repo-local fonts
 
 - **WHEN** `da-n1x` is switched
-- **THEN** `/Library/Fonts/Nix Fonts` contains the Brandon Text, MonoLisa, and Albert Sans files
+- **THEN** `/Library/Fonts/Nix Fonts` contains the Brandon Text and MonoLisa files
 
 #### Scenario: Scope helpers are not installed as fonts
 
