@@ -187,6 +187,7 @@
                 USE_BUILTIN_RIPGREP = "0";
                 NO_COLOR = "1";
                 CLAUDE_CODE_ENABLE_TODO_TOOLS = "1";
+                CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
               };
 
               statusLine = {
