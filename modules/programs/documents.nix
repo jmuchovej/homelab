@@ -79,15 +79,14 @@
     };
 
     _.waypoints = {
-      os = {
-        nix.settings.extra-substituters = [
-          "https://waypoints.cachix.org"
-        ];
-        nix.settings.extra-trusted-public-keys = [
-          "waypoints.cachix.org-1:LzQKQwec0QZBJzLOVhO3j5oYBZbbzrHjuQYIOQLHZ8U="
-        ];
-      };
       hm = { pkgs, ... }: {
+        nix.settings = {
+          extra-substituters = [ "https://waypoints.cachix.org" ];
+          extra-trusted-public-keys = [
+            "waypoints.cachix.org-1:LzQKQwec0QZBJzLOVhO3j5oYBZbbzrHjuQYIOQLHZ8U="
+          ];
+        };
+
         # TODO: waypoints not in nixpkgs yet
         # home.packages = [ pkgs.waypoints ];
       };
