@@ -19,17 +19,27 @@
     _.spotify = {
       dock.app = "Spotify.app";
 
-      macos = _: {
-        homebrew.casks = [
-          "notunes"
-          "spotify"
-        ];
+      hm-macos = { pkgs, ... }: {
+        home.packages = [ pkgs.rbn.no-tunes ];
 
-        system.defaults.CustomUserPreferences = {
-          "digital.twisted.noTunes".replacement = "/Applications/Spotify.app";
-          "digital.twisted.noTunes".hideIcon = 1;
+        launchd.agents.no-tunes = {
+          enable = true;
+          config = {
+            ProgramArguments = [
+              "${pkgs.rbn.no-tunes}/Applications/noTunes.app/Contents/MacOS/noTunes"
+            ];
+            RunAtLoad = true;
+            ProcessType = "Interactive";
+          };
+        };
+
+        targets.darwin.defaults."digital.twisted.noTunes" = {
+          replacement = "/Applications/Spotify.app";
+          hideIcon = 1;
         };
       };
+
+      macos.homebrew.casks = [ "spotify" ];
     };
   };
 }
