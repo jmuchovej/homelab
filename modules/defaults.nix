@@ -2,6 +2,7 @@
   inputs,
   lib,
   den,
+  pkgs,
   ...
 }:
 let
@@ -14,7 +15,7 @@ let
   # `lib` arg reaches — including den aspect inner functions — which the
   # specialArgs/`_module.args` route does not.
   helpers = lib.pipe inputs.import-tree [
-    (i: i.map (path: (import path) { inherit lib inputs; }))
+    (i: i.map (path: (import path) { inherit lib inputs pkgs; }))
     (i: i.withLib lib)
     (i: i.leaves ./_lib)
   ];
