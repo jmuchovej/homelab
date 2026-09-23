@@ -20,8 +20,8 @@
 
 ## 4. Fonts aspect (worktree)
 
-- [ ] 4.1 In `modules/system/fonts/fonts.nix`, replace the three `callPackage ./_packages/…` bindings and their list entries with `(lib.filter lib.isDerivation (lib.attrValues pkgs.rbn.fonts))` prepended to `fonts.packages`; convert the `macos` attribute set to `{ lib, pkgs, ... }:` and add `fonts.packages = lib.filter lib.isDerivation (lib.attrValues pkgs.rbn.fonts);` beside the existing Homebrew cask list; verify `rg -n '_packages|callPackage' modules/system/fonts` is empty
-- [ ] 4.2 Verify both host classes see the fonts: the two `fonts.packages` evals from 1.3 now include `brandon-text`, `monolisa` on `da-vcx-2` and on `da-n1x`, and contain no non-derivation entries (`--apply 'l: builtins.all (x: x ? drvPath) l'` prints `true`)
+- [x] 4.1 In `modules/system/fonts/fonts.nix`, replace the three `callPackage ./_packages/…` bindings and their list entries with `(lib.filter lib.isDerivation (lib.attrValues pkgs.rbn.fonts))` prepended to `fonts.packages`; convert the `macos` attribute set to `{ lib, pkgs, ... }:` and add `fonts.packages = lib.filter lib.isDerivation (lib.attrValues pkgs.rbn.fonts);` beside the existing Homebrew cask list; verify `rg -n '_packages|callPackage' modules/system/fonts` is empty
+- [x] 4.2 Verify both host classes see the fonts: the two `fonts.packages` evals from 1.3 now include `brandon-text`, `monolisa` on `da-vcx-2` and on `da-n1x`, and contain no non-derivation entries (`--apply 'l: builtins.all (x: x ? drvPath) l'` prints `true`)
 
 ## 5. Docs and comment sweep (worktree)
 
