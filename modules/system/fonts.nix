@@ -18,12 +18,36 @@
         material-icons
         material-design-icons
         comic-neue
-        # Includes Inter, Lexend, Albert Sans, Public Sans, Lora, Work Sans, Source Sans, JetBrains Mono, Fira Code, Noto, etc.
-        # TODO narrow to the families actually used, e.g.
-        #   (google-fonts.override { fonts = [ "AlbertSans" "PublicSans" "Lora" ]; })
-        # `fonts` matches file-name prefixes and pulls the variable TTFs (plus
-        # their `-Italic` files).
-        google-fonts
+        (google-fonts.override {
+          fonts = [
+            "AlbertSans"
+            "Cabin"
+            "CascadiaCode"
+            "DM"
+            "FiraSans"
+            "FiraCode"
+            "Lato"
+            "Lexend"
+            "Lora"
+            "JetBrainsMono"
+            "IBMPlex"
+            "Inter"
+            "Iosevka"
+            "PublicSans"
+            "Outfit"
+            "Overpass"
+            "Playfair"
+            "Raleway"
+            "Reddit"
+            "RedHat"
+            "Roboto"
+            "SourceCode"
+            "SourceSans"
+            "SourceSerif"
+            "STIXTwo"
+            "WorkSans"
+          ];
+        })
 
         # Emojis
         noto-fonts-color-emoji
