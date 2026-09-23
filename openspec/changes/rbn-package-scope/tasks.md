@@ -31,15 +31,15 @@
 
 ## 6. Gates (worktree)
 
-- [ ] 6.1 Run `nix fmt` (or `jj fix`) and verify `jj diff --stat` shows no formatting-only churn outside the files touched in 2.x–5.x
-- [ ] 6.2 Run `nix flake check` and verify it passes; run `prek run --all-files` (or the installed pre-commit) and verify all hooks pass
-- [ ] 6.3 Build the fonts and one free package for both systems: `nix build .#nixosConfigurations.da-vcx-2.pkgs.rbn.fonts.{brandon-text,monolisa} .#nixosConfigurations.da-vcx-2.pkgs.rbn.jj-hooks` and the same three under `.#darwinConfigurations.da-n1x.pkgs.rbn…`; verify each font result contains `share/fonts/truetype/` with the expected `.otf`/`.ttf` files
-- [ ] 6.4 Evaluate every host that evaluated in the `flatten-src-tree` baseline (`da-gr75`, `da-vcx-2`, `da-vcx-3`, `da-n1x`) with `nix eval …config.system.build.toplevel.drvPath` and verify each succeeds; inspect `nix derivation show` on one font and confirm the only input change is the `_files` source path
-- [ ] 6.5 Run `nix build .#darwinConfigurations.da-n1x.system` and verify it succeeds and its fonts activation references the three repo fonts
+- [x] 6.1 Run `nix fmt` (or `jj fix`) and verify `jj diff --stat` shows no formatting-only churn outside the files touched in 2.x–5.x (done; `nix fmt` also reports a pre-existing `ruff-check` failure, `PLW1510` in `src/homelab/commands/_bootstrap.py`, and reformats four Python files under `src/homelab/` that this change does not touch; that churn was discarded and the lint failure is out of scope)
+- [x] 6.2 Run `nix flake check` and verify it passes; run `prek run --all-files` (or the installed pre-commit) and verify all hooks pass (result: `check-flake-file` and `den-tests` pass; the `treefmt` check fails with the identical `ruff` error, `PLW1510` in `src/homelab`, when built against the `main` commit, so it is pre-existing and out of scope; `--keep-going` shows the same ignored `bootstrap` and `da-vcx-1` evaluation errors on `main` and here; the pre-commit runner cannot run in this jj workspace because it has no `.git` directory, so the hooks must be exercised in the main checkout at cutover; `treefmt --fail-on-change` over every file of this change reports nothing to change)
+- [x] 6.3 Build the fonts and one free package for both systems: `nix build .#nixosConfigurations.da-vcx-2.pkgs.rbn.fonts.{brandon-text,monolisa} .#nixosConfigurations.da-vcx-2.pkgs.rbn.jj-hooks` and the same three under `.#darwinConfigurations.da-n1x.pkgs.rbn…`; verify each font result contains `share/fonts/truetype/` with the expected `.otf`/`.ttf` files
+- [x] 6.4 Evaluate every host that evaluated in the `flatten-src-tree` baseline (`da-gr75`, `da-vcx-2`, `da-vcx-3`, `da-n1x`) with `nix eval …config.system.build.toplevel.drvPath` and verify each succeeds; inspect `nix derivation show` on one font and confirm the only input change is the `_files` source path
+- [x] 6.5 Run `nix build .#darwinConfigurations.da-n1x.system` and verify it succeeds and its fonts activation references the three repo fonts
 
 ## 7. Commit (worktree)
 
-- [ ] 7.1 Describe the change as one signed conventional commit (`feat(packages)!: expose packages/ as the pkgs.rbn scope, drop pkgs.contrib`) whose body records the sibling-before-nixpkgs resolution order and the `_` parking convention; verify `jj log -r @` shows a single change containing the tree moves, the overlay, the fonts aspect edit, and the two `AGENTS.md` rewrites
+- [x] 7.1 Commit per task group (requested at apply time, superseding the original single-commit plan): groups 1–5 already landed as separate signed conventional commits (`chore(packages)`, `refactor(packages)`, `feat(overlays)!`, `feat(fonts)`, `docs(overlays)`); land the gate results and remaining artifact updates as a final `chore(openspec): record rbn-package-scope gates` commit; verify `jj log -r 'main..@-'` lists the six commits in order and `jj st` is clean
 
 ## 8. Cutover in the main checkout (after the change lands there)
 
