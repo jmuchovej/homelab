@@ -36,6 +36,11 @@
           enable = true;
           installVimSyntax = true;
           installBatSyntax = true;
+          settings = {
+            font-size = 12;
+            font-family = "MonaSpiceKr NF";
+            theme = "dark:Flexoki Dark,light:Flexoki Light";
+          };
         };
       };
     };
