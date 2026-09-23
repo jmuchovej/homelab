@@ -1,8 +1,8 @@
 ## 1. Preconditions (worktree)
 
-- [ ] 1.1 Confirm `flatten-src-tree` has landed on the base of this worktree: `ls modules/_overlays modules/system/fonts` succeeds and `ls src` shows only `homelab`; if not, stop and either rebase or apply the two path deltas noted in design.md (one extra parent-directory hop in the overlay path, `src/modules/…` in the `AGENTS.md` paths)
-- [ ] 1.2 Copy `packages/` and `modules/system/fonts/_packages/albert-sans{,.nix}` from the main checkout (`/Users/john/Homelab`) into the worktree, then `jj file track packages modules/system/fonts/_packages`; verify `jj file list packages | rg -c 'package.nix$'` prints `24` and `jj file list packages/fonts | wc -l` is non-zero
-- [ ] 1.3 Record the pre-change baseline: `nix eval .#nixosConfigurations.da-vcx-2.config.fonts.packages --apply 'map (p: p.pname)'` and the same for `.#darwinConfigurations.da-n1x` (expect the darwin list to lack the three repo fonts), plus `nix flake show --json | yq -p json '.overlays'` (expect `contrib`); save to a scratch note for 6.x
+- [x] 1.1 Confirm `flatten-src-tree` has landed on the base of this worktree: `ls modules/_overlays modules/system/fonts` succeeds and `ls src` shows only `homelab`; if not, stop and either rebase or apply the two path deltas noted in design.md (one extra parent-directory hop in the overlay path, `src/modules/…` in the `AGENTS.md` paths)
+- [x] 1.2 Copy `packages/` from the main checkout (`/Users/john/Homelab`) into the worktree, then `jj file track packages`; verify `jj file list packages | rg -c 'package.nix$'` prints `24`, `ls packages/fonts` shows `albert-sans`, `brandon-text`, `monolisa` (each as a flat `<name>.nix` plus a `<name>/` directory of font files), and `diff -rq packages /Users/john/Homelab/packages` is silent
+- [x] 1.3 Record the pre-change baseline: `nix eval .#nixosConfigurations.da-vcx-2.config.fonts.packages --apply 'map (p: p.pname)'` and the same for `.#darwinConfigurations.da-n1x` (expect the darwin list to lack the three repo fonts), plus `nix flake show --json | yq -p json '.overlays'` (expect `contrib`); save to a scratch note for 6.x
 
 ## 2. Restructure the packages tree (worktree)
 
@@ -25,7 +25,7 @@
 
 ## 5. Docs and comment sweep (worktree)
 
-- [ ] 5.1 Rewrite `modules/_overlays/AGENTS.md`: keep the wire-only-here invariant and the two overlay forms; replace the "Overlay vs package" section with the `packages/` contract (by-name shard layout, `package.nix`-only discovery, `_` parking, `pkgs.rbn` fixed point with sibling-before-nixpkgs resolution, `pkgs.rbn.fonts` nested with fonts-then-rbn-then-nixpkgs resolution, `lib.isDerivation` filter when consuming a scope); verify `rg -n contrib modules/_overlays/AGENTS.md` is empty
+- [ ] 5.1 Rewrite `modules/_overlays/AGENTS.md`: keep its `paths:` frontmatter and widen the glob to cover both `modules/_overlays/**` and `packages/**` (the link `.agents/rules/nix-overlays.md` already exists, so no new link is needed); keep the wire-only-here invariant and the two overlay forms; replace the "Overlay vs package" section with the `packages/` contract (by-name shard layout, `package.nix`-only discovery, `_` parking, `pkgs.rbn` fixed point with sibling-before-nixpkgs resolution, `pkgs.rbn.fonts` nested with fonts-then-rbn-then-nixpkgs resolution, `lib.isDerivation` filter when consuming a scope); verify `rg -n contrib modules/_overlays/AGENTS.md` is empty and the frontmatter still parses
 - [ ] 5.2 Rewrite `modules/_overlays/_packages/AGENTS.md` to describe only what remains there (`installer.nix`, repo-specific derivations wired explicitly) and point novel upstream-shaped packages at `packages/by-name/`; verify `rg -n 'contrib|packagesFromDirectoryRecursive' modules` is empty
 - [ ] 5.3 Sweep comments added during 3.x and 4.x per the root `AGENTS.md` two-phase policy: keep only line-local action markers or constraints a naive edit would violate; lift the rest into 5.1; verify by reading the diff of `rbn.nix`, `overlays.nix`, and `fonts.nix`
 
@@ -43,6 +43,6 @@
 
 ## 8. Cutover in the main checkout (after the change lands there)
 
-- [ ] 8.1 Update the main checkout to the landed change and remove the now-duplicated untracked files it still carries: `packages/fonts/<name>.nix`, the top-level `packages/fonts/<name>/*.otf|ttf|woff2`, the un-renamed stub directories, and `modules/system/fonts/_packages/albert-sans*`; verify `jj st` is clean and `find packages -name package.nix -not -path '*/_*' | wc -l` prints `12` (9 apps + 3 fonts)
+- [ ] 8.1 Update the main checkout to the landed change and remove the now-duplicated untracked files it still carries: `packages/fonts/<name>.nix`, the top-level `packages/fonts/<name>/*.otf|ttf|woff2`, and the un-renamed stub directories; note the main checkout's working-copy change currently snapshots 246 unrelated files (docs, wallpapers), so untrack or split those deliberately rather than committing them with this cutover; verify `jj st` is clean for `packages/` and `find packages -name package.nix -not -path '*/_*' | wc -l` prints `12` (9 apps + 3 fonts)
 - [ ] 8.2 `nh darwin switch` on `da-n1x` and verify `ls "/Library/Fonts/Nix Fonts"` lists Brandon Text, MonoLisa, and Albert Sans files
 - [ ] 8.3 On the next routine NixOS rebuild of any host, verify `fc-list | rg -i 'brandon|monolisa|albert'` shows the three families (no separate rollout needed)
