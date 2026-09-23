@@ -12,7 +12,7 @@
 #
 # Both NixOS and nix-darwin use networking.wg-quick.interfaces — same shape,
 # cross-platform.
-{
+{ inputs, ... }: {
   rbn.system._.networking._.wg-holonet =
     let
       # YAML → JSON conversion via IFD. yq runs once per build, caches in
@@ -21,7 +21,7 @@
       # outermost `lib` here is the flake-parts lib, no rbn extension).
       # So thread `lib` and `pkgs` from each aspect-arm where they're in
       # scope and the extension is applied.
-      read-topology = lib: pkgs: lib.rbn.from-yaml ./topology.yaml { inherit pkgs; };
+      read-topology = lib: pkgs: lib.rbn.from-yaml "${inputs.self}/topology.yaml" { inherit pkgs; };
 
       # Build the wg-quick interface config — identical shape between NixOS
       # and nix-darwin since both expose `networking.wg-quick.interfaces`.
