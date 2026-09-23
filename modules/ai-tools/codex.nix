@@ -5,7 +5,7 @@
 ## shares almost none of its schema: `settings` is Codex's `config.toml`
 ## (<https://developers.openai.com/codex/config-reference>), `context` is a bare
 ## path rather than an attrset of named files, and there is no `defaultModel`.
-{ __findFile, inputs, ... }: {
+{ __findFile, ... }: {
   rbn.programs._.ai-tools._.codex = {
     includes = [ <rbn/programs/ai-tools/codex/cli> ];
 
@@ -14,12 +14,23 @@
         <rbn/programs/ai-tools/skills>
       ];
 
-      hm = { lib, pkgs, ... }: {
+      hm = { pkgs, ... }: {
         programs.codex = {
           enable = true;
+          package = pkgs.llm-agents.codex;
           enableMcpIntegration = true;
           context = ./_system-prompt.md;
         };
+      };
+    };
+
+    _.desktop = {
+      includes = [
+        <rbn/programs/ai-tools/skills>
+      ];
+
+      hm = { pkgs, ... }: {
+        home.packages = [ pkgs.llm-agents.chatgpt ];
       };
     };
   };

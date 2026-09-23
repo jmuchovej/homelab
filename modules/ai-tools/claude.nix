@@ -28,7 +28,12 @@
         };
 
       hm =
-        { lib, pkgs, ... }:
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         let
           harness = {
             name = "claude-code";
@@ -166,9 +171,14 @@
           );
         in
         {
+          home.sessionVariables = {
+            HAPPY_CLAUDE_PATH = lib.getExe config.programs.claude-code.package;
+          };
+
           programs.claude-code = {
             enable = true;
             enableMcpIntegration = true;
+            package = pkgs.llm-agents.claude-code;
 
             commands = load-tools ./commands;
             agents = load-tools ./agents;
@@ -312,7 +322,9 @@
 
     _.desktop = {
       dock.app = "Claude.app";
-      macos.homebrew.casks = [ "claude" ];
+      hm = { pkgs, ... }: {
+        home.packages = [ pkgs.llm-agents.claude-desktop ];
+      };
     };
   };
 }

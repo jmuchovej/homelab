@@ -42,6 +42,18 @@ in
     };
   };
 
+  rbn.programs._.ai-tools = {
+    hm = { pkgs, ... }: {
+      home.packages = with pkgs.llm-agents; [
+        happy-coder
+        entire
+        agent-browser
+        rtk
+        openskills
+      ];
+    };
+  };
+
   rbn.programs._.ai-tools._.mcp = {
     hm = _: {
       programs.mcp.enable = true;

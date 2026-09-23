@@ -3,13 +3,7 @@
 ## `programs.antigravity-cli` in May 2026; the option surface is unchanged).
 ## The aspect is named for the models, not the toolchain. Only the CLI is
 ## managed here; the Antigravity IDE and desktop app are deliberately not.
-{
-  __findFile,
-  den,
-  inputs,
-  ...
-}:
-{
+{ __findFile, den, ... }: {
   rbn.programs._.ai-tools._.gemini = {
     includes = [ <rbn/programs/ai-tools/gemini/cli> ];
 
@@ -28,6 +22,7 @@
 
         programs.antigravity-cli = {
           enable = true;
+          package = pkgs.llm-agents.antigravity-cli;
 
           settings = {
             ui.theme = "Default";
