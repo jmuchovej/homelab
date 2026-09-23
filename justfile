@@ -53,4 +53,3 @@ facter host target=host:
 [working-directory("mikrotik/")]
 topology:
     d2 -w -d -p 7326 topology.d2 topology.png
-
