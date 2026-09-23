@@ -245,6 +245,47 @@
 
             context = ./_system-prompt.md;
           };
+
+          programs.starship.settings = {
+            profiles = {
+              claude-code = "$claude_model $claude_context $claude_cost";
+            };
+
+            claude_model = {
+              format = "[$symbol$model]($style)";
+              symbol = "🤖";
+              style = "bold blue";
+              model_aliases = {
+                "global.anthropic.claude-3-5-sonnet" = "Sonnet 3.5";
+              };
+            };
+            claude_context = {
+              format = "[$gauge $percentage]($style)";
+              gauge_width = 10;
+              display = [
+                {
+                  threshold = 0;
+                  style = "bold green";
+                }
+                {
+                  threshold = 50;
+                  style = "bold yellow";
+                }
+                {
+                  threshold = 75;
+                  style = "bold orange";
+                }
+                {
+                  threshold = 90;
+                  style = "bold red";
+                }
+              ];
+            };
+            claude_cost = {
+              format = "[$symbol$cost]($style)";
+              symbol = "💰";
+            };
+          };
         };
 
       conservative.hm = _: {
