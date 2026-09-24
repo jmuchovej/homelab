@@ -34,12 +34,11 @@ in
     mcp-servers.url = "github:natsukium/mcp-servers-nix";
   };
 
+  flake.overlays.llm-agents = inputs.llm-agents.overlays.shared-nixpkgs;
+
   den.default = {
     hm = {
       imports = [ inputs.mcp-servers.homeManagerModules.default ];
-    };
-    os = {
-      nixpkgs.overlays = [ inputs.llm-agents.overlays.shared-nixpkgs ];
     };
   };
 

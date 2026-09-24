@@ -6,11 +6,15 @@ paths:
 
 # _overlays/ — package overlays and the `packages/` scope
 
-`_`-prefixed: skipped by flake-level auto-discovery; `overlays.nix` (one level
-up) discovers `*.nix` here explicitly and applies them **globally** through
-`den.default` for nixos, darwin, and home-manager. This is an invariant, not
-a convenience: per-aspect `nixpkgs.overlays` causes infinite recursion — never
-wire an overlay anywhere but here.
+`_`-prefixed: skipped by flake-level auto-discovery. Every overlay in the repo
+is declared as `flake.overlays.<name>`: one that comes from a flake input is
+declared beside its `flake-file.inputs` entry (`ai-tools.nix` declares
+`llm-agents`); one the repo authors is a file here, which `overlays.nix` (one
+level up) declares by basename. `overlays.nix` then applies the merged set
+**globally** through `den.default` for nixos, darwin, and home-manager, and is
+the only place that may. This is an invariant, not a convenience: per-aspect
+`nixpkgs.overlays` causes infinite recursion — never write `nixpkgs.overlays`
+anywhere but there.
 
 Home-manager needs its own wiring because a standalone home (`den.homes.*`)
 re-imports nixpkgs from `pkgs.path` using the `nixpkgs.overlays` option, so
@@ -20,9 +24,9 @@ overlays on the `pkgs` den hands it are discarded. On hosts
 therefore sets the list in the `hm` class only when `options.nixpkgs ? system`,
 which the live home-manager nixpkgs module declares and the stub does not.
 
-Each file is either a raw overlay (`final: prev: { … }`) or
-`{ inputs }: final: prev: { … }` when it needs flake inputs (see
-`nixpkgs-unstable.nix`, `lix.nix`, `vscode-extensions.nix`, `rbn.nix`).
+Each file here is `{ inputs }: final: prev: { … }`; take `_:` when the inputs
+are unused (see `lix.nix`, `nixpkgs-unstable.nix`, `vscode-extensions.nix`,
+`rbn.nix`).
 
 ## Overlay vs package
 

@@ -28,10 +28,11 @@ One file per harness, each defining `rbn.programs._.ai-tools._.<harness>` with
 | `codex.nix`    | `…_.codex` — Codex CLI         |
 | `ai-tools.nix` | `…_.mcp`, `…_.skills` (shared) |
 
-`ai-tools.nix` also carries the `flake-file.inputs` declarations and the
-class-level `den.default.homeManager.imports` for `mcp-servers` — den does not
-honour `imports` on an aspect, so that module has to be imported at class level
-for its options to exist.
+`ai-tools.nix` also carries the `flake-file.inputs` declarations, the
+`flake.overlays.llm-agents` declaration beside its input (applied centrally by
+`modules/overlays.nix`), and the class-level `den.default.homeManager.imports`
+for `mcp-servers` — den does not honour `imports` on an aspect, so that module
+has to be imported at class level for its options to exist.
 
 **`_`-prefixed paths are skipped by auto-discovery** and imported explicitly:
 `_lib.nix`, `_system-prompt.md`, `_claude/`. This is the same role `.part.nix`

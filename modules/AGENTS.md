@@ -16,20 +16,21 @@ invariants) is `den-style.md`. This file is only about **where things go**.
 
 ## Routing table — where does a new X go?
 
-| You're adding…                                        | Put it in                           |
-| ----------------------------------------------------- | ----------------------------------- |
-| a daemon/system service (needs root, ports)           | `services/`                         |
-| an application/tool config (mostly HM)                | `programs/`                         |
-| platform plumbing (boot, networking, hw, nix)         | `system/`                           |
-| a login shell                                         | `shells/`                           |
-| a bundle of aspects enabled together                  | `suites.nix`                        |
-| a den policy, class alias, or schema-driven behaviour | `classes/`                          |
-| a machine                                             | `hosts/<name>/`                     |
-| a person/account                                      | `users/`                            |
-| palette/theming                                       | `theme/`                            |
-| a `lib.rbn` helper                                    | `_lib/`                             |
-| a package override or vendored package                | `_overlays/`                        |
-| sops material                                         | top-level `secrets/`, not this tree |
+| You're adding…                                        | Put it in                                |
+| ----------------------------------------------------- | ---------------------------------------- |
+| a daemon/system service (needs root, ports)           | `services/`                              |
+| an application/tool config (mostly HM)                | `programs/`                              |
+| platform plumbing (boot, networking, hw, nix)         | `system/`                                |
+| a login shell                                         | `shells/`                                |
+| a bundle of aspects enabled together                  | `suites.nix`                             |
+| a den policy, class alias, or schema-driven behaviour | `classes/`                               |
+| a machine                                             | `hosts/<name>/`                          |
+| a person/account                                      | `users/`                                 |
+| palette/theming                                       | `theme/`                                 |
+| a `lib.rbn` helper                                    | `_lib/`                                  |
+| an overlay shipped by a flake input                   | `flake.overlays.<name>` beside the input |
+| a repo-authored overlay                               | `_overlays/`                             |
+| sops material                                         | top-level `secrets/`, not this tree      |
 
 Each directory's own `AGENTS.md` carries its conventions: the shape of a
 service, the two halves of a host file, user-file anatomy, variant selection in
@@ -39,8 +40,8 @@ service, the two halves of a host file, user-file anatomy, variant selection in
 
 `den.nix` (namespace + systems + `__findFile` + `denTest`), `schema.nix`
 (cross-cutting host options), `defaults.nix` (`instantiate` overrides that
-inject `lib.rbn` and host specialArgs), `overlays.nix` (overlay discovery +
-`flake.overlays.rbn`), `inputs.nix`, `deploy.nix`, `facter.nix`. `suites.nix` is
+inject `lib.rbn` and host specialArgs), `overlays.nix` (applies `flake.overlays`
+to every class and declares `_overlays/*.nix`), `inputs.nix`, `deploy.nix`, `facter.nix`. `suites.nix` is
 the one top-level _aspect_ file: every `rbn.suite._.<name>` lives there.
 
 `classes/` is not a directory of aspects either. It holds den-level
