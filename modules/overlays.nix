@@ -28,7 +28,9 @@ let
   overlays = lib.attrValues config.flake.overlays;
 in
 {
-  flake.overlays = discovered;
+  flake.overlays = discovered // {
+    rbn = import "${inputs.self}/packages/overlay.nix" { inherit inputs; };
+  };
 
   den.default = {
     nixos.nixpkgs.overlays = overlays;

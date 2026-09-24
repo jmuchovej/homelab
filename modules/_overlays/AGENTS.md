@@ -25,22 +25,24 @@ therefore sets the list in the `hm` class only when `options.nixpkgs ? system`,
 which the live home-manager nixpkgs module declares and the stub does not.
 
 Each file here is `{ inputs }: final: prev: { … }`; take `_:` when the inputs
-are unused (see `lix.nix`, `nixpkgs-unstable.nix`, `vscode-extensions.nix`,
-`rbn.nix`).
+are unused (see `lix.nix`, `nixpkgs-unstable.nix`, `vscode-extensions.nix`).
+The one overlay outside this directory, `packages/overlay.nix`, is declared
+explicitly by `overlays.nix` because `packages/` is not in the module tree.
 
 ## Overlay vs package
 
 - **Overlay (a file here)**: overriding/patching an existing nixpkgs package,
   or changing its build flags.
 - **Package (repo-root `packages/`)**: a novel `callPackage`-shaped
-  derivation, exposed by `rbn.nix` as `pkgs.rbn.*` (below).
+  derivation, exposed by `packages/overlay.nix` as `pkgs.rbn.*` (below).
 - **Repo-specific derivation (`_packages/`)**: not a package, wired
   explicitly by its one consumer — see `_packages/AGENTS.md`.
 
 ## `packages/` → `pkgs.rbn`
 
-`rbn.nix` turns the repo-root `packages/` tree into one fixed-point scope,
-also exported as `flake.overlays.rbn` for consumers outside this repo:
+`packages/overlay.nix` turns the repo-root `packages/` tree into one
+fixed-point scope, declared as `flake.overlays.rbn` (so also exported for
+consumers outside this repo):
 
 | On disk                                    | Attribute               |
 | ------------------------------------------ | ----------------------- |
@@ -54,7 +56,7 @@ also exported as `flake.overlays.rbn` for consumers outside this repo:
   `patches/`, `_files/`) is private to that package.
 - **`_` parks a package.** A directory whose name starts with `_` is invisible
   to discovery. Unfinished builders live there (`_affinity`, `_notion-app`,
-  `fonts/_albert-sans`). A `package.nix` that is not a function returning a
+  `_no-tunes`). A `package.nix` that is not a function returning a
   derivation _must_ be parked, or full-scope evaluation (`nix search`, the
   fonts aspect) throws.
 - **Duplicate names throw** at evaluation, naming both paths. nixpkgs relies
@@ -69,13 +71,14 @@ also exported as `flake.overlays.rbn` for consumers outside this repo:
   attribute (`beeper`, `zulip`, `anytype`, `plexamp`, `orca-slicer`) wins.
   Outside it nothing changes: `pkgs.beeper` is still nixpkgs', and the
   overlay adds exactly one top-level attribute, `rbn`.
-- **Consuming a scope**: filter with `lib.isDerivation` before handing values
-  to a package list. `makeScope` adds `callPackage`, `newScope`,
-  `overrideScope`, `packages`, and `recurseForDerivations` alongside the
-  derivations (`system/fonts/fonts.nix` shows the idiom).
-- **Paths come from `inputs.self`**, so the scope reads the flake's store copy
-  of the tree. An untracked file is invisible: `jj file track` new packages
-  and font files (`snapshot.auto-track` is off in this repo).
+- **Consuming a scope**: name packages directly (`pkgs.rbn.fonts.monolisa`),
+  or filter with `lib.isDerivation` before enumerating one. `makeScope` adds
+  `callPackage`, `newScope`, `overrideScope`, `packages`, and
+  `recurseForDerivations` alongside the derivations.
+- **The overlay walks its own directory** (`./by-name`, `./fonts`), so it
+  reads the flake's store copy of the tree. An untracked file is invisible:
+  `jj file track` new packages and font files (`snapshot.auto-track` is off
+  in this repo).
 - **Fonts** keep their binaries under `packages/fonts/<name>/_files/` with
   `src = ./_files;`. Several are licensed for this repo only, which is why
   fonts are not `by-name`-shaped: they are not upstream-bound.
