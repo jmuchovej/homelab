@@ -22,6 +22,14 @@ in
   den.default = {
     nixos.nixpkgs.overlays = discovered-overlays;
     darwin.nixpkgs.overlays = discovered-overlays;
+    # Standalone homes re-import nixpkgs from `pkgs.path` with their own
+    # `nixpkgs.overlays`; under `useGlobalPkgs` that option is a stub whose
+    # mere definition warns. `nixpkgs.system` exists only in the live module.
+    hm =
+      { options, ... }:
+      {
+        nixpkgs.overlays = lib.mkIf (options.nixpkgs ? system) discovered-overlays;
+      };
   };
 
   flake.overlays = {
