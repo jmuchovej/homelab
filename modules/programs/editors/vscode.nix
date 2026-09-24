@@ -1,4 +1,10 @@
-{
+{ inputs, ... }: {
+  flake-file.inputs = {
+    vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+  };
+
+  flake.overlays.vscode-extensions = inputs.vscode-extensions.overlays.default;
+
   rbn.programs._.editors._.vscode.hm =
     { pkgs, ... }:
     let

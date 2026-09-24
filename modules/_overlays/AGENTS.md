@@ -25,7 +25,10 @@ therefore sets the list in the `hm` class only when `options.nixpkgs ? system`,
 which the live home-manager nixpkgs module declares and the stub does not.
 
 Each file here is `{ inputs }: final: prev: { … }`; take `_:` when the inputs
-are unused (see `lix.nix`, `nixpkgs-unstable.nix`, `vscode-extensions.nix`).
+are unused (see `lix.nix`). Overlays shipped by a flake input are not files
+here: they are declared beside their `flake-file.inputs` entry
+(`ai-tools.nix` → `llm-agents`, `editors/vscode.nix` → `vscode-extensions`,
+`inputs.nix` → the per-platform `stable` alias).
 The one overlay outside this directory, `packages/overlay.nix`, is declared
 explicitly by `overlays.nix` because `packages/` is not in the module tree.
 

@@ -41,7 +41,11 @@ service, the two halves of a host file, user-file anatomy, variant selection in
 `den.nix` (namespace + systems + `__findFile` + `denTest`), `schema.nix`
 (cross-cutting host options), `defaults.nix` (`instantiate` overrides that
 inject `lib.rbn` and host specialArgs), `overlays.nix` (applies `flake.overlays`
-to every class and declares `_overlays/*.nix`), `inputs.nix`, `deploy.nix`, `facter.nix`. `suites.nix` is
+to every class and declares `_overlays/*.nix`), `inputs.nix` (core inputs, and
+the `pkgs.stable` alias: a second nixpkgs evaluated from the NixOS-gated
+`nixos-XX.YY` channel on Linux and the darwin-gated `nixpkgs-XX.YY-darwin`
+channel on macOS, with this set's config but no overlays, for selective
+downgrades only), `deploy.nix`, `facter.nix`. `suites.nix` is
 the one top-level _aspect_ file: every `rbn.suite._.<name>` lives there.
 
 `classes/` is not a directory of aspects either. It holds den-level

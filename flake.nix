@@ -8,6 +8,10 @@
       url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
       flake = false;
     };
+    conventional-commits = {
+      url = "https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13";
+      flake = false;
+    };
     den.url = "github:denful/den";
     deploy.url = "github:serokell/deploy-rs";
     devenv.url = "github:cachix/devenv/v2.3.1";
@@ -54,9 +58,10 @@
       url = "github:nix-community/nix-unit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs-stable-darwin.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
+    nixpkgs-stable-linux.url = "github:nixos/nixpkgs/nixos-26.05";
     nixvirt.url = "github:AshleyYakeley/NixVirt";
     oh-my-tmux = {
       url = "github:gpakosz/.tmux";
@@ -65,5 +70,6 @@
     sops-nix.url = "github:mic92/sops-nix";
     topology.url = "github:oddlama/nix-topology";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 }
