@@ -274,7 +274,7 @@ in
       }
       {
         name = "Beeper Desktop.app";
-        source = "user-apps";
+        source = "hm";
         group = "communication";
         order = 220;
       }

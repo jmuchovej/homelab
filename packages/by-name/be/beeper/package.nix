@@ -1,86 +1,40 @@
 {
   lib,
   stdenv,
-  runCommand,
+  callPackage,
   fetchurl,
-  appimageTools,
-  makeWrapper,
-  asar,
   writeShellApplication,
   curl,
   common-updater-scripts,
 }:
 let
   pname = "beeper";
-  version = "4.3.20";
+  version = "4.3.144";
 
   inherit (stdenv.hostPlatform) system;
 
+  base = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}";
+
   sources = {
     x86_64-linux = fetchurl {
-      url = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}-x86_64.AppImage";
-      hash = "sha256-9xlsLhJ2Z0ICaAmdYSraNK11+YPbvgiXJDD2e+lJaQE=";
+      url = "${base}-x86_64.AppImage";
+      hash = "sha512-mQnCu+bMG0HeebmFPfzovzQqSgTA0wLJ+/obJXI/k5Eu0BkXeuJb+Ay2xBH8O5Z2hi7Y9Ilku0W4SGhVGpfDFw==";
     };
     aarch64-linux = fetchurl {
-      url = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}-arm64.AppImage";
-      hash = "sha256-ukAZMw7XUQGpUY/QcV/JVZSN3PsTKFJskp7h1n9he6o=";
+      url = "${base}-arm64.AppImage";
+      hash = "sha512-LYQRZH5Sntcr/Q1p1EK4Ae4viGHXTUnv2harXMFB2O62s5h5PF0ql25MK/QkXhM1MO4n38/d65pDQi7nKnPlRg==";
+    };
+    x86_64-darwin = fetchurl {
+      url = "${base}-mac.zip";
+      hash = "sha512-yEt6DuBiFbEg1oaJ/pnJuLon1/xcQ5QO1Wu2vY2P8SPvJZVO1X29KyYlBqSGSpZp1B17V7gO9PsM4hgQYQC5fA==";
+    };
+    aarch64-darwin = fetchurl {
+      url = "${base}-arm64-mac.zip";
+      hash = "sha512-xjrjpVmEA2ydOzb3ut7R9kBBLJ94HNjYTRwPV/472wC68Ve3N7hiKndN+A+X1xt23dmL5/LVlE8N/YuKPxCLHQ==";
     };
   };
 
   src = sources.${system} or (throw "beeper is not supported on ${system}");
-
-  # Beeper 4.2.985+ ships AppImages without the type-2 magic bytes
-  # (ASCII "AI" + 0x02 at ELF offset 8) that appimageTools.extract requires.
-  linuxSrc = runCommand "Beeper-${version}-appimage" { inherit src; } ''
-    cp $src $out
-    chmod +w $out
-    printf 'AI\x02' | dd of=$out bs=1 seek=8 conv=notrunc status=none
-  '';
-
-  appimageContents = appimageTools.extract {
-    inherit pname version;
-    src = linuxSrc;
-
-    postExtract = ''
-      appRoot="$out/resources/app"
-      ${lib.getExe asar} extract "$out/resources/app.asar" "$appRoot"
-      rm "$out/resources/app.asar"
-
-      # disable creating a desktop file and icon in the home folder during runtime
-      linuxConfigFilename=$appRoot/build/main/linux-*.mjs
-      echo "export function registerLinuxConfig() {}" > $linuxConfigFilename
-
-      # Disable scheduled update checks.
-      autoUpdateConfigFilename=$(
-        grep -lF 'c=d??{},p=c.hw_acceleration??!0' $appRoot/build/main/index-*.mjs
-      )
-      substituteInPlace "$autoUpdateConfigFilename" \
-        --replace-fail 'c=d??{},p=c.hw_acceleration??!0' 'c={...(d??{}),auto_update_disabled:true},p=c.hw_acceleration??!0'
-
-      # Disable user-triggered update checks, which ignore auto_update_disabled.
-      substituteInPlace $appRoot/build/main/main-entry-*.mjs \
-        --replace-fail 'async checkForUpdates(r=!1){' 'async checkForUpdates(r=!1){return;'
-    '';
-  };
-in
-appimageTools.wrapAppImage {
-  inherit pname version;
-
-  src = appimageContents;
-
-  extraPkgs = pkgs: [ pkgs.libsecret ];
-
-  extraInstallCommands = ''
-    install -Dm 644 ${appimageContents}/beepertexts.png $out/share/icons/hicolor/512x512/apps/beepertexts.png
-    install -Dm 644 ${appimageContents}/beepertexts.desktop -t $out/share/applications/
-    substituteInPlace $out/share/applications/beepertexts.desktop --replace-fail "AppRun" "beeper"
-
-    . ${makeWrapper}/nix-support/setup-hook
-    wrapProgram $out/bin/beeper \
-      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
-      --set APPIMAGE beeper \
-      --run 'exec >/dev/null' # as recommended in #486164
-  '';
 
   passthru = {
     inherit sources;
@@ -119,4 +73,15 @@ appimageTools.wrapAppImage {
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     mainProgram = "beeper";
   };
+
+  variant = if stdenv.hostPlatform.isDarwin then ./darwin.nix else ./linux.nix;
+in
+callPackage variant {
+  inherit
+    pname
+    version
+    src
+    meta
+    passthru
+    ;
 }

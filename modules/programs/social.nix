@@ -6,14 +6,11 @@
       includes = [ (den.batteries.unfree [ "beeper" ]) ];
 
       hm = { pkgs, ... }: {
-        home.packages = [ pkgs.beeper-bridge-manager ];
+        home.packages = [
+          pkgs.rbn.beeper
+          pkgs.beeper-bridge-manager
+        ];
       };
-
-      hm-linux = { pkgs, ... }: {
-        home.packages = [ pkgs.beeper ];
-      };
-
-      macos.homebrew.casks = [ "beeper" ];
     };
 
     _.zoom = {
