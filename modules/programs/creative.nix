@@ -1,3 +1,4 @@
+{ den, ... }:
 {
   rbn.programs._.creative = {
     _.figma = {
@@ -20,10 +21,19 @@
     };
 
     _.design = {
-      macos.homebrew.casks = [
-        "sketch"
-        "affinity"
+      includes = [
+        (den.batteries.unfree [
+          "sketch"
+          "affinity"
+        ])
       ];
+
+      hm-macos = { pkgs, ... }: {
+        home.packages = [
+          pkgs.rbn.sketch
+          pkgs.rbn.affinity
+        ];
+      };
     };
   };
 }
