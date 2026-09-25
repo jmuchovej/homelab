@@ -1,10 +1,15 @@
+{ den, ... }:
 {
   rbn.programs._.desktop = {
     _.amie = {
       macos.homebrew.casks = [ "amie" ];
     };
     _.superwhisper = {
-      macos.homebrew.casks = [ "superwhisper" ];
+      includes = [ (den.batteries.unfree [ "superwhisper" ]) ];
+
+      hm-macos = { pkgs, ... }: {
+        home.packages = [ pkgs.rbn.superwhisper ];
+      };
     };
 
     _.balenaetcher = {
