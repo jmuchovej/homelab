@@ -5,20 +5,19 @@
     nh.url = "github:nix-community/nh";
   };
 
-  den.default.nixos = {
-    imports = [ inputs.nix-index-database.nixosModules.nix-index ];
-    programs.nix-index-database.comma.enable = true;
-    programs.nix-ld.enable = true;
-  };
+  den.default = {
+    nixos = {
+      imports = [ inputs.nix-index-database.nixosModules.nix-index ];
+      programs.nix-index-database.comma.enable = true;
+      programs.nix-ld.enable = true;
+    };
 
-  den.default.darwin = {
-    imports = [ inputs.nix-index-database.darwinModules.nix-index ];
-    programs.nix-index-database.comma.enable = true;
-  };
+    macos = {
+      imports = [ inputs.nix-index-database.darwinModules.nix-index ];
+      programs.nix-index-database.comma.enable = true;
+    };
 
-  den.default.homeManager =
-    { config, lib, ... }:
-    {
+    hm = { config, lib, ... }: {
       imports = [ inputs.nix-index-database.homeModules.nix-index ];
       programs.nix-index-database.comma.enable = true;
       home.preferXdgDirectories = lib.mkDefault true;
@@ -35,6 +34,7 @@
         '';
       };
     };
+  };
 
   # `den.default.homeManager` above enables HM's `nix` module for every home, and
   # HM then asserts `nix.package != null` because it runs `nix show-config` from
@@ -44,16 +44,16 @@
   #
   # Scoped to `den.schema.home` on purpose — setting `nix.package` unconditionally
   # would also apply on hosts, where HM currently defers to the system.
-  den.schema.home.includes = [
-    {
-      name = "standalone-home/nix-package";
-      homeManager =
-        { lib, pkgs, ... }:
-        {
+  den.schema = {
+    home.includes = [
+      {
+        name = "standalone-home/nix-package";
+        hm = { lib, pkgs, ... }: {
           nix.package = lib.mkDefault pkgs.lixPackageSets.stable.lix;
         };
-    }
-  ];
+      }
+    ];
+  };
 
   rbn.system._.nix = {
     os =
@@ -85,6 +85,7 @@
 
         environment.systemPackages = with pkgs; [
           git
+          jujutsu
           nixd
           nixfmt
           nix-index
@@ -93,15 +94,13 @@
           deploy-rs
         ];
 
-        # Backs `nix.nixPath` below so `<nixpkgs>` and `nix-shell -p` resolve
-        # to the same nixpkgs the system was built from.
         environment.etc."nix/inputs/nixpkgs".source = inputs.nixpkgs;
 
         nixpkgs.hostPlatform = lib.mkDefault system;
 
         nix = {
-          package = lib.mkDefault pkgs.lixPackageSets.stable.lix;
           enable = lib.mkDefault true;
+          package = lib.mkDefault pkgs.lixPackageSets.stable.lix;
 
           settings = {
             trusted-users = [
@@ -248,6 +247,11 @@
             };
           };
         };
+      };
+
+      launchd.daemons.nix-gc.serviceConfig = {
+        StandardOutPath = "/var/log/nix-gc.log";
+        StandardErrorPath = "/var/log/nix-gc.log";
       };
     };
   };
