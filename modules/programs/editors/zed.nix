@@ -51,6 +51,7 @@
           extensions = extensions ++ [
             "env"
             "comment"
+            "pkl"
           ];
           userSettings = recursiveUpdate settings {
             prettier.allowed = false;
