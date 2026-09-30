@@ -5,6 +5,7 @@
 }:
 let
   inherit (lib) getExe getExe';
+  inherit (lib.rbn) argv;
 in
 {
   programs.helix.languages = {
@@ -43,11 +44,7 @@ in
           auto-format = true;
           formatter = {
             command = getExe pkgs.shfmt;
-            args = [
-              "-i"
-              "2"
-              "-"
-            ];
+            args = argv "-i 2 -";
           };
         }
         {
@@ -134,10 +131,7 @@ in
 
       nil = {
         command = getExe pkgs.nil;
-        config.nil.formatting.command = [
-          "${getExe pkgs.nixfmt}"
-          "-q"
-        ];
+        config.nil.formatting.command = argv "${getExe pkgs.nixfmt} -q";
       };
 
       typescript-language-server = {

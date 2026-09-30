@@ -6,14 +6,11 @@
       <rbn/programs/development/languages/typescript>
     ];
 
-    hm = _: {
+    hm = { lib, ... }: {
       mcp-servers.settings.servers = {
         tauri = {
           command = "pnpx";
-          args = [
-            "-y"
-            "@hypothesi/tauri-mcp-server"
-          ];
+          args = lib.rbn.argv "-y @hypothesi/tauri-mcp-server";
         };
       };
     };

@@ -47,9 +47,9 @@
         enable = true;
         package = devenv-pkg;
         # settings = {
-        # version = 1;
-        # shell.prompt_prefix = false;
-        # tui.statusline.enabled = true;
+        #   version = 1;
+        #   shell.prompt_prefix = false;
+        #   tui.statusline.enabled = true;
         # };
       };
 

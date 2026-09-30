@@ -4,10 +4,7 @@
     let
       dart-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.dart;
-        args = [
-          "language-server"
-          "--protocol=lsp"
-        ];
+        args = lib.rbn.argv "language-server --protocol=lsp";
         extensions.".dart" = "dart";
       };
     in

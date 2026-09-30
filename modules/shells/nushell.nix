@@ -15,11 +15,7 @@
         nu = config.programs.nushell;
         nu-lsp = lib.rbn.mk-lsp {
           pkg = nu.package;
-          args = [
-            "--config"
-            "${nu.configDir}/config.nu"
-            "--lsp"
-          ];
+          args = lib.rbn.argv "--config ${nu.configDir}/config.nu --lsp";
           extensions = {
             ".nu" = "nu";
           };

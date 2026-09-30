@@ -7,11 +7,7 @@
         extensions.".nix" = "nix";
         # nixd execs the formatter itself and inherits the harness's bare
         # `$PATH`, so this must stay an absolute store path too.
-        init.formatting.command = [
-          (lib.getExe pkgs.nixfmt)
-          "--quiet"
-          "--"
-        ];
+        init.formatting.command = lib.rbn.argv "${lib.getExe pkgs.nixfmt} --quiet --";
       };
     in
     {
