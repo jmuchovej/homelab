@@ -178,6 +178,7 @@ in
         (when-desktop "waypoints" <rbn/programs/documents/waypoints>)
 
         <rbn/services/ssh-agent>
+        <rbn/programs/ai-tools>
         <rbn/programs/ai-tools/gemini>
         <rbn/programs/ai-tools/claude>
         <rbn/programs/ai-tools/mcp>

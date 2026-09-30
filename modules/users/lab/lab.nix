@@ -36,8 +36,9 @@ in
       <rbn/programs/terminal/topgrade>
 
       # Core
-      <rbn/programs/ai-tools/claude/cli>
+      <rbn/programs/ai-tools>
       <rbn/programs/ai-tools/mcp>
+      <rbn/programs/ai-tools/claude/cli>
 
       # Editors
       <rbn/programs/editors/helix>
