@@ -125,8 +125,8 @@ The shared library's message handler SHALL dispatch an incoming Zigbee message b
 
 #### Scenario: Tuya surface is absent from the fork
 
-- **WHEN** `hubitat/libraries/` is searched for `EF00`, `tuyaBlackMagic`, `sendTuyaCommand`, `syncTuyaDateTime`, `isTuya(`, or `tuyaTest`
-- **THEN** there are zero matches
+- **WHEN** the non-comment lines of `hubitat/libraries/` are searched for `EF00`, `tuyaBlackMagic`, `sendTuyaCommand`, `syncTuyaDateTime`, `isTuya(`, or `tuyaTest`
+- **THEN** there are zero matches (the retained upstream version-history comments and the provenance notices may still name them)
 
 #### Scenario: Aqara handling remains
 
