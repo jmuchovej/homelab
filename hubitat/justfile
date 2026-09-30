@@ -1,0 +1,16 @@
+set script-interpreter := ["bash", "-ueo", "pipefail"]
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# In a module, justfile_directory() is the ROOT justfile's directory (the repo),
+# so it is the right --project for uv; module_directory() is this file's
+# directory. The script locates hubitat/ from its own path, so cwd is irrelevant.
+[doc('Regenerate <driver>.bundled.groovy for every driver (or only SOURCES) from its source and rbn.* libraries')]
+bundle *SOURCES:
+    uv run --project {{ justfile_directory() }} python {{ module_directory() }}/scripts/bundle.py {{ SOURCES }}
+
+[doc('Exit non-zero naming any committed bundle that is stale relative to its source or libraries')]
+check *SOURCES:
+    uv run --project {{ justfile_directory() }} python {{ module_directory() }}/scripts/bundle.py --check {{ SOURCES }}

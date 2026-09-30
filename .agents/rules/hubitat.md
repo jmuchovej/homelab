@@ -1,0 +1,1 @@
+../../hubitat/AGENTS.md
