@@ -69,7 +69,10 @@
         } jj-clone-script;
       in
       {
-        home.packages = [ jj-clone ];
+        home.packages = [
+          jj-clone
+          pkgs.watchman
+        ];
 
         home.shellAliases = {
           jj = "jj --color always";
@@ -90,13 +93,111 @@
             git = {
               private-commits = "description('wip:*') | description('private:*')";
               track-default-bookmark-on-clone = true;
+              write-change-id-header = true;
+              colocate = true;
             };
-            aliases.clone = [
-              "util"
-              "exec"
-              "--"
-              (getExe jj-clone)
-            ];
+            remotes = {
+              origin = {
+                auto-track-bookmarks = "*";
+              };
+              upstream = {
+                auto-track-bookmarks = "*";
+              };
+            };
+            snapshot = {
+              auto-update-stale = true;
+              auto-track = lib.concatMapStringsSep " & " (g: ''~glob:"${g}"'') [
+                "*~"
+                ".*.swp"
+                "node_modules"
+                ".devenv"
+                ".DS_Store"
+                "mise.*.local.toml"
+                "mise.local.toml"
+              ];
+            };
+            ui = {
+              default-command = "log";
+              conflict-marker-style = "git";
+            };
+            fsmonitor = {
+              backend = "watchman";
+              watchman.register-snapshot-trigger = true;
+            };
+            aliases = with lib.rbn; {
+              clone = argv "util exec -- ${getExe jj-clone}";
+              sq = "squash";
+
+              rebase-trunk = argv "rebase -b @ -d trunk()";
+              rebase-all-trunk = argv "rebase -b (visible_heads() ~ immutable_heads()) & working_set() -d trunk()";
+
+              log-all = argv "log -r ::";
+              log-branches = argv "log -r branch_log()";
+            };
+            revsets = {
+              log = "ancestors(working_set(), 2)";
+              bookmark-advance-to = "closest_pushable(@)";
+            };
+            revset-aliases = {
+              "archive_refs()" = ''bookmarks(glob:"archive/*")'';
+              "working_refs()" = "present(@) | present(trunk()) | (bookmarks() ~ archive_refs())";
+              "archive()" = "::archive_refs() ~ ::((~::archive_refs()) | working_refs())";
+
+              "live_heads()" = "heads(mutable() ~ archive())";
+              "live_fork_point()" = "fork_point(live_heads())";
+
+              "working_heads()" =
+                "live_heads() | present(@) | present(trunk()) | first_parent(@) | working_copies()";
+              "working_fork_point()" = "fork_point(working_heads())";
+              "working_set()" = "connected(working_heads() | working_fork_point())";
+
+              "branch_heads()" = "working_heads() | remote_bookmarks()";
+              "branch_fork_point()" = "fork_point(branch_heads())";
+              "branch_set()" = "connected(branch_heads() | branch_fork_point())";
+              "branch_log()" = "ancestors(branch_set(), 2)";
+
+              "closest_pushable(to)" =
+                ''heads(::to & mutable() & ~description(exact:"") & (~empty() | merges()))'';
+            };
+            template-aliases = {
+              "format_timestamp(timestamp)" = "timestamp.ago()";
+              "micro_commit_info(c)" = ''
+                concat(
+                  if(c.immutable(), label("immutable", "◆")),
+                  coalesce(
+                    if(c.empty() && !c.immutable(), label("empty", "empty")),
+                    c.change_id().shortest()
+                  ),
+                  if(c.conflict(), label("conflict", "×")),
+                  coalesce(
+                    if(c.contained_in("trunk()"), label("git_head", "⊙")),
+                    if(c.contained_in("trunk()::"), label("git_head", "↑")),
+                    if(c.contained_in("::trunk()"), "↓"),
+                    "→"
+                  )
+                )
+              '';
+              commit_and_parents_info = ''
+                separate(
+                  ", ",
+                  micro_commit_info(self),
+                  parents.map(|c| micro_commit_info(c)).join("+")
+                )
+              '';
+              assisted_by_tool = ''config("rbn.assisted-by.tool")'';
+              assisted_by_model = ''config("rbn.assisted-by.model")'';
+              "format_assisted_by_trailer(commit)" = ''
+                if(assisted_by_tool && assisted_by_model,
+                  "Assisted-by: " ++ assisted_by_tool.as_string() ++ " (" ++ assisted_by_model.as_string() ++ ")\n",
+                  "")
+              '';
+            };
+            templates = {
+              commit_trailers = ''
+                format_signed_off_by_trailer(self)
+                ++ format_assisted_by_trailer(self)
+              '';
+            };
             "--scope" =
               let
                 ## Repos live under `~/Documents/src`; the view directories hold
@@ -119,35 +220,6 @@
                 }
               ]
               ++ mapAttrsToList mk-forge-scope user.forges;
-            remotes = {
-              origin = {
-                auto-track-bookmarks = "*";
-              };
-              upstream = {
-                auto-track-bookmarks = "*";
-              };
-            };
-            snapshot.auto-update-stale = true;
-            ui = {
-              default-command = "log";
-            };
-            template-aliases = {
-              "format_timestamp(timestamp)" = "timestamp.ago()";
-              # "commit_timestamp(commit)" = "commit.author.timestamp()";
-            };
-            templates = {
-              assisted-by-tool = ''config("rbn.assisted-by.tool")'';
-              assisted-by-model = ''config("rbn.assisted-by.model")'';
-              "format_assisted_by_trailer(commit)" = ''
-                if(assisted_by_tool && assisted_by_model,
-                  "Assisted-by: " ++ assisted_by_tool.as_string() ++ " (" ++ assisted_by_model.as_string() ++ ")\n",
-                  "")
-              '';
-              commit-trailers = ''
-                format_signed_off_by_trailer(self)
-                ++ format_assisted_by_trailer(self)
-              '';
-            };
           };
         };
 
@@ -166,18 +238,12 @@
       };
   };
 
-  rbn.programs._.terminal._.jj-hooks.hm = { pkgs, ... }: {
+  rbn.programs._.terminal._.jj-hooks.hm = { lib, pkgs, ... }: {
     home.packages = [ pkgs.rbn.jj-hooks ];
     programs.jujutsu = {
       settings = {
         aliases = {
-          push = [
-            "util"
-            "exec"
-            "--"
-            "jj-hp"
-            "push"
-          ];
+          push = lib.rbn.argv "util exec -- jj-hp push";
         };
 
         jj-hooks = {
