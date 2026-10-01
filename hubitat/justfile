@@ -1,33 +1,38 @@
 set script-interpreter := ["bash", "-ueo", "pipefail"]
 
-# In a module, justfile_directory() is the ROOT justfile's directory (the repo). That is
-# where `-m hubitat` must resolve from; uv's --directory also makes it the cwd.
-run := "uv run --directory " + justfile_directory() + " --package hubitat"
-
 [private]
 default:
     @just --justfile {{ module_file() }} --list
 
+# In a module, justfile_directory() is the ROOT justfile's directory (the repo),
+# which is where `-m hubitat` must resolve from; uv's --directory also makes it
+# the cwd. The helpers below are recipe dependencies, not nested `just` calls,
+# because a nested call re-roots justfile_directory() at hubitat/.
+[private]
+via-uv *ARGS:
+    uv run --directory {{ justfile_directory() }} --package hubitat {{ ARGS }}
+
+# Hub commands only: secretspec would otherwise demand HUBITAT_URL for offline work.
+[private]
+via-hub command *ARGS:
+    secretspec run --reason "just hubitat {{ command }}" -- \
+      uv run --directory {{ justfile_directory() }} --package hubitat \
+        --module hubitat {{ command }} {{ ARGS }}
+
 [doc('Regenerate <driver>.bundled.groovy for every driver (or only the given SOURCES)')]
-bundle *ARGS:
-    {{ run }} -m hubitat bundle {{ ARGS }}
+bundle *ARGS: (via-uv "--module" "hubitat" "bundle" ARGS)
 
 [doc('Exit non-zero naming any stale bundle or disagreeing HPM manifest; writes nothing')]
-check *ARGS:
-    {{ run }} -m hubitat check {{ ARGS }}
+check *ARGS: (via-uv "--module" "hubitat" "check" ARGS)
 
 [doc('Run the package tests (offline; no hub needed)')]
-test *ARGS:
-    {{ run }} python -m pytest hubitat/tests {{ ARGS }}
+test *ARGS: (via-uv "python" "-m" "pytest" "hubitat/tests" ARGS)
 
-[doc('Create or update rbn drivers on the hub from their bundles; add --dry-run to only read')]
-push *ARGS:
-    secretspec run --reason 'just hubitat push' -- {{ run }} -m hubitat push {{ ARGS }}
+[doc('Create or update rbn drivers on the hub from their bundles; --dry-run reads only, --libraries targets Libraries Code')]
+push *ARGS: (via-hub "push" ARGS)
 
 [doc('Compile every library on the hub through a throwaway include-all driver, then delete it')]
-probe:
-    secretspec run --reason 'just hubitat probe' -- {{ run }} -m hubitat probe
+probe: (via-hub "probe")
 
 [doc('Set DRIVER version(), timeStamp(), and manifest version/dateReleased, then re-bundle')]
-bump DRIVER VERSION:
-    {{ run }} -m hubitat bump {{ DRIVER }} {{ VERSION }}
+bump DRIVER VERSION: (via-uv "--module" "hubitat" "bump" DRIVER VERSION)
