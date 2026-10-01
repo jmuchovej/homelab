@@ -67,9 +67,9 @@ resource "authentik_outpost" "site" {
   config = jsonencode({
     # Outposts always phone HOME — authentik core is single-site, so this
     # stays the primary's URL even for an outpost running elsewhere.
-    "authentik_host" : "https://id.${var.domain.da}",
+    "authentik_host" : "https://id.${var.domain.root}",
     "authentik_host_insecure" : false,
-    "authentik_host_browser" : "https://id.${var.domain.da}",
+    "authentik_host_browser" : "https://id.${var.domain.root}",
     "log_level" : "info",
   })
 
