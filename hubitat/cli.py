@@ -9,6 +9,7 @@ import typer
 
 import hubitat
 
+from . import bump as bumping
 from . import bundle as bundling
 from . import manifest as manifests
 from . import push as pushing
@@ -125,3 +126,33 @@ def push(drivers: Drivers = None, dry_run: DryRun = False) -> None:
         except (pushing.PushError, manifests.IdentityError, HubError) as error:
             typer.echo(f"error: {error}", err=True)
             raise typer.Exit(1) from None
+
+
+@app.command()
+def probe() -> None:
+    """Compile every library on the hub through a throwaway include-all driver, then delete it."""
+    with _connect() as hub:
+        try:
+            names = pushing.probe(hub)
+        except (pushing.ProbeError, pushing.PushError, HubError) as error:
+            typer.echo(f"error: {error}", err=True)
+            raise typer.Exit(1) from None
+    typer.echo(f"compiled {len(names)} libraries: {', '.join(names)}")
+
+
+@app.command()
+def bump(
+    driver: Annotated[
+        str, typer.Argument(help="Driver directory name under hubitat/drivers/.")
+    ],
+    version: Annotated[str, typer.Argument(help="New version string, e.g. 3.3.1.")],
+) -> None:
+    """Set a driver's version(), timeStamp(), and manifest version/dateReleased; re-bundle."""
+    source = _named_sources([driver])[0]
+    try:
+        written = bumping.bump(source, version)
+    except bumping.BumpError as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(1) from None
+    for path in written:
+        typer.echo(f"wrote {path}")
