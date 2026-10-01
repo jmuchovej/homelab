@@ -11,6 +11,8 @@ import hubitat
 
 from . import bundle as bundling
 from . import manifest as manifests
+from . import push as pushing
+from .hub import Hub, HubConfig, HubConfigError, HubError
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -32,6 +34,32 @@ def _sources(sources: list[Path] | None) -> list[Path]:
         typer.echo(f"no driver sources under {hubitat.DRIVERS}", err=True)
         raise typer.Exit(1)
     return resolved
+
+
+def _named_sources(names: list[str] | None) -> list[Path]:
+    """``hubitat/drivers/<name>/<name>.groovy`` for each name; all drivers when none."""
+    if not names:
+        return _sources(None)
+    sources = []
+    for name in names:
+        source = hubitat.DRIVERS / name / f"{name}.groovy"
+        if not source.is_file():
+            typer.echo(f"error: unknown driver {name!r} (no {source})", err=True)
+            raise typer.Exit(2)
+        sources.append(source)
+    return sources
+
+
+def _connect() -> Hub:
+    try:
+        config = HubConfig.from_env()
+        return Hub.connect(config)
+    except HubConfigError as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(2) from None
+    except HubError as error:
+        typer.echo(f"error: {error}", err=True)
+        raise typer.Exit(1) from None
 
 
 @app.command()
@@ -72,3 +100,28 @@ def check(sources: Sources = None) -> None:
         failed = True
     if failed:
         raise typer.Exit(1)
+
+
+Drivers = Annotated[
+    list[str] | None,
+    typer.Argument(help="Driver directory names under hubitat/drivers/; default: all."),
+]
+DryRun = Annotated[
+    bool, typer.Option("--dry-run", help="Read from the hub, write nothing.")
+]
+
+
+@app.command()
+def push(drivers: Drivers = None, dry_run: DryRun = False) -> None:
+    """Create or update rbn drivers on the hub from their bundles; unchanged ones are skipped."""
+    sources = _named_sources(drivers)
+    with _connect() as hub:
+        try:
+            actions = pushing.plan(hub, sources)
+            for action in actions:
+                typer.echo(action.describe(dry_run=dry_run))
+            if not dry_run:
+                pushing.apply(hub, actions)
+        except (pushing.PushError, manifests.IdentityError, HubError) as error:
+            typer.echo(f"error: {error}", err=True)
+            raise typer.Exit(1) from None
