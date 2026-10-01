@@ -12,7 +12,12 @@
       check.enable = false;
 
       settings.hooks = {
-        pre-commit-hook-ensure-sops.enable = true;
+        pre-commit-hook-ensure-sops = {
+          enable = true;
+          # Upstream default is `^secrets`, which also matches `secretspec.toml`;
+          # the hook JSON-loads anything that is not `.yaml` and crashes on it.
+          files = "^secrets/.*\\.(ya?ml|json)$";
+        };
         treefmt = {
           enable = true;
           settings.no-cache = false;
