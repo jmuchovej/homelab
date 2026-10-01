@@ -1,0 +1,14 @@
+[project]
+name = "hubitat"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "pydantic>=2.12.5",
+    "typer>=0.20.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

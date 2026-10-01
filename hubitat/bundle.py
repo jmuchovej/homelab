@@ -1,33 +1,22 @@
 """Generate ``<driver>.bundled.groovy`` from a driver source and its ``rbn.*`` libraries.
 
 Hubitat imports a single file. The authored driver source uses ``#include rbn.<name>``
-lines; this script inlines each ``hubitat/libraries/<name>.groovy`` after the source in
+lines; this module inlines each ``hubitat/libraries/<name>.groovy`` after the source in
 include order, reproducing the upstream marker format so that a hub compile error on a
 bundle line maps back to a library line via its trailing ``// library marker`` comment.
 
 Every ``#include`` line becomes an empty line, so driver-body line numbers are identical
 in source and bundle. The ``Libraries`` banner is emitted once, after the source, unless the
 source already ends with it (upstream-derived drivers do).
-
-Usage::
-
-    bundle.py [--check] [SOURCE ...]
-
-With no SOURCE, every ``hubitat/drivers/*/*.groovy`` that does not end in
-``.bundled.groovy`` is processed. ``--check`` writes nothing and exits 1 if any bundle on
-disk differs from what would be generated.
 """
 
 from __future__ import annotations
 
-import argparse
 import re
-import sys
 from pathlib import Path
 
-HUBITAT = Path(__file__).resolve().parent.parent
-LIBRARIES = HUBITAT / "libraries"
-DRIVERS = HUBITAT / "drivers"
+import hubitat
+
 NAMESPACE = "rbn"
 BANNER = (
     "// /////////////////////////////////////////////////////////////////// "
@@ -35,6 +24,7 @@ BANNER = (
     "//////////////////////////////////////////////////////////////////////"
 )
 INCLUDE = re.compile(rf"^#include\s+{NAMESPACE}\.([A-Za-z0-9_.\-]+)\s*$")
+MARKER = re.compile(rf" // library marker {NAMESPACE}\.([A-Za-z0-9_.\-]+), line (\d+)$")
 TRIPLE_QUOTES = ("'''", '"""')
 
 
@@ -43,7 +33,7 @@ class BundleError(Exception):
 
 
 def library_lines(name: str) -> list[str]:
-    path = LIBRARIES / f"{name}.groovy"
+    path = hubitat.LIBRARIES / f"{name}.groovy"
     if not path.is_file():
         raise BundleError(f"library '{name}' not found at {path}")
     text = path.read_text(encoding="utf-8")
@@ -96,46 +86,35 @@ def bundle_path(source: Path) -> Path:
     return source.with_name(f"{source.stem}.bundled.groovy")
 
 
-def default_sources() -> list[Path]:
+def driver_sources() -> list[Path]:
     return sorted(
-        p for p in DRIVERS.glob("*/*.groovy") if not p.name.endswith(".bundled.groovy")
+        p
+        for p in hubitat.DRIVERS.glob("*/*.groovy")
+        if not p.name.endswith(".bundled.groovy")
     )
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("sources", nargs="*", type=Path, help="driver source files")
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="write nothing; exit 1 if any bundle on disk is stale",
-    )
-    args = parser.parse_args(argv)
-
-    sources = [p.resolve() for p in args.sources] or default_sources()
-    if not sources:
-        print(f"no driver sources under {DRIVERS}", file=sys.stderr)
-        return 1
-
-    failed = False
-    for source in sources:
-        target = bundle_path(source)
-        try:
-            generated = bundle(source)
-        except BundleError as error:
-            print(f"error: {error}", file=sys.stderr)
-            failed = True
-            continue
-        if args.check:
-            current = target.read_text(encoding="utf-8") if target.is_file() else None
-            if current != generated:
-                print(f"stale: {target}", file=sys.stderr)
-                failed = True
-            continue
-        target.write_text(generated, encoding="utf-8")
-        print(f"wrote {target}")
-    return 1 if failed else 0
+def is_stale(source: Path) -> bool:
+    target = bundle_path(source)
+    current = target.read_text(encoding="utf-8") if target.is_file() else None
+    return current != bundle(source)
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+def write(source: Path) -> Path:
+    target = bundle_path(source)
+    target.write_text(bundle(source), encoding="utf-8")
+    return target
+
+
+def resolve_line(bundled: str, line: int) -> tuple[str, int] | None:
+    """Map a 1-based bundle line to ``(library name, library line)`` via its marker.
+
+    Returns ``None`` for lines that belong to the driver body rather than a library.
+    """
+    lines = bundled.splitlines()
+    if not 1 <= line <= len(lines):
+        return None
+    match = MARKER.search(lines[line - 1])
+    if not match:
+        return None
+    return match.group(1), int(match.group(2))
