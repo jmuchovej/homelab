@@ -6,10 +6,10 @@ data "authentik_users" "all" {}
 locals {
   user-keys = nonsensitive(toset([
     for user in keys(data.sops_file.users.data) :
-    split(".", user)[0]
-    if !startswith(user, "admin")
+    split(".", user)[1]
+    if startswith(user, "users.")
   ]))
-  user-data = yamldecode(data.sops_file.users.raw)
+  user-data = yamldecode(data.sops_file.users.raw)["users"]
 }
 
 resource "authentik_user" "u" {
