@@ -1,7 +1,7 @@
 ## 1. Preconditions
 
 - [x] 1.1 Confirm the upstream checkout is at the pinned commit: `git -C /Users/john/Documents/src/github.com/kkossev/Hubitat rev-parse --short HEAD` prints `0bf47407`; if not, `git -C … checkout 0bf47407` (detached is fine) and re-verify. Every copy in group 3 is taken from this tree
-- [ ] 1.2 Confirm the validation ceiling on the hub: the Devices list has no device on any Aqara Cube driver, and note which `kkossev.*` libraries and drivers (if any) are already installed so 6.x does not collide with them by name. Record both in a scratch note
+- [x] 1.2 (confirmed by the user 2026-10-01: no device is on any Aqara Cube driver) Confirm the validation ceiling on the hub: the Devices list has no device on any Aqara Cube driver, and note which `kkossev.*` libraries and drivers (if any) are already installed so 6.x does not collide with them by name. Record both in a scratch note
 
 ## 2. Scaffold `hubitat/`
 
