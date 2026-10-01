@@ -8,6 +8,7 @@
     includes = [
       <rbn/suite/desktop>
       <rbn/services/zerotier>
+      <rbn/programs/desktop/logitech>
     ];
 
     macos = {

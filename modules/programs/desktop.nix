@@ -4,6 +4,17 @@
     _.amie = {
       macos.homebrew.casks = [ "amie" ];
     };
+
+    _.logitech = {
+      # the cask carries `sha256 :no_check`, so we need to opt-out of requiring sha
+      macos.homebrew.casks = [
+        {
+          name = "logi-options+";
+          args.require_sha = false;
+        }
+      ];
+    };
+
     _.superwhisper = {
       includes = [ (den.batteries.unfree [ "superwhisper" ]) ];
 
@@ -56,9 +67,6 @@
       };
       _.launchcontrol = {
         macos.homebrew.casks = [ "launchcontrol" ];
-      };
-      _.logi-options = {
-        macos.homebrew.casks = [ "logi-options+" ];
       };
       _.monitorcontrol = {
         macos.homebrew.casks = [ "monitorcontrol" ];
