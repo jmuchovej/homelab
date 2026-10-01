@@ -10,6 +10,7 @@ import typer
 import hubitat
 
 from . import bundle as bundling
+from . import manifest as manifests
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -51,7 +52,7 @@ def bundle(sources: Sources = None) -> None:
 
 @app.command()
 def check(sources: Sources = None) -> None:
-    """Exit non-zero naming every stale bundle; write nothing."""
+    """Exit non-zero naming every stale bundle or disagreeing HPM manifest; write nothing."""
     failed = False
     for source in _sources(sources):
         try:
@@ -63,5 +64,11 @@ def check(sources: Sources = None) -> None:
         if stale:
             typer.echo(f"stale: {bundling.bundle_path(source)}", err=True)
             failed = True
+        for problem in manifests.check_manifest(source):
+            typer.echo(f"error: {problem}", err=True)
+            failed = True
+    for problem in manifests.check_repository():
+        typer.echo(f"error: {problem}", err=True)
+        failed = True
     if failed:
         raise typer.Exit(1)
