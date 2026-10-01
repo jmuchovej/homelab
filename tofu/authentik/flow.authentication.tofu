@@ -52,6 +52,9 @@ resource "authentik_stage_captcha" "authn" {
   name        = "authn-captcha"
   public_key  = data.sops_file.secrets.data["captcha.public-key"]
   private_key = data.sops_file.secrets.data["captcha.secret-key"]
+  js_url      = "https://challenges.cloudflare.com/turnstile/v0/api.js"
+  api_url     = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+  interactive = true
 }
 
 resource "authentik_flow_stage_binding" "authn-identification" {
