@@ -31,6 +31,7 @@ TIMESTAMP = re.compile(
     r'^static String timeStamp\(\)\s*\{\s*"([^"]*)"\s*\}\s*$', re.MULTILINE
 )
 DEFINITION = re.compile(r"^\s*definition\s*\((?P<args>[^{]*)\{", re.MULTILINE)
+LIBRARY = re.compile(r"^\s*library\s*\((?P<args>[^)]*)\)", re.MULTILINE)
 
 
 class Problem(NamedTuple):
@@ -49,6 +50,9 @@ class DriverIdentity(NamedTuple):
     name: str
     namespace: str
     version: str
+
+
+LibraryIdentity = DriverIdentity
 
 
 class _Model(BaseModel):
@@ -132,7 +136,7 @@ def _single(pattern: re.Pattern[str], text: str, what: str, source: Path) -> str
 def _argument(key: str, args: str, source: Path) -> str:
     match = re.search(rf"\b{key}\s*:\s*(['\"])(.*?)\1", args)
     if not match:
-        raise IdentityError(f"{source}: definition() has no {key}:")
+        raise IdentityError(f"{source}: no {key}: in the definition()/library() header")
     return match.group(2)
 
 
@@ -144,6 +148,17 @@ def driver_identity(source: Path) -> DriverIdentity:
         name=_argument("name", args, source),
         namespace=_argument("namespace", args, source),
         version=version,
+    )
+
+
+def library_identity(source: Path) -> LibraryIdentity:
+    """Name, namespace, and version from a library's ``library(...)`` header."""
+    text = source.read_text(encoding="utf-8")
+    args = _single(LIBRARY, text, "library(", source)
+    return LibraryIdentity(
+        name=_argument("name", args, source),
+        namespace=_argument("namespace", args, source),
+        version=_argument("version", args, source),
     )
 
 

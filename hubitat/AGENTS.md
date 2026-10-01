@@ -59,7 +59,8 @@ The `just hubitat …` recipes are exactly these commands and carry no logic.
 
 Hub access is configured only through `secretspec` (declared in the root `secretspec.toml`): `HUBITAT_URL` (required) and `HUBITAT_USERNAME`/`HUBITAT_PASSWORD` (optional, used only when the hub reports security enabled — detected per run, never assumed).
 `just hubitat push` / `probe` wrap the command in `secretspec run`; the tool refuses to start without the URL and never prints credentials.
-The endpoints are the ones the Hubitat Package Manager uses (`/hub2/userDeviceTypes`, `/driver/ajax/code`, `/driver/save`, `/driver/ajax/update`, `/driver/editor/deleteJson/<id>`); its Groovy source is their only documentation.
+The driver endpoints are the ones the Hubitat Package Manager uses (`/hub2/userDeviceTypes`, `/driver/ajax/code`, `/driver/save`, `/driver/ajax/update`, `/driver/editor/deleteJson/<id>`); its Groovy source is their only documentation.
+There is no API key for these admin endpoints: the hub's Maker API tokens cover device commands only, so with hub security enabled the only option is the login form, which is what `hub.py` does.
 
 - `push [DRIVER…] [--dry-run]` resolves each driver by `(name, namespace)` from the hub's user driver list, **namespace `rbn` only** — a same-named driver in `kkossev` or `InovelliUSA` is never touched.
   Absent → create from the committed bundle; present → read the hub's source and `version`, skip as `unchanged` when the source equals the bundle, otherwise update with that just-read `version`.
@@ -68,8 +69,8 @@ The endpoints are the ones the Hubitat Package Manager uses (`/hub2/userDeviceTy
 - `probe` is the compile check for libraries that have no committed driver yet: it generates an include-all driver (`rbn include-all probe`) in a temp directory, bundles it through the real bundler, pushes it, and deletes it in a `finally` — by the ids it touched, then by name for any earlier run's leftovers.
   A compile error is printed with the hub's text and the `<library>.groovy:<line>` it resolves to.
   Nothing is written to the repo.
-- Libraries Code is **not** pushed: HPM never installs libraries, so their endpoints are unconfirmed.
-  Libraries reach the hub inside bundles; a hand-saved library on the hub is a development convenience, not a deliverable.
+- `push --libraries [NAME…]` does the same for `libraries/*.groovy` against Libraries Code (`/hub2/userLibraries`, `/library/ajax/code`, `/library/save`, `/library/ajax/update`, `/library/edit/deleteJson/<id>` — confirmed on firmware 2.4.3.177; note `edit/`, not `editor/`, for delete).
+  Libraries on the hub are a development convenience (editing a driver in the hub's editor against them); the deliverable is still the bundle, which is what HPM installs.
 - `push` moves code, not devices: pairing, driver assignment, and Configure stay on the hub.
 
 ## HPM manifests

@@ -7,7 +7,7 @@ import pytest
 import hubitat
 
 TINY_LIBRARY = """\
-library(name: 'tiny', namespace: 'rbn', author: 'test', description: 'tiny')
+library(name: 'tiny', namespace: 'rbn', author: 'test', description: 'tiny', version: '0.0.1')
 def tinyHello() { return 'hi' }
 """
 

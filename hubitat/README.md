@@ -27,6 +27,7 @@ All of these are `uv run --package hubitat -m hubitat <command>` at the reposito
 | `just hubitat check`               | Exit non-zero naming any stale bundle or any HPM manifest that disagrees with its driver; writes nothing.                |
 | `just hubitat test`                | Run the package's tests offline.                                                                                         |
 | `just hubitat push [DRIVER…]`      | Create or update `rbn` drivers on the hub from their bundles; `--dry-run` reads and reports without writing.             |
+| `just hubitat push --libraries`    | The same for `libraries/*.groovy` against Libraries Code (optional; drivers carry their libraries in the bundle).        |
 | `just hubitat probe`               | Compile every library on the hub through a throwaway include-all driver, report, and delete it.                          |
 | `just hubitat bump DRIVER VERSION` | Set the driver's `version()`/`timeStamp()`, the manifest `version`/`dateReleased` if present, and regenerate the bundle. |
 
@@ -43,6 +44,7 @@ All of these are `uv run --package hubitat -m hubitat <command>` at the reposito
 | `HUBITAT_PASSWORD` | no       | Same.                                                          |
 
 `secretspec check --explain --reason '<why>'` shows what is configured without revealing values; the `just` recipes wrap the command in `secretspec run` for you.
+On the LAN with hub security off, the `env` provider is enough: `HUBITAT_URL=http://10.32.4.2 SECRETSPEC_PROVIDER=env just hubitat push --dry-run`.
 The tool refuses to start without `HUBITAT_URL` and never prints credentials.
 
 ## Validation status

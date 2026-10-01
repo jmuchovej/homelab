@@ -103,22 +103,51 @@ def check(sources: Sources = None) -> None:
         raise typer.Exit(1)
 
 
-Drivers = Annotated[
+Names = Annotated[
     list[str] | None,
-    typer.Argument(help="Driver directory names under hubitat/drivers/; default: all."),
+    typer.Argument(
+        help="Driver directory names under hubitat/drivers/ (or, with --libraries, "
+        "library names under hubitat/libraries/); default: all."
+    ),
 ]
 DryRun = Annotated[
     bool, typer.Option("--dry-run", help="Read from the hub, write nothing.")
 ]
+Libraries = Annotated[
+    bool,
+    typer.Option(
+        "--libraries", help="Push library sources to Libraries Code instead of drivers."
+    ),
+]
+
+
+def _named_libraries(names: list[str] | None) -> list[Path]:
+    if not names:
+        return pushing.library_sources()
+    sources = []
+    for name in names:
+        source = hubitat.LIBRARIES / f"{name}.groovy"
+        if not source.is_file():
+            typer.echo(f"error: unknown library {name!r} (no {source})", err=True)
+            raise typer.Exit(2)
+        sources.append(source)
+    return sources
 
 
 @app.command()
-def push(drivers: Drivers = None, dry_run: DryRun = False) -> None:
-    """Create or update rbn drivers on the hub from their bundles; unchanged ones are skipped."""
-    sources = _named_sources(drivers)
+def push(
+    names: Names = None, dry_run: DryRun = False, libraries: Libraries = False
+) -> None:
+    """Create or update rbn drivers (or, with --libraries, libraries) on the hub; unchanged ones are skipped."""
+    if libraries:
+        sources = _named_libraries(names)
+        planner = pushing.plan_libraries
+    else:
+        sources = _named_sources(names)
+        planner = pushing.plan
     with _connect() as hub:
         try:
-            actions = pushing.plan(hub, sources)
+            actions = planner(hub, sources)
             for action in actions:
                 typer.echo(action.describe(dry_run=dry_run))
             if not dry_run:
