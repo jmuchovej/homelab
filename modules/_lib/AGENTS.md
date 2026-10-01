@@ -13,10 +13,15 @@ propagates everywhere `nixosSystem`'s `lib` reaches — including den aspect
 inner functions — which specialArgs / `_module.args` cannot do. That's the
 whole reason this mechanism exists; don't convert it to specialArgs.
 
-Files by concern: `attrs.nix` (attrset utilities, `enabled`, `merge-deep`),
-`fs.nix` (filesystem helpers), `mesh.nix` (`with-consul`,
-`mk-traefik-service`, `mk-healthcheck`), `options.nix`, `sops.nix`
-(`get-secret`, `get-secret'`).
+Files by concern:
+
+| File        | Exports                                                      |
+| ----------- | ------------------------------------------------------------ |
+| `lsp.nix`   | `mk-lsp`                                                     |
+| `macos.nix` | `macos.{keycode,symbolic-hotkey}` (the one nested namespace) |
+| `shell.nix` | `argv`                                                       |
+| `sops.nix`  | `get-file`, `get-secrets`, `get-secret`, `get-secret'`       |
+| `yaml.nix`  | `from-yaml`, `render-yaml`                                   |
 
 Helpers must be pure functions. Add a new concern as a new file — it is
 auto-collected; name helpers kebab-case.
