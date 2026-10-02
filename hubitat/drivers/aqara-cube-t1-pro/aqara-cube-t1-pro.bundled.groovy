@@ -45,11 +45,11 @@ import groovy.json.JsonOutput
 deviceType = "AqaraCube"
 @Field static final String DEVICE_TYPE = "AqaraCube"
 
-
-
-
-
-
+// #include rbn.common  -- included at line 386
+// #include rbn.switch  -- included at line 1727
+// #include rbn.xiaomi  -- included at line 1987
+// #include rbn.button  -- included at line 2340
+// #include rbn.battery  -- included at line 2447
 
 metadata {
     definition (

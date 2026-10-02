@@ -20,7 +20,27 @@ def test_driver_lines_keep_their_numbers(tree: Path) -> None:
     out = bundling.bundle(probe(tree)).splitlines()
     assert source_lines[4] == "metadata {"
     assert out[4] == "metadata {"
-    assert out[1] == ""  # the #include line is blanked, not removed
+    # the #include line becomes a one-line pointer, so nothing below it moves
+    assert out[1].startswith("// #include rbn.tiny  -- included at line ")
+
+
+def test_include_comments_name_each_start_marker_line(tree: Path) -> None:
+    (tree / "libraries" / "second.groovy").write_text(
+        "library(name: 'second', namespace: 'rbn', version: '0.0.1')\n"
+        "def a() { }\ndef b() { }\ndef c() { }\n"
+    )
+    path = probe(tree)
+    path.write_text(
+        path.read_text().replace(
+            "#include rbn.tiny\n", "#include rbn.tiny\n#include rbn.second\n"
+        )
+    )
+    out = bundling.bundle(path).splitlines()
+    for index, name in ((1, "tiny"), (2, "second")):
+        prefix = f"// #include rbn.{name}  -- included at line "
+        assert out[index].startswith(prefix)
+        line = int(out[index].removeprefix(prefix))
+        assert out[line - 1] == f"// ~~~~~ start include rbn.{name} ~~~~~"
 
 
 def test_banner_emitted_once_when_source_lacks_it(tree: Path) -> None:

@@ -28,7 +28,7 @@ hubitat/
 - Edit `libraries/*.groovy` and `drivers/<d>/<d>.groovy` only.
   **Never edit a `.bundled.groovy`** — run `just hubitat bundle` and commit the result.
   `just hubitat check` exits non-zero naming any stale bundle or any manifest that disagrees with its driver.
-- The bundle is the source with every `#include` line replaced by an empty line (driver line numbers are identical in source and bundle), then each library between `// ~~~~~ start include rbn.<name> ~~~~~` / `end include` markers with every body line suffixed `// library marker rbn.<name>, line N`.
+- The bundle is the source with every `#include` line replaced by a one-line comment naming the bundle line of that library's start marker (driver line numbers are identical in source and bundle), then each library between `// ~~~~~ start include rbn.<name> ~~~~~` / `end include` markers with every body line suffixed `// library marker rbn.<name>, line N`.
   A hub compile error on a bundle line therefore names the library line; `probe` and `push` do that mapping for you.
 - Bundles are committed because a driver's `importUrl` (and its HPM manifest `location`) is the bundle's raw GitHub URL on `main`.
 - Libraries must not `#include` other libraries, and must not contain triple-quoted strings (the per-line marker would corrupt them).
