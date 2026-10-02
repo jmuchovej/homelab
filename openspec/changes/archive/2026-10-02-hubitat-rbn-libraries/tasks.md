@@ -48,4 +48,4 @@
 
 ## 8. After push
 
-- [ ] 8.1 (hub, by hand, after the user pushes) Import `https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy` via the Drivers Code "Import" URL field into the existing `rbn` Cube driver entry. Verify the hub fetches it and reports no changes to save
+- [x] 8.1 (done 2026-10-02: Import pre-filled the URL from `importUrl`, fetched, and saved with no changes) (hub, by hand, after the user pushes) Import `https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy` via the Drivers Code "Import" URL field into the existing `rbn` Cube driver entry. Verify the hub fetches it and reports no changes to save

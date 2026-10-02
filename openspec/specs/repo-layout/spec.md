@@ -8,7 +8,7 @@ Defines the top-level directory contract of the repository so that external cons
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, Hubitat libraries and drivers under `hubitat/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
 
@@ -18,7 +18,7 @@ The repository SHALL place each tool-specific tree directly under the repository
 #### Scenario: Root justfile modules resolve
 
 - **WHEN** `just --list` is run at the repository root
-- **THEN** the `bootstrap`, `mikrotik`, and `authentik` modules load from `modules/hosts/bootstrap/justfile`, `tofu/mikrotik.just`, and `tofu/authentik.just` without error
+- **THEN** the `bootstrap`, `mikrotik`, `authentik`, and `hubitat` modules load from `modules/hosts/bootstrap/justfile`, `tofu/mikrotik.just`, `tofu/authentik.just`, and `hubitat/justfile` without error
 
 #### Scenario: Nix reads repo data files from root-relative paths
 
@@ -29,6 +29,11 @@ The repository SHALL place each tool-specific tree directly under the repository
 
 - **WHEN** a module under `modules/` reaches the repo root by a relative path or symlink (the `bootstrap` host's `secrets/keys/iso-key.pub`, the `networking/topology.yaml` link)
 - **THEN** the path still resolves to the repo-root `secrets/` directory or `topology.yaml`, with no hop into a parent of the repository
+
+#### Scenario: Hubitat bundles are reachable by URL
+
+- **WHEN** a driver under `hubitat/drivers/<driver>/` declares its `importUrl`
+- **THEN** the URL is the raw GitHub URL of `hubitat/drivers/<driver>/<driver>.bundled.groovy` on the repository's default branch, with no `src/` segment
 
 ### Requirement: Python package is the sole occupant of `src/`
 
