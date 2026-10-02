@@ -16,7 +16,7 @@ resource "routers_system_user" "terraform" {
   name    = "terraform"
   group   = routers_system_user_group.terraform.name
   address = local.admin-allowed-sources
-  comment = "Managed by tofu. Password rotated via mikrotik/bootstrap/justfile."
+  comment = "Managed by tofu. Password rotated via bootstrap/mikrotik/justfile."
 
   lifecycle {
     ignore_changes = [password]

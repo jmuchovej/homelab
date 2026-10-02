@@ -97,7 +97,7 @@
           tmux
           fd
           nushell-plugged
-          gettext # envsubst — used by mikrotik bootstrap recipe
+          gettext # envsubst — `just bootstrap mikrotik render`
         ];
 
         env = {

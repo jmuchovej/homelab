@@ -7,6 +7,7 @@ paths:
 
 One directory per host: `hosts/<name>/<name>.nix` + `facter.json` (hardware report, exposed to users via the host's `provides.to-users`).
 Host names are `<datacenter>-<node>` (`da-vcx-1`) — `datacenter`/`nodename` are parsed from the name by the schema, so the name is load-bearing.
+The one host outside this directory is the installer image, `bootstrap`, defined in `bootstrap/nix/iso.nix` (see `bootstrap/AGENTS.md`); it is a scaffolding host, not a machine, and `nix-builders.nix` excludes it by name.
 
 Each host file has two halves:
 

@@ -8,7 +8,7 @@ paths:
 `@marker@` substitution over a static YAML file — the schema stays with the YAML (`$schema` modeline + kubeconform below); Nix only fills values.
 `sops` placeholders are ordinary eval-time strings, so secrets need no separate mechanism.
 
-The seed manifests live in `bootstrap/kubernetes/` (alongside `checks.nix`), not under this aspect — `bootstrap/` is outside the flake's `import-tree ./modules` walk, so anything there is inert data and can never be picked up as an aspect.
+The seed manifests and `checks.nix` live in `bootstrap/kubernetes/`, read by path through `inputs.self`; their layout, the k3s/Talos seam, and what may be auto-imported from `bootstrap/` are in `bootstrap/AGENTS.md`.
 `render-yaml` comes from `lib.rbn` (`_lib/yaml.nix`).
 
 Schemas are VENDORED at repo-root `vendor/schemas/` (refreshed by `just k8s update-schemas`) — the sandbox has no network, and the same files back the manifests' relative `# $schema: ../../../vendor/schemas/…` comments, so editor and build always validate against identical schemas.
