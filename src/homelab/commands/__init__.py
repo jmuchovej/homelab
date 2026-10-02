@@ -3,7 +3,7 @@ from typing import Annotated
 import typer
 from typer import Context, Option, Typer
 
-from homelab.commands import _bootstrap, _ca
+from homelab.commands import _ca
 
 cli = Typer(
     name="homelab",
@@ -38,4 +38,3 @@ def common(
 
 
 cli.add_typer(_ca.cli)
-cli.add_typer(_bootstrap.cli)
