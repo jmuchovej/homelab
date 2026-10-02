@@ -25,25 +25,25 @@ locals {
   )
 }
 
-resource "routeros_interface_vlan" "vlan" {
+resource "routers_interface_vlan" "vlan" {
   for_each = local.vlan-interfaces
 
-  interface = routeros_interface_bridge.bridge.name
+  interface = routers_interface_bridge.bridge.name
   name      = each.value.name
   vlan_id   = each.value.vlan_id
   comment   = each.value.comment
 }
 
-resource "routeros_interface_list" "wan" {
+resource "routers_interface_list" "wan" {
   name    = "WAN"
   comment = "defconf"
 }
 
-resource "routeros_interface_list" "vlan" {
+resource "routers_interface_list" "vlan" {
   name = "VLAN"
 }
 
-resource "routeros_interface_list" "lan" {
+resource "routers_interface_list" "lan" {
   name    = "LAN"
   comment = "defconf"
 
@@ -52,26 +52,26 @@ resource "routeros_interface_list" "lan" {
   }
 }
 
-resource "routeros_interface_list_member" "bridge-in-lan" {
-  list      = routeros_interface_list.lan.name
-  interface = routeros_interface_bridge.bridge.name
+resource "routers_interface_list_member" "bridge-in-lan" {
+  list      = routers_interface_list.lan.name
+  interface = routers_interface_bridge.bridge.name
   comment   = "defconf"
 }
 
-resource "routeros_interface_list_member" "wan-uplink" {
-  list      = routeros_interface_list.wan.name
+resource "routers_interface_list_member" "wan-uplink" {
+  list      = routers_interface_list.wan.name
   interface = var.wan-port
   comment   = "defconf"
 }
 
-resource "routeros_interface_list_member" "vlan-members" {
+resource "routers_interface_list_member" "vlan-members" {
   for_each = local.vlan-interfaces
 
-  list      = routeros_interface_list.vlan.name
-  interface = routeros_interface_vlan.vlan[each.key].name
+  list      = routers_interface_list.vlan.name
+  interface = routers_interface_vlan.vlan[each.key].name
 }
 
-resource "routeros_ip_pool" "vlan" {
+resource "routers_ip_pool" "vlan" {
   for_each = var.role == "router" ? local.vlans : {}
 
   name    = "pool${each.value.id}"
@@ -80,24 +80,24 @@ resource "routeros_ip_pool" "vlan" {
 
   # If the VLAN's primary address fails to set, the address pool shouldn't be
   # updated. (Since this will cause leases to mismatch the actual target IP.)
-  depends_on = [routeros_ip_address.vlan_primary]
+  depends_on = [routers_ip_address.vlan_primary]
 }
 
-# Until terraform-routeros#944 is resolved, this can't be altered once set via
+# Until terraform-routers#944 is resolved, this can't be altered once set via
 # `tofu`. RouterOS returns `vrf` as read-only and provider 1.99.1 echoes it back
 # on update – the REST API answers 400 "unknown parameter vrf".
 # NOTE: Update fails *and* the provider still writes the new value into state.
-# NOTE: This must be PATCHed by hand OR `tofu apply -replace=`.
-resource "routeros_ip_address" "vlan_primary" {
+# NOTE: This must be PATCHead by hand OR `tofu apply -replace=`.
+resource "routers_ip_address" "vlan_primary" {
   for_each = local.vlan-ip-assignments
 
   address   = each.value.address
-  interface = routeros_interface_vlan.vlan[each.key].name
+  interface = routers_interface_vlan.vlan[each.key].name
   network   = each.value.network
   comment   = local.vlans[each.key].comment
 }
 
-resource "routeros_ip_address" "extra" {
+resource "routers_ip_address" "extra" {
   for_each = var.extra-addrs
 
   address   = each.value.address

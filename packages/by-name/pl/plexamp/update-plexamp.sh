@@ -1,4 +1,4 @@
-#! /usr/bin/env nix-shell
+#!/usr/bin/env nix-shell
 #! nix-shell -p yq bash curl bc ripgrep
 #! nix-shell -i bash
 

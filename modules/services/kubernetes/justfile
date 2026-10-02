@@ -1,4 +1,4 @@
-set script-interpreter := [ "nu" ]
+set script-interpreter := ["nu"]
 
 [private]
 default:

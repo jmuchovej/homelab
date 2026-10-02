@@ -2,7 +2,7 @@ data "sops_file" "en-relay01" {
   source_file = "${path.root}/secrets/hosts/en-relay01.sops.yaml"
 }
 
-provider "routeros" {
+provider "routers" {
   alias    = "en-relay01"
   hosturl  = "https://en-relay01.${local.domain.holo}"
   username = "terraform"
@@ -35,7 +35,7 @@ module "en-relay01" {
   source = "./mikrotik"
 
   providers = {
-    routeros = routeros.en-relay01
+    routers = routers.en-relay01
   }
 
   relay   = "en-relay01"

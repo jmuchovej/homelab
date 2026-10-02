@@ -18,8 +18,8 @@ resource "cloudflare_dns_record" "da-wildcard" {
   comment = "da datacenter wildcard — tracks da-relay01 DDNS"
 }
 
-resource "routeros_ip_dns_record" "da-apex" {
-  provider = routeros.da-relay01
+resource "routers_ip_dns_record" "da-apex" {
+  provider = routers.da-relay01
   type     = "CNAME"
   name     = local.domain.da
   cname    = local.catalog.k8s-for["da"].vip
@@ -27,8 +27,8 @@ resource "routeros_ip_dns_record" "da-apex" {
   comment  = "da datacenter apex — tracks da-relay01 DDNS"
 }
 
-resource "routeros_ip_dns_record" "da-wildcard" {
-  provider = routeros.da-relay01
+resource "routers_ip_dns_record" "da-wildcard" {
+  provider = routers.da-relay01
   type     = "CNAME"
   name     = "*.${local.domain.da}"
   cname    = local.catalog.k8s-for["da"].vip

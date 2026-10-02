@@ -20,7 +20,7 @@ terraform {
       source  = "1Password/onepassword"
       version = ">= 3.3.1"
     }
-    routeros = {
+    routers = {
       source  = "terraform-routeros/routeros"
       version = ">= 1.86.0"
     }

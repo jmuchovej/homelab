@@ -1,6 +1,6 @@
 terraform {
   required_providers {
-    routeros = { source = "terraform-routeros/routeros" }
+    routers  = { source = "terraform-routeros/routeros" }
     zerotier = { source = "zerotier/zerotier" }
   }
 }
@@ -177,12 +177,12 @@ output "vlans" {
 
 output "ddns_name" {
   description = "MikroTik IP Cloud DDNS hostname. Null if IP Cloud is disabled or not yet registered."
-  value       = var.role == "router" && var.enable-ip-cloud ? try(routeros_ip_cloud.this[0].dns_name, null) : null
+  value       = var.role == "router" && var.enable-ip-cloud ? try(routers_ip_cloud.this[0].dns_name, null) : null
 }
 
 output "public_ip" {
   description = "Public IPv4 as seen by the MikroTik IP Cloud server, which may differ from the WAN interface address. Null if IP Cloud is disabled."
-  value       = var.role == "router" && var.enable-ip-cloud ? try(routeros_ip_cloud.this[0].public_address, null) : null
+  value       = var.role == "router" && var.enable-ip-cloud ? try(routers_ip_cloud.this[0].public_address, null) : null
 }
 
 # output "bad_ipv6" {

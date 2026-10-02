@@ -1,6 +1,6 @@
 resource "zerotier_identity" "this" {}
 
-resource "routeros_zerotier" "zt1" {
+resource "routers_zerotier" "zt1" {
   comment    = "Zerotier: Holonet"
   identity   = zerotier_identity.this.private_key
   interfaces = ["all"]
@@ -8,8 +8,8 @@ resource "routeros_zerotier" "zt1" {
   disabled   = false
 }
 
-resource "routeros_zerotier_interface" "holonet" {
-  instance      = routeros_zerotier.zt1.name
+resource "routers_zerotier_interface" "holonet" {
+  instance      = routers_zerotier.zt1.name
   name          = "zerotier1"
   network       = var.catalog.zerotier-network-id
   allow_managed = true
@@ -19,9 +19,9 @@ resource "routeros_zerotier_interface" "holonet" {
   comment       = "zt: holonet"
 }
 
-resource "routeros_interface_list_member" "zt_in_lan" {
-  list      = routeros_interface_list.lan.name
-  interface = routeros_zerotier_interface.holonet.name
+resource "routers_interface_list_member" "zt_in_lan" {
+  list      = routers_interface_list.lan.name
+  interface = routers_zerotier_interface.holonet.name
   comment   = "zt: holonet"
 }
 

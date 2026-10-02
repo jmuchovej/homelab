@@ -2,54 +2,54 @@ locals {
   router-filter = var.role == "router"
 }
 
-resource "routeros_ip_firewall_filter" "r01_input_established" {
+resource "routers_ip_firewall_filter" "r01_input_established" {
   action           = "accept"
   chain            = "input"
   connection_state = "established,related,untracked"
   comment          = "defconf: accept established,related,untracked"
 }
 
-resource "routeros_ip_firewall_filter" "fwd_vlans_to_wan" {
+resource "routers_ip_firewall_filter" "fwd_vlans_to_wan" {
   count = local.router-filter ? 1 : 0
 
   action             = "accept"
   chain              = "forward"
   src_address_list   = "vlan-cidrs"
-  out_interface_list = routeros_interface_list.wan.name
+  out_interface_list = routers_interface_list.wan.name
   comment            = "Allow vlan-cidrs to reach WAN"
 
-  depends_on = [routeros_ip_firewall_addr_list.vlan_cidrs]
+  depends_on = [routers_ip_firewall_addr_list.vlan_cidrs]
 }
 
-resource "routeros_ip_firewall_filter" "r08_input_drop_invalid" {
+resource "routers_ip_firewall_filter" "r08_input_drop_invalid" {
   action           = "drop"
   chain            = "input"
   connection_state = "invalid"
   comment          = "defconf: drop invalid"
 }
 
-resource "routeros_ip_firewall_filter" "r09_input_icmp" {
+resource "routers_ip_firewall_filter" "r09_input_icmp" {
   action   = "accept"
   chain    = "input"
   protocol = "icmp"
   comment  = "defconf: accept ICMP"
 }
 
-resource "routeros_ip_firewall_filter" "r10_input_loopback_capsman" {
+resource "routers_ip_firewall_filter" "r10_input_loopback_capsman" {
   action      = "accept"
   chain       = "input"
   dst_address = "127.0.0.1"
   comment     = "defconf: accept to local loopback (for CAPsMAN)"
 }
 
-resource "routeros_ip_firewall_filter" "r11_input_drop_not_lan" {
+resource "routers_ip_firewall_filter" "r11_input_drop_not_lan" {
   action            = "drop"
   chain             = "input"
-  in_interface_list = "!${routeros_interface_list.lan.name}"
+  in_interface_list = "!${routers_interface_list.lan.name}"
   comment           = "defconf: drop all not coming from LAN"
 }
 
-resource "routeros_ip_firewall_filter" "r12_fwd_ipsec_in" {
+resource "routers_ip_firewall_filter" "r12_fwd_ipsec_in" {
   count = local.router-filter ? 1 : 0
 
   action       = "accept"
@@ -58,7 +58,7 @@ resource "routeros_ip_firewall_filter" "r12_fwd_ipsec_in" {
   comment      = "defconf: accept in ipsec policy"
 }
 
-resource "routeros_ip_firewall_filter" "r13_fwd_ipsec_out" {
+resource "routers_ip_firewall_filter" "r13_fwd_ipsec_out" {
   count = local.router-filter ? 1 : 0
 
   action       = "accept"
@@ -67,7 +67,7 @@ resource "routeros_ip_firewall_filter" "r13_fwd_ipsec_out" {
   comment      = "defconf: accept out ipsec policy"
 }
 
-resource "routeros_ip_firewall_filter" "r14_fwd_fasttrack" {
+resource "routers_ip_firewall_filter" "r14_fwd_fasttrack" {
   count = local.router-filter ? 1 : 0
 
   action           = "fasttrack-connection"
@@ -77,7 +77,7 @@ resource "routeros_ip_firewall_filter" "r14_fwd_fasttrack" {
   comment          = "defconf: fasttrack"
 }
 
-resource "routeros_ip_firewall_filter" "r15_fwd_established" {
+resource "routers_ip_firewall_filter" "r15_fwd_established" {
   count = local.router-filter ? 1 : 0
 
   action           = "accept"
@@ -86,7 +86,7 @@ resource "routeros_ip_firewall_filter" "r15_fwd_established" {
   comment          = "defconf: accept established,related, untracked"
 }
 
-resource "routeros_ip_firewall_filter" "r16_fwd_drop_invalid" {
+resource "routers_ip_firewall_filter" "r16_fwd_drop_invalid" {
   count = local.router-filter ? 1 : 0
 
   action           = "drop"
@@ -95,18 +95,18 @@ resource "routeros_ip_firewall_filter" "r16_fwd_drop_invalid" {
   comment          = "defconf: drop invalid"
 }
 
-resource "routeros_ip_firewall_filter" "r17_fwd_drop_wan_no_dstnat" {
+resource "routers_ip_firewall_filter" "r17_fwd_drop_wan_no_dstnat" {
   count = local.router-filter ? 1 : 0
 
   action               = "drop"
   chain                = "forward"
   connection_nat_state = "!dstnat"
   connection_state     = "new"
-  in_interface_list    = routeros_interface_list.wan.name
+  in_interface_list    = routers_interface_list.wan.name
   comment              = "defconf: drop all from WAN not DSTNATed"
 }
 
-resource "routeros_ip_firewall_addr_list" "vlan_cidrs" {
+resource "routers_ip_firewall_addr_list" "vlan_cidrs" {
   for_each = local.vlans
 
   list    = "vlan-cidrs"
@@ -114,7 +114,7 @@ resource "routeros_ip_firewall_addr_list" "vlan_cidrs" {
   comment = each.value.comment
 }
 
-resource "routeros_ip_firewall_filter" "input_dns_allow" {
+resource "routers_ip_firewall_filter" "input_dns_allow" {
   for_each = local.router-filter ? toset(["udp", "tcp"]) : toset([])
 
   action           = "accept"
@@ -124,10 +124,10 @@ resource "routeros_ip_firewall_filter" "input_dns_allow" {
   src_address_list = "vlan-cidrs"
   comment          = "Allow vlan-cidrs to query DNS (${upper(each.value)})"
 
-  depends_on = [routeros_ip_firewall_addr_list.vlan_cidrs]
+  depends_on = [routers_ip_firewall_addr_list.vlan_cidrs]
 }
 
-resource "routeros_ip_firewall_filter" "r33_fwd_mgmt_to_homelab_dns_udp" {
+resource "routers_ip_firewall_filter" "r33_fwd_mgmt_to_homelab_dns_udp" {
   count = local.router-filter ? 1 : 0
 
   action      = "accept"
@@ -139,7 +139,7 @@ resource "routeros_ip_firewall_filter" "r33_fwd_mgmt_to_homelab_dns_udp" {
   comment     = "Allow Management VLAN to query Homelab DNS (VIP)"
 }
 
-resource "routeros_ip_firewall_filter" "r34_fwd_mgmt_to_homelab_dns_tcp" {
+resource "routers_ip_firewall_filter" "r34_fwd_mgmt_to_homelab_dns_tcp" {
   count = local.router-filter ? 1 : 0
 
   action      = "accept"
@@ -151,7 +151,7 @@ resource "routeros_ip_firewall_filter" "r34_fwd_mgmt_to_homelab_dns_tcp" {
   comment     = "Allow Management VLAN to query Homelab DNS (VIP)"
 }
 
-resource "routeros_ip_firewall_filter" "fwd_drop_iot_to_vip" {
+resource "routers_ip_firewall_filter" "fwd_drop_iot_to_vip" {
   count = local.router-filter && contains(keys(local.vlans), "iot") ? 1 : 0
 
   action      = "drop"
@@ -161,7 +161,7 @@ resource "routeros_ip_firewall_filter" "fwd_drop_iot_to_vip" {
   comment     = "Drop IoT → VIP (cloud-only, no internal services)"
 }
 
-resource "routeros_ip_firewall_filter" "fwd_vlans_to_vip" {
+resource "routers_ip_firewall_filter" "fwd_vlans_to_vip" {
   count = local.router-filter ? 1 : 0
 
   action           = "accept"
@@ -172,10 +172,10 @@ resource "routeros_ip_firewall_filter" "fwd_vlans_to_vip" {
   dst_port         = "80,443"
   comment          = "Allow vlan-cidrs to reach VIP (HTTP/HTTPS)"
 
-  depends_on = [routeros_ip_firewall_addr_list.vlan_cidrs]
+  depends_on = [routers_ip_firewall_addr_list.vlan_cidrs]
 }
 
-resource "routeros_ip_firewall_filter" "r39_fwd_guest_to_plex" {
+resource "routers_ip_firewall_filter" "r39_fwd_guest_to_plex" {
   count = local.router-filter ? 1 : 0
 
   action      = "accept"
@@ -187,7 +187,7 @@ resource "routeros_ip_firewall_filter" "r39_fwd_guest_to_plex" {
   comment     = "Allow Guest to reach Plex"
 }
 
-resource "routeros_ip_firewall_filter" "r40_fwd_guest_to_hass" {
+resource "routers_ip_firewall_filter" "r40_fwd_guest_to_hash" {
   count = local.router-filter ? 1 : 0
 
   action      = "accept"
@@ -199,7 +199,7 @@ resource "routeros_ip_firewall_filter" "r40_fwd_guest_to_hass" {
   comment     = "Allow Guest to reach Home Assistant"
 }
 
-resource "routeros_ip_firewall_filter" "r41_fwd_mgmt_to_hass" {
+resource "routers_ip_firewall_filter" "r41_fwd_mgmt_to_hash" {
   count = local.router-filter ? 1 : 0
 
   action      = "accept"
@@ -211,7 +211,7 @@ resource "routeros_ip_firewall_filter" "r41_fwd_mgmt_to_hass" {
   comment     = "Allow Management VLAN to reach Home Assistant"
 }
 
-resource "routeros_ip_firewall_filter" "r43_input_block_wan_tcp" {
+resource "routers_ip_firewall_filter" "r43_input_block_wan_tcp" {
   count = local.router-filter ? 1 : 0
 
   action       = "drop"
@@ -222,7 +222,7 @@ resource "routeros_ip_firewall_filter" "r43_input_block_wan_tcp" {
   comment      = "Block WAN access to router"
 }
 
-resource "routeros_ip_firewall_filter" "r44_input_block_wan_dns" {
+resource "routers_ip_firewall_filter" "r44_input_block_wan_dns" {
   count = local.router-filter ? 1 : 0
 
   action       = "drop"
@@ -233,7 +233,7 @@ resource "routeros_ip_firewall_filter" "r44_input_block_wan_dns" {
   comment      = "Block WAN DNS queries"
 }
 
-resource "routeros_ip_firewall_filter" "r45_input_drop_wan_other" {
+resource "routers_ip_firewall_filter" "r45_input_drop_wan_other" {
   count = local.router-filter ? 1 : 0
 
   action       = "drop"
@@ -242,10 +242,10 @@ resource "routeros_ip_firewall_filter" "r45_input_drop_wan_other" {
   comment      = "Drop all other WAN->router"
 }
 
-resource "routeros_ip_firewall_filter" "r46_input_accept_lan" {
+resource "routers_ip_firewall_filter" "r46_input_accept_lan" {
   action            = "accept"
   chain             = "input"
-  in_interface_list = routeros_interface_list.lan.name
+  in_interface_list = routers_interface_list.lan.name
 }
 
 locals {
@@ -262,7 +262,7 @@ locals {
   }
 }
 
-resource "routeros_ipv6_firewall_addr_list" "bad" {
+resource "routers_ipv6_firewall_addr_list" "bad" {
   for_each = local.router-filter ? local.bad_ipv6 : {}
 
   list    = "bad_ipv6"
@@ -298,7 +298,7 @@ locals {
   ]
 }
 
-resource "routeros_ipv6_firewall_filter" "rule" {
+resource "routers_ipv6_firewall_filter" "rule" {
   for_each = local.router-filter ? { for r in local.v6_filter_rules : r.id => r } : {}
 
   chain             = each.value.chain
@@ -317,61 +317,61 @@ resource "routeros_ipv6_firewall_filter" "rule" {
 
 locals {
   ipv4-filter-order = local.router-filter ? concat(
-    [routeros_ip_firewall_filter.r01_input_established.id],
-    [routeros_ip_firewall_filter.fwd_vlans_to_wan[0].id],
+    [routers_ip_firewall_filter.r01_input_established.id],
+    [routers_ip_firewall_filter.fwd_vlans_to_wan[0].id],
     [
-      routeros_ip_firewall_filter.r08_input_drop_invalid.id,
-      routeros_ip_firewall_filter.r09_input_icmp.id,
-      routeros_ip_firewall_filter.r10_input_loopback_capsman.id,
+      routers_ip_firewall_filter.r08_input_drop_invalid.id,
+      routers_ip_firewall_filter.r09_input_icmp.id,
+      routers_ip_firewall_filter.r10_input_loopback_capsman.id,
       # Must precede r11: VLAN interfaces are not in the LAN list, so its
       # `!LAN` drop would otherwise catch their DNS queries.
-      routeros_ip_firewall_filter.input_dns_allow["udp"].id,
-      routeros_ip_firewall_filter.input_dns_allow["tcp"].id,
+      routers_ip_firewall_filter.input_dns_allow["udp"].id,
+      routers_ip_firewall_filter.input_dns_allow["tcp"].id,
     ],
-    var.role == "router" ? [routeros_ip_firewall_filter.input_accept_holonet[0].id] : [],
-    local.bgp-enabled ? [routeros_ip_firewall_filter.input_accept_bgp[0].id] : [],
+    var.role == "router" ? [routers_ip_firewall_filter.input_accept_holonet[0].id] : [],
+    local.bgp-enabled ? [routers_ip_firewall_filter.input_accept_bgp[0].id] : [],
     [
-      routeros_ip_firewall_filter.r11_input_drop_not_lan.id,
-      routeros_ip_firewall_filter.r12_fwd_ipsec_in[0].id,
-      routeros_ip_firewall_filter.r13_fwd_ipsec_out[0].id,
-      routeros_ip_firewall_filter.r14_fwd_fasttrack[0].id,
-      routeros_ip_firewall_filter.r15_fwd_established[0].id,
-      routeros_ip_firewall_filter.r16_fwd_drop_invalid[0].id,
-      routeros_ip_firewall_filter.r17_fwd_drop_wan_no_dstnat[0].id,
+      routers_ip_firewall_filter.r11_input_drop_not_lan.id,
+      routers_ip_firewall_filter.r12_fwd_ipsec_in[0].id,
+      routers_ip_firewall_filter.r13_fwd_ipsec_out[0].id,
+      routers_ip_firewall_filter.r14_fwd_fasttrack[0].id,
+      routers_ip_firewall_filter.r15_fwd_established[0].id,
+      routers_ip_firewall_filter.r16_fwd_drop_invalid[0].id,
+      routers_ip_firewall_filter.r17_fwd_drop_wan_no_dstnat[0].id,
     ],
     [
-      routeros_ip_firewall_filter.r33_fwd_mgmt_to_homelab_dns_udp[0].id,
-      routeros_ip_firewall_filter.r34_fwd_mgmt_to_homelab_dns_tcp[0].id,
+      routers_ip_firewall_filter.r33_fwd_mgmt_to_homelab_dns_udp[0].id,
+      routers_ip_firewall_filter.r34_fwd_mgmt_to_homelab_dns_tcp[0].id,
     ],
     # Must precede fwd_vlans_to_vip, whose broader source match would accept iot.
-    contains(keys(local.vlans), "iot") ? [routeros_ip_firewall_filter.fwd_drop_iot_to_vip[0].id] : [],
+    contains(keys(local.vlans), "iot") ? [routers_ip_firewall_filter.fwd_drop_iot_to_vip[0].id] : [],
     [
-      routeros_ip_firewall_filter.fwd_vlans_to_vip[0].id,
-      routeros_ip_firewall_filter.r39_fwd_guest_to_plex[0].id,
-      routeros_ip_firewall_filter.r40_fwd_guest_to_hass[0].id,
-      routeros_ip_firewall_filter.r41_fwd_mgmt_to_hass[0].id,
+      routers_ip_firewall_filter.fwd_vlans_to_vip[0].id,
+      routers_ip_firewall_filter.r39_fwd_guest_to_plex[0].id,
+      routers_ip_firewall_filter.r40_fwd_guest_to_hash[0].id,
+      routers_ip_firewall_filter.r41_fwd_mgmt_to_hash[0].id,
     ],
     [
-      routeros_ip_firewall_filter.r43_input_block_wan_tcp[0].id,
-      routeros_ip_firewall_filter.r44_input_block_wan_dns[0].id,
-      routeros_ip_firewall_filter.r45_input_drop_wan_other[0].id,
-      routeros_ip_firewall_filter.r46_input_accept_lan.id,
+      routers_ip_firewall_filter.r43_input_block_wan_tcp[0].id,
+      routers_ip_firewall_filter.r44_input_block_wan_dns[0].id,
+      routers_ip_firewall_filter.r45_input_drop_wan_other[0].id,
+      routers_ip_firewall_filter.r46_input_accept_lan.id,
     ],
   ) : []
 
   ipv6-filter-order = local.router-filter ? [
-    for r in local.v6_filter_rules : routeros_ipv6_firewall_filter.rule[r.id].id
+    for r in local.v6_filter_rules : routers_ipv6_firewall_filter.rule[r.id].id
   ] : []
 }
 
-resource "routeros_move_items" "ipv4_filter" {
+resource "routers_move_items" "ipv4_filter" {
   count = local.router-filter ? 1 : 0
 
   resource_path = "/ip/firewall/filter"
   sequence      = local.ipv4-filter-order
 }
 
-resource "routeros_move_items" "ipv6_filter" {
+resource "routers_move_items" "ipv6_filter" {
   count = local.router-filter ? 1 : 0
 
   resource_path = "/ipv6/firewall/filter"

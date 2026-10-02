@@ -1,15 +1,15 @@
-resource "routeros_ip_dns" "this" {
+resource "routers_ip_dns" "this" {
   count = var.role == "router" ? 1 : 0
 
   allow_remote_requests = true
   servers               = [local.vip, "9.9.9.9", "1.1.1.1"]
   mdns_repeat_ifaces = concat(
-    [for k, _ in local.vlans : routeros_interface_vlan.vlan[k].name],
-    [for k, _ in var.wifi : routeros_wifi.this[k].name],
+    [for k, _ in local.vlans : routers_interface_vlan.vlan[k].name],
+    [for k, _ in var.wifi : routers_wifi.this[k].name],
   )
 }
 
-resource "routeros_ip_dns_record" "sibling-relay" {
+resource "routers_ip_dns_record" "sibling-relay" {
   for_each = var.role == "router" ? local.holonet-sibling-mgmt-ips : {}
 
   type    = "A"
@@ -18,7 +18,7 @@ resource "routeros_ip_dns_record" "sibling-relay" {
   comment = "tofu: sibling relay"
 }
 
-resource "routeros_ip_dns_record" "dc-vip-split-horizon" {
+resource "routers_ip_dns_record" "dc-vip-split-horizon" {
   count = var.role == "router" ? 1 : 0
 
   type            = "A"

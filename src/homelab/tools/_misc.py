@@ -111,7 +111,7 @@ def discover_datacenters_systems() -> dict[str, set[System]]:
 
     Notes
     -----
-    We assume a directory strcture that matches `{arch}-{os}/{datacenter}-{nodename}`. The only component permitted to have `-` is `nodename`, all others should match the `[^-]+` RegEx.
+    We assume a directory structure that matches `{arch}-{os}/{datacenter}-{nodename}`. The only component permitted to have `-` is `nodename`, all others should match the `[^-]+` RegEx.
     """
     here = root_dir()
     systems = defaultdict(set)

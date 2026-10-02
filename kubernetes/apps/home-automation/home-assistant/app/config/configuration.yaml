@@ -1,8 +1,8 @@
 default_config:
 
 auth_oidc:
-  client_id: !env_var HASS_OIDC_CLIENT_ID
-  client_secret: !env_var HASS_OIDC_CLIENT_SECRET
+  client_id: !env_var HASH_OIDC_CLIENT_ID
+  client_secret: !env_var HASH_OIDC_CLIENT_SECRET
   discovery_url: https://id.${DOMAIN}/application/o/home-assistant-${DATACENTER}-oauth/.well-known/openid-configuration
   features:
     automatic_user_linking: true
@@ -20,7 +20,7 @@ http:
     - 10.244.0.0/16
 
 recorder:
-  db_url: !env_var HASS_RECORDER_DB_URL
+  db_url: !env_var HASH_RECORDER_DB_URL
 
 automation: !include automations.yaml
 script: !include scripts.yaml

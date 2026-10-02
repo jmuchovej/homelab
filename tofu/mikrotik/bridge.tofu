@@ -27,7 +27,7 @@ locals {
   }
 }
 
-resource "routeros_interface_bridge" "bridge" {
+resource "routers_interface_bridge" "bridge" {
   name           = "bridge"
   admin_mac      = var.bridge-mac
   auto_mac       = false
@@ -35,23 +35,23 @@ resource "routeros_interface_bridge" "bridge" {
   comment        = "defconf"
 }
 
-resource "routeros_interface_bridge_port" "port" {
+resource "routers_interface_bridge_port" "port" {
   for_each = var.ports
 
-  bridge    = routeros_interface_bridge.bridge.name
+  bridge    = routers_interface_bridge.bridge.name
   interface = each.key
   pvid      = local.port_pvids[each.key]
   comment   = coalesce(each.value.comment, "defconf")
 }
 
-resource "routeros_interface_bridge_vlan" "vlan" {
+resource "routers_interface_bridge_vlan" "vlan" {
   for_each = local.derived_bridge_vlans
 
-  bridge   = routeros_interface_bridge.bridge.name
+  bridge   = routers_interface_bridge.bridge.name
   vlan_ids = [each.value.vid]
   tagged   = each.value.tagged
   untagged = length(each.value.untagged) > 0 ? each.value.untagged : null
   comment  = each.value.comment
 
-  depends_on = [routeros_interface_bridge_port.port]
+  depends_on = [routers_interface_bridge_port.port]
 }

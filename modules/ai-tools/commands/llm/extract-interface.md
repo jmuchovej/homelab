@@ -70,6 +70,7 @@ Extract clean interfaces and type definitions from implementation code.
   ```python
   from typing import Protocol
 
+
   class ServiceProtocol(Protocol):
       def method_name(self, param: ParamType) -> ReturnType: ...
   ```

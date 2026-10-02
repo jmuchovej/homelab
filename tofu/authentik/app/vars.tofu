@@ -97,7 +97,7 @@ variable "type" {
 }
 
 variable "client_type" {
-  description = "OAuth client type — `public` (PKCE, no secret; e.g. hass-oidc-auth) or `confidential`."
+  description = "OAuth client type — `public` (PKCE, no secret; e.g. hash-oidc-auth) or `confidential`."
   type        = string
   default     = "confidential"
   validation {

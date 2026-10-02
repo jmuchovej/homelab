@@ -6,15 +6,15 @@ locals {
   ]
 }
 
-resource "routeros_system_user_group" "terraform" {
+resource "routers_system_user_group" "terraform" {
   name    = "terraform"
   policy  = local.terraform-user-policy
   comment = "Restricted: REST/API only, no shell/UI/reboot. Address allowlist via tofu."
 }
 
-resource "routeros_system_user" "terraform" {
+resource "routers_system_user" "terraform" {
   name    = "terraform"
-  group   = routeros_system_user_group.terraform.name
+  group   = routers_system_user_group.terraform.name
   address = local.admin-allowed-sources
   comment = "Managed by tofu. Password rotated via mikrotik/bootstrap/justfile."
 

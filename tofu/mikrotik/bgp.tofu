@@ -17,7 +17,7 @@ locals {
   bgp-enabled = local.is-router && var.bgp != null
 }
 
-resource "routeros_ip_firewall_addr_list" "bgp_peers" {
+resource "routers_ip_firewall_addr_list" "bgp_peers" {
   for_each = local.bgp-enabled ? var.bgp.peers : {}
 
   list    = "bgp-peers"
@@ -28,7 +28,7 @@ resource "routeros_ip_firewall_addr_list" "bgp_peers" {
 # Cilium dials the router; nothing listens on :179 cluster-side. Nodes sit on
 # a VLAN interface, which is not in the LAN list, so r11's `!LAN` drop eats
 # the session without this — same carve-out DNS already needs.
-resource "routeros_ip_firewall_filter" "input_accept_bgp" {
+resource "routers_ip_firewall_filter" "input_accept_bgp" {
   count = local.bgp-enabled ? 1 : 0
 
   chain            = "input"
@@ -38,10 +38,10 @@ resource "routeros_ip_firewall_filter" "input_accept_bgp" {
   src_address_list = "bgp-peers"
   comment          = "Accept BGP from k8s nodes (tcp/179)"
 
-  depends_on = [routeros_ip_firewall_addr_list.bgp_peers]
+  depends_on = [routers_ip_firewall_addr_list.bgp_peers]
 }
 
-resource "routeros_routing_filter_rule" "k8s-lb" {
+resource "routers_routing_filter_rule" "k8s-lb" {
   count = local.bgp-enabled ? 1 : 0
 
   chain   = "k8s-loadbalancer-ips"
@@ -49,7 +49,7 @@ resource "routeros_routing_filter_rule" "k8s-lb" {
   comment = "K8s LoadBalancer pool"
 }
 
-resource "routeros_routing_bgp_template" "k8s" {
+resource "routers_routing_bgp_template" "k8s" {
   count = local.bgp-enabled ? 1 : 0
 
   name             = "k8s"
@@ -63,14 +63,14 @@ resource "routeros_routing_bgp_template" "k8s" {
   hold_time      = "1m30s"
 
   input {
-    filter = routeros_routing_filter_rule.k8s-lb[0].chain
+    filter = routers_routing_filter_rule.k8s-lb[0].chain
   }
   output {
     default_originate = "always"
   }
 }
 
-resource "routeros_routing_bgp_instance" "k8s" {
+resource "routers_routing_bgp_instance" "k8s" {
   count = local.bgp-enabled ? 1 : 0
 
   name          = "k8s"
@@ -79,17 +79,17 @@ resource "routeros_routing_bgp_instance" "k8s" {
   comment       = "K8s"
 }
 
-resource "routeros_routing_bgp_connection" "k8s" {
+resource "routers_routing_bgp_connection" "k8s" {
   for_each = local.bgp-enabled ? var.bgp.peers : {}
 
   name             = "bgp-${each.key}"
   comment          = each.key
-  instance         = routeros_routing_bgp_instance.k8s[0].name
+  instance         = routers_routing_bgp_instance.k8s[0].name
   as               = tostring(var.bgp.asn)
   routing_table    = "main"
   address_families = "ip"
   nexthop_choice   = "force-self"
-  templates        = [routeros_routing_bgp_template.k8s[0].name]
+  templates        = [routers_routing_bgp_template.k8s[0].name]
 
   keepalive_time = "30s"
   hold_time      = "1m30s"

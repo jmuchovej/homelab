@@ -3,7 +3,7 @@ locals {
   rfc1918-cidrs = toset(["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
 }
 
-resource "routeros_ip_firewall_addr_list" "rfc1918" {
+resource "routers_ip_firewall_addr_list" "rfc1918" {
   for_each = var.role == "router" ? local.rfc1918-cidrs : toset([])
 
   list    = "rfc1918"
@@ -11,7 +11,7 @@ resource "routeros_ip_firewall_addr_list" "rfc1918" {
   comment = "defconf: RFC1918 private range"
 }
 
-resource "routeros_ip_firewall_addr_list" "mgmt_vlan" {
+resource "routers_ip_firewall_addr_list" "mgmt_vlan" {
   count = var.role == "router" ? 1 : 0
 
   list    = "mgmt-vlan"
@@ -19,7 +19,7 @@ resource "routeros_ip_firewall_addr_list" "mgmt_vlan" {
   comment = "Management VLAN — exclude from hairpin so admin reaches router itself"
 }
 
-resource "routeros_ip_firewall_addr_list" "no_hairpin_dst" {
+resource "routers_ip_firewall_addr_list" "no_hairpin_dst" {
   for_each = var.role == "router" && var.enable-hairpin ? merge(
     { "wg-holonet" = {
       address = split("/", local.wg-holonet.address)[0]
@@ -36,19 +36,19 @@ resource "routeros_ip_firewall_addr_list" "no_hairpin_dst" {
   comment = each.value.comment
 }
 
-resource "routeros_ip_firewall_nat" "n01_masq_wan" {
+resource "routers_ip_firewall_nat" "n01_masq_wan" {
   count = var.role == "router" ? 1 : 0
 
   action             = "masquerade"
   chain              = "srcnat"
   ipsec_policy       = "out,none"
-  out_interface_list = routeros_interface_list.wan.name
+  out_interface_list = routers_interface_list.wan.name
   comment            = "defconf: masquerade"
 }
 
-resource "routeros_ip_firewall_nat" "n03_dnat_https_to_vip" {
+resource "routers_ip_firewall_nat" "n03_dnat_https_to_vip" {
   count      = var.role == "router" && var.enable-hairpin ? 1 : 0
-  depends_on = [routeros_ip_firewall_addr_list.rfc1918]
+  depends_on = [routers_ip_firewall_addr_list.rfc1918]
 
   action           = "dst-nat"
   chain            = "dstnat"
@@ -63,9 +63,9 @@ resource "routeros_ip_firewall_nat" "n03_dnat_https_to_vip" {
   comment          = "[ext] HTTPs to Traefik VIP"
 }
 
-resource "routeros_ip_firewall_nat" "n04_dnat_http_to_vip" {
+resource "routers_ip_firewall_nat" "n04_dnat_http_to_vip" {
   count      = var.role == "router" && var.enable-hairpin ? 1 : 0
-  depends_on = [routeros_ip_firewall_addr_list.rfc1918]
+  depends_on = [routers_ip_firewall_addr_list.rfc1918]
 
   action           = "dst-nat"
   chain            = "dstnat"
@@ -80,7 +80,7 @@ resource "routeros_ip_firewall_nat" "n04_dnat_http_to_vip" {
   comment          = "[ext] HTTP to Traefik VIP"
 }
 
-resource "routeros_ip_firewall_nat" "n09_hairpin_masq_replies" {
+resource "routers_ip_firewall_nat" "n09_hairpin_masq_replies" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
 
   action      = "masquerade"
@@ -90,11 +90,11 @@ resource "routeros_ip_firewall_nat" "n09_hairpin_masq_replies" {
   comment     = "Hairpin masquerade so VIP replies via router"
 }
 
-resource "routeros_ip_firewall_nat" "n10_hairpin_local_dst_443" {
+resource "routers_ip_firewall_nat" "n10_hairpin_local_dst_443" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
   depends_on = [
-    routeros_ip_firewall_addr_list.mgmt_vlan,
-    routeros_ip_firewall_addr_list.no_hairpin_dst,
+    routers_ip_firewall_addr_list.mgmt_vlan,
+    routers_ip_firewall_addr_list.no_hairpin_dst,
   ]
 
   action           = "dst-nat"
@@ -110,11 +110,11 @@ resource "routeros_ip_firewall_nat" "n10_hairpin_local_dst_443" {
   comment          = "Hairpin: LAN  WAN-IP:443  VIP"
 }
 
-resource "routeros_ip_firewall_nat" "n11_hairpin_local_dst_80" {
+resource "routers_ip_firewall_nat" "n11_hairpin_local_dst_80" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
   depends_on = [
-    routeros_ip_firewall_addr_list.mgmt_vlan,
-    routeros_ip_firewall_addr_list.no_hairpin_dst,
+    routers_ip_firewall_addr_list.mgmt_vlan,
+    routers_ip_firewall_addr_list.no_hairpin_dst,
   ]
 
   action           = "dst-nat"
@@ -130,7 +130,7 @@ resource "routeros_ip_firewall_nat" "n11_hairpin_local_dst_80" {
   comment          = "Hairpin: LAN  WAN-IP:80  VIP"
 }
 
-resource "routeros_ip_firewall_nat" "n12_hairpin_masq_client_src" {
+resource "routers_ip_firewall_nat" "n12_hairpin_masq_client_src" {
   count = var.role == "router" && var.enable-hairpin ? 1 : 0
 
   action      = "masquerade"
@@ -142,6 +142,6 @@ resource "routeros_ip_firewall_nat" "n12_hairpin_masq_client_src" {
   comment     = "Hairpin masquerade: rewrite client src so VIP replies via router"
 }
 
-resource "routeros_ip_firewall_connection_tracking" "this" {
+resource "routers_ip_firewall_connection_tracking" "this" {
   generic_timeout = "1m"
 }

@@ -66,6 +66,7 @@ Analyze code and generate comprehensive, idiomatic test cases.
   def test_function_does_x_when_y():
       assert result == expected
 
+
   # For async functions
   @pytest.mark.asyncio
   async def test_async_function_does_x_when_y():

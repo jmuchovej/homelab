@@ -18,8 +18,8 @@ resource "cloudflare_dns_record" "en-wildcard" {
   comment = "en datacenter wildcard — tracks en-relay01 DDNS"
 }
 
-resource "routeros_ip_dns_record" "en-apex" {
-  provider = routeros.en-relay01
+resource "routers_ip_dns_record" "en-apex" {
+  provider = routers.en-relay01
   type     = "CNAME"
   name     = local.domain.en
   cname    = local.catalog.k8s-for["en"].vip
@@ -27,8 +27,8 @@ resource "routeros_ip_dns_record" "en-apex" {
   comment  = "en datacenter apex — tracks en-relay01 DDNS"
 }
 
-resource "routeros_ip_dns_record" "en-wildcard" {
-  provider = routeros.en-relay01
+resource "routers_ip_dns_record" "en-wildcard" {
+  provider = routers.en-relay01
   type     = "CNAME"
   name     = "*.${local.domain.en}"
   cname    = local.catalog.k8s-for["en"].vip
