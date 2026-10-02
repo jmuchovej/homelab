@@ -83,9 +83,10 @@ There is no API key for these admin endpoints: the hub's Maker API tokens cover 
 
 ## HPM manifests
 
-`packageManifest.json` beside a driver and `repository.json` at `hubitat/` are hand-written; `check` validates them (`manifest.py`): manifest `version` equals the driver's `version()`, exactly one `drivers[]` entry, namespace `rbn`, `name` equals the `definition(name: …)`, `location` ends in `/hubitat/drivers/<d>/<d>.bundled.groovy`, ids are UUIDs, every index entry's manifest exists and every manifest is indexed.
-HPM's update detection is the manifest `version` string alone, so a release is `just hubitat bump <driver> <version>` (source, manifest, bundle in one step) — never a hand edit of one of the three.
-Ids are minted once and never change.
+**Every driver directory has a `packageManifest.json`** and `repository.json` at `hubitat/` lists every one of them; both are hand-written and `just hubitat check` refuses the tree otherwise (`manifest.py`): a driver without a manifest, a manifest `version` that differs from the driver's `version()`, anything but exactly one `drivers[]` entry, a namespace other than `rbn`, a `name` that differs from the `definition(name: …)`, a `location` not ending in `/hubitat/drivers/<d>/<d>.bundled.groovy`, a non-UUID id, an index entry whose manifest does not exist, a manifest missing from the index, or an index entry without `category`/`tags`.
+HPM installs the bundle at `location` and nothing else — it has no notion of libraries — and its update detection is the manifest `version` string alone, so a release is `just hubitat bump <driver> <version>` (source, manifest, bundle in one step), never a hand edit of one of the three.
+Ids (`drivers[].id` and `packages[].id`) are minted once with `uuidgen` and never change; HPM keys installed packages on them.
+Code that reached the hub by `push` or Import is unknown to HPM until its Match Up adopts it by name and namespace.
 
 ## Naming
 

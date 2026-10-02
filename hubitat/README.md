@@ -15,6 +15,19 @@ There are two paths to a hub:
 
 `bundles/` holds Hubitat _Bundle_ zips (for example the Hubitat Package Manager installer) and is unrelated to the generated `*.bundled.groovy` files.
 
+## Installing with HPM
+
+Every driver directory carries a `packageManifest.json`, and `repository.json` at the top of this tree indexes them all.
+The Hubitat Package Manager has two ways in:
+
+- **One package:** Install → From a URL, with the manifest's raw URL, e.g. `https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/inovelli-vzm31-sn/packageManifest.json`.
+- **Everything here:** Package Manager Settings → Add a custom repository, with `https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/repository.json`.
+  Install → From a Repository then lists each package as `<name> by John Muchovej`.
+
+Code that reached the hub by hand (Drivers Code → Import, or `just hubitat push`) is invisible to HPM until Package Manager Settings → Match Up adopts it by name and namespace; run Match Up before adding the repository, or HPM offers to install a duplicate.
+HPM installs the bundle and nothing else; it has no notion of libraries.
+It detects updates by comparing the manifest's `version` string with the one it installed, so a release is always `just hubitat bump <driver> <version>`, which moves `version()`, the manifest, and the bundle together, and `just hubitat check` refuses any drift between them.
+
 ## Commands
 
 All of these are `uv run --package hubitat -m hubitat <command>` at the repository root; the `just` recipes just save the typing.
@@ -47,10 +60,22 @@ The tool refuses to start without `HUBITAT_URL` and never prints credentials.
 
 ## Validation status
 
-**Compile-verified only.**
-The `rbn` libraries and the Aqara Cube T1 Pro driver have been saved on the hub and compile; no device has been run on them yet.
-Runtime validation on a paired device is tracked as a separate OpenSpec change.
+Per library, what has actually been observed.
+`compile-verified` means the hub compiled it (`just hubitat probe` and a driver save); `runtime-verified` means a paired device ran it and the named behaviour was seen in the log.
 Do not read "compiles" as "works".
+
+| Library     | Status           | Device | Date       |
+| ----------- | ---------------- | ------ | ---------- |
+| `common`    | compile-verified | —      | 2026-10-02 |
+| `switch`    | compile-verified | —      | 2026-10-02 |
+| `level`     | compile-verified | —      | 2026-10-02 |
+| `meter`     | compile-verified | —      | 2026-10-02 |
+| `reporting` | compile-verified | —      | 2026-10-02 |
+| `xiaomi`    | compile-verified | —      | 2026-10-02 |
+| `button`    | compile-verified | —      | 2026-10-02 |
+| `battery`   | compile-verified | —      | 2026-10-02 |
+
+A driver is validated only for the behaviour its row's libraries were exercised on; the Inovelli dimmer driver covers `common`, `switch`, `level`, `meter`, `reporting`, and the Aqara Cube driver covers `common`, `switch`, `xiaomi`, `button`, `battery`.
 
 ## Attribution
 
