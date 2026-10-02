@@ -1,0 +1,13 @@
+{
+  "$schema": "https://github.com/oxc-project/oxc/raw/main/npm/oxfmt/configuration_schema.json",
+  "trailingComma": "all",
+  "sortPackageJson": true,
+  "sortImports": true,
+  "sortTailwindcss": true,
+  "bracketSameLine": true,
+  "singleQuote": false,
+  "vueIndentScriptAndStyle": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "proseWrap": "preserve",
+}

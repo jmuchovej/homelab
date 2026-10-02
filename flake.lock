@@ -101,18 +101,6 @@
         "type": "github"
       }
     },
-    "conventional-commits": {
-      "flake": false,
-      "locked": {
-        "narHash": "sha256-uLIYPeypPIWG/JhytBc1igoKIPsfNZJ9Quck9E15ULo=",
-        "type": "file",
-        "url": "https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13"
-      },
-      "original": {
-        "type": "file",
-        "url": "https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13"
-      }
-    },
     "crane": {
       "locked": {
         "lastModified": 1788465171,
@@ -856,22 +844,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-latest": {
-      "locked": {
-        "lastModified": 1790185690,
-        "narHash": "sha256-xJ+X4hBtOcAFGBOe5nAMyMUeF9foJBmIOu3NjBqBycU=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "4975466d324710c576dc11ad614684e6bd8cad8e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1772328832,
@@ -1017,22 +989,6 @@
       }
     },
     "nixpkgs_15": {
-      "locked": {
-        "lastModified": 1770107345,
-        "narHash": "sha256-tbS0Ebx2PiA1FRW8mt8oejR0qMXmziJmPaU1d4kYY9g=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "4533d9293756b63904b7238acb84ac8fe4c8c2c4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_16": {
       "locked": {
         "lastModified": 1784564315,
         "narHash": "sha256-7OpsHHIZFUBLbeHNQ0oC40DZRQjsmGWodXge+OqgPgk=",
@@ -1235,7 +1191,6 @@
     "root": {
       "inputs": {
         "anthropic-skills": "anthropic-skills",
-        "conventional-commits": "conventional-commits",
         "den": "den",
         "deploy": "deploy",
         "devenv": "devenv",
@@ -1266,7 +1221,6 @@
         "oh-my-tmux": "oh-my-tmux",
         "sops-nix": "sops-nix",
         "topology": "topology",
-        "treefmt-nix": "treefmt-nix_4",
         "vscode-extensions": "vscode-extensions"
       }
     },
@@ -1443,24 +1397,6 @@
         "type": "github"
       }
     },
-    "treefmt-nix_4": {
-      "inputs": {
-        "nixpkgs": "nixpkgs_15"
-      },
-      "locked": {
-        "lastModified": 1786901030,
-        "narHash": "sha256-WSFCsDSE5ffgD2MqzkM2CYjeFiKhRF/dJUN8uedb6YE=",
-        "owner": "numtide",
-        "repo": "treefmt-nix",
-        "rev": "27b3b12a8e6375f28ebe122f07d230ca5459bbfa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
     "utils": {
       "inputs": {
         "systems": "systems"
@@ -1481,7 +1417,7 @@
     },
     "vscode-extensions": {
       "inputs": {
-        "nixpkgs": "nixpkgs_16"
+        "nixpkgs": "nixpkgs_15"
       },
       "locked": {
         "lastModified": 1790223135,

@@ -18,7 +18,6 @@ in
     nixpkgs.url = lib.mkForce "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-stable-linux.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-stable-darwin.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
 
     nix-darwin = {

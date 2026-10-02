@@ -1,0 +1,51 @@
+#:tombi toml-version = "v1.1.0"
+#:schema https://raw.githubusercontent.com/crate-ci/typos/master/config.schema.json
+
+[files]
+  ignore-files   = true
+  ignore-hidden  = false
+  ignore-vcs     = true
+  ignore-dot     = true
+  extend-exclude = [
+    ".mailmap",
+    ".config/treefmt.toml",
+    "*.sops.yaml",
+    "*.png",
+    "*.icns",
+    "*.ico",
+    # Key material and lockfiles: a "typo" inside an age key or a hash is a byte.
+    "*.pub",
+    "*.age",
+    "*.crt",
+    "*.pem",
+    "*.bak",
+    "*.lock",
+    "keys/",
+    "certificates/",
+    # Third-party and forked code; not ours to respell (and model ids like
+    # `lumi.airmonitor.acn01` are protocol strings)
+    "hubitat/apps/",
+    "hubitat/drivers/*.groovy",
+    "hubitat/libraries/",
+  ]
+
+[default]
+  extend-ignore-re = [
+    # PNG is a file format, not a typo
+    "PNG",
+    "doas",
+    # macOS version
+    "Big Sur",
+    # the prefix in "mis-owning"
+    "\\bmis-",
+  ]
+  check-filename   = true
+
+  [default.extend-words]
+    writeable = "writeable"
+    # nixos-facter
+    facter    = "facter"
+    # Clojure EDN, the Mesa zink driver, snd_hda_intel
+    edn       = "edn"
+    zink      = "zink"
+    hda       = "hda"

@@ -1,0 +1,32 @@
+# npm-groovy-lint, used by treefmt as `npm-groovy-lint -c <this> --format`.
+# The targets are Hubitat drivers and libraries: dynamic Groovy scripts with
+# `#include` directives, string-dispatched hook methods, and upstream code kept
+# diffable against kkossev/Hubitat. The rules below are turned off for one of
+# those reasons; everything else in `recommended` stays on.
+extends: recommended
+
+rules:
+  # Fixer bug: rewrites `a != null) { b= c }` as `a ! = null`, which does not compile.
+  SpaceAroundOperator: off
+
+  # Hubitat scripts: no classes, dynamic typing by convention, `def` everywhere.
+  NoDef: off
+  MethodReturnTypeRequired: off
+  MethodParameterTypeRequired: off
+  VariableTypeRequired: off
+  CompileStatic: off
+  ImplicitClosureParameter: off
+
+  # Hook signatures are contracts (customParse<Cluster>Cluster(Map), …); unused
+  # parameters and parameter reassignment are the upstream style, not defects.
+  UnusedMethodParameter: off
+  ParameterReassignment: off
+
+  # Upstream formatting conventions kept for diffability.
+  LineLength: off
+  IfStatementBraces: off
+  ElseBlockBraces: off
+  DuplicateStringLiteral: off
+  DuplicateNumberLiteral: off
+  DuplicateListLiteral: off
+  DuplicateMapLiteral: off

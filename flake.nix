@@ -8,10 +8,6 @@
       url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
       flake = false;
     };
-    conventional-commits = {
-      url = "https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13";
-      flake = false;
-    };
     den.url = "github:denful/den";
     deploy.url = "github:serokell/deploy-rs";
     devenv.url = "github:cachix/devenv/v2.3.1";
@@ -69,7 +65,6 @@
     };
     sops-nix.url = "github:mic92/sops-nix";
     topology.url = "github:oddlama/nix-topology";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
     vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 }

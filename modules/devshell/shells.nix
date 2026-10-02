@@ -37,6 +37,7 @@
     in
     {
       devShells.default = pkgs.mkShell {
+        inputsFrom = [ config.devShells.formatting ];
         packages = with pkgs; [
           # Nix workflows
           nh
@@ -51,8 +52,7 @@
           jujutsu
           just
 
-          # Formatting / pre-commit
-          config.treefmt.build.wrapper
+          # Pre-commit (formatters come from devShells.formatting)
           prek
           zizmor
 
@@ -99,7 +99,6 @@
         env = {
           NIX_SSL_CERT_FILE = "${caBundle}";
           SSL_CERT_FILE = "${caBundle}";
-          TREEFMT_ALLOW_MISSING_FORMATTER = "1";
         };
 
         shellHook = ''
