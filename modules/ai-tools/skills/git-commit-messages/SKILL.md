@@ -5,8 +5,7 @@ description: Generate conventional commit messages based on staged changes. Use 
 
 # Commit Message Guide
 
-Generates conventional commit messages that are clear, consistent, and
-informative.
+Generates conventional commit messages that are clear, consistent, and informative.
 
 ## Core Principles
 
@@ -40,8 +39,7 @@ _Example:_ `programs/waybar: update config`
 
 ## Detailed Reference Material
 
-- [reference.md](./reference.md) - **Commit Types** table, Scope determination,
-  **Breaking Changes**, and **Alternative Conventions**.
+- [reference.md](./reference.md) - **Commit Types** table, Scope determination, **Breaking Changes**, and **Alternative Conventions**.
 - [examples.md](./examples.md) - Good and bad examples for various scenarios.
 
 ## Analyzing Changes for Commit Type
@@ -64,5 +62,4 @@ _Example:_ `programs/waybar: update config`
 ## See Also
 
 - **Code review**: See [code-review](../code-review/) for reviewing commits
-- **Git workflows**: See [git-workflows](../git-workflows/) for branching
-  strategies
+- **Git workflows**: See [git-workflows](../git-workflows/) for branching strategies

@@ -69,6 +69,5 @@ Used in some monorepos or specific projects (e.g., Nixpkgs-style).
 **When to use:**
 
 - When the project strictly follows a file-path based convention.
-- When working in large monorepos where the path is the most significant
-  context.
+- When working in large monorepos where the path is the most significant context.
 - **Check `git log` first** to confirm if this is the active convention.

@@ -2,7 +2,8 @@
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, container image sources under `containers/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, container image sources under `containers/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`.
+No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
 
@@ -33,7 +34,8 @@ The repository SHALL place each tool-specific tree directly under the repository
 
 ### Requirement: Container images are built from the repository and consumed by digest
 
-Each directory under `containers/` SHALL be a self-contained image build context whose name matches the published image name. Images SHALL be published to a registry and referenced from Kubernetes manifests by an immutable tag-plus-digest pair, never by a floating tag alone.
+Each directory under `containers/` SHALL be a self-contained image build context whose name matches the published image name.
+Images SHALL be published to a registry and referenced from Kubernetes manifests by an immutable tag-plus-digest pair, never by a floating tag alone.
 
 #### Scenario: Build context is self-contained
 

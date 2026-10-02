@@ -51,8 +51,7 @@
 
 ## Fixup + Autosquash Strategy
 
-Use this workflow to keep history atomic when follow-up fixes are discovered
-after multiple commits.
+Use this workflow to keep history atomic when follow-up fixes are discovered after multiple commits.
 
 ### Why use this
 
@@ -62,12 +61,9 @@ after multiple commits.
 
 ### Core idea
 
-- `git commit --fixup=<target-commit>` creates a temporary commit linked to an
-  earlier commit.
-- `git rebase -i --autosquash <base>` moves each fixup next to its target and
-  marks it as `fixup`.
-- Rebase folds fixups into original commits, so temporary fixup commits
-  disappear.
+- `git commit --fixup=<target-commit>` creates a temporary commit linked to an earlier commit.
+- `git rebase -i --autosquash <base>` moves each fixup next to its target and marks it as `fixup`.
+- Rebase folds fixups into original commits, so temporary fixup commits disappear.
 
 ### Standard workflow
 
@@ -97,8 +93,7 @@ git status --short
 
 - Makes interactive rebase non-interactive.
 - Git still builds the todo list, applies autosquash ordering, and executes it.
-- Useful when fixup targeting is already correct and no manual todo edits are
-  needed.
+- Useful when fixup targeting is already correct and no manual todo edits are needed.
 
 ### Practical notes
 
@@ -116,8 +111,7 @@ git push --force-with-lease
 
 - If a fix touches code introduced by commit `A`, fold into `A`.
 - If a fix touches tests introduced by commit `B`, fold into `B`.
-- Do not bundle cross-cutting fixes into a new commit unless they are genuinely
-  new work.
+- Do not bundle cross-cutting fixes into a new commit unless they are genuinely new work.
 
 ### When not to use it
 

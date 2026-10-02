@@ -118,4 +118,5 @@ Critical / Warning / None found
 - [ ] Breaking changes are documented
 - [ ] Tests cover new functionality
 
-Be constructive and specific. Explain WHY something is an issue, not just WHAT.
+Be constructive and specific.
+Explain WHY something is an issue, not just WHAT.

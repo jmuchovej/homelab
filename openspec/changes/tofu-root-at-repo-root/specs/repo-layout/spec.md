@@ -2,7 +2,8 @@
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu child modules under `tofu/` (the OpenTofu root module is the repository root itself), MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu child modules under `tofu/` (the OpenTofu root module is the repository root itself), MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`.
+No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
 
@@ -28,15 +29,25 @@ The repository SHALL place each tool-specific tree directly under the repository
 
 ### Requirement: OpenTofu lives under `tofu/`
 
-**Reason**: The root module moves to the repository root so `tofu` runs there without `cd` or `-chdir`. The requirement's premise (root module, state, and symlinks all inside `tofu/`) no longer holds.
+**Reason**: The root module moves to the repository root so `tofu` runs there without `cd` or `-chdir`.
+The requirement's premise (root module, state, and symlinks all inside `tofu/`) no longer holds.
 
-**Migration**: Replaced by "OpenTofu root module is the repository root" below. State does not move; the new root selects it through an explicit local backend path. The `secrets` and `topology.yaml` symlinks under `tofu/` remain for the justfile modules.
+**Migration**: Replaced by "OpenTofu root module is the repository root" below.
+State does not move; the new root selects it through an explicit local backend path.
+The `secrets` and `topology.yaml` symlinks under `tofu/` remain for the justfile modules.
 
 ## ADDED Requirements
 
 ### Requirement: OpenTofu root module is the repository root
 
-The repository root SHALL be the OpenTofu root module. OpenTofu source files at the repository root SHALL be limited to `main.tofu`, `holonet.tofu`, and one `<site>.tofu` per datacenter site (`da.tofu`, `en.tofu`, and later sites by the same rule). Every other OpenTofu source file SHALL live under `tofu/` inside a child module directory. `provider` blocks SHALL appear only in `main.tofu`. `import` and `moved` blocks SHALL be deleted once every address they target is present in state. Local state and its backups SHALL live under `tofu/`, selected by an explicit local backend path. The provider lock file SHALL live at the repository root. The `tofu/secrets` and `tofu/topology.yaml` symlinks SHALL resolve to the repo-root `secrets/` directory and `topology.yaml` file.
+The repository root SHALL be the OpenTofu root module.
+OpenTofu source files at the repository root SHALL be limited to `main.tofu`, `holonet.tofu`, and one `<site>.tofu` per datacenter site (`da.tofu`, `en.tofu`, and later sites by the same rule).
+Every other OpenTofu source file SHALL live under `tofu/` inside a child module directory.
+`provider` blocks SHALL appear only in `main.tofu`.
+`import` and `moved` blocks SHALL be deleted once every address they target is present in state.
+Local state and its backups SHALL live under `tofu/`, selected by an explicit local backend path.
+The provider lock file SHALL live at the repository root.
+The `tofu/secrets` and `tofu/topology.yaml` symlinks SHALL resolve to the repo-root `secrets/` directory and `topology.yaml` file.
 
 #### Scenario: Bare tofu runs from the repository root
 

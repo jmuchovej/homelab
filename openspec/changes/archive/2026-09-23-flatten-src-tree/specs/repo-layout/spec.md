@@ -6,7 +6,8 @@ Defines the top-level directory contract of the repository so that external cons
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, and the shared network topology at `topology.yaml`.
+No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
 
@@ -44,7 +45,9 @@ The repository SHALL keep the `homelab` Python package at `src/homelab/` and SHA
 
 ### Requirement: OpenTofu lives under `tofu/`
 
-The repository SHALL keep all OpenTofu root modules, child modules, justfile modules, and their `secrets` and `topology.yaml` symlinks under `tofu/`. The symlinks SHALL resolve to the repo-root `secrets/` directory and `topology.yaml` file. Local state and provider caches SHALL live alongside the root module in `tofu/`.
+The repository SHALL keep all OpenTofu root modules, child modules, justfile modules, and their `secrets` and `topology.yaml` symlinks under `tofu/`.
+The symlinks SHALL resolve to the repo-root `secrets/` directory and `topology.yaml` file.
+Local state and provider caches SHALL live alongside the root module in `tofu/`.
 
 #### Scenario: Plan is a no-op after the move
 

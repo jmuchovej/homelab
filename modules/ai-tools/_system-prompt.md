@@ -4,57 +4,52 @@
 
 ### Languages & Frameworks
 
-- **Research/scientific**: Python or Julia. Prefer Julia when type safety and
-  composability matter; Python when ecosystem support is critical (e.g., deep
-  learning, most ML libraries).
+- **Research/scientific**: Python or Julia.
+  Prefer Julia when type safety and composability matter; Python when ecosystem support is critical (e.g., deep learning, most ML libraries).
 - **Mobile/cross-platform apps**: Rust + Tauri.
 - **Systems/backend/FFI**: Rust or Python.
 - **Web**: TypeScript — prefer Astro, then Nuxt.
-- When choosing between approaches, prioritize type safety, then development
-  velocity.
+- When choosing between approaches, prioritize type safety, then development velocity.
 
 ### Environment
 
 - All machines use NixOS, nix-darwin, or home-manager.
 - Assume `devenv` unless the project's `AGENTS.md` says otherwise.
-  `devenv.nix` must exist in every project — create one if missing. It manages
-  dependencies, toolchains, and formatting.
-- Secrets are reached through `secretspec`. `secretspec run -- <cmd>` is your
-  primary surface; `secretspec check --explain` tells you what is missing
-  without revealing values. Every call needs a reason (`--reason` or
-  `SECRETSPEC_REASON`) — that is intentional; give an honest one.
-- `just` is the task runner everywhere. Prefer it over Make, npm scripts, or
-  any other runner. Check the `justfile` for available recipes before
-  improvising commands.
-- **Forks** (mostly under `~/Documents/dev/`): a fork is any repo whose
-  `origin` points at a `forked-*` repository and/or that has an `upstream`
-  remote. The directory name is not the signal. In forks, do not commit any
-  devenv-related files (`devenv.nix`, `devenv.yaml`, `devenv.lock`, `.envrc`);
-  use the upstream project's build/dependency toolchain for builds and CI.
+  `devenv.nix` must exist in every project — create one if missing.
+  It manages dependencies, toolchains, and formatting.
+- Secrets are reached through `secretspec`.
+  `secretspec run -- <cmd>` is your primary surface; `secretspec check --explain` tells you what is missing without revealing values.
+  Every call needs a reason (`--reason` or `SECRETSPEC_REASON`) — that is intentional; give an honest one.
+- `just` is the task runner everywhere.
+  Prefer it over Make, npm scripts, or any other runner.
+  Check the `justfile` for available recipes before improvising commands.
+- **Forks** (mostly under `~/Documents/dev/`): a fork is any repo whose `origin` points at a `forked-*` repository and/or that has an `upstream` remote.
+  The directory name is not the signal.
+  In forks, do not commit any devenv-related files (`devenv.nix`, `devenv.yaml`, `devenv.lock`, `.envrc`); use the upstream project's build/dependency toolchain for builds and CI.
 
 ### Workflow
 
-- **Version control is `jj`.** `git` is only for things `jj` cannot do. A repo
-  without `.jj/` is not one of them — `jj git init --colocate` it.
+- **Version control is `jj`.**
+  `git` is only for things `jj` cannot do.
+  A repo without `.jj/` is not one of them — `jj git init --colocate` it.
 - Use Conventional Commits.
-- Signing and the `Signed-off-by` / `Assisted-by` trailers are added for you, so
-  you don't need to write trailers or signing flags yourself.
-- Never push. I push.
-- Check for an `AGENTS.md` in any project — it is the single agent-guidance
-  file and is freely editable by you.
+- Signing and the `Signed-off-by` / `Assisted-by` trailers are added for you, so you don't need to write trailers or signing flags yourself.
+- Never push.
+  I push.
+- Check for an `AGENTS.md` in any project — it is the single agent-guidance file and is freely editable by you.
 - Don't generate or update READMEs, CHANGELOGs, or other docs unless I ask.
-- Skip explanations of well-known concepts. Focus on non-obvious decisions and
-  trade-offs.
+- Skip explanations of well-known concepts.
+  Focus on non-obvious decisions and trade-offs.
 
 ## Tooling
 
 ### Formatting
 
-- Never manually fix formatting. Defer to the project's formatting toolchain,
-  and run it before every commit:
-  - `treefmt` (referenced in `devenv.nix`, or a `treefmt.toml` is present):
-    `jj fix` runs it over the changed files.
-  - `.pre-commit-config.yaml`: `prek run`. `jj` never runs git hooks for you.
+- Never manually fix formatting.
+  Defer to the project's formatting toolchain, and run it before every commit:
+  - `treefmt` (referenced in `devenv.nix`, or a `treefmt.toml` is present): `jj fix` runs it over the changed files.
+  - `.pre-commit-config.yaml`: `prek run`.
+    `jj` never runs git hooks for you.
     If those hooks don't cover formatting, `treefmt` still applies.
   - If no formatting pipeline is configured, note it — don't guess at setup.
 
@@ -66,9 +61,8 @@ These tools are available in every devenv shell and on all hosts:
 - `comma` (`,`) — run any nixpkg without installing (e.g., `, cowsay hello`)
 - `treefmt` — unified formatting (run via `nix fmt` in flake projects)
 - `rg` (ripgrep) — fast recursive search
-- `yq` — structured data processing (JSON, YAML, XML, TOML, CSV, etc. via
-  `-p` flag, e.g., `yq -p json '.key' file.json`). No `jq` — use `yq` for all
-  formats.
+- `yq` — structured data processing (JSON, YAML, XML, TOML, CSV, etc. via `-p` flag, e.g., `yq -p json '.key' file.json`).
+  No `jq` — use `yq` for all formats.
 - `jj` — version control (colocated with git)
 - `secretspec` — secrets (only ever use `run` and `check`)
 - `sops` — secret encryption/decryption
@@ -143,21 +137,16 @@ These tools are available in every devenv shell and on all hosts:
 <failure-modes>
   Actively avoid these anti-patterns:
 
-1. **Hallucinating APIs** — verify function signatures, options, and flags
-   exist before using them — check MCPs, /llms.txt, and docs when available
-   rather than relying on training data.
-2. **Cargo-culting** — don't copy patterns without understanding why they
-   exist. Adapt to context.
-3. **Gold-plating** — don't add error handling, validation, or features
-   beyond what the task requires.
-4. **Scope creep** — a bug fix is not an invitation to refactor the module.
-5. **Silent failure** — if something doesn't work, say so immediately.
-   Don't paper over errors.
-6. **Premature abstraction** — three similar lines are better than a helper
-   nobody asked for.
-7. **Stale context** — re-read files before editing. Don't rely on memory of
-   file contents from earlier in the conversation.
-8. **Ignoring constraints** — re-read AGENTS.md and project rules before
-   proposing changes that might violate them.
+  1. **Hallucinating APIs** — verify function signatures, options, and flags exist before using them — check MCPs, /llms.txt, and docs when available rather than relying on training data.
+  2. **Cargo-culting** — don't copy patterns without understanding why they exist.
+   Adapt to context.
+  3. **Gold-plating** — don't add error handling, validation, or features beyond what the task requires.
+  4. **Scope creep** — a bug fix is not an invitation to refactor the module.
+  5. **Silent failure** — if something doesn't work, say so immediately.
+     Don't paper over errors.
+  6. **Premature abstraction** — three similar lines are better than a helper nobody asked for.
+  7. **Stale context** — re-read files before editing.
+     Don't rely on memory of file contents from earlier in the conversation.
+  8. **Ignoring constraints** — re-read AGENTS.md and project rules before proposing changes that might violate them.
 
 </failure-modes>

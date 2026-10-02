@@ -6,7 +6,11 @@ Defines how repo-local packages are laid out, discovered, named, and exposed to 
 
 ### Requirement: Package tree layout
 
-The repository SHALL keep repo-local packages under a root-level `packages/` tree. Application packages SHALL live at `packages/by-name/<shard>/<name>/package.nix`, where `<shard>` is the lowercase two-letter prefix of `<name>` (the nixpkgs `by-name` convention) and `package.nix` is a function suitable for `callPackage` that returns a derivation. Fonts SHALL live at `packages/fonts/<name>/package.nix` with their font files under `packages/fonts/<name>/_files/`. Any other file beside a `package.nix` is private to that package. The tree SHALL be tracked in version control; an untracked path is invisible to the flake.
+The repository SHALL keep repo-local packages under a root-level `packages/` tree.
+Application packages SHALL live at `packages/by-name/<shard>/<name>/package.nix`, where `<shard>` is the lowercase two-letter prefix of `<name>` (the nixpkgs `by-name` convention) and `package.nix` is a function suitable for `callPackage` that returns a derivation.
+Fonts SHALL live at `packages/fonts/<name>/package.nix` with their font files under `packages/fonts/<name>/_files/`.
+Any other file beside a `package.nix` is private to that package.
+The tree SHALL be tracked in version control; an untracked path is invisible to the flake.
 
 #### Scenario: Application package is discovered by name
 
@@ -30,7 +34,8 @@ The repository SHALL keep repo-local packages under a root-level `packages/` tre
 
 ### Requirement: Underscore-prefixed paths are skipped
 
-Discovery SHALL ignore any `package.nix` whose path under `packages/` contains a segment beginning with `_`. This is how unfinished packages are parked without being evaluated.
+Discovery SHALL ignore any `package.nix` whose path under `packages/` contains a segment beginning with `_`.
+This is how unfinished packages are parked without being evaluated.
 
 #### Scenario: Stub package is parked
 
@@ -39,7 +44,9 @@ Discovery SHALL ignore any `package.nix` whose path under `packages/` contains a
 
 ### Requirement: Packages form the `pkgs.rbn` fixed-point scope
 
-The overlay SHALL expose discovered application packages as `pkgs.rbn`, a scope in which a package's function arguments resolve first against sibling packages in `pkgs.rbn` and then against the top-level nixpkgs package set. The scope SHALL support `.override` on each package and `overrideScope` on the scope. A package file SHALL therefore be usable unchanged in a nixpkgs `by-name` tree.
+The overlay SHALL expose discovered application packages as `pkgs.rbn`, a scope in which a package's function arguments resolve first against sibling packages in `pkgs.rbn` and then against the top-level nixpkgs package set.
+The scope SHALL support `.override` on each package and `overrideScope` on the scope.
+A package file SHALL therefore be usable unchanged in a nixpkgs `by-name` tree.
 
 #### Scenario: Sibling resolves before nixpkgs
 
@@ -81,7 +88,8 @@ The overlay SHALL add exactly one top-level attribute, `rbn`, and SHALL NOT defi
 
 ### Requirement: Scope is available on every host and exported
 
-The `rbn` overlay SHALL be applied to the package set of every NixOS and nix-darwin host the flake defines, and SHALL be exported as `flake.overlays.rbn` for consumers outside this repository. The former `pkgs.contrib` namespace and `flake.overlays.contrib` SHALL NOT exist.
+The `rbn` overlay SHALL be applied to the package set of every NixOS and nix-darwin host the flake defines, and SHALL be exported as `flake.overlays.rbn` for consumers outside this repository.
+The former `pkgs.contrib` namespace and `flake.overlays.contrib` SHALL NOT exist.
 
 #### Scenario: Darwin host sees the scope
 

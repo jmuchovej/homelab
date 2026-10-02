@@ -4,8 +4,7 @@ argument-hint: "<module-path> [--type=home|nixos|macos] [--namespace] [--with-op
 description: Generate new Nix module boilerplate following project conventions with comprehensive pattern analysis
 ---
 
-Generate Nix modules that seamlessly integrate with existing project patterns
-and conventions.
+Generate Nix modules that seamlessly integrate with existing project patterns and conventions.
 
 ## **WORKFLOW OVERVIEW**
 
@@ -26,8 +25,7 @@ ALWAYS START - Understand the project structure and conventions
 
 **Project type detection:**
 
-- Check if we're in the `rebellion` repository (look for a specific directory
-  structure)
+- Check if we're in the `rebellion` repository (look for a specific directory structure)
 - Identify if it's a flake-based project (`flake.nix` present)
 - Determine if it's NixOS, Home Manager, or MacOS focused
 
@@ -340,6 +338,4 @@ in {
 /module-scaffold modules/macos/homebrew/custom.nix --namespace=myproject --type=macos
 ```
 
-**REMEMBER:** Always prioritize consistency with existing project patterns while
-ensuring the generated module is functional, well-documented, and follows
-established conventions.
+**REMEMBER:** Always prioritize consistency with existing project patterns while ensuring the generated module is functional, well-documented, and follows established conventions.

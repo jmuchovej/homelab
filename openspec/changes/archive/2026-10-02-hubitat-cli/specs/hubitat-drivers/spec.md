@@ -2,7 +2,10 @@
 
 ### Requirement: `hubitat/` is a self-contained uv workspace member and an importable package
 
-`hubitat/` SHALL be a uv workspace member with its own `pyproject.toml` declaring its dependencies and no build system, listed in the root `pyproject.toml`'s `[tool.uv.workspace]`, sharing the root lockfile. The directory itself SHALL be the importable package (`hubitat/__init__.py`, `hubitat/__main__.py`), with its command-line entry point `python -m hubitat`, run from the repository root as `uv run --package hubitat -m hubitat <command>`. It SHALL NOT import from `src/homelab/` and `src/homelab/` SHALL NOT import from it, and the root `pyproject.toml` SHALL change only by the workspace stanza. Data directories under `hubitat/` (`libraries/`, `drivers/`, `bundles/`, `apps/`) SHALL be located relative to the package file, not the working directory.
+`hubitat/` SHALL be a uv workspace member with its own `pyproject.toml` declaring its dependencies and no build system, listed in the root `pyproject.toml`'s `[tool.uv.workspace]`, sharing the root lockfile.
+The directory itself SHALL be the importable package (`hubitat/__init__.py`, `hubitat/__main__.py`), with its command-line entry point `python -m hubitat`, run from the repository root as `uv run --package hubitat -m hubitat <command>`.
+It SHALL NOT import from `src/homelab/` and `src/homelab/` SHALL NOT import from it, and the root `pyproject.toml` SHALL change only by the workspace stanza.
+Data directories under `hubitat/` (`libraries/`, `drivers/`, `bundles/`, `apps/`) SHALL be located relative to the package file, not the working directory.
 
 #### Scenario: Module runs from the repo root
 
@@ -26,7 +29,9 @@
 
 ### Requirement: `bundle` and `check` keep the bundler contract
 
-`bundle [SOURCE…]` SHALL produce the same bundles the previous script did (include lines blanked, single `Libraries` banner, per-library markers), and `check` SHALL exit non-zero naming every stale bundle. When a `packageManifest.json` exists beside a driver source, `check` SHALL additionally validate it per the manifest requirements and name the file on failure. `hubitat/scripts/` SHALL no longer exist.
+`bundle [SOURCE…]` SHALL produce the same bundles the previous script did (include lines blanked, single `Libraries` banner, per-library markers), and `check` SHALL exit non-zero naming every stale bundle.
+When a `packageManifest.json` exists beside a driver source, `check` SHALL additionally validate it per the manifest requirements and name the file on failure.
+`hubitat/scripts/` SHALL no longer exist.
 
 #### Scenario: Bundle output is unchanged by the move
 
@@ -40,7 +45,10 @@
 
 ### Requirement: `push` installs or updates drivers on the hub idempotently
 
-`push [DRIVER…] [--dry-run]` SHALL, for each selected driver (default: all), read the hub's list of user drivers, match by name and namespace `rbn`, and either create the driver from its bundle when absent or update it when present. Before updating it SHALL fetch the hub's current source and SHALL skip the driver, reporting "unchanged", when that source equals the bundle. `--dry-run` SHALL report what would happen and send no writes. It SHALL log in first when the hub reports security enabled, SHALL fail with a clear message when `HUBITAT_URL` is unset or the hub is unreachable, and SHALL never write anything outside namespace `rbn`.
+`push [DRIVER…] [--dry-run]` SHALL, for each selected driver (default: all), read the hub's list of user drivers, match by name and namespace `rbn`, and either create the driver from its bundle when absent or update it when present.
+Before updating it SHALL fetch the hub's current source and SHALL skip the driver, reporting "unchanged", when that source equals the bundle.
+`--dry-run` SHALL report what would happen and send no writes.
+It SHALL log in first when the hub reports security enabled, SHALL fail with a clear message when `HUBITAT_URL` is unset or the hub is unreachable, and SHALL never write anything outside namespace `rbn`.
 
 #### Scenario: First push creates
 
@@ -69,7 +77,8 @@
 
 ### Requirement: `probe` compile-checks every library on the hub
 
-`probe` SHALL generate, in a temporary location, a driver source that includes every library under `hubitat/libraries/`, bundle it, push it to the hub as `rbn include-all probe`, report success or the hub's compile error with the library line resolved through the bundle's marker, and delete the probe driver from the hub whether or not compilation succeeded. It SHALL leave no file in the repository.
+`probe` SHALL generate, in a temporary location, a driver source that includes every library under `hubitat/libraries/`, bundle it, push it to the hub as `rbn include-all probe`, report success or the hub's compile error with the library line resolved through the bundle's marker, and delete the probe driver from the hub whether or not compilation succeeded.
+It SHALL leave no file in the repository.
 
 #### Scenario: All libraries compile
 
@@ -92,7 +101,8 @@
 
 ### Requirement: Hub access is configured through secretspec
 
-A root `secretspec.toml` SHALL declare `HUBITAT_URL` as required and `HUBITAT_USERNAME` and `HUBITAT_PASSWORD` as optional. Commands that contact the hub SHALL read only these variables, SHALL use the credentials only when the hub reports security enabled, and SHALL never print them.
+A root `secretspec.toml` SHALL declare `HUBITAT_URL` as required and `HUBITAT_USERNAME` and `HUBITAT_PASSWORD` as optional.
+Commands that contact the hub SHALL read only these variables, SHALL use the credentials only when the hub reports security enabled, and SHALL never print them.
 
 #### Scenario: secretspec explains what is missing
 
@@ -106,7 +116,8 @@ A root `secretspec.toml` SHALL declare `HUBITAT_URL` as required and `HUBITAT_US
 
 ### Requirement: The package has tests for everything that does not need a hub
 
-`hubitat/tests/` SHALL contain pytest tests covering bundling (line preservation, banner once, markers, the three refusal cases), manifest validation (agreement, version drift, wrong location, wrong identity, non-UUID id, dangling index entry), and `bump`. They SHALL run with `uv run --package hubitat python -m pytest hubitat/tests` from the repository root and SHALL NOT contact a hub.
+`hubitat/tests/` SHALL contain pytest tests covering bundling (line preservation, banner once, markers, the three refusal cases), manifest validation (agreement, version drift, wrong location, wrong identity, non-UUID id, dangling index entry), and `bump`.
+They SHALL run with `uv run --package hubitat python -m pytest hubitat/tests` from the repository root and SHALL NOT contact a hub.
 
 #### Scenario: Tests pass offline
 

@@ -2,7 +2,8 @@
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, Hubitat libraries and drivers under `hubitat/`, and the shared network topology at `topology.yaml`. No tool-facing path SHALL carry a `src/` prefix.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, MikroTik bootstrap material under `mikrotik/`, cluster seed manifests under `bootstrap/`, Hubitat libraries and drivers under `hubitat/`, and the shared network topology at `topology.yaml`.
+No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
 

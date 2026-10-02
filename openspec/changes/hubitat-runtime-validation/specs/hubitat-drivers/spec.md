@@ -2,7 +2,9 @@
 
 ### Requirement: Each driver ships a Hubitat Package Manager manifest
 
-Every driver directory `hubitat/drivers/<driver>/` SHALL contain a `packageManifest.json` whose single `drivers[]` entry has `namespace` `rbn`, a `name` equal to the driver's `definition` name, a `location` that is the raw GitHub URL of `hubitat/drivers/<driver>/<driver>.bundled.groovy` on the repository's default branch, and a stable UUID `id` that is never changed once published. The manifest's `version` SHALL equal the driver's `version()`. `just hubitat check` SHALL exit non-zero, naming the file, when any of these disagree.
+Every driver directory `hubitat/drivers/<driver>/` SHALL contain a `packageManifest.json` whose single `drivers[]` entry has `namespace` `rbn`, a `name` equal to the driver's `definition` name, a `location` that is the raw GitHub URL of `hubitat/drivers/<driver>/<driver>.bundled.groovy` on the repository's default branch, and a stable UUID `id` that is never changed once published.
+The manifest's `version` SHALL equal the driver's `version()`.
+`just hubitat check` SHALL exit non-zero, naming the file, when any of these disagree.
 
 #### Scenario: Manifest agrees with its driver
 
@@ -26,7 +28,8 @@ Every driver directory `hubitat/drivers/<driver>/` SHALL contain a `packageManif
 
 ### Requirement: The tree publishes a Hubitat Package Manager repository index
 
-`hubitat/repository.json` SHALL list every driver's manifest as a package entry with a stable UUID `id`, a `category` and `tags` drawn from HPM's published lists, and a `location` that is the manifest's raw GitHub URL. `just hubitat check` SHALL exit non-zero when an entry's manifest file does not exist in the tree or when a manifest in the tree is missing from the index.
+`hubitat/repository.json` SHALL list every driver's manifest as a package entry with a stable UUID `id`, a `category` and `tags` drawn from HPM's published lists, and a `location` that is the manifest's raw GitHub URL.
+`just hubitat check` SHALL exit non-zero when an entry's manifest file does not exist in the tree or when a manifest in the tree is missing from the index.
 
 #### Scenario: Added as a custom repository
 
@@ -45,7 +48,8 @@ Every driver directory `hubitat/drivers/<driver>/` SHALL contain a `packageManif
 
 ### Requirement: A minimal VZM31-SN driver covers the standard clusters
 
-The repository SHALL carry `hubitat/drivers/inovelli-vzm31-sn/` with a driver named `Inovelli Dimmer (Blue, VZM31-SN)` in namespace `rbn`, built on `rbn.common`, `rbn.switch`, `rbn.level`, `rbn.meter`, and `rbn.reporting`, declaring the upstream fingerprints for model `VZM31-SN` manufacturer `Inovelli`. On a paired dimmer it SHALL switch and dim from the hub, reflect physical switching and dimming, report energy in kWh (device value ÷ 100) and power in W (device value ÷ 10), treat cluster `0xFC31` as unknown, and send no Configure Reporting commands unless Configure is explicitly invoked.
+The repository SHALL carry `hubitat/drivers/inovelli-vzm31-sn/` with a driver named `Inovelli Dimmer (Blue, VZM31-SN)` in namespace `rbn`, built on `rbn.common`, `rbn.switch`, `rbn.level`, `rbn.meter`, and `rbn.reporting`, declaring the upstream fingerprints for model `VZM31-SN` manufacturer `Inovelli`.
+On a paired dimmer it SHALL switch and dim from the hub, reflect physical switching and dimming, report energy in kWh (device value ÷ 100) and power in W (device value ÷ 10), treat cluster `0xFC31` as unknown, and send no Configure Reporting commands unless Configure is explicitly invoked.
 
 #### Scenario: Hub control round-trips
 
@@ -79,7 +83,8 @@ The repository SHALL carry `hubitat/drivers/inovelli-vzm31-sn/` with a driver na
 
 ### Requirement: Validation status names what was verified and where
 
-`hubitat/README.md` SHALL state, per library, whether it has been runtime-verified and on which device and date, or that it is compile-verified only. A driver SHALL NOT be described as validated for behaviour that was not exercised.
+`hubitat/README.md` SHALL state, per library, whether it has been runtime-verified and on which device and date, or that it is compile-verified only.
+A driver SHALL NOT be described as validated for behaviour that was not exercised.
 
 #### Scenario: Status matrix after the dimmer run
 

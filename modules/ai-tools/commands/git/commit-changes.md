@@ -4,7 +4,8 @@ argument-hint: "[--all] [--amend] [--dry-run] [--interactive]"
 description: Systematically analyze, group, and commit changes following repository conventions
 ---
 
-Create **minimal, atomic commits** where each represents a single logical change. The goal is a git log that tells the story of how the codebase evolved through discrete, understandable enhancements.
+Create **minimal, atomic commits** where each represents a single logical change.
+The goal is a git log that tells the story of how the codebase evolved through discrete, understandable enhancements.
 
 ## **CORE PHILOSOPHY**
 
@@ -311,6 +312,8 @@ Before each commit, verify:
 - [ ] **REVERTIBLE**: Commit could be reverted independently without breaking things
 - [ ] **READABLE**: Git log will read as a clear changelog of improvements
 
-**THE GOLDEN RULE:** Every commit in history should be a working, buildable state. If `git checkout <any-commit>` results in a broken build, you've failed.
+**THE GOLDEN RULE:** Every commit in history should be a working, buildable state.
+If `git checkout <any-commit>` results in a broken build, you've failed.
 
-**REMEMBER:** The goal is a git history where each commit is a discrete, understandable, and FUNCTIONAL unit of change. Future developers (including yourself) should be able to check out any commit and have a working system.
+**REMEMBER:** The goal is a git history where each commit is a discrete, understandable, and FUNCTIONAL unit of change.
+Future developers (including yourself) should be able to check out any commit and have a working system.

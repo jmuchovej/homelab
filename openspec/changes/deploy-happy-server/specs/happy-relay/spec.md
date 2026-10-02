@@ -1,20 +1,14 @@
 ## Purpose
 
-Defines the cluster-hosted Happy sync relay: the encrypted session, machine, and
-project state it brokers between phones, browsers, and workstation daemons; the
-boundary that keeps agent execution off cluster nodes; and the exposure and
-client-binding contract that keeps self-hosted clients from silently reaching
-the public Happy service.
+Defines the cluster-hosted Happy sync relay: the encrypted session, machine, and project state it brokers between phones, browsers, and workstation daemons; the boundary that keeps agent execution off cluster nodes; and the exposure and client-binding contract that keeps self-hosted clients from silently reaching the public Happy service.
 
 ## ADDED Requirements
 
 ### Requirement: The relay brokers state and never executes agent work
 
-The relay SHALL provide only session synchronization: an authenticated HTTP API,
-a realtime event channel, encrypted-blob persistence, and presence tracking. It
-SHALL NOT spawn agent processes, execute shell commands, hold a source checkout,
-or originate requests to any model provider API. Agent execution SHALL remain on
-machines that register with the relay through a client daemon.
+The relay SHALL provide only session synchronization: an authenticated HTTP API, a realtime event channel, encrypted-blob persistence, and presence tracking.
+It SHALL NOT spawn agent processes, execute shell commands, hold a source checkout, or originate requests to any model provider API.
+Agent execution SHALL remain on machines that register with the relay through a client daemon.
 
 #### Scenario: No model-provider traffic originates from the relay
 
@@ -33,12 +27,9 @@ machines that register with the relay through a client daemon.
 
 ### Requirement: Client content is opaque to the relay
 
-The relay SHALL store session metadata, message content, machine metadata,
-daemon state, artifacts, project catalog entries, and key-value entries only as
-client-encrypted blobs. The relay SHALL NOT hold any key capable of decrypting
-them. The relay MAY hold service tokens (provider and OAuth credentials) in a
-form it can decrypt, and those SHALL be encrypted at rest under a deployment-held
-master secret.
+The relay SHALL store session metadata, message content, machine metadata, daemon state, artifacts, project catalog entries, and key-value entries only as client-encrypted blobs.
+The relay SHALL NOT hold any key capable of decrypting them.
+The relay MAY hold service tokens (provider and OAuth credentials) in a form it can decrypt, and those SHALL be encrypted at rest under a deployment-held master secret.
 
 #### Scenario: Database inspection yields no plaintext
 
@@ -57,11 +48,8 @@ master secret.
 
 ### Requirement: Self-hosted clients bind to the relay's own origin
 
-The relay SHALL serve the Happy web client from its own origin and SHALL inject a
-runtime configuration into the served HTML that points the client at that same
-origin. The deployment SHALL treat a missing or incorrect injected origin as a
-deployment defect, because the web client's built-in fallback targets the public
-Happy service.
+The relay SHALL serve the Happy web client from its own origin and SHALL inject a runtime configuration into the served HTML that points the client at that same origin.
+The deployment SHALL treat a missing or incorrect injected origin as a deployment defect, because the web client's built-in fallback targets the public Happy service.
 
 #### Scenario: Web client targets the relay
 
@@ -80,10 +68,8 @@ Happy service.
 
 ### Requirement: Persistence is external and survives pod replacement
 
-The relay SHALL persist relational state in a cluster-managed PostgreSQL
-database rather than an embedded store, and SHALL persist uploaded assets on a
-durable volume. Schema migrations SHALL be applied as a step that completes
-before a new relay version begins serving.
+The relay SHALL persist relational state in a cluster-managed PostgreSQL database rather than an embedded store, and SHALL persist uploaded assets on a durable volume.
+Schema migrations SHALL be applied as a step that completes before a new relay version begins serving.
 
 #### Scenario: State survives a rollout
 
@@ -107,9 +93,8 @@ before a new relay version begins serving.
 
 ### Requirement: The relay is reachable by non-browser clients
 
-The relay SHALL be exposed over TLS at a stable public hostname. The exposure
-SHALL NOT interpose a browser-redirect-based authentication proxy, because the
-CLI daemon, mobile, and desktop clients cannot complete such a flow.
+The relay SHALL be exposed over TLS at a stable public hostname.
+The exposure SHALL NOT interpose a browser-redirect-based authentication proxy, because the CLI daemon, mobile, and desktop clients cannot complete such a flow.
 Authentication SHALL remain the relay's own public-key challenge scheme.
 
 #### Scenario: CLI daemon authenticates directly
@@ -129,10 +114,8 @@ Authentication SHALL remain the relay's own public-key challenge scheme.
 
 ### Requirement: Open registration is a recorded exposure
 
-The relay SHALL be understood as multi-tenant with no first-client lockout: any
-party reaching its authentication endpoint can create an account. The deployment
-SHALL record this as an accepted consequence of public exposure rather than
-implying a restriction it does not enforce.
+The relay SHALL be understood as multi-tenant with no first-client lockout: any party reaching its authentication endpoint can create an account.
+The deployment SHALL record this as an accepted consequence of public exposure rather than implying a restriction it does not enforce.
 
 #### Scenario: An unknown party can create an account
 

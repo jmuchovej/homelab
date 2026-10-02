@@ -6,7 +6,9 @@ Defines the contract for Hubitat Groovy code carried in this repository: where s
 
 ### Requirement: Hubitat code lives under `hubitat/` with lowercase names
 
-The repository SHALL keep shared Hubitat libraries at `hubitat/libraries/<name>.groovy` and each device driver in its own directory at `hubitat/drivers/<driver>/`, whose authored source is `hubitat/drivers/<driver>/<driver>.groovy`. `<name>` SHALL be a lowercase word naming what the library covers (kebab-case only when one word will not do) and SHALL NOT carry a `lib` suffix; `<driver>` SHALL be kebab-case. The tree SHALL NOT contain a `vendor/` directory or any other copy of upstream code kept for reference.
+The repository SHALL keep shared Hubitat libraries at `hubitat/libraries/<name>.groovy` and each device driver in its own directory at `hubitat/drivers/<driver>/`, whose authored source is `hubitat/drivers/<driver>/<driver>.groovy`.
+`<name>` SHALL be a lowercase word naming what the library covers (kebab-case only when one word will not do) and SHALL NOT carry a `lib` suffix; `<driver>` SHALL be kebab-case.
+The tree SHALL NOT contain a `vendor/` directory or any other copy of upstream code kept for reference.
 
 #### Scenario: Library is found by its name
 
@@ -30,7 +32,8 @@ The repository SHALL keep shared Hubitat libraries at `hubitat/libraries/<name>.
 
 ### Requirement: Every library and driver is in namespace `rbn`
 
-Every library under `hubitat/libraries/` SHALL declare `namespace: 'rbn'` and a `name:` equal to its filename without the `.groovy` extension. Every driver source under `hubitat/drivers/` SHALL declare `namespace: 'rbn'` and SHALL reference libraries only as `#include rbn.<name>`.
+Every library under `hubitat/libraries/` SHALL declare `namespace: 'rbn'` and a `name:` equal to its filename without the `.groovy` extension.
+Every driver source under `hubitat/drivers/` SHALL declare `namespace: 'rbn'` and SHALL reference libraries only as `#include rbn.<name>`.
 
 #### Scenario: Library identity matches its file
 
@@ -49,7 +52,10 @@ Every library under `hubitat/libraries/` SHALL declare `namespace: 'rbn'` and a 
 
 ### Requirement: A driver's importable artifact is a generated bundle
 
-For every driver source `hubitat/drivers/<driver>/<driver>.groovy` the repository SHALL contain `hubitat/drivers/<driver>/<driver>.bundled.groovy`, generated from the source and its included libraries and committed. The bundle SHALL consist of the source with each `#include` line replaced by an empty line, so that every source line keeps its line number, followed by a `Libraries` banner comment and then each included library in include order. Each library SHALL be delimited by `// ~~~~~ start include rbn.<name> ~~~~~` and `// ~~~~~ end include rbn.<name> ~~~~~` lines, and every line of the library body SHALL carry the suffix `// library marker rbn.<name>, line <n>` where `<n>` is that line's 1-based number in the library file. The driver's `importUrl` SHALL point at the bundle's raw URL on this repository's default branch.
+For every driver source `hubitat/drivers/<driver>/<driver>.groovy` the repository SHALL contain `hubitat/drivers/<driver>/<driver>.bundled.groovy`, generated from the source and its included libraries and committed.
+The bundle SHALL consist of the source with each `#include` line replaced by an empty line, so that every source line keeps its line number, followed by a `Libraries` banner comment and then each included library in include order.
+Each library SHALL be delimited by `// ~~~~~ start include rbn.<name> ~~~~~` and `// ~~~~~ end include rbn.<name> ~~~~~` lines, and every line of the library body SHALL carry the suffix `// library marker rbn.<name>, line <n>` where `<n>` is that line's 1-based number in the library file.
+The driver's `importUrl` SHALL point at the bundle's raw URL on this repository's default branch.
 
 #### Scenario: Source line numbers survive bundling
 
@@ -97,7 +103,8 @@ Bundling SHALL fail with a message naming the offending file when a driver inclu
 
 ### Requirement: Forked files retain upstream attribution
 
-Every file under `hubitat/libraries/` or `hubitat/drivers/` derived from another repository SHALL keep that file's original copyright and license header unmodified and SHALL carry, immediately after it, a notice naming the source repository, the source path, the commit it was taken from, and that the file has been modified. `hubitat/README.md` SHALL list every such file with the same provenance.
+Every file under `hubitat/libraries/` or `hubitat/drivers/` derived from another repository SHALL keep that file's original copyright and license header unmodified and SHALL carry, immediately after it, a notice naming the source repository, the source path, the commit it was taken from, and that the file has been modified.
+`hubitat/README.md` SHALL list every such file with the same provenance.
 
 #### Scenario: Forked library carries provenance
 
@@ -111,7 +118,8 @@ Every file under `hubitat/libraries/` or `hubitat/drivers/` derived from another
 
 ### Requirement: The shared parse path performs no Tuya pre-processing
 
-The shared library's message handler SHALL dispatch an incoming Zigbee message by cluster without first attempting Tuya-specific parsing, SHALL treat cluster `0xEF00` as an unknown cluster, and SHALL expose no Tuya command, datapoint, or time-synchronisation surface. Aqara/Xiaomi handling SHALL be unaffected.
+The shared library's message handler SHALL dispatch an incoming Zigbee message by cluster without first attempting Tuya-specific parsing, SHALL treat cluster `0xEF00` as an unknown cluster, and SHALL expose no Tuya command, datapoint, or time-synchronisation surface.
+Aqara/Xiaomi handling SHALL be unaffected.
 
 #### Scenario: Ordinary cluster report is dispatched directly
 

@@ -5,8 +5,7 @@ description: Git version control workflows, branching strategies, and conflict r
 
 # Git Workflows Guide
 
-Expert guidance for Git version control workflows, branching strategies, and
-conflict resolution.
+Expert guidance for Git version control workflows, branching strategies, and conflict resolution.
 
 ## Core Principles
 
@@ -18,17 +17,14 @@ conflict resolution.
 
 ## Detailed Reference Material
 
-- [examples.md](./examples.md) - Common workflows, including Feature Branch,
-  Trunk-Based, Conflict Resolution, and fixup/autosquash examples.
-- [reference.md](./reference.md) - Branch naming conventions, conflict strategies,
-  command reference tables, and fixup/autosquash strategy.
+- [examples.md](./examples.md) - Common workflows, including Feature Branch, Trunk-Based, Conflict Resolution, and fixup/autosquash examples.
+- [reference.md](./reference.md) - Branch naming conventions, conflict strategies, command reference tables, and fixup/autosquash strategy.
 
 ## Quick Summary
 
 ### Branch Naming
 
-Use prefixes like `feat/`, `fix/`, `docs/`, `refactor/` to categorize your
-branches.
+Use prefixes like `feat/`, `fix/`, `docs/`, `refactor/` to categorize your branches.
 
 ### Workflow Checklist
 
@@ -53,8 +49,7 @@ branches.
 
 ### Fixup + Autosquash
 
-Use this when follow-up fixes belong to earlier commits and you want clean,
-atomic history:
+Use this when follow-up fixes belong to earlier commits and you want clean, atomic history:
 
 ```bash
 git commit --fixup=<target-commit-hash>
@@ -96,6 +91,5 @@ git log -p -- <file>         # History of a file
 
 ## See Also
 
-- **Commit messages**: See [commit-messages](../commit-messages/) for
-  conventional commit format
+- **Commit messages**: See [commit-messages](../commit-messages/) for conventional commit format
 - **Code review**: See [code-review](../code-review/) for PR review guidelines
