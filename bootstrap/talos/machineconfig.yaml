@@ -1,0 +1,51 @@
+# $schema: ../../../vendor/schemas/talos-config.json
+---
+# Non-secret half of a Talos control-plane config. The PKI half comes from sops
+# and is merged in at activation with `talosctl machineconfig patch` — the
+# rendered result carries private keys and so can never live in /nix/store.
+#
+# `@marker@` substitution via lib.rbn.render-yaml, same as the k3s bootstrap
+# manifests next door. Markers are quoted because `@` is a reserved YAML
+# indicator and will not parse as a bare scalar.
+#
+# `cluster.inlineManifests` is deliberately absent: it is supplied as a second
+# `talosctl machineconfig patch -p` at activation, alongside the PKI patch
+# (`--patch` is a repeatable stringArray). That keeps this file both parseable
+# and schema-valid on its own, which a marker in list position would not be.
+version: v1alpha1
+
+machine:
+  type: controlplane
+  install:
+    # virtio disk — the qcow2 the aspect creates, not a passthrough device.
+    disk: /dev/vda
+    # Pinned Talos version. `just k8s update-schemas` reads this tag to decide
+    # which docs branch to vendor the schema from; the build check fails if the
+    # vendored schema lags this pin.
+    image: ghcr.io/siderolabs/installer:v1.13.7
+    wipe: false
+  network:
+    hostname: "@hostname@"
+  features:
+    # NOTE: `rbac` lived here in older Talos and is gone in v1.13's schema —
+    # the vendored schema is the source of truth, so don't reintroduce it.
+    hostDNS:
+      enabled: true
+      # Cilium's socketLB handles the forward — matches the kube-proxy-less
+      # shape the homelab k3s cluster already runs.
+      forwardKubeDNSToHost: true
+
+cluster:
+  clusterName: "@cluster@"
+  controlPlane:
+    endpoint: "@endpoint@"
+  # Single-node cluster: the control plane has to take workloads.
+  allowSchedulingOnControlPlanes: true
+  network:
+    # Cilium arrives via inlineManifests below, so Talos must not lay down
+    # flannel — the analogue of k3s's --flannel-backend=none.
+    cni:
+      name: none
+  proxy:
+    # Cilium replaces kube-proxy, as on the homelab cluster.
+    disabled: true

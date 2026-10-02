@@ -67,8 +67,9 @@ Rejected: the repo already uses `inputs.self` for every cross-tree reference fro
 `just bootstrap nix install host addr key=<default> *flags` reproduces `_bootstrap.py`:
 
 - Preconditions: `modules/hosts/<host>/<host>.nix` exists (no `mkdir`; a host that is not in the flake cannot be installed); confirmation via `gum confirm` unless `--yes`; the iso-key private path exists (parameter, default `secrets/keys/iso-key`, which is where the operator keeps it today; the Python read `$RBN_ISO_KEY` only).
-- Staging: `mktemp -d`; copy `modules/hosts/<host>/root/` into it if present; `sops -d --extract '["host-key"]' secrets/hosts/<host>.sops.yaml` → `etc/ssh/ssh_host_ed25519_key` (0600); `ssh-keygen -p -N '' -f <that file>` rewrites PKCS#8 PEM in place as OpenSSH format (OpenSSH ≥ 7.8 default); `ssh-keygen -y -f` writes the `.pub`.
+- Staging: `mktemp -d`; copy `modules/hosts/<host>/root/` into it if present; `sops -d --extract '["host-key"]' secrets/hosts/<host>.sops.yaml` → `etc/ssh/ssh_host_ed25519_key` (0600); if the first line is a PKCS#8 header (`-----BEGIN PRIVATE KEY-----`), `ssh-keygen -p -N '' -f <that file>` rewrites it in place as OpenSSH format; `ssh-keygen -y -f` writes the `.pub` and doubles as the format check.
   This removes both `sopsy` and the `cryptography` use.
+  Two facts found during apply: the Python called `load_ssh_private_key`, which accepts only OpenSSH-format keys, so the NixOS host keys in sops are already OpenSSH format and the PKCS#8 branch is a safety net (the RouterOS relay keys are the PKCS#8 ones); and Apple's `ssh-keygen` rejects PKCS#8 with "invalid format" while nixpkgs' OpenSSH 10.5 (OpenSSL-linked) converts it, so `openssh` joins `nixos-anywhere` in the devshell and the recipe relies on the devshell `PATH`.
 - Run: `nixos-anywhere --flake .#<host> --generate-hardware-config nixos-facter modules/hosts/<host>/facter.json --target-host root@<addr> --extra-files <stage> -i <key> --ssh-option IdentitiesOnly=yes`, cwd = repo root, with `nixos-anywhere` from the devshell (pinned by nixpkgs) rather than `nix run github:…` (unpinned, network at run time).
 - Wait: poll `nc -z <addr> 22` with a timeout, not `ping` (`ping -W` differs between macOS and Linux, and SSH answering is what the operator needs next).
 
@@ -111,9 +112,10 @@ Alternative: split now.
 Rejected: speculative structure with no consumer; two file moves later are cheap.
 
 **D9. Tracking the iso-key public key, fencing the private one.**
-`jj file track secrets/keys/iso-key.pub` only.
-`.gitignore` gains `secrets/keys/iso-key` as an explicit line (the existing `*.key`/`*.prv` patterns do not match an extensionless file; today only jj's auto-track being off protects it).
-`iso-key.age.pub` and `1p-homelab.pub` stay untracked: nothing reads them.
+`.gitignore` gains `secrets/keys/iso-key` as an explicit line; the existing `*.key`/`*.prv` patterns do not match an extensionless file, and git reports it as untracked-not-ignored today.
+Observed during apply: this repo sets `snapshot.auto-track = all()` (the global `none()` is overridden), and the four files in `secrets/keys/` were invisible to jj only because of a stale file-state cache, cleared by `touch` or by editing `.gitignore`.
+So "track one public key, leave the others untracked" is not a reachable state here: every non-ignored file under `secrets/keys/` is tracked once the cache refreshes.
+`iso-key.pub`, `iso-key.age.pub`, and `1p-homelab.pub` are therefore all tracked, which matches the `.gitignore` policy that public material under `secrets/` is tracked; the private `iso-key` is the only file the new ignore line must cover, and it is verified ignored before anything is committed.
 
 **D10. Rules and comments follow the files.**
 New `bootstrap/AGENTS.md` (`paths: ["bootstrap/**"]`) holds: the per-target layout, the just entry points, D1's "only `bootstrap/nix/` is auto-discovered" constraint, D5's root-derivation rule, D6's single-secret-source rule, D8's seam.
