@@ -52,6 +52,16 @@ spec:
   hostnames:
     - hubitat.${DC_DOMAIN}
   rules:
-    - backendRefs:
+    # The hub answers device-page commands (POST /device/runmethod) with a 302
+    # to http://<host>/… and ignores X-Forwarded-Proto, which the browser blocks
+    # as mixed content and reports as "Command execution failed". HSTS makes it
+    # upgrade that hop itself; remove this and every command shows the toast.
+    - filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: max-age=31536000
+      backendRefs:
         - name: hubitat
           port: 80
