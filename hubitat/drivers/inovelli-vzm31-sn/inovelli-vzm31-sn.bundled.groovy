@@ -24,10 +24,11 @@
  *  https://github.com/InovelliUSA/Hubitat (Drivers/inovelli-dimmer-blue-series-vzm31-sn.src).
  *
  * ver. 0.1.0  2026-10-02 rbn  - standard clusters only
+ * ver. 0.1.1  2026-10-02 rbn  - runtime validated on a VZM31-SN (refresh, on/off, physical switch and dim, power ÷10, energy ÷100, 0xFC31 ignored)
  */
 
-static String version() { '0.1.0' }
-static String timeStamp() { '2026/10/02 02:30 PM' }
+static String version() { '0.1.1' }
+static String timeStamp() { '2026/10/02 04:36 PM' }
 
 @Field static final Boolean _DEBUG = false
 
@@ -42,11 +43,11 @@ import groovy.json.JsonOutput
 deviceType = 'Dimmer'
 @Field static final String DEVICE_TYPE = 'Dimmer'
 
-// #include rbn.common  -- included at line 99
-// #include rbn.switch  -- included at line 1340
-// #include rbn.level  -- included at line 1583
-// #include rbn.meter  -- included at line 1811
-// #include rbn.reporting  -- included at line 2049
+// #include rbn.common  -- included at line 100
+// #include rbn.switch  -- included at line 1341
+// #include rbn.level  -- included at line 1584
+// #include rbn.meter  -- included at line 1812
+// #include rbn.reporting  -- included at line 2050
 
 metadata {
     definition(

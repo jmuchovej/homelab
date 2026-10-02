@@ -64,17 +64,19 @@ Per library, what has actually been observed.
 `compile-verified` means the hub compiled it (`just hubitat probe` and a driver save); `runtime-verified` means a paired device ran it and the named behaviour was seen in the log.
 Do not read "compiles" as "works".
 
-| Library     | Status           | Device | Date       |
-| ----------- | ---------------- | ------ | ---------- |
-| `common`    | compile-verified | —      | 2026-10-02 |
-| `switch`    | compile-verified | —      | 2026-10-02 |
-| `level`     | compile-verified | —      | 2026-10-02 |
-| `meter`     | compile-verified | —      | 2026-10-02 |
-| `reporting` | compile-verified | —      | 2026-10-02 |
-| `xiaomi`    | compile-verified | —      | 2026-10-02 |
-| `button`    | compile-verified | —      | 2026-10-02 |
-| `battery`   | compile-verified | —      | 2026-10-02 |
+| Library     | Status           | Device   | Date       |
+| ----------- | ---------------- | -------- | ---------- |
+| `common`    | runtime-verified | VZM31-SN | 2026-10-02 |
+| `switch`    | runtime-verified | VZM31-SN | 2026-10-02 |
+| `level`     | runtime-verified | VZM31-SN | 2026-10-02 |
+| `meter`     | runtime-verified | VZM31-SN | 2026-10-02 |
+| `reporting` | runtime-verified | VZM31-SN | 2026-10-02 |
+| `xiaomi`    | compile-verified | —        | 2026-10-02 |
+| `button`    | compile-verified | —        | 2026-10-02 |
+| `battery`   | compile-verified | —        | 2026-10-02 |
 
+What the VZM31-SN run exercised: driver swap, `refresh` as a single dispatch of four reads, `on`/`off` from the hub, paddle on/off and hold-to-dim as physical events, power (÷10) and energy (÷100) against the raw hex, and Inovelli's private cluster logged as unknown with no error.
+Not exercised: `setLevel` from the hub, because the test switch drives a non-dimmable load; physical level events were seen.
 A driver is validated only for the behaviour its row's libraries were exercised on; the Inovelli dimmer driver covers `common`, `switch`, `level`, `meter`, `reporting`, and the Aqara Cube driver covers `common`, `switch`, `xiaomi`, `button`, `battery`.
 
 ## Attribution

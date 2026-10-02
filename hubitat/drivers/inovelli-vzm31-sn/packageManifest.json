@@ -1,10 +1,10 @@
 {
   "packageName": "Inovelli Dimmer (Blue, VZM31-SN)",
   "author": "John Muchovej",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minimumHEVersion": "2.3.6.0",
   "dateReleased": "2026-10-02",
-  "releaseNotes": "Standard clusters only: on/off, level, energy, and power through the rbn libraries. Inovelli's private-cluster (0xFC31) features — parameters, LED notifications, scene buttons — are not yet implemented.",
+  "releaseNotes": "Runtime validated on hardware (VZM31-SN, 2026-10-02): refresh, on/off, physical switch and dim, power and energy scale. Standard clusters only; Inovelli's private-cluster (0xFC31) features - parameters, LED notifications, scene buttons - are not yet implemented.",
   "documentationLink": "https://github.com/jmuchovej/homelab/blob/main/hubitat/README.md",
   "drivers": [
     {

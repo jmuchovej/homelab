@@ -24,10 +24,11 @@
  *  https://github.com/InovelliUSA/Hubitat (Drivers/inovelli-dimmer-blue-series-vzm31-sn.src).
  *
  * ver. 0.1.0  2026-10-02 rbn  - standard clusters only
+ * ver. 0.1.1  2026-10-02 rbn  - runtime validated on a VZM31-SN (refresh, on/off, physical switch and dim, power ÷10, energy ÷100, 0xFC31 ignored)
  */
 
-static String version() { '0.1.0' }
-static String timeStamp() { '2026/10/02 02:30 PM' }
+static String version() { '0.1.1' }
+static String timeStamp() { '2026/10/02 04:36 PM' }
 
 @Field static final Boolean _DEBUG = false
 
