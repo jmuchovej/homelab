@@ -71,12 +71,13 @@ Do not read "compiles" as "works".
 | `level`     | runtime-verified | VZM31-SN | 2026-10-02 |
 | `meter`     | runtime-verified | VZM31-SN | 2026-10-02 |
 | `reporting` | runtime-verified | VZM31-SN | 2026-10-02 |
-| `xiaomi`    | compile-verified | —        | 2026-10-02 |
-| `button`    | compile-verified | —        | 2026-10-02 |
-| `battery`   | compile-verified | —        | 2026-10-02 |
+| `xiaomi`    | runtime-verified | Cube     | 2026-10-02 |
+| `button`    | runtime-verified | Cube     | 2026-10-02 |
+| `battery`   | runtime-verified | Cube     | 2026-10-02 |
 
 What the VZM31-SN run exercised: driver swap, `refresh` as a single dispatch of four reads, `on`/`off` from the hub, paddle on/off and hold-to-dim as physical events, power (÷10) and energy (÷100) against the raw hex, and Inovelli's private cluster logged as unknown with no error.
 Not exercised: `setLevel` from the hub, because the test switch drives a non-dimmable load; physical level events were seen.
+What the Cube run exercised, on two paired T1 Pros: pairing onto the driver by fingerprint, Configure as a single dispatch, flip → `pushed`, shake → `doubleTapped`, rotate left → `held`, rotate right → `released`, throw and pick-up as `action` values, `sideUp` tracking, and `battery`/`batteryVoltage` reports parsed from the Xiaomi `0xFCC0` cluster.
 A driver is validated only for the behaviour its row's libraries were exercised on; the Inovelli dimmer driver covers `common`, `switch`, `level`, `meter`, `reporting`, and the Aqara Cube driver covers `common`, `switch`, `xiaomi`, `button`, `battery`.
 
 ## Attribution
