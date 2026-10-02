@@ -1,0 +1,1 @@
+../../.agents/rules/nix-overlays-packages.md

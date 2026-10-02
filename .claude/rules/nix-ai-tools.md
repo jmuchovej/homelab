@@ -1,0 +1,1 @@
+../../.agents/rules/nix-ai-tools.md

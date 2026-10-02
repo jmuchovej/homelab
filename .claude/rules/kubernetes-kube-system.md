@@ -1,0 +1,1 @@
+../../.agents/rules/kubernetes-kube-system.md

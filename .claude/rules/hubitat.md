@@ -1,0 +1,1 @@
+../../.agents/rules/hubitat.md
