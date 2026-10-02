@@ -1,0 +1,198 @@
+set script-interpreter := ["bash", "-euo", "pipefail"]
+
+# Repo root, derived from this file so the recipes work both through the root
+# justfile and standalone (`just -f bootstrap/nix/justfile …`).
+root := parent_directory(parent_directory(source_directory()))
+
+# Private half of the key the installer ISO trusts; `install` authenticates
+# with it. Override with RBN_ISO_KEY when it lives elsewhere.
+iso-key := env("RBN_ISO_KEY", root / "secrets" / "keys" / "iso-key")
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+[doc('Evaluate the installer ISO derivation without building it')]
+[no-cd]
+test:
+    nix eval .#nixosConfigurations.bootstrap.config.system.build.isoImage.drvPath
+
+[doc('Build the installer ISO locally, or on <remote> and copy it back')]
+[no-cd]
+[script]
+make remote="none":
+    iso_image=".#nixosConfigurations.bootstrap.config.system.build.isoImage"
+    if [ "{{ remote }}" = "none" ]; then
+      nix build --eval-store auto "${iso_image}"
+    else
+      remote="ssh-ng://lab@{{ remote }}"
+      nix build --store "${remote}" --eval-store auto "${iso_image}"
+      out=$(nix path-info --store "${remote}" "${iso_image}")
+      nix copy --no-check-sigs --from "${remote}" "${out}"
+    fi
+
+# Build the ISO and copy it onto a Ventoy USB's data partition under /ISOs.
+# Non-destructive: the stick stays a normal exFAT drive, just gains/updates a
+# file. One-time Ventoy install (which creates the exFAT partition) is separate.
+[doc('Build the ISO and copy it onto the mounted Ventoy USB (default volume: rbn)')]
+[macos]
+[no-cd]
+[script]
+sync volume="rbn": make
+    mnt="/Volumes/{{ volume }}"
+    if [ ! -d "$mnt" ]; then
+      echo "No volume mounted at $mnt." >&2
+      echo "Plug in the Ventoy USB, or pass its name: just bootstrap nix sync <volume-name>" >&2
+      exit 1
+    fi
+    iso=$(ls result/iso/*.iso | head -n1)
+    dest="$mnt/ISOs"
+    mkdir -p "$dest"
+    # Stable filename so re-syncing overwrites instead of piling up versions.
+    echo "Copying $(basename "$iso") → $dest/rbn-bootstrap.iso"
+    cp "$iso" "$dest/rbn-bootstrap.iso"
+    sync
+    echo "Done. Eject with: diskutil eject $mnt"
+
+# One-time: install Ventoy's bootloader + exFAT data partition onto a USB.
+# Ventoy has no macOS build and is unfree (bundled blobs), so this runs on a
+# NixOS host with the stick plugged into THAT host. DESTRUCTIVE — wipes <disk>.
+# Find the whole-disk device (not a partition) with `lsblk`, e.g. /dev/sdb.
+# After this, day-to-day updates are Mac-native via `just bootstrap nix sync`.
+[doc('One-time Ventoy install onto a USB stick (Linux only; WIPES <disk>)')]
+[linux]
+[no-cd]
+[script]
+install-ventoy disk:
+    lsblk -o NAME,SIZE,MODEL,TRAN "{{ disk }}"
+    echo
+    read -p "About to WIPE {{ disk }} and install Ventoy. Type 'yes' to proceed: " ans
+    [ "$ans" = "yes" ] || { echo "Aborted."; exit 1; }
+    # Ventoy is both unfree (bundled blobs) and insecure (knownVulnerabilities),
+    # so allow both at eval time (as the user); run the resolved binary under
+    # sudo so root never needs the env vars and PATH resets don't matter.
+    ventoy=$(NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_INSECURE=1 \
+      nix build --impure --no-link --print-out-paths nixpkgs#ventoy)
+    # -g: GPT partition style.  -L rbn: label the exFAT data partition 'rbn'
+    # (so it mounts at /Volumes/rbn, which `just bootstrap nix sync` defaults to).
+    sudo "$ventoy/bin/ventoy" -i -g -L rbn "{{ disk }}"
+    echo "Done. Re-plug the stick; it mounts as 'rbn' (exFAT)."
+
+# `nix run` fetches facter on the fly (it isn't installed until a host already
+# has a report), and `doas` is the servers' passwordless privilege tool.
+[doc("Capture a host's nixos-facter report into modules/hosts/<host>/facter.json (ssh-target defaults to the host name)")]
+[script("nu")]
+facter host target=host:
+    let dir = ("{{ root }}" | path join "modules" "hosts" "{{ host }}")
+    if not ($dir | path exists) {
+      print -e $"no such host dir: ($dir)"
+      exit 1
+    }
+    print -e ">> scanning {{ target }} with nixos-facter (via doas)…"
+    let res = (^ssh "lab@{{ target }}" "doas nix run nixpkgs#nixos-facter" | complete)
+    if $res.exit_code != 0 {
+      print -e ($res.stderr | str trim)
+      exit 1
+    }
+    let valid = (try { $res.stdout | from json | is-not-empty } catch { false })
+    if not $valid {
+      print -e "!! invalid/empty report; not written"
+      exit 1
+    }
+    let out = ($dir | path join "facter.json")
+    $res.stdout | save -f $out
+    print -e $">> wrote ($out) \(($res.stdout | str length) bytes\)"
+
+# The target is reached as root@<addr>: either booted from the installer ISO
+# or any Linux nixos-anywhere can kexec. The host's ed25519 SSH host key is
+# decrypted from secrets/hosts/<host>.sops.yaml and staged at
+# /etc/ssh/ssh_host_ed25519_key so sops-nix can derive the host's age identity
+# on first boot. nixos-anywhere, sops, and an OpenSSL-linked ssh-keygen come
+# from the devshell (Apple's ssh-keygen cannot read a PKCS#8 key).
+[doc('WIPE root@<addr> and install NixOS host <host> via nixos-anywhere; --yes skips the prompt')]
+[script("nu")]
+install host addr *flags:
+    let root = "{{ root }}"
+    let host_dir = ($root | path join "modules" "hosts" "{{ host }}")
+    let host_nix = ($host_dir | path join "{{ host }}.nix")
+    let sops_file = ($root | path join "secrets" "hosts" "{{ host }}.sops.yaml")
+    let facter = ($host_dir | path join "facter.json")
+    let key = ("{{ iso-key }}" | path expand)
+    let flags = ("{{ flags }}" | split row " " | where $it != "")
+
+    if not ($host_nix | path exists) {
+      print -e $"error: unknown host {{ host }}: ($host_nix) does not exist"
+      exit 1
+    }
+    if not ($sops_file | path exists) {
+      print -e $"error: ($sops_file) does not exist"
+      exit 1
+    }
+    if not ($key | path exists) {
+      print -e $"error: iso-key private key not found at ($key) \(set RBN_ISO_KEY\)"
+      exit 1
+    }
+    for tool in [nixos-anywhere sops ssh-keygen gum nc] {
+      if (which $tool | is-empty) {
+        print -e $"error: ($tool) not on PATH — run from the devshell"
+        exit 1
+      }
+    }
+    let unknown = ($flags | where $it not-in ["-y" "--yes"])
+    if ($unknown | is-not-empty) {
+      print -e $"error: unknown flags: ($unknown | str join ' ')"
+      exit 1
+    }
+
+    print $"(ansi green_bold)✨ Joining the Rebellion ✨(ansi reset)"
+    print $"  Host:    {{ host }}"
+    print $"  Target:  root@{{ addr }}"
+    print $"  Facter:  ($facter | path relative-to $root)"
+    print $"(ansi yellow)This will WIPE the target.(ansi reset)"
+    if ($flags | is-empty) {
+      try { ^gum confirm "Proceed?" } catch {
+        print "Aborted."
+        exit 1
+      }
+    }
+
+    let stage = (^mktemp -d | str trim)
+    let outcome = (try {
+      let root_tree = ($host_dir | path join "root")
+      if ($root_tree | path exists) {
+        ^cp -R $"($root_tree)/." $stage
+      }
+
+      let ssh_dir = ($stage | path join "etc" "ssh")
+      mkdir $ssh_dir
+      let key_file = ($ssh_dir | path join "ssh_host_ed25519_key")
+      let pem = (^sops -d --extract '["host-key"]' $sops_file | str trim)
+      $"($pem)\n" | save -f $key_file
+      chmod 600 $key_file
+      # The stored keys are OpenSSH format; a PKCS#8 one is converted in place.
+      if ($pem | lines | first) == "-----BEGIN PRIVATE KEY-----" {
+        ^ssh-keygen -p -N "" -f $key_file | ignore
+      }
+      ^ssh-keygen -y -f $key_file | save -f $"($key_file).pub"
+
+      print $"\n(ansi green_bold)Running nixos-anywhere...(ansi reset)"
+      ^nixos-anywhere --flake $"($root)#{{ host }}" --generate-hardware-config nixos-facter $facter --target-host "root@{{ addr }}" --extra-files $stage -i $key --ssh-option IdentitiesOnly=yes
+
+      print $"Waiting for {{ addr }} to answer on port 22..."
+      let deadline = ((date now) + 300sec)
+      mut up = false
+      while (not $up) and ((date now) < $deadline) {
+        $up = ((do { ^nc -z -w 2 "{{ addr }}" 22 } | complete).exit_code == 0)
+        if not $up { sleep 2sec }
+      }
+      if not $up {
+        error make { msg: "{{ addr }} did not answer on port 22 within 300s" }
+      }
+      "ok"
+    } catch {|e|
+      print -e $"(ansi red)error:(ansi reset) ($e.msg)"
+      "failed"
+    })
+    rm -rf $stage
+    if $outcome != "ok" { exit 1 }
+    print $"\n(ansi green_bold)🚀 Done.(ansi reset)"

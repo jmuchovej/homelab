@@ -1,0 +1,5 @@
+mod nix "nix/justfile"
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list

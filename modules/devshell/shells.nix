@@ -74,6 +74,10 @@
           # IaC / deploy
           opentofu
           deploy-rs
+          # `just bootstrap nix install`: nixos-anywhere itself, and an
+          # OpenSSL-linked ssh-keygen (Apple's cannot read PKCS#8 host keys)
+          nixos-anywhere
+          openssh
 
           # Networking / WireGuard (wg-holonet key gen + diagnostics)
           wireguard-tools
