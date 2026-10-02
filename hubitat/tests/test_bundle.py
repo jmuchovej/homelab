@@ -166,7 +166,18 @@ def test_source_without_includes_is_refused(tree: Path) -> None:
         bundling.bundle(path)
 
 
+def test_check_requires_a_manifest(tree: Path) -> None:
+    bundling.write(probe(tree))
+    result = runner.invoke(app, ["check"])
+    assert result.exit_code == 1
+    assert "packageManifest.json: missing" in result.output
+
+
 def test_check_reports_stale_then_fresh(tree: Path) -> None:
+    from test_manifest import manifest_dict, write_manifest, write_repository
+
+    write_manifest(tree, manifest_dict())
+    write_repository(tree)
     target = bundling.bundle_path(probe(tree))
 
     result = runner.invoke(app, ["check"])

@@ -1,0 +1,18 @@
+{
+  "packageName": "Aqara Cube T1 Pro",
+  "author": "John Muchovej",
+  "version": "3.3.0",
+  "minimumHEVersion": "2.3.6.0",
+  "dateReleased": "2026-09-30",
+  "releaseNotes": "Ported to the rbn libraries (rbn.common 4.1.1 with the Tuya path removed); no functional change from kkossev's 3.3.0.",
+  "documentationLink": "https://github.com/jmuchovej/homelab/blob/main/hubitat/README.md",
+  "drivers": [
+    {
+      "id": "5c2409d8-2a66-4fd8-95ab-f21fa9b3ff3a",
+      "name": "Aqara Cube T1 Pro",
+      "namespace": "rbn",
+      "location": "https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy",
+      "required": true
+    }
+  ]
+}

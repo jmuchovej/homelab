@@ -1,0 +1,18 @@
+{
+  "packageName": "Inovelli Dimmer (Blue, VZM31-SN)",
+  "author": "John Muchovej",
+  "version": "0.1.0",
+  "minimumHEVersion": "2.3.6.0",
+  "dateReleased": "2026-10-02",
+  "releaseNotes": "Standard clusters only: on/off, level, energy, and power through the rbn libraries. Inovelli's private-cluster (0xFC31) features — parameters, LED notifications, scene buttons — are not yet implemented.",
+  "documentationLink": "https://github.com/jmuchovej/homelab/blob/main/hubitat/README.md",
+  "drivers": [
+    {
+      "id": "81c221ca-4023-4920-873b-ed59f04d85c3",
+      "name": "Inovelli Dimmer (Blue, VZM31-SN)",
+      "namespace": "rbn",
+      "location": "https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/inovelli-vzm31-sn/inovelli-vzm31-sn.bundled.groovy",
+      "required": true
+    }
+  ]
+}

@@ -232,6 +232,11 @@ def check_repository() -> list[Problem]:
     problems: list[Problem] = []
     indexed: set[Path] = set()
     for package in repository.packages:
+        # HPM validates these against its published lists; an empty one hides the package.
+        if not package.category or not package.tags:
+            problems.append(
+                Problem(path, f"package {package.name!r}: category and tags required")
+            )
         local = local_path(str(package.location))
         if local is None:
             problems.append(

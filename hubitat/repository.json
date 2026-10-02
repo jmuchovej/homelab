@@ -1,0 +1,23 @@
+{
+  "author": "John Muchovej",
+  "gitHubUrl": "https://github.com/jmuchovej/homelab",
+  "payPalUrl": null,
+  "packages": [
+    {
+      "id": "57f99863-2817-4b97-a287-3bd2a15eeaf1",
+      "name": "Aqara Cube T1 Pro",
+      "category": "Control",
+      "location": "https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/packageManifest.json",
+      "description": "Aqara Cube T1 Pro (lumi.remote.cagl02) on the rbn Zigbee libraries: flip, shake, rotate, and side-up as button events, with battery reporting.",
+      "tags": ["Zigbee", "Buttons"]
+    },
+    {
+      "id": "d8e36bac-3b06-4603-8cdb-b664a10675ea",
+      "name": "Inovelli Dimmer (Blue, VZM31-SN)",
+      "category": "Control",
+      "location": "https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/inovelli-vzm31-sn/packageManifest.json",
+      "description": "Inovelli Blue Series 2-in-1 dimmer (VZM31-SN) on the rbn Zigbee libraries: on/off, dimming, energy and power; standard clusters only for now.",
+      "tags": ["Zigbee", "Lights & Switches", "Energy Monitoring"]
+    }
+  ]
+}

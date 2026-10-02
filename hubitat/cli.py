@@ -93,7 +93,7 @@ def check(sources: Sources = None) -> None:
         if stale:
             typer.echo(f"stale: {bundling.bundle_path(source)}", err=True)
             failed = True
-        for problem in manifests.check_manifest(source):
+        for problem in manifests.check_manifest(source, required=True):
             typer.echo(f"error: {problem}", err=True)
             failed = True
     for problem in manifests.check_repository():

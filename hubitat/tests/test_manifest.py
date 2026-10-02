@@ -156,6 +156,17 @@ def test_dangling_index_entry(tree: Path) -> None:
     assert "ghost" in problems[0].reason
 
 
+def test_repository_requires_category_and_tags(tree: Path) -> None:
+    write_manifest(tree, manifest_dict())
+    path = write_repository(tree)
+    data = json.loads(path.read_text())
+    data["packages"][0]["tags"] = []
+    path.write_text(json.dumps(data))
+    problems = manifests.check_repository()
+    assert [p.path for p in problems] == [path]
+    assert "category and tags" in problems[0].reason
+
+
 def test_unindexed_manifest(tree: Path) -> None:
     manifest = write_manifest(tree, manifest_dict())
     write_repository(tree, MANIFEST_URL.replace("probe", "other"))

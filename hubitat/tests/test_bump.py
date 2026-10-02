@@ -86,9 +86,8 @@ def test_bump_cube_copy_keeps_check_green(tree: Path) -> None:
         shutil.copy(library, tree / "libraries" / library.name)
     cube = tree / "drivers" / "aqara-cube-t1-pro"
     cube.mkdir()
-    shutil.copy(
-        REAL_ROOT / "drivers" / "aqara-cube-t1-pro" / "aqara-cube-t1-pro.groovy", cube
-    )
+    for name in ("aqara-cube-t1-pro.groovy", "packageManifest.json"):
+        shutil.copy(REAL_ROOT / "drivers" / "aqara-cube-t1-pro" / name, cube)
 
     result = runner.invoke(app, ["bump", "aqara-cube-t1-pro", "3.3.1"])
     assert result.exit_code == 0, result.output
