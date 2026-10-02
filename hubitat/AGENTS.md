@@ -33,6 +33,10 @@ hubitat/
 - Bundles are committed because a driver's `importUrl` (and its HPM manifest `location`) is the bundle's raw GitHub URL on `main`.
 - Libraries must not `#include` other libraries, and must not contain triple-quoted strings (the per-line marker would corrupt them).
   The bundler refuses both.
+- **Groovy is formatted** by `npm-groovy-lint --format` through `treefmt` (`.config/groovylintrc.yaml` is its rule set), libraries and forked drivers included; only `*.bundled.groovy` is excluded, because it is regenerated from the formatted sources.
+  After a format pass that touches a library or a driver source, run `just hubitat bundle` and commit the bundle with it, or `check` fails.
+  CodeNarc cannot parse `#include` lines, so a driver source always carries one `NglParseError` in lint output; it is noise, and `--failon none` keeps it from failing the formatter.
+  The formatter has one known-bad fixer (`SpaceAroundOperator`, which once rewrote `!=` as `! =`); it is disabled in the rc file — do not re-enable it without re-running `probe`.
 
 ## The Python package
 
@@ -53,7 +57,7 @@ The `just hubitat …` recipes are exactly these commands and carry no logic.
 - `cli.py` stays thin: it parses arguments, calls a module, prints, exits.
   Logic lives in `bundle.py`, `manifest.py`, `hub.py`, `push.py`, `bump.py`, and every piece that does not need a hub has a test.
 - Modules locate data through `hubitat.ROOT` / `LIBRARIES` / `DRIVERS`, read at call time (not imported as names) so the `tree` fixture can point them at a miniature tree.
-- `treefmt` runs `ruff-check`/`ruff-format` on every `.py` here with the repo's defaults; nothing to configure.
+- `treefmt` runs `ruff-check`/`ruff-format` on every `.py` here with the repo's configuration; nothing to configure in this directory.
 
 ## Reaching the hub: `push` and `probe`
 
@@ -120,7 +124,8 @@ Build the list, return or pass it, send once.
 Every forked file keeps its upstream Apache-2.0 header verbatim and carries, directly under it, `Forked from https://github.com/kkossev/Hubitat (<path>) at commit <sha>.` plus a `Modified for the rbn namespace:` line.
 `README.md` lists them all.
 
-To pull an upstream fix: diff `Libraries/<upstreamName>.groovy` in `kkossev/Hubitat` between the sha in the provenance line and upstream HEAD, apply the hunks by hand to `hubitat/libraries/<name>.groovy`, update the sha in the provenance line and the README row, re-bundle, `probe`, and re-verify on a device.
+To pull an upstream fix: diff `Libraries/<upstreamName>.groovy` in `kkossev/Hubitat` between the sha in the provenance line and upstream HEAD — upstream against upstream, so the diff is unaffected by the formatting applied here — apply the hunks by hand to `hubitat/libraries/<name>.groovy`, let `nix fmt` reformat the result, update the sha in the provenance line and the README row, re-bundle, `probe`, and re-verify on a device.
+Never diff the local file against upstream directly; the formatter's changes drown the real ones.
 Mapping: `commonLib→common`, `onOffLib→switch`, `xiaomiLib→xiaomi`, `buttonLib→button`, `batteryLib→battery`, `levelLib→level`, `energyLib→meter`, `reportingLib→reporting`.
 
 Do not create a `vendor/` directory or keep unmodified upstream copies for reference; the provenance sha plus the upstream repo is the reference.

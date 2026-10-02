@@ -72,5 +72,6 @@ Per Apache-2.0 §4 those in-file notices are the authoritative record; this tabl
 | `drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.groovy` | `Drivers/Aqara Cube T1 Pro/Aqara_Cube_T1_Pro.groovy` | `0bf47407` | identity only — includes, namespace, `importUrl`           |
 
 "Identity" means: `namespace` set to `rbn`, `name` set to the file's stem, upstream `importUrl`/`documentationLink` cleared, provenance notice added.
+Every file is additionally reformatted by the repository's Groovy formatter (whitespace, quoting, comment indentation); upstream changes are tracked by diffing upstream against itself between the recorded commit and its HEAD, so that formatting does not obscure them.
 
-The Home Assistant bridge app and driver and the Inovelli Zigbee bindings app under `apps/` and `drivers/` are unrelated third-party code kept verbatim; their authorship is in their own headers.
+The Home Assistant bridge app and driver and the Inovelli Zigbee bindings app under `apps/` and `drivers/` are unrelated third-party code kept as-is apart from that same formatting; their authorship is in their own headers.
