@@ -28,7 +28,7 @@ def test_bump_source_only(tree: Path) -> None:
     assert written == [probe(tree), bundling.bundle_path(probe(tree))]
     text = probe(tree).read_text()
     assert 'static String version() { "2.0.0" }' in text
-    assert 'static String timeStamp() {"2026/10/01 06:05 PM"}' in text
+    assert 'static String timeStamp() { "2026/10/01 06:05 PM" }' in text
     assert manifests.driver_identity(probe(tree)).version == "2.0.0"
     assert not bundling.is_stale(probe(tree))
 

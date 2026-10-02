@@ -23,7 +23,7 @@ def bump(source: Path, version: str, when: datetime | None = None) -> list[Path]
     when = when or datetime.now().astimezone()
     text = source.read_text(encoding="utf-8")
     text, hits = manifests.VERSION.subn(
-        lambda _: f'static String version() {{ "{version}" }}', text
+        lambda m: f"static String version() {{ {m['q']}{version}{m['q']} }}", text
     )
     if hits != 1:
         raise BumpError(
@@ -31,7 +31,7 @@ def bump(source: Path, version: str, when: datetime | None = None) -> list[Path]
         )
     stamp = when.strftime("%Y/%m/%d %I:%M %p")
     text, hits = manifests.TIMESTAMP.subn(
-        lambda _: f'static String timeStamp() {{"{stamp}"}}', text
+        lambda m: f"static String timeStamp() {{ {m['q']}{stamp}{m['q']} }}", text
     )
     if hits != 1:
         raise BumpError(

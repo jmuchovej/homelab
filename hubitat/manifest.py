@@ -24,11 +24,14 @@ MANIFEST_NAME = "packageManifest.json"
 REPOSITORY_NAME = "repository.json"
 URL_MARKER = "/hubitat/"
 
+# Either quote style: the Groovy formatter rewrites "…" without interpolation as '…'.
 VERSION = re.compile(
-    r'^static String version\(\)\s*\{\s*"([^"]*)"\s*\}\s*$', re.MULTILINE
+    r"^static String version\(\)\s*\{\s*(?P<q>['\"])(?P<v>.*?)(?P=q)\s*\}\s*$",
+    re.MULTILINE,
 )
 TIMESTAMP = re.compile(
-    r'^static String timeStamp\(\)\s*\{\s*"([^"]*)"\s*\}\s*$', re.MULTILINE
+    r"^static String timeStamp\(\)\s*\{\s*(?P<q>['\"])(?P<v>.*?)(?P=q)\s*\}\s*$",
+    re.MULTILINE,
 )
 DEFINITION = re.compile(r"^\s*definition\s*\((?P<args>[^{]*)\{", re.MULTILINE)
 LIBRARY = re.compile(r"^\s*library\s*\((?P<args>[^)]*)\)", re.MULTILINE)
@@ -124,8 +127,10 @@ def local_path(url: str) -> Path | None:
     return hubitat.ROOT / url.split(URL_MARKER, 1)[1]
 
 
-def _single(pattern: re.Pattern[str], text: str, what: str, source: Path) -> str:
-    found = pattern.findall(text)
+def _single(
+    pattern: re.Pattern[str], text: str, what: str, source: Path
+) -> re.Match[str]:
+    found = list(pattern.finditer(text))
     if len(found) != 1:
         raise IdentityError(
             f"{source}: expected exactly one {what}, found {len(found)}"
@@ -142,8 +147,8 @@ def _argument(key: str, args: str, source: Path) -> str:
 
 def driver_identity(source: Path) -> DriverIdentity:
     text = source.read_text(encoding="utf-8")
-    version = _single(VERSION, text, "'static String version()' line", source)
-    args = _single(DEFINITION, text, "definition(", source)
+    version = _single(VERSION, text, "'static String version()' line", source)["v"]
+    args = _single(DEFINITION, text, "definition(", source)["args"]
     return DriverIdentity(
         name=_argument("name", args, source),
         namespace=_argument("namespace", args, source),
@@ -154,7 +159,7 @@ def driver_identity(source: Path) -> DriverIdentity:
 def library_identity(source: Path) -> LibraryIdentity:
     """Name, namespace, and version from a library's ``library(...)`` header."""
     text = source.read_text(encoding="utf-8")
-    args = _single(LIBRARY, text, "library(", source)
+    args = _single(LIBRARY, text, "library(", source)["args"]
     return LibraryIdentity(
         name=_argument("name", args, source),
         namespace=_argument("namespace", args, source),
