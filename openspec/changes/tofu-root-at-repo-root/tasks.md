@@ -4,7 +4,7 @@
 - [ ] 1.2 (main checkout, read-only) Capture the state baseline: run `tofu state list` inside `/Users/john/Homelab/tofu` and save it outside the repo (e.g. `/tmp/tofu-state-before.txt`); verify it has 861 lines and contains `zerotier_network.holonet`, `cloudflare_zero_trust_tunnel_cloudflared.id`, and `module.authentik.authentik_flow.invalidation`
 - [ ] 1.3 (worktree) Extract every `import` and `moved` target: collect the `to =` addresses from `tofu/da.mikrotik-imports.tofu`, `tofu/en.mikrotik-imports.tofu`, `tofu/ak.tofu`, `tofu/ak.moved.tofu`, and `tofu/zerotier.tofu`, expanding the `for_each` imports with the ether keys of `local.da-ports.relay01`, `local.da-ports.relay02`, and `local.en-ports.relay01`; save to `/tmp/tofu-oneshot-targets.txt` and verify the count is 111 lines (106 imports plus 5 moved `to` addresses) with no unexpanded `each.key`
 - [ ] 1.4 Check every target against the baseline: every line of `/tmp/tofu-oneshot-targets.txt` matches a line of `/tmp/tofu-state-before.txt` (module addresses as prefixes for the `for_each` expansions); verify the diff is empty.
-  If any address is missing, stop and report it before touching a file
+      If any address is missing, stop and report it before touching a file
 
 ## 2. Root files (worktree)
 
@@ -48,8 +48,8 @@
 - [ ] 7.3 Fold `tofu/da.cloudflare-tunnel.tofu` into `da.tofu` (append its resources and comments; remove the file); verify `rg -c 'cloudflare_zero_trust_tunnel_cloudflared' da.tofu` prints `2` and `rg -n 'onepassword_item' da.tofu` finds `cf-tunnel-idp`
 - [ ] 7.4 Run `tofu init` at the repo root (not `-backend=false`); verify it reports the local backend, installs modules from `./tofu/authentik`, `./tofu/mikrotik`, `./tofu/kubernetes`, and creates `.terraform/` at the root without touching `tofu/terraform.tfstate` (`stat` mtime unchanged)
 - [ ] 7.5 Run `just tofu-plan`; the gate is "No changes. Your infrastructure matches the configuration."
-  Any planned destroy, create, or replace is a stop: do not apply, report the resource addresses.
-  Verify also that `tofu state list | wc -l` still prints 861 and the diff against `/tmp/tofu-state-before.txt` is empty
+      Any planned destroy, create, or replace is a stop: do not apply, report the resource addresses.
+      Verify also that `tofu state list | wc -l` still prints 861 and the diff against `/tmp/tofu-state-before.txt` is empty
 - [ ] 7.6 Delete `tofu/.terraform/` (stale provider cache and old backend hash) and rerun `just tofu-plan`; verify it is still "No changes"
 - [ ] 7.7 Confirm the discovery file behaviour on the live config: with `tofu/authentik.auto.tfvars.json` present the plan is clean; temporarily rename it away, rerun `just tofu-plan`, verify the plan still succeeds (it may show permission-name diffs on `authentik_rbac_role` resources, which is the expected unmapped pass-through, and nothing else), then restore the file and verify the plan is clean again
 - [ ] 7.8 Commit the folded tunnel in the main checkout as `feat(tofu): track the da Cloudflare tunnel` (or fold it into the 6.6 change if the user prefers one commit); verify `jj st` no longer lists `da.cloudflare-tunnel.tofu` and `just tofu-plan` is clean

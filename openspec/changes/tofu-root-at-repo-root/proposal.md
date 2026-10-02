@@ -43,6 +43,7 @@ Making the repository root the OpenTofu root module, with the smallest possible 
 - `repo-layout`: the "OpenTofu lives under `tofu/`" requirement changes from "root module, child modules, state, and symlinks all under `tofu/`" to "root module at the repository root with a bounded set of root files; child modules, justfile modules, symlinks, and state under `tofu/`".
   The "Tool trees live at the repository root" requirement's OpenTofu clause is adjusted to match.
   The "Root justfile modules resolve" scenario is unchanged.
+  The `unify-bootstrap-tree` change modifies the same requirement (its bootstrap and `mikrotik/` clauses, the import-tree roots, and the `bootstrap` just module path); whichever of the two archives second must re-read the main spec and merge the other's wording into its delta.
 
 ## Impact
 

@@ -11,7 +11,7 @@
 - [x] 2.2 In `modules/inputs.nix` change the outputs template to `inputs.import-tree [ ./modules ./bootstrap/nix ]` and rewrite the comment above it to name both roots and the `bootstrap/` tree; run `nix run .#write-flake` and verify `rg -n 'import-tree \[' flake.nix` matches
 - [x] 2.3 Delete `modules/hosts/bootstrap/bootstrap.nix` and the stale `bootstrap/bootstrap.nix`; verify `nix eval --raw .#nixosConfigurations.bootstrap.config.system.build.isoImage.drvPath` succeeds, and the `da-gr75`, `da-vcx-2`, `da-n1x` drvPaths equal the 1.1 baseline.
       Amended during apply: every host closure embeds the repo source (`secrets.nix` reads `${inputs.self}/secrets`), so drvPaths move with any tree change and the raw comparison is meaningless; replaced by `nix-diff` of `da-n1x` between the pre-group-2 working-copy commit and the current tree, whose only leaf difference is the `source` input
-- [ ] 2.4 `jj file track bootstrap/nix/iso.nix`; `nix fmt`; commit as `refactor(bootstrap)!: move the installer image to bootstrap/nix, walked by import-tree`
+- [x] 2.4 `jj file track bootstrap/nix/iso.nix`; `nix fmt`; commit as `refactor(bootstrap)!: move the installer image to bootstrap/nix, walked by import-tree`
 
 ## 3. Just surface
 
@@ -44,11 +44,15 @@
 - [x] 6.1 Write `bootstrap/AGENTS.md` with `paths: ["bootstrap/**"]` covering: per-target layout, `just bootstrap <target>` entry points, "only `bootstrap/nix/` is import-tree-walked; `_`-prefix opts a helper out", root derivation from `source_directory()`, MikroTik single secret source and admin-pubkey env, the k3s/Talos seed seam (which files are k3s `HelmChart` CRs vs distro-neutral); add the relative symlink `.agents/rules/bootstrap.md -> ../../bootstrap/AGENTS.md`; verify `readlink .agents/rules/bootstrap.md` resolves to an existing file and `ls bootstrap/**` matches the glob
 - [x] 6.2 In `modules/services/kubernetes/AGENTS.md` replace the paragraph claiming `bootstrap/` is outside the import-tree walk with one sentence pointing at `bootstrap/AGENTS.md`; in `modules/hosts/AGENTS.md` add the one-sentence exception for the installer image host at `bootstrap/nix/iso.nix`; verify `rg -n "import-tree" modules/services/kubernetes/AGENTS.md` is empty
 - [x] 6.3 Update path comments: `modules/devshell/shells.nix` (`gettext` → `bootstrap/mikrotik`), `tofu/mikrotik/users.tofu` (`bootstrap/mikrotik/justfile`), `modules/inputs.nix` tool-tree list if not already done in 2.2; verify `rg -n "mikrotik/bootstrap|modules/hosts/bootstrap|src/homelab/commands/_bootstrap" --glob '!openspec/**' --glob '!mikrotik/*.md' .` is empty
-- [ ] 6.4 `jj file track bootstrap/AGENTS.md .agents/rules/bootstrap.md`; `nix fmt`; commit as `docs(bootstrap): rule for the unified bootstrap tree`
+- [x] 6.4 `jj file track bootstrap/AGENTS.md .agents/rules/bootstrap.md`; `nix fmt`; commit as `docs(bootstrap): rule for the unified bootstrap tree`
 
 ## 7. Final verification
 
-- [ ] 7.1 From a clean checkout of the commits (`jj workspace add` or `git worktree` into the scratchpad): `nix eval` the `bootstrap` ISO drvPath and the `da-vcx-1`, `en-t65-1`, `da-gr75`, `da-vcx-2`, `da-n1x` toplevel drvPaths; verify all six succeed and the three from 1.1 are unchanged
-- [ ] 7.2 Verify the spec scenarios that are checkable offline: `find bootstrap -type l` empty; `just --list bootstrap nix` and `just --list bootstrap mikrotik` list the recipe sets named in `specs/bootstrap/spec.md`; `jj file list secrets/keys` shows only `iso-key.pub`; `rg -n 'src/' bootstrap` empty
-- [ ] 7.3 Run `nix fmt` and `prek run --all-files`; verify both exit 0 and `jj st` shows no formatting-only changes left behind
-- [ ] 7.4 Update the `tofu-root-at-repo-root` proposal's Capabilities note (one sentence) that `unify-bootstrap-tree` also modifies the "Tool trees live at the repository root" requirement, so whichever archives second merges; verify `openspec validate tofu-root-at-repo-root` still passes
+- [x] 7.1 From a clean checkout of the commits (`jj workspace add` or `git worktree` into the scratchpad): `nix eval` the `bootstrap` ISO drvPath and the `da-vcx-1`, `en-t65-1`, `da-gr75`, `da-vcx-2`, `da-n1x` toplevel drvPaths; verify all six succeed and the three from 1.1 are unchanged.
+      Amended during apply: all six evaluate from a detached `git worktree` with zero untracked files; the drvPath equality check is replaced by the `nix-diff` in 2.3
+- [x] 7.2 Verify the spec scenarios that are checkable offline: `find bootstrap -type l` empty; `just --list bootstrap nix` and `just --list bootstrap mikrotik` list the recipe sets named in `specs/bootstrap/spec.md`; `jj file list secrets/keys` shows only `iso-key.pub`; `rg -n 'src/' bootstrap` empty.
+      Amended during apply: `secrets/keys` lists the three public keys (see D9), and the one `src/` hit under `bootstrap/` is the sentence in `bootstrap/AGENTS.md` saying nothing lives there
+- [x] 7.3 Run `nix fmt` and `prek run --all-files`; verify both exit 0 and `jj st` shows no formatting-only changes left behind.
+      Amended during apply: scoped to the 28 files the six commits touched (`treefmt --fail-on-change` and `prek run --files`), so unrelated uncommitted work in the same working copy is not reformatted; prek must run with the canonical-case repo path as cwd or its tree-root check rejects every file
+- [x] 7.4 Update the `tofu-root-at-repo-root` proposal's Capabilities note (one sentence) that `unify-bootstrap-tree` also modifies the "Tool trees live at the repository root" requirement, so whichever archives second merges; verify `openspec validate tofu-root-at-repo-root` still passes.
+      Amended during apply: that change did not validate beforehand (its `repo-layout` delta predates the hubitat archive and lacked the "Hubitat bundles are reachable by URL" scenario), so the scenario was copied into its MODIFIED block; both changes now validate

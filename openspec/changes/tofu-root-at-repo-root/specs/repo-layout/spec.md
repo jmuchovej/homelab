@@ -25,6 +25,11 @@ No tool-facing path SHALL carry a `src/` prefix.
 - **WHEN** a module under `modules/` reaches the repo root by a relative path or symlink (the `bootstrap` host's `secrets/keys/iso-key.pub`, the `networking/topology.yaml` link)
 - **THEN** the path still resolves to the repo-root `secrets/` directory or `topology.yaml`, with no hop into a parent of the repository
 
+#### Scenario: Hubitat bundles are reachable by URL
+
+- **WHEN** a driver under `hubitat/drivers/<driver>/` declares its `importUrl`
+- **THEN** the URL is the raw GitHub URL of `hubitat/drivers/<driver>/<driver>.bundled.groovy` on the repository's default branch, with no `src/` segment
+
 ## REMOVED Requirements
 
 ### Requirement: OpenTofu lives under `tofu/`
