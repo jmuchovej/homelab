@@ -138,7 +138,7 @@ def _named_libraries(names: list[str] | None) -> list[Path]:
 def push(
     names: Names = None, dry_run: DryRun = False, libraries: Libraries = False
 ) -> None:
-    """Create or update rbn drivers (or, with --libraries, libraries) on the hub; unchanged ones are skipped."""
+    """Create or update rbn driver sources on the hub, their libraries first (or, with --libraries, libraries only); unchanged code is skipped."""
     if libraries:
         sources = _named_libraries(names)
         planner = pushing.plan_libraries
@@ -152,7 +152,12 @@ def push(
                 typer.echo(action.describe(dry_run=dry_run))
             if not dry_run:
                 pushing.apply(hub, actions)
-        except (pushing.PushError, manifests.IdentityError, HubError) as error:
+        except (
+            pushing.PushError,
+            bundling.BundleError,
+            manifests.IdentityError,
+            HubError,
+        ) as error:
             typer.echo(f"error: {error}", err=True)
             raise typer.Exit(1) from None
 

@@ -25,8 +25,6 @@
  * ver. 3.2.0  2024-05-21 kkossev  - (dev. branch) commonLib 3.2.0
  * ver. 3.3.0  2026-08-27 kkossev  - (dev. branch) commonLib 4.1.1
  * ver. 3.3.0  2026-09-30 rbn      - ported to the rbn libraries (rbn.common 4.1.1 with the Tuya path removed); no functional change
- *
- *                                   TODO:
  */
 
 static String version() { "3.3.0" }

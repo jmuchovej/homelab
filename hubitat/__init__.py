@@ -16,3 +16,5 @@ __version__ = "0.1.0"
 ROOT = Path(__file__).resolve().parent
 LIBRARIES = ROOT / "libraries"
 DRIVERS = ROOT / "drivers"
+# Where bundles point readers for the full library sources (``main`` is the released branch).
+REPOSITORY = "https://github.com/jmuchovej/homelab"

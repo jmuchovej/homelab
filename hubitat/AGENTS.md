@@ -19,7 +19,7 @@ hubitat/
 ├── justfile                         # thin recipes over `uv run --package hubitat -m hubitat`
 ├── libraries/<name>.groovy          # one Hubitat library each, namespace rbn
 ├── drivers/<driver>/<driver>.groovy          # authored source, #include rbn.<name>
-├── drivers/<driver>/<driver>.bundled.groovy  # GENERATED — what the hub imports
+├── drivers/<driver>/<driver>.bundled.groovy  # GENERATED — the distribution form (importUrl / HPM)
 ├── drivers/<driver>/packageManifest.json     # HPM manifest (when the driver is packaged)
 ├── bundles/                         # Hubitat "Bundle" zips (HPM etc.), unrelated to *.bundled.groovy
 └── apps/, drivers/*.groovy          # third-party code kept verbatim; not on the rbn libraries
@@ -28,9 +28,14 @@ hubitat/
 - Edit `libraries/*.groovy` and `drivers/<d>/<d>.groovy` only.
   **Never edit a `.bundled.groovy`** — run `just hubitat bundle` and commit the result.
   `just hubitat check` exits non-zero naming any stale bundle or any manifest that disagrees with its driver.
-- The bundle is the source with every `#include` line replaced by a one-line comment naming the bundle line of that library's start marker (driver line numbers are identical in source and bundle), then each library between `// ~~~~~ start include rbn.<name> ~~~~~` / `end include` markers with every body line suffixed `// library marker rbn.<name>, line N`.
-  A hub compile error on a bundle line therefore names the library line; `probe` and `push` do that mapping for you.
+- **Our hubs run the sources.** Hubitat stores a driver's `#include` lines verbatim and resolves them against its Libraries Code at compile time, so `push` sends the driver source after the libraries it includes.
+  The bundle exists for hubs that are not ours: the Import button and HPM fetch one file and cannot install libraries.
+- The bundle is the driver source with every `#include` line replaced by a one-line comment naming the bundle line of that library's start marker (driver line numbers are identical in source and bundle), then each library between `// ~~~~~ start include rbn.<name> ~~~~~` / `end include` markers **reduced to its code**: comment-only lines dropped, trailing comments removed, every kept line suffixed `// rbn.<name>#L<n>` with its source line.
+  The one comment kept per library is its header block (licence and attribution notice, retained as Apache-2.0 requires), with the changelog collapsed to a `Changelog:` link into the source on `main`.
+  A hub compile error on a bundle line therefore names the library line; `probe` does that mapping for you.
+  The comment stripper (`strip_comments`) is a three-state line scanner, not a parser; it relies on the libraries having no slashy strings or regex literals (`/…/`), which is true today — `rg '=~|~/' libraries/` before adding one.
 - Bundles are committed because a driver's `importUrl` (and its HPM manifest `location`) is the bundle's raw GitHub URL on `main`.
+  Nothing of ours compiles a bundle except `probe`, so run it after any bundler change.
 - Libraries must not `#include` other libraries, and must not contain triple-quoted strings (the per-line marker would corrupt them).
   The bundler refuses both.
 - **Groovy is formatted** by `npm-groovy-lint --format` through `treefmt` (`.config/groovylintrc.yaml` is its rule set), libraries and forked drivers included; only `*.bundled.groovy` is excluded, because it is regenerated from the formatted sources.
@@ -66,15 +71,14 @@ Hub access is configured only through `secretspec` (declared in the root `secret
 The driver endpoints are the ones the Hubitat Package Manager uses (`/hub2/userDeviceTypes`, `/driver/ajax/code`, `/driver/save`, `/driver/ajax/update`, `/driver/editor/deleteJson/<id>`); its Groovy source is their only documentation.
 There is no API key for these admin endpoints: the hub's Maker API tokens cover device commands only, so with hub security enabled the only option is the login form, which is what `hub.py` does.
 
-- `push [DRIVER…] [--dry-run]` resolves each driver by `(name, namespace)` from the hub's user driver list, **namespace `rbn` only** — a same-named driver in `kkossev` or `InovelliUSA` is never touched.
-  Absent → create from the committed bundle; present → read the hub's source and `version`, skip as `unchanged` when the source equals the bundle, otherwise update with that just-read `version`.
+- `push [DRIVER…] [--dry-run]` first plans the libraries those drivers include (Libraries Code, same rules), then the drivers, each resolved by `(name, namespace)` from the hub's user code list, **namespace `rbn` only** — a same-named driver in `kkossev` or `InovelliUSA` is never touched.
+  Absent → create from the source; present → read the hub's source and `version`, skip as `unchanged` when equal, otherwise update with that just-read `version`.
   Re-running is therefore a no-op; `--dry-run` performs the reads and prints the decision.
-  A stale bundle is refused — run `bundle` first (`check` tells you).
-- `probe` is the compile check for libraries that have no committed driver yet: it generates an include-all driver (`rbn include-all probe`) in a temp directory, bundles it through the real bundler, pushes it, and deletes it in a `finally` — by the ids it touched, then by name for any earlier run's leftovers.
-  A compile error is printed with the hub's text and the `<library>.groovy:<line>` it resolves to.
+  The hub compiles the driver on save against the libraries just pushed, so a library change followed by `push` is also its compile check.
+- `probe` compiles the **bundled** form: it generates an include-all driver (`rbn include-all probe`) in a temp directory, bundles it through the real bundler, pushes that bundle, and deletes it in a `finally` — by the ids it touched, then by name for any earlier run's leftovers.
+  A compile error is printed with the hub's text and the `<library>.groovy:<line>` it resolves to through the `#L` markers.
   Nothing is written to the repo.
-- `push --libraries [NAME…]` does the same for `libraries/*.groovy` against Libraries Code (`/hub2/userLibraries`, `/library/ajax/code`, `/library/save`, `/library/ajax/update`, `/library/edit/deleteJson/<id>` — confirmed on firmware 2.4.3.177; note `edit/`, not `editor/`, for delete).
-  Libraries on the hub are a development convenience (editing a driver in the hub's editor against them); the deliverable is still the bundle, which is what HPM installs.
+- `push --libraries [NAME…]` pushes only libraries, against `/hub2/userLibraries`, `/library/ajax/code`, `/library/save`, `/library/ajax/update`, `/library/edit/deleteJson/<id>` (confirmed on firmware 2.4.3.177; note `edit/`, not `editor/`, for delete).
 - `push` moves code, not devices: pairing, driver assignment, and Configure stay on the hub.
 
 ## HPM manifests
@@ -143,6 +147,6 @@ Everything Aqara/Xiaomi (`aqaraBlackMagic()`, `updateAqaraVersion()`, `isAqara()
 
 ## Verifying on the hub
 
-Hubitat compiles a library only when a driver that includes it is saved, so `just hubitat probe` is the compile check for the whole library set and `just hubitat push` for each driver.
+Hubitat compiles a library only when a driver that includes it is saved, so `just hubitat push` is the compile check for each driver and its libraries as sourced, and `just hubitat probe` for the whole library set as bundled.
 Validation status is recorded in `README.md`.
 Runtime behaviour on a paired device is a separate change from compile verification; do not claim the former from the latter.

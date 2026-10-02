@@ -1,10 +1,14 @@
 """Create or update ``rbn`` code on the hub from the repo, idempotently.
 
-Drivers are pushed from their committed bundles, libraries from their sources. Either is
-matched by ``(name, namespace)`` from the hub's user code list; the namespace is read from
-the source and must be ``rbn``, so code in any other namespace is never touched even when
-the name collides. Existing code is updated only when the hub's current source differs,
-with the ``version`` read moments before.
+Drivers and libraries are pushed from their sources: the hub stores a driver's ``#include``
+lines verbatim and resolves them against its Libraries Code at compile time, so a driver
+push is preceded by the libraries it includes. The committed bundle is the distribution
+form for other hubs; only ``probe`` pushes bundles, which is how they get compile-checked.
+
+Either kind is matched by ``(name, namespace)`` from the hub's user code list; the
+namespace is read from the source and must be ``rbn``, so code in any other namespace is
+never touched even when the name collides. Existing code is updated only when the hub's
+current source differs, with the ``version`` read moments before.
 """
 
 from __future__ import annotations
@@ -67,14 +71,14 @@ def _same(hub_source: str, bundled: str) -> bool:
     return _normalise(hub_source) == _normalise(bundled)
 
 
-def _driver_text(source: Path) -> str:
+def _source_text(source: Path) -> str:
+    return source.read_text(encoding="utf-8")
+
+
+def _bundle_text(source: Path) -> str:
     if bundling.is_stale(source):
         raise PushError(f"{source}: bundle is stale; run `bundle` first")
     return bundling.bundle_path(source).read_text(encoding="utf-8")
-
-
-def _library_text(source: Path) -> str:
-    return source.read_text(encoding="utf-8")
 
 
 def _plan(
@@ -107,18 +111,6 @@ def _plan(
     return actions
 
 
-def plan(hub: Hub, sources: list[Path]) -> list[Action]:
-    """Actions for driver sources, pushed as their committed bundles."""
-    return _plan(
-        sources,
-        code="driver",
-        on_hub=hub.drivers(),
-        identity=manifests.driver_identity,
-        text=_driver_text,
-        read=hub.driver_code,
-    )
-
-
 def plan_libraries(hub: Hub, sources: list[Path]) -> list[Action]:
     """Actions for library sources, pushed verbatim."""
     return _plan(
@@ -126,9 +118,37 @@ def plan_libraries(hub: Hub, sources: list[Path]) -> list[Action]:
         code="library",
         on_hub=hub.libraries(),
         identity=manifests.library_identity,
-        text=_library_text,
+        text=_source_text,
         read=hub.library_code,
     )
+
+
+def plan(hub: Hub, sources: list[Path], *, bundled: bool = False) -> list[Action]:
+    """Actions for drivers: the libraries they include, then the sources themselves.
+
+    With ``bundled``, the committed bundles alone — self-contained, so no library actions.
+    """
+    actions: list[Action] = []
+    if not bundled:
+        names = dict.fromkeys(
+            name for s in sources for name in bundling.include_names(s)
+        )
+        libraries = [hubitat.LIBRARIES / f"{name}.groovy" for name in names]
+        for library in libraries:
+            if not library.is_file():
+                raise PushError(f"included library not found at {library}")
+        actions.extend(plan_libraries(hub, libraries))
+    actions.extend(
+        _plan(
+            sources,
+            code="driver",
+            on_hub=hub.drivers(),
+            identity=manifests.driver_identity,
+            text=_bundle_text if bundled else _source_text,
+            read=hub.driver_code,
+        )
+    )
+    return actions
 
 
 def apply(hub: Hub, actions: list[Action]) -> list[int]:
@@ -191,7 +211,11 @@ def resolve_error(message: str, bundled: str) -> str:
 
 
 def probe(hub: Hub) -> list[str]:
-    """Compile every library on the hub via a throwaway driver; returns the library names."""
+    """Compile every library's bundled form on the hub via a throwaway driver.
+
+    Pushed as a bundle on purpose: this is the only compile check the stripped library
+    blocks get, since our own hubs take the sources. Returns the library names.
+    """
     names = library_names()
     if not names:
         raise ProbeError(f"no libraries under {hubitat.LIBRARIES}")
@@ -202,7 +226,7 @@ def probe(hub: Hub) -> list[str]:
         bundled = bundling.write(source).read_text(encoding="utf-8")
         ids: list[int] = []
         try:
-            ids = apply(hub, plan(hub, [source]))
+            ids = apply(hub, plan(hub, [source], bundled=True))
         except HubError as error:
             raise ProbeError(resolve_error(str(error), bundled)) from error
         finally:

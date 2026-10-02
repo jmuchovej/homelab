@@ -53,9 +53,7 @@ def test_probe_failure_still_deletes_and_resolves_line(
 ) -> None:
     bundled = probe_bundle(tree).splitlines()
     marker_line = next(
-        i
-        for i, line in enumerate(bundled, start=1)
-        if "library marker rbn.tiny, line 2" in line
+        i for i, line in enumerate(bundled, start=1) if line.endswith(" // rbn.tiny#L2")
     )
     fake.save_error = f"Script1.groovy: {marker_line}: unexpected token @ line {marker_line}, column 5."
     # A failed save still creates nothing, but a stale probe from an earlier run must be swept.
