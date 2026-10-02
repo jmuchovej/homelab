@@ -4,14 +4,14 @@
  *
  *  https://community.hubitat.com/t/alpha-aqara-cube-t1-pro-mfczq12lm-c-7/121604
  *
- * 	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * 	in compliance with the License. You may obtain a copy of the License at:
+ *     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *     in compliance with the License. You may obtain a copy of the License at:
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * 	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
- * 	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
- * 	for the specific language governing permissions and limitations under the License.
+ *     Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *     on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *     for the specific language governing permissions and limitations under the License.
  *
  * This driver is inspired by @w35l3y work on Tuya device driver (Edge project).
  * For a big portions of code all credits go to Jonathan Bradshaw.
@@ -26,7 +26,7 @@
  * ver. 3.3.0  2026-08-27 kkossev  - (dev. branch) commonLib 4.1.1
  * ver. 3.3.0  2026-09-30 rbn      - ported to the rbn libraries (rbn.common 4.1.1 with the Tuya path removed); no functional change
  *
- *                                   TODO: 
+ *                                   TODO:
  */
 
 static String version() { "3.3.0" }
@@ -57,7 +57,7 @@ metadata {
         importUrl: 'https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy',
         namespace: 'rbn', author: 'Krassimir Kossev', singleThreaded: true )
     {
-        // deviceType specific capabilities, commands and attributes         
+        // deviceType specific capabilities, commands and attributes
         capability "Sensor"
         capability "PushableButton"
         capability "DoubleTapableButton"
@@ -89,8 +89,7 @@ metadata {
     }
 }
 
-
-// https://github.com/Koenkk/zigbee2mqtt/issues/15652 
+// https://github.com/Koenkk/zigbee2mqtt/issues/15652
 // https://homekitnews.com/2022/02/17/aqara-cube-t1-pro-review/
 
 @Field static final Map AqaraCubeModeOpts = [
@@ -126,7 +125,7 @@ metadata {
         6: 'inactivity'
     ]
 ]
-          
+
 @Field static final Map AqaraCubeSideOpts = [
     defaultValue: 0,
     options     : [
@@ -136,13 +135,12 @@ metadata {
         3: 'side',                 // Destination side of action
         4: 'sideUp'                // Upfacing side of current scene
     ]
-]          
+]
 
 @Field static final Map SendButtonEventOpts = [
     defaultValue: 0,
     options     : [0: 'disabled', 1: 'enabled']
 ]
-
 
 def customRefresh() {
     List<String> cmds = []
@@ -158,7 +156,7 @@ def customInitializeVars(boolean fullInit=false) {
     logDebug "customInitializeVars(${fullInit})"
     if (fullInit || settings?.cubeOperationMode == null) device.updateSetting('cubeOperationMode', [value: AqaraCubeModeOpts.defaultValue.toString(), type: 'enum'])
     if (fullInit || settings?.sendButtonEvent == null) device.updateSetting('sendButtonEvent', [value: SendButtonEventOpts.defaultValue.toString(), type: 'enum'])
-    if (fullInit || settings?.voltageToPercent == null) device.updateSetting("voltageToPercent", true)        // overwrite the defailt false setting
+    if (fullInit || settings?.voltageToPercent == null) device.updateSetting("voltageToPercent", true)        // overwrite the default false setting
 }
 
 void customInitEvents(boolean fullInit=false) {
@@ -195,20 +193,19 @@ def customConfigureDevice() {
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0000 {${device.zigbeeId}} {}", "delay 251", ]
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0006 {${device.zigbeeId}} {}", "delay 251", ]
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0001 {${device.zigbeeId}} {}", "delay 251", ]
-    
+
     cmds += zigbee.readAttribute(0xFCC0, 0x0009, [mfgCode: 0x115F], delay=200)
     cmds += zigbee.readAttribute(0x0001, 0x0020, [:], delay=200)
-    cmds += zigbee.readAttribute(0xFCC0, 0x0148, [mfgCode: 0x115F], delay=200)   
-    cmds += zigbee.readAttribute(0xFCC0, 0x0149, [mfgCode: 0x115F], delay=200)   
-    
+    cmds += zigbee.readAttribute(0xFCC0, 0x0148, [mfgCode: 0x115F], delay=200)
+    cmds += zigbee.readAttribute(0xFCC0, 0x0149, [mfgCode: 0x115F], delay=200)
+
     logDebug "customConfigureDevice() : ${cmds}"
-    return cmds    
+    return cmds
 }
 
-
 /*
- # Clusters (Scene Mode): 
-  ## Endpoint 2: 
+ # Clusters (Scene Mode):
+  ## Endpoint 2:
 
   | Cluster            | Data                      | Description                   |
   | ------------------ | ------------------------- | ----------------------------- |
@@ -224,10 +221,10 @@ void customParseMultistateInputCluster(final Map descMap) {
     String action = null
     Integer side = 0
     switch (value as Integer) {
-        case 0: 
+        case 0:
             action = 'shake'
             break
-        case 1: 
+        case 1:
             action = 'throw'
             break
         case 2:
@@ -260,7 +257,7 @@ void customParseMultistateInputCluster(final Map descMap) {
         }
         eventMap.descriptionText = "${eventMap.name} is ${eventMap.value} ${sideStr} ${eventMap.unit}"
         sendEvent(eventMap)
-        logInfo "${eventMap.descriptionText}"   
+        logInfo "${eventMap.descriptionText}"
         if (action == "shake") {
             if (settings?.sendButtonEvent){
                 side = (device.currentValue('sideUp', true) ?: 0) as Integer
@@ -292,8 +289,8 @@ void parseXiaomiClusterAqaraCube(final Map descMap) {
 }
 
 /*
- # Clusters (Scene Mode): 
-  ## Endpoint 2: 
+ # Clusters (Scene Mode):
+  ## Endpoint 2:
 
   | Cluster            | Data                      | Description                   |
   | ------------------ | ------------------------- | ----------------------------- |
@@ -302,7 +299,7 @@ void parseXiaomiClusterAqaraCube(final Map descMap) {
 void processSideFacingUp(final Map descMap) {
     logDebug "processSideFacingUp: ${descMap}"
     if (descMap.value == null || descMap.value == 'FFFF') { return } // invalid or unknown value
-    Integer value = hexStrToUnsignedInt(descMap.value)    
+    Integer value = hexStrToUnsignedInt(descMap.value)
     sendAqaraCubeSideUpEvent(value)
 }
 
@@ -327,7 +324,7 @@ def sendAqaraCubeSideUpEvent(final Integer value) {
     }
     else {
         logWarn "invalid Aqara Cube side facing up value=${value}"
-    }    
+    }
 }
 
 // called from xiaomiLib - refactor !
@@ -342,11 +339,11 @@ def sendAqaraCubeOperationModeEvent(final Integer mode)
         eventMap.type = "physical"
         eventMap.descriptionText = "${eventMap.name} is ${eventMap.value} (${mode})"
         sendEvent(eventMap)
-        logInfo "${eventMap.descriptionText}"        
+        logInfo "${eventMap.descriptionText}"
     }
     else {
         logWarn "invalid Aqara Cube mode ${mode}"
-    }    
+    }
 }
 
 // 0x000C - Analog Input Cluster
@@ -355,8 +352,8 @@ void customParseAnalogInputCluster(final Map descMap) {
     if (descMap.value == null || descMap.value == 'FFFF') { logWarn "invalid or unknown value"; return } // invalid or unknown value
     if (descMap.attrId == "0055") {
         def value = hexStrToUnsignedInt(descMap.value)
-        Float floatValue = Float.intBitsToFloat(value.intValue())   
-        logDebug "value=${value} floatValue=${floatValue}" 
+        Float floatValue = Float.intBitsToFloat(value.intValue())
+        logDebug "value=${value} floatValue=${floatValue}"
         sendAqaraCubeRotateEvent(floatValue as Integer)
     }
     else {
@@ -367,7 +364,7 @@ void customParseAnalogInputCluster(final Map descMap) {
 
 void sendAqaraCubeRotateEvent(final Integer degrees) {
     String leftRight = degrees < 0 ? 'rotateLeft' : 'rotateRight'
-    
+
     def eventMap = [:]
     eventMap.name = "action"
     eventMap.value = leftRight
@@ -425,7 +422,7 @@ library( // library marker rbn.common, line 2
   * ver. 4.1.0  2026-08-05 kkossev  - the administrative commands drop-down moved from configure(par) to the new deviceUtilities(par) command, so that configure() is again a plain Configuration capability button; removed the two separator entries from ConfigureOpts; configureHelp() is callable again and shows the command list and a '_status_' event when nothing was selected; do not use 'defaultValue' in a command parameter - it does not preselect the drop-down, but it IS submitted when Run is pressed without a selection!; configure() now shows a 'sleepy devices can not be configured' warning text; ping() icon changed to the antenna bars; added a one-click 'loadAllDefaults' command button // library marker rbn.common, line 36
   * ver. 4.1.1  2026-08-23 kkossev  - (dev. branch) bug fix: quoted the respondsTo('processTuyaDPfromDeviceProfile') argument in standardProcessTuyaDP(); the bare identifier threw a NullPointerException in drivers without deviceProfileLib; cosmetic: parse() and standardAndCustomParseCluster() log the cluster id from clusterId/clusterInt when descMap.cluster is null (catchall messages), instead of 'cluster:0xnull'; removed a stray '}' from the healthStatus warning text // library marker rbn.common, line 37
   * // library marker rbn.common, line 38
-  *                                   TODO: change the offline threshold to 2  // library marker rbn.common, line 39
+  *                                   TODO: change the offline threshold to 2 // library marker rbn.common, line 39
   *                                   TODO: add GetInfo (endpoints list) command (in the 'Tuya Device' driver?) // library marker rbn.common, line 40
   *                                   TODO: make the configure() without parameter smart - analyze the State variables and call delete states.... call ActiveAndpoints() or/amd initialize() or/and configure() // library marker rbn.common, line 41
   *                                   TODO: check - offlineCtr is not increasing? (ZBMicro); // library marker rbn.common, line 42
@@ -538,1194 +535,1193 @@ public boolean isVirtual() { device.controllerType == null || device.controllerT
  * @param description Zigbee message in hex format // library marker rbn.common, line 149
  */ // library marker rbn.common, line 150
 public void parse(final String description) { // library marker rbn.common, line 151
-     // library marker rbn.common, line 152
-    Map stateCopy = state            // .clone() throws java.lang.CloneNotSupportedException in HE platform version 2.4.1.155 ! // library marker rbn.common, line 153
-    checkDriverVersion(stateCopy)    // +1 ms // library marker rbn.common, line 154
-    if (state.stats != null) { state.stats?.rxCtr= (state.stats?.rxCtr ?: 0) + 1 } else { state.stats = [:] }  // updateRxStats(state) // +1 ms // library marker rbn.common, line 155
-    if (state.lastRx != null) { state.lastRx?.timeStamp = unix2formattedDate(now()) } else { state.lastRx = [:] } // library marker rbn.common, line 156
-    unscheduleCommandTimeoutCheck(state) // library marker rbn.common, line 157
-    setHealthStatusOnline(state)    // +2 ms // library marker rbn.common, line 158
- // library marker rbn.common, line 159
-    if (description?.startsWith('zone status')  || description?.startsWith('zone report')) { // library marker rbn.common, line 160
-        logDebug "parse: zone status: $description" // library marker rbn.common, line 161
-        if (this.respondsTo('customParseIasMessage')) { customParseIasMessage(description) } // library marker rbn.common, line 162
-        else if (this.respondsTo('standardParseIasMessage')) { standardParseIasMessage(description) } // library marker rbn.common, line 163
-        else if (this.respondsTo('parseIasMessage')) { parseIasMessage(description) } // library marker rbn.common, line 164
-        else { logDebug "ignored IAS zone status (no IAS parser) description: $description" } // library marker rbn.common, line 165
-        return // library marker rbn.common, line 166
-    } // library marker rbn.common, line 167
-    else if (description?.startsWith('enroll request')) { // library marker rbn.common, line 168
-        logDebug "parse: enroll request: $description" // library marker rbn.common, line 169
-        /* The Zone Enroll Request command is generated when a device embodying the Zone server cluster wishes to be  enrolled as an active  alarm device. It  must do this immediately it has joined the network  (during commissioning). */ // library marker rbn.common, line 170
-        if (settings?.logEnable) { logInfo 'Sending IAS enroll response...' } // library marker rbn.common, line 171
-        List<String> cmds = zigbee.enrollResponse() + zigbee.readAttribute(0x0500, 0x0000) // library marker rbn.common, line 172
-        logDebug "enroll response: ${cmds}" // library marker rbn.common, line 173
-        sendZigbeeCommands(cmds) // library marker rbn.common, line 174
-        return // library marker rbn.common, line 175
-    } // library marker rbn.common, line 176
- // library marker rbn.common, line 177
-    final Map descMap = myParseDescriptionAsMap(description)    // +5 ms // library marker rbn.common, line 178
- // library marker rbn.common, line 179
-    if (!isChattyDeviceReport(descMap)) { logDebug "parse: descMap = ${descMap} description=${description }" } // library marker rbn.common, line 180
-    if (isSpammyDeviceReport(descMap)) { return }  // +20 mS (both) // library marker rbn.common, line 181
- // library marker rbn.common, line 182
-    if (descMap.profileId == '0000') { // library marker rbn.common, line 183
-        parseZdoClusters(descMap) // library marker rbn.common, line 184
-        return // library marker rbn.common, line 185
-    } // library marker rbn.common, line 186
-    if (descMap.isClusterSpecific == false) { // library marker rbn.common, line 187
-        parseGeneralCommandResponse(descMap) // library marker rbn.common, line 188
-        return // library marker rbn.common, line 189
-    } // library marker rbn.common, line 190
-    // // library marker rbn.common, line 191
-    if (standardAndCustomParseCluster(descMap, description)) { return } // library marker rbn.common, line 192
-    // // library marker rbn.common, line 193
-    switch (descMap.clusterInt as Integer) { // library marker rbn.common, line 194
-        case 0x000C :  // special case : ZigUSB                                     // Aqara TVOC Air Monitor; Aqara Cube T1 Pro; // library marker rbn.common, line 195
-            if (this.respondsTo('customParseAnalogInputClusterDescription')) { // library marker rbn.common, line 196
-                customParseAnalogInputClusterDescription(descMap, description)                 // ZigUSB // library marker rbn.common, line 197
-                descMap.remove('additionalAttrs')?.each { final Map map -> customParseAnalogInputClusterDescription(descMap + map, description) } // library marker rbn.common, line 198
-            } // library marker rbn.common, line 199
-            break // library marker rbn.common, line 200
-        case 0x0300 :  // Patch - need refactoring of the standardParseColorControlCluster ! // library marker rbn.common, line 201
-            if (this.respondsTo('standardParseColorControlCluster')) { // library marker rbn.common, line 202
-                standardParseColorControlCluster(descMap, description) // library marker rbn.common, line 203
-                descMap.remove('additionalAttrs')?.each { final Map map -> standardParseColorControlCluster(descMap + map, description) } // library marker rbn.common, line 204
-            } // library marker rbn.common, line 205
-            break // library marker rbn.common, line 206
-        default: // library marker rbn.common, line 207
-            if (settings.logEnable) { // library marker rbn.common, line 208
-                // descMap.cluster is null for catchall messages - fall back to clusterId, or format clusterInt // library marker rbn.common, line 209
-                String clusterHex = descMap.cluster ?: descMap.clusterId ?: zigbee.convertToHexString(descMap.clusterInt as Integer, 4) // library marker rbn.common, line 210
-                logWarn "parse: zigbee received <b>unknown cluster:0x${clusterHex} (${descMap.clusterInt})</b> message (${descMap})" // library marker rbn.common, line 211
-            } // library marker rbn.common, line 212
-            break // library marker rbn.common, line 213
-    } // library marker rbn.common, line 214
-} // library marker rbn.common, line 215
- // library marker rbn.common, line 216
-@Field static final Map<Integer, String> ClustersMap = [ // library marker rbn.common, line 217
-    0x0000: 'Basic',             0x0001: 'Power',            0x0003: 'Identify',         0x0004: 'Groups',           0x0005: 'Scenes',       0x0006: 'OnOff',           0x0007:'onOffConfiguration',      0x0008: 'LevelControl',  // library marker rbn.common, line 218
-    0x000C: 'AnalogInput',       0x0012: 'MultistateInput',  0x0020: 'PollControl',      0x0102: 'WindowCovering',   0x0201: 'Thermostat',  0x0204: 'ThermostatConfig',/*0x0300: 'ColorControl',*/ // library marker rbn.common, line 219
-    0x0400: 'Illuminance',       0x0402: 'Temperature',      0x0405: 'Humidity',         0x0406: 'Occupancy',        0x042A: 'Pm25',         0x0500: 'IAS',             0x0702: 'Metering', // library marker rbn.common, line 220
-    0x0B04: 'ElectricalMeasure', 0xE001: 'E0001',            0xE002: 'E002',             0xEC03: 'EC03',             0xFC03: 'FC03',            0xFC11: 'FC11',            0xFC7E: 'AirQualityIndex', // Sensirion VOC index // library marker rbn.common, line 221
-    0xFC80: 'FC80',              0xFC81: 'FC81',             0xFCC0: 'XiaomiFCC0',       0xED00: 'ED00' // library marker rbn.common, line 222
-] // library marker rbn.common, line 223
- // library marker rbn.common, line 224
-// first try calling the custom parser, if not found, call the standard parser // library marker rbn.common, line 225
-/* groovylint-disable-next-line UnusedMethodParameter */ // library marker rbn.common, line 226
-boolean standardAndCustomParseCluster(Map descMap, final String description) { // library marker rbn.common, line 227
-    Integer clusterInt = descMap.clusterInt as Integer // library marker rbn.common, line 228
-    String  clusterName = ClustersMap[clusterInt] ?: UNKNOWN // library marker rbn.common, line 229
-    // descMap.cluster is null for catchall messages - fall back to clusterId, or format clusterInt, so that the logs never show 'cluster:0xnull' // library marker rbn.common, line 230
-    String  clusterHex = descMap.cluster ?: descMap.clusterId ?: zigbee.convertToHexString(clusterInt, 4) // library marker rbn.common, line 231
-    if (clusterName == null || clusterName == UNKNOWN) { // library marker rbn.common, line 232
-        logWarn "standardAndCustomParseCluster: zigbee received <b>unknown cluster:0x${clusterHex} (${clusterInt})</b> message (${descMap})" // library marker rbn.common, line 233
-        return false // library marker rbn.common, line 234
-    } // library marker rbn.common, line 235
-    String customParser = "customParse${clusterName}Cluster" // library marker rbn.common, line 236
-    // check if a custom parser is defined in the custom driver. If found there, the standard parser should  be called within that custom parser, if needed // library marker rbn.common, line 237
-    if (this.respondsTo(customParser)) { // library marker rbn.common, line 238
-        this."${customParser}"(descMap) // library marker rbn.common, line 239
-        descMap.remove('additionalAttrs')?.each { final Map map -> this."${customParser}"(descMap + map) } // library marker rbn.common, line 240
-        return true // library marker rbn.common, line 241
-    } // library marker rbn.common, line 242
-    String standardParser = "standardParse${clusterName}Cluster" // library marker rbn.common, line 243
-    // if no custom parser is defined, try the standard parser (if exists), eventually defined in the included library file // library marker rbn.common, line 244
-    if (this.respondsTo(standardParser)) { // library marker rbn.common, line 245
-        this."${standardParser}"(descMap) // library marker rbn.common, line 246
-        descMap.remove('additionalAttrs')?.each { final Map map -> this."${standardParser}"(descMap + map) } // library marker rbn.common, line 247
-        return true // library marker rbn.common, line 248
-    } // library marker rbn.common, line 249
-    if (device?.getDataValue('model') != 'ZigUSB' && descMap.cluster != '0300') {    // patch! // library marker rbn.common, line 250
-        logWarn "standardAndCustomParseCluster: <b>Missing</b> ${standardParser} or ${customParser} handler for <b>cluster:0x${clusterHex} (${clusterInt})</b> message (${descMap})" // library marker rbn.common, line 251
-    } // library marker rbn.common, line 252
-    return false // library marker rbn.common, line 253
-} // library marker rbn.common, line 254
- // library marker rbn.common, line 255
-// not used - throws exception :  error groovy.lang.MissingPropertyException: No such property: rxCtr for class: java.lang.String on line 1568 (method parse) // library marker rbn.common, line 256
-private static void updateRxStats(final Map state) { // library marker rbn.common, line 257
-    if (state.stats != null) { state.stats['rxCtr'] = (state.stats['rxCtr'] ?: 0) + 1 } else { state.stats = [:] }  // +5ms // library marker rbn.common, line 258
-} // library marker rbn.common, line 259
- // library marker rbn.common, line 260
-public boolean isChattyDeviceReport(final Map descMap)  {  // when @CompileStatis is slower? // library marker rbn.common, line 261
-    if (_TRACE_ALL == true) { return false } // library marker rbn.common, line 262
-    if (this.respondsTo('isSpammyDPsToNotTrace')) {  // defined in deviceProfileLib // library marker rbn.common, line 263
-        return isSpammyDPsToNotTrace(descMap) // library marker rbn.common, line 264
-    } // library marker rbn.common, line 265
-    return false // library marker rbn.common, line 266
-} // library marker rbn.common, line 267
- // library marker rbn.common, line 268
-public boolean isSpammyDeviceReport(final Map descMap) { // library marker rbn.common, line 269
-    if (_TRACE_ALL == true) { return false } // library marker rbn.common, line 270
-    if (this.respondsTo('isSpammyDPsToIgnore')) {   // defined in deviceProfileLib // library marker rbn.common, line 271
-        return isSpammyDPsToIgnore(descMap) // library marker rbn.common, line 272
-    } // library marker rbn.common, line 273
-    return false // library marker rbn.common, line 274
-} // library marker rbn.common, line 275
- // library marker rbn.common, line 276
-@Field static final Map<Integer, String> ZdoClusterEnum = [ // library marker rbn.common, line 277
-    0x0002: 'Node Descriptor Request',  0x0005: 'Active Endpoints Request',   0x0006: 'Match Descriptor Request',  0x0022: 'Unbind Request',  0x0013: 'Device announce', 0x0034: 'Management Leave Request', // library marker rbn.common, line 278
-    0x8002: 'Node Descriptor Response', 0x8004: 'Simple Descriptor Response', 0x8005: 'Active Endpoints Response', 0x801D: 'Extended Simple Descriptor Response', 0x801E: 'Extended Active Endpoint Response', // library marker rbn.common, line 279
-    0x8021: 'Bind Response',            0x8022: 'Unbind Response',            0x8023: 'Bind Register Response',    0x8034: 'Management Leave Response' // library marker rbn.common, line 280
-] // library marker rbn.common, line 281
- // library marker rbn.common, line 282
-// ZDO (Zigbee Data Object) Clusters Parsing // library marker rbn.common, line 283
-private void parseZdoClusters(final Map descMap) { // library marker rbn.common, line 284
-    if (state.stats == null) { state.stats = [:] } // library marker rbn.common, line 285
-    final Integer clusterId = descMap.clusterInt as Integer // library marker rbn.common, line 286
-    final String clusterName = ZdoClusterEnum[clusterId] ?: "UNKNOWN_CLUSTER (0x${descMap.clusterId})" // library marker rbn.common, line 287
-    final String statusHex = ((List)descMap.data)[1] // library marker rbn.common, line 288
-    final Integer statusCode = hexStrToUnsignedInt(statusHex) // library marker rbn.common, line 289
-    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${statusHex}" // library marker rbn.common, line 290
-    final String clusterInfo = "${device.displayName} Received ZDO ${clusterName} (0x${descMap.clusterId}) status ${statusName}" // library marker rbn.common, line 291
-    List<String> cmds = [] // library marker rbn.common, line 292
-    switch (clusterId) { // library marker rbn.common, line 293
-        case 0x0005 : // library marker rbn.common, line 294
-            state.stats['activeEpRqCtr'] = (state.stats['activeEpRqCtr'] ?: 0) + 1 // library marker rbn.common, line 295
-            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, data:${descMap.data})" } // library marker rbn.common, line 296
-            // send the active endpoint response // library marker rbn.common, line 297
-            cmds += ["he raw ${device.deviceNetworkId} 0 0 0x8005 {00 00 00 00 01 01} {0x0000}"] // library marker rbn.common, line 298
-            sendZigbeeCommands(cmds) // library marker rbn.common, line 299
-            break // library marker rbn.common, line 300
-        case 0x0006 : // library marker rbn.common, line 301
-            state.stats['matchDescCtr'] = (state.stats['matchDescCtr'] ?: 0) + 1 // library marker rbn.common, line 302
-            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Input cluster count:${descMap.data[5]} Input cluster: 0x${descMap.data[7] + descMap.data[6]})" } // library marker rbn.common, line 303
-            cmds += ["he raw ${device.deviceNetworkId} 0 0 0x8006 {00 00 00 00 00} {0x0000}"] // library marker rbn.common, line 304
-            sendZigbeeCommands(cmds) // library marker rbn.common, line 305
-            break // library marker rbn.common, line 306
-        case 0x0013 : // device announcement // library marker rbn.common, line 307
-            state.stats['rejoinCtr'] = (state.stats['rejoinCtr'] ?: 0) + 1 // library marker rbn.common, line 308
-            if (settings?.logEnable) { log.debug "${clusterInfo}, rejoinCtr= ${state.stats['rejoinCtr']}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Device network ID: ${descMap.data[2] + descMap.data[1]}, Capability Information: ${descMap.data[11]})" } // library marker rbn.common, line 309
-            break // library marker rbn.common, line 310
-        case 0x8004 : // simple descriptor response // library marker rbn.common, line 311
-            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, status:${descMap.data[1]}, lenght:${hubitat.helper.HexUtils.hexStringToInt(descMap.data[4])}" } // library marker rbn.common, line 312
-            if (this.respondsTo('parseSimpleDescriptorResponse')) { parseSimpleDescriptorResponse(descMap) } // library marker rbn.common, line 313
-            break // library marker rbn.common, line 314
-        case 0x8005 : // endpoint response // library marker rbn.common, line 315
-            String endpointCount = descMap.data[4] // library marker rbn.common, line 316
-            String endpointList = descMap.data[5] // library marker rbn.common, line 317
-            if (settings?.logEnable) { log.debug "${clusterInfo}, (endpoint response) endpointCount = ${endpointCount}  endpointList = ${endpointList}" } // library marker rbn.common, line 318
-            break // library marker rbn.common, line 319
-        case 0x8021 : // bind response // library marker rbn.common, line 320
-            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Status: ${descMap.data[1] == '00' ? 'Success' : '<b>Failure</b>'})" } // library marker rbn.common, line 321
-            break // library marker rbn.common, line 322
-        case 0x0002 : // Node Descriptor Request // library marker rbn.common, line 323
-        case 0x0036 : // Permit Joining Request // library marker rbn.common, line 324
-        case 0x8022 : // unbind request // library marker rbn.common, line 325
-        case 0x8034 : // leave response // library marker rbn.common, line 326
-            if (settings?.logEnable) { log.debug "${device.displayName} Unprocessed ZDO command: cluster=${descMap.clusterId} command=${descMap.command} attrId=${descMap.attrId} value=${descMap.value} data=${descMap.data}" } // library marker rbn.common, line 327
-            break // library marker rbn.common, line 328
-        default : // library marker rbn.common, line 329
-            if (settings?.logEnable) { log.warn "${device.displayName} Unprocessed ZDO command: cluster=${descMap.clusterId} command=${descMap.command} attrId=${descMap.attrId} value=${descMap.value} data=${descMap.data}" } // library marker rbn.common, line 330
-            break // library marker rbn.common, line 331
-    } // library marker rbn.common, line 332
-    if (this.respondsTo('customParseZdoClusters')) { customParseZdoClusters(descMap) } // library marker rbn.common, line 333
-} // library marker rbn.common, line 334
- // library marker rbn.common, line 335
-// Zigbee General Command Parsing // library marker rbn.common, line 336
-private void parseGeneralCommandResponse(final Map descMap) { // library marker rbn.common, line 337
-    final int commandId = hexStrToUnsignedInt(descMap.command) // library marker rbn.common, line 338
-    switch (commandId) { // library marker rbn.common, line 339
-        case 0x01: parseReadAttributeResponse(descMap); break // library marker rbn.common, line 340
-        case 0x04: parseWriteAttributeResponse(descMap); break // library marker rbn.common, line 341
-        case 0x07: parseConfigureResponse(descMap); break // library marker rbn.common, line 342
-        case 0x09: parseReadReportingConfigResponse(descMap); break // library marker rbn.common, line 343
-        case 0x0B: parseDefaultCommandResponse(descMap); break // library marker rbn.common, line 344
-        default: // library marker rbn.common, line 345
-            final String commandName = ZigbeeGeneralCommandEnum[commandId] ?: "UNKNOWN_COMMAND (0x${descMap.command})" // library marker rbn.common, line 346
-            final String clusterName = clusterLookup(descMap.clusterInt) // library marker rbn.common, line 347
-            final String status = descMap.data in List ? ((List)descMap.data).last() : descMap.data // library marker rbn.common, line 348
-            final int statusCode = hexStrToUnsignedInt(status) // library marker rbn.common, line 349
-            final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${status}" // library marker rbn.common, line 350
-            if (statusCode > 0x00) { // library marker rbn.common, line 351
-                log.warn "zigbee ${commandName} ${clusterName} error: ${statusName}" // library marker rbn.common, line 352
-            } else if (settings.logEnable) { // library marker rbn.common, line 353
-                log.trace "zigbee ${commandName} ${clusterName}: ${descMap.data}" // library marker rbn.common, line 354
-            } // library marker rbn.common, line 355
-            break // library marker rbn.common, line 356
-    } // library marker rbn.common, line 357
-} // library marker rbn.common, line 358
- // library marker rbn.common, line 359
-// Zigbee Read Attribute Response Parsing // library marker rbn.common, line 360
-private void parseReadAttributeResponse(final Map descMap) { // library marker rbn.common, line 361
-    final List<String> data = descMap.data as List<String> // library marker rbn.common, line 362
-    final String attribute = data[1] + data[0] // library marker rbn.common, line 363
-    final int statusCode = hexStrToUnsignedInt(data[2]) // library marker rbn.common, line 364
-    final String status = ZigbeeStatusEnum[statusCode] ?: "0x${data}" // library marker rbn.common, line 365
-    if (statusCode > 0x00) { // library marker rbn.common, line 366
-        logWarn "zigbee read ${clusterLookup(descMap.clusterInt)} attribute 0x${attribute} error: ${status}" // library marker rbn.common, line 367
-    } // library marker rbn.common, line 368
-    else { // library marker rbn.common, line 369
-        logDebug "zigbee read ${clusterLookup(descMap.clusterInt)} attribute 0x${attribute} response: ${status} ${data}" // library marker rbn.common, line 370
-    } // library marker rbn.common, line 371
-} // library marker rbn.common, line 372
- // library marker rbn.common, line 373
-// Zigbee Write Attribute Response Parsing // library marker rbn.common, line 374
-private void parseWriteAttributeResponse(final Map descMap) { // library marker rbn.common, line 375
-    final String data = descMap.data in List ? ((List)descMap.data).first() : descMap.data // library marker rbn.common, line 376
-    final int statusCode = hexStrToUnsignedInt(data) // library marker rbn.common, line 377
-    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${data}" // library marker rbn.common, line 378
-    if (statusCode > 0x00) { // library marker rbn.common, line 379
-        logWarn "zigbee response write ${clusterLookup(descMap.clusterInt)} attribute error: ${statusName}" // library marker rbn.common, line 380
-    } // library marker rbn.common, line 381
-    else { // library marker rbn.common, line 382
-        logDebug "zigbee response write ${clusterLookup(descMap.clusterInt)} attribute response: ${statusName}" // library marker rbn.common, line 383
-    } // library marker rbn.common, line 384
-} // library marker rbn.common, line 385
- // library marker rbn.common, line 386
-// Zigbee Configure Reporting Response Parsing  - command 0x07 // library marker rbn.common, line 387
-private void parseConfigureResponse(final Map descMap) { // library marker rbn.common, line 388
-    // TODO - parse the details of the configuration respose - cluster, min, max, delta ... // library marker rbn.common, line 389
-    final String status = ((List)descMap.data).first() // library marker rbn.common, line 390
-    final int statusCode = hexStrToUnsignedInt(status) // library marker rbn.common, line 391
-    if (statusCode == 0x00 && settings.enableReporting != false) { // library marker rbn.common, line 392
-        state.reportingEnabled = true // library marker rbn.common, line 393
-    } // library marker rbn.common, line 394
-    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${status}" // library marker rbn.common, line 395
-    if (statusCode > 0x00) { // library marker rbn.common, line 396
-        log.warn "zigbee configure reporting error: ${statusName} ${descMap.data}" // library marker rbn.common, line 397
-    } else { // library marker rbn.common, line 398
-        logDebug "zigbee configure reporting response: ${statusName} ${descMap.data}" // library marker rbn.common, line 399
-    } // library marker rbn.common, line 400
-} // library marker rbn.common, line 401
- // library marker rbn.common, line 402
-// Parses the response of reading reporting configuration - command 0x09 // library marker rbn.common, line 403
-private void parseReadReportingConfigResponse(final Map descMap) { // library marker rbn.common, line 404
-    int status = zigbee.convertHexToInt(descMap.data[0])    // Status: Success (0x00) // library marker rbn.common, line 405
-    //def attr = zigbee.convertHexToInt(descMap.data[3])*256 + zigbee.convertHexToInt(descMap.data[2])    // Attribute: OnOff (0x0000) // library marker rbn.common, line 406
-    if (status == 0) { // library marker rbn.common, line 407
-        //def dataType = zigbee.convertHexToInt(descMap.data[4])    // Data Type: Boolean (0x10) // library marker rbn.common, line 408
-        int min = zigbee.convertHexToInt(descMap.data[6]) * 256 + zigbee.convertHexToInt(descMap.data[5]) // library marker rbn.common, line 409
-        int max = zigbee.convertHexToInt(descMap.data[8] + descMap.data[7]) // library marker rbn.common, line 410
-        int delta = 0 // library marker rbn.common, line 411
-        if (descMap.data.size() >= 11) { // library marker rbn.common, line 412
-            delta = zigbee.convertHexToInt(descMap.data[10] + descMap.data[9]) // library marker rbn.common, line 413
-        } // library marker rbn.common, line 414
-        else if (descMap.data.size() == 10) { // library marker rbn.common, line 415
-            delta = zigbee.convertHexToInt(descMap.data[9])      // 1-byte reportable change (uint8/int8) // library marker rbn.common, line 416
-        } // library marker rbn.common, line 417
-        else { // library marker rbn.common, line 418
-            logTrace "descMap.data.size = ${descMap.data.size()}" // library marker rbn.common, line 419
-        } // library marker rbn.common, line 420
-        logDebug "Received Read Reporting Configuration Response (0x09) for cluster:${descMap.clusterId} attribute:${descMap.data[3] + descMap.data[2]}, data=${descMap.data} (Status: ${descMap.data[0] == '00' ? 'Success' : '<b>Failure</b>'}) min=${min} max=${max} delta=${delta}" // library marker rbn.common, line 421
-    } // library marker rbn.common, line 422
-    else { // library marker rbn.common, line 423
-        logWarn "<b>Not Found (0x8b)</b> Read Reporting Configuration Response for cluster:${descMap.clusterId} attribute:${descMap.data[3] + descMap.data[2]}, data=${descMap.data} (Status: ${descMap.data[0] == '00' ? 'Success' : '<b>Failure</b>'})" // library marker rbn.common, line 424
-    } // library marker rbn.common, line 425
-} // library marker rbn.common, line 426
- // library marker rbn.common, line 427
-private Boolean executeCustomHandler(String handlerName, Object handlerArgs) { // library marker rbn.common, line 428
-    if (!this.respondsTo(handlerName)) { // library marker rbn.common, line 429
-        logTrace "executeCustomHandler: function <b>${handlerName}</b> not found" // library marker rbn.common, line 430
-        return false // library marker rbn.common, line 431
-    } // library marker rbn.common, line 432
-    // execute the customHandler function // library marker rbn.common, line 433
-    Boolean result = false // library marker rbn.common, line 434
-    try { // library marker rbn.common, line 435
-        result = "$handlerName"(handlerArgs) // library marker rbn.common, line 436
-    } // library marker rbn.common, line 437
-    catch (e) { // library marker rbn.common, line 438
-        logWarn "executeCustomHandler: Exception '${e}'caught while processing <b>$handlerName</b>(<b>$handlerArgs</b>) (val=${fncmd}))" // library marker rbn.common, line 439
-        return false // library marker rbn.common, line 440
-    } // library marker rbn.common, line 441
-    //logDebug "customSetFunction result is ${fncmd}" // library marker rbn.common, line 442
-    return result // library marker rbn.common, line 443
-} // library marker rbn.common, line 444
- // library marker rbn.common, line 445
-// Zigbee Default Command Response Parsing // library marker rbn.common, line 446
-private void parseDefaultCommandResponse(final Map descMap) { // library marker rbn.common, line 447
-    final List<String> data = descMap.data as List<String> // library marker rbn.common, line 448
-    final String commandId = data[0] // library marker rbn.common, line 449
-    final int statusCode = hexStrToUnsignedInt(data[1]) // library marker rbn.common, line 450
-    final String status = ZigbeeStatusEnum[statusCode] ?: "0x${data[1]}" // library marker rbn.common, line 451
-    if (statusCode > 0x00) { // library marker rbn.common, line 452
-        logWarn "zigbee ${clusterLookup(descMap.clusterInt)} command 0x${commandId} error: ${status}" // library marker rbn.common, line 453
-    } else { // library marker rbn.common, line 454
-        logDebug "zigbee ${clusterLookup(descMap.clusterInt)} command 0x${commandId} response: ${status}" // library marker rbn.common, line 455
-        // ZigUSB has its own interpretation of the Zigbee standards ... :( // library marker rbn.common, line 456
-        if (this.respondsTo('customParseDefaultCommandResponse')) { // library marker rbn.common, line 457
-            customParseDefaultCommandResponse(descMap) // library marker rbn.common, line 458
-        } // library marker rbn.common, line 459
-    } // library marker rbn.common, line 460
-} // library marker rbn.common, line 461
- // library marker rbn.common, line 462
-// Zigbee Attribute IDs // library marker rbn.common, line 463
-@Field static final int ATTRIBUTE_READING_INFO_SET = 0x0000 // library marker rbn.common, line 464
-@Field static final int FIRMWARE_VERSION_ID = 0x4000 // library marker rbn.common, line 465
-@Field static final int PING_ATTR_ID = 0x01 // library marker rbn.common, line 466
- // library marker rbn.common, line 467
-@Field static final Map<Integer, String> ZigbeeStatusEnum = [ // library marker rbn.common, line 468
-    0x00: 'Success', 0x01: 'Failure', 0x02: 'Not Authorized', 0x80: 'Malformed Command', 0x81: 'Unsupported COMMAND', 0x85: 'Invalid Field', 0x86: 'Unsupported Attribute', 0x87: 'Invalid Value', 0x88: 'Read Only', // library marker rbn.common, line 469
-    0x89: 'Insufficient Space', 0x8A: 'Duplicate Exists', 0x8B: 'Not Found', 0x8C: 'Unreportable Attribute', 0x8D: 'Invalid Data Type', 0x8E: 'Invalid Selector', 0x94: 'Time out', 0x9A: 'Notification Pending', 0xC3: 'Unsupported Cluster' // library marker rbn.common, line 470
-] // library marker rbn.common, line 471
- // library marker rbn.common, line 472
-@Field static final Map<Integer, String> ZigbeeGeneralCommandEnum = [ // library marker rbn.common, line 473
-    0x00: 'Read Attributes', 0x01: 'Read Attributes Response', 0x02: 'Write Attributes', 0x03: 'Write Attributes Undivided', 0x04: 'Write Attributes Response', 0x05: 'Write Attributes No Response', 0x06: 'Configure Reporting', // library marker rbn.common, line 474
-    0x07: 'Configure Reporting Response', 0x08: 'Read Reporting Configuration', 0x09: 'Read Reporting Configuration Response', 0x0A: 'Report Attributes', 0x0B: 'Default Response', 0x0C: 'Discover Attributes', 0x0D: 'Discover Attributes Response', // library marker rbn.common, line 475
-    0x0E: 'Read Attributes Structured', 0x0F: 'Write Attributes Structured', 0x10: 'Write Attributes Structured Response', 0x11: 'Discover Commands Received', 0x12: 'Discover Commands Received Response', 0x13: 'Discover Commands Generated', // library marker rbn.common, line 476
-    0x14: 'Discover Commands Generated Response', 0x15: 'Discover Attributes Extended', 0x16: 'Discover Attributes Extended Response' // library marker rbn.common, line 477
-] // library marker rbn.common, line 478
- // library marker rbn.common, line 479
-@Field static final int ROLLING_AVERAGE_N = 10 // library marker rbn.common, line 480
-private BigDecimal approxRollingAverage(BigDecimal avgPar, BigDecimal newSample) { // library marker rbn.common, line 481
-    BigDecimal avg = avgPar // library marker rbn.common, line 482
-    if (avg == null || avg == 0) { avg = newSample } // library marker rbn.common, line 483
-    avg -= avg / ROLLING_AVERAGE_N // library marker rbn.common, line 484
-    avg += newSample / ROLLING_AVERAGE_N // library marker rbn.common, line 485
-    return avg // library marker rbn.common, line 486
-} // library marker rbn.common, line 487
- // library marker rbn.common, line 488
-private void handlePingResponse() { // library marker rbn.common, line 489
-    Long now = new Date().getTime() // library marker rbn.common, line 490
-    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 491
-    state.lastRx['checkInTime'] = now // library marker rbn.common, line 492
- // library marker rbn.common, line 493
-    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: '0').toInteger() // library marker rbn.common, line 494
-    if (timeRunning > 0 && timeRunning < MAX_PING_MILISECONDS) { // library marker rbn.common, line 495
-        state.stats['pingsOK'] = (state.stats['pingsOK'] ?: 0) + 1 // library marker rbn.common, line 496
-        if (timeRunning < safeToInt((state.stats['pingsMin'] ?: '9999'))) { state.stats['pingsMin'] = timeRunning } // library marker rbn.common, line 497
-        if (timeRunning > safeToInt((state.stats['pingsMax'] ?: '0')))   { state.stats['pingsMax'] = timeRunning } // library marker rbn.common, line 498
-        state.stats['pingsAvg'] = approxRollingAverage(safeToDouble(state.stats['pingsAvg']), safeToDouble(timeRunning)) as int // library marker rbn.common, line 499
-        sendRttEvent() // library marker rbn.common, line 500
-    } // library marker rbn.common, line 501
-    else { // library marker rbn.common, line 502
-        logWarn "unexpected ping timeRunning=${timeRunning} " // library marker rbn.common, line 503
-    } // library marker rbn.common, line 504
-    state.states['isPing'] = false // library marker rbn.common, line 505
-} // library marker rbn.common, line 506
- // library marker rbn.common, line 507
-/* // library marker rbn.common, line 508
- * ----------------------------------------------------------------------------- // library marker rbn.common, line 509
- * Standard clusters reporting handlers // library marker rbn.common, line 510
- * ----------------------------------------------------------------------------- // library marker rbn.common, line 511
-*/ // library marker rbn.common, line 512
-@Field static final Map powerSourceOpts =  [ defaultValue: 0, options: [0: 'unknown', 1: 'mains', 2: 'mains', 3: 'battery', 4: 'dc', 5: 'emergency mains', 6: 'emergency mains']] // library marker rbn.common, line 513
- // library marker rbn.common, line 514
-// Zigbee Basic Cluster Parsing  0x0000 - called from the main parse method // library marker rbn.common, line 515
-private void standardParseBasicCluster(final Map descMap) { // library marker rbn.common, line 516
-    Long now = new Date().getTime() // library marker rbn.common, line 517
-    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 518
-    state.lastRx['checkInTime'] = now // library marker rbn.common, line 519
-    boolean isPing = state.states?.isPing ?: false // library marker rbn.common, line 520
-    switch (descMap.attrInt as Integer) { // library marker rbn.common, line 521
-        case 0x0000: // library marker rbn.common, line 522
-            logDebug "Basic cluster: ZCLVersion = ${descMap?.value}" // library marker rbn.common, line 523
-            break // library marker rbn.common, line 524
-        case PING_ATTR_ID: // 0x01 - Using 0x01 read as a simple ping/pong mechanism // library marker rbn.common, line 525
-            if (isPing) { // library marker rbn.common, line 526
-                handlePingResponse() // library marker rbn.common, line 527
-            } // library marker rbn.common, line 528
-            else { // library marker rbn.common, line 529
-                logTrace "Tuya check-in message (attribute ${descMap.attrId} reported: ${descMap.value})" // library marker rbn.common, line 530
-            } // library marker rbn.common, line 531
-            break // library marker rbn.common, line 532
-        case 0x0004: // library marker rbn.common, line 533
-            logDebug "received device manufacturer ${descMap?.value}" // library marker rbn.common, line 534
-            // received device manufacturer IKEA of Sweden // library marker rbn.common, line 535
-            String manufacturer = device.getDataValue('manufacturer') // library marker rbn.common, line 536
-            if ((manufacturer == null || manufacturer == 'unknown') && (descMap?.value != null)) { // library marker rbn.common, line 537
-                logWarn "updating device manufacturer from ${manufacturer} to ${descMap?.value}" // library marker rbn.common, line 538
-                device.updateDataValue('manufacturer', descMap?.value) // library marker rbn.common, line 539
-            } // library marker rbn.common, line 540
-            break // library marker rbn.common, line 541
-        case 0x0005: // library marker rbn.common, line 542
-            if (isPing) { // library marker rbn.common, line 543
-                handlePingResponse() // library marker rbn.common, line 544
-            } // library marker rbn.common, line 545
-            else { // library marker rbn.common, line 546
-                logDebug "received device model ${descMap?.value}" // library marker rbn.common, line 547
-                // received device model Remote Control N2 // library marker rbn.common, line 548
-                String model = device.getDataValue('model') // library marker rbn.common, line 549
-                if ((model == null || model == 'unknown') && (descMap?.value != null)) { // library marker rbn.common, line 550
-                    logWarn "updating device model from ${model} to ${descMap?.value}" // library marker rbn.common, line 551
-                    device.updateDataValue('model', descMap?.value) // library marker rbn.common, line 552
-                } // library marker rbn.common, line 553
-            } // library marker rbn.common, line 554
-            break // library marker rbn.common, line 555
-        case 0x0007: // library marker rbn.common, line 556
-            String powerSourceReported = powerSourceOpts.options[descMap?.value as int] // library marker rbn.common, line 557
-            logDebug "received Power source <b>${powerSourceReported}</b> (${descMap?.value})" // library marker rbn.common, line 558
-            String currentPowerSource = device.getDataValue('powerSource') // library marker rbn.common, line 559
-            if (currentPowerSource == null || currentPowerSource == 'unknown') { // library marker rbn.common, line 560
-                logInfo "updating device powerSource from ${currentPowerSource} to ${powerSourceReported}" // library marker rbn.common, line 561
-                sendEvent(name: 'powerSource', value: powerSourceReported, type: 'physical') // library marker rbn.common, line 562
-            } // library marker rbn.common, line 563
-            break // library marker rbn.common, line 564
-        case 0xFFDF: // library marker rbn.common, line 565
-            logDebug "Tuya check-in (Cluster Revision=${descMap?.value})" // library marker rbn.common, line 566
-            break // library marker rbn.common, line 567
-        case 0xFFE2: // library marker rbn.common, line 568
-            logDebug "Tuya check-in (AppVersion=${descMap?.value})" // library marker rbn.common, line 569
-            break // library marker rbn.common, line 570
-        case [0xFFE0, 0xFFE1, 0xFFE3, 0xFFE4] : // library marker rbn.common, line 571
-            logTrace "Tuya attribute ${descMap?.attrId} value=${descMap?.value}" // library marker rbn.common, line 572
-            break // library marker rbn.common, line 573
-        case 0xFFFE: // library marker rbn.common, line 574
-            logTrace "Tuya attributeReportingStatus (attribute FFFE) value=${descMap?.value}" // library marker rbn.common, line 575
-            break // library marker rbn.common, line 576
-        case FIRMWARE_VERSION_ID:    // 0x4000 // library marker rbn.common, line 577
-            final String version = descMap.value ?: 'unknown' // library marker rbn.common, line 578
-            logInfo "device firmware version is ${version}" // library marker rbn.common, line 579
-            updateDataValue('softwareBuild', version) // library marker rbn.common, line 580
-            break // library marker rbn.common, line 581
-        default: // library marker rbn.common, line 582
-            logDebug "zigbee received unknown Basic cluster attribute 0x${descMap.attrId} (value ${descMap.value})" // library marker rbn.common, line 583
-            break // library marker rbn.common, line 584
-    } // library marker rbn.common, line 585
-} // library marker rbn.common, line 586
- // library marker rbn.common, line 587
-private void standardParsePollControlCluster(final Map descMap) { // library marker rbn.common, line 588
-    switch (descMap.attrInt as Integer) { // library marker rbn.common, line 589
-        case 0x0000: logDebug "PollControl cluster: CheckInInterval = ${descMap?.value}" ; break // library marker rbn.common, line 590
-        case 0x0001: logDebug "PollControl cluster: LongPollInterval = ${descMap?.value}" ; break // library marker rbn.common, line 591
-        case 0x0002: logDebug "PollControl cluster: ShortPollInterval = ${descMap?.value}" ; break // library marker rbn.common, line 592
-        case 0x0003: logDebug "PollControl cluster: FastPollTimeout = ${descMap?.value}" ; break // library marker rbn.common, line 593
-        case 0x0004: logDebug "PollControl cluster: CheckInIntervalMin = ${descMap?.value}" ; break // library marker rbn.common, line 594
-        case 0x0005: logDebug "PollControl cluster: LongPollIntervalMin = ${descMap?.value}" ; break // library marker rbn.common, line 595
-        case 0x0006: logDebug "PollControl cluster: FastPollTimeoutMax = ${descMap?.value}" ; break // library marker rbn.common, line 596
-        default: logDebug "zigbee received unknown PollControl cluster attribute 0x${descMap.attrId} (value ${descMap.value})" ; break // library marker rbn.common, line 597
-    } // library marker rbn.common, line 598
-} // library marker rbn.common, line 599
- // library marker rbn.common, line 600
-public void clearIsDigital()        { state.states['isDigital'] = false } // library marker rbn.common, line 601
-void switchDebouncingClear() { state.states['debounce']  = false } // library marker rbn.common, line 602
-void isRefreshRequestClear() { state.states['isRefresh'] = false } // library marker rbn.common, line 603
- // library marker rbn.common, line 604
-Map myParseDescriptionAsMap(String description) { // library marker rbn.common, line 605
-    Map descMap = [:] // library marker rbn.common, line 606
-    try { // library marker rbn.common, line 607
-        descMap = zigbee.parseDescriptionAsMap(description) // library marker rbn.common, line 608
-    } // library marker rbn.common, line 609
-    catch (e1) { // library marker rbn.common, line 610
-        logWarn "exception ${e1} caught while parseDescriptionAsMap <b>myParseDescriptionAsMap</b> description:  ${description}" // library marker rbn.common, line 611
-        // try alternative custom parsing // library marker rbn.common, line 612
-        descMap = [:] // library marker rbn.common, line 613
-        try { // library marker rbn.common, line 614
-            descMap += description.replaceAll('\\[|\\]', '').split(',').collectEntries { entry -> // library marker rbn.common, line 615
-                List<String> pair = entry.split(':') // library marker rbn.common, line 616
-                [(pair.first().trim()): pair.last().trim()] // library marker rbn.common, line 617
-            } // library marker rbn.common, line 618
-        } // library marker rbn.common, line 619
-        catch (e2) { // library marker rbn.common, line 620
-            logWarn "exception ${e2} caught while parsing using an alternative method <b>myParseDescriptionAsMap</b> description:  ${description}" // library marker rbn.common, line 621
-            return [:] // library marker rbn.common, line 622
-        } // library marker rbn.common, line 623
-        logDebug "alternative method parsing success: descMap=${descMap}" // library marker rbn.common, line 624
-    } // library marker rbn.common, line 625
-    return descMap // library marker rbn.common, line 626
-} // library marker rbn.common, line 627
- // library marker rbn.common, line 628
-public String intTo16bitUnsignedHex(int value) { // library marker rbn.common, line 629
-    String hexStr = zigbee.convertToHexString(value.toInteger(), 4) // library marker rbn.common, line 630
-    return new String(hexStr.substring(2, 4) + hexStr.substring(0, 2)) // library marker rbn.common, line 631
-} // library marker rbn.common, line 632
- // library marker rbn.common, line 633
-public String intTo8bitUnsignedHex(int value) { // library marker rbn.common, line 634
-    return zigbee.convertToHexString(value.toInteger(), 2) // library marker rbn.common, line 635
-} // library marker rbn.common, line 636
- // library marker rbn.common, line 637
-public void aqaraBlackMagic() { // library marker rbn.common, line 638
-    List<String> cmds = [] // library marker rbn.common, line 639
-    if (this.respondsTo('customAqaraBlackMagic')) { // library marker rbn.common, line 640
-        cmds = customAqaraBlackMagic() // library marker rbn.common, line 641
-    } // library marker rbn.common, line 642
-    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 643
-        logDebug 'sending aqaraBlackMagic()' // library marker rbn.common, line 644
-        sendZigbeeCommands(cmds) // library marker rbn.common, line 645
-        return // library marker rbn.common, line 646
-    } // library marker rbn.common, line 647
-    logDebug 'aqaraBlackMagic() was SKIPPED' // library marker rbn.common, line 648
-} // library marker rbn.common, line 649
- // library marker rbn.common, line 650
-// Invoked from configure() // library marker rbn.common, line 651
-public List<String> initializeDevice() { // library marker rbn.common, line 652
-    List<String> cmds = [] // library marker rbn.common, line 653
-    logInfo 'initializeDevice...' // library marker rbn.common, line 654
-    if (this.respondsTo('customInitializeDevice')) { // library marker rbn.common, line 655
-        List<String> customCmds = customInitializeDevice() // library marker rbn.common, line 656
-        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 657
-    } // library marker rbn.common, line 658
-    else { logDebug 'no customInitializeDevice method defined' } // library marker rbn.common, line 659
-    logDebug "initializeDevice(): cmds=${cmds}" // library marker rbn.common, line 660
-    return cmds // library marker rbn.common, line 661
-} // library marker rbn.common, line 662
- // library marker rbn.common, line 663
-// Invoked from configure() // library marker rbn.common, line 664
-public List<String> configureDevice() { // library marker rbn.common, line 665
-    List<String> cmds = [] // library marker rbn.common, line 666
-    logInfo 'configureDevice...' // library marker rbn.common, line 667
-    if (this.respondsTo('customConfigureDevice')) { // library marker rbn.common, line 668
-        List<String> customCmds = customConfigureDevice() // library marker rbn.common, line 669
-        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 670
-    } // library marker rbn.common, line 671
-    else { logDebug 'no customConfigureDevice method defined' } // library marker rbn.common, line 672
-    // sendZigbeeCommands(cmds) changed 03/04/2024 // library marker rbn.common, line 673
-    logDebug "configureDevice(): cmds=${cmds}" // library marker rbn.common, line 674
-    return cmds // library marker rbn.common, line 675
-} // library marker rbn.common, line 676
- // library marker rbn.common, line 677
-/* // library marker rbn.common, line 678
- * ----------------------------------------------------------------------------- // library marker rbn.common, line 679
- * Hubitat default handlers methods // library marker rbn.common, line 680
- * ----------------------------------------------------------------------------- // library marker rbn.common, line 681
-*/ // library marker rbn.common, line 682
- // library marker rbn.common, line 683
-List<String> customHandlers(final List customHandlersList) { // library marker rbn.common, line 684
-    List<String> cmds = [] // library marker rbn.common, line 685
-    if (customHandlersList != null && !customHandlersList.isEmpty()) { // library marker rbn.common, line 686
-        customHandlersList.each { handler -> // library marker rbn.common, line 687
-            if (this.respondsTo(handler)) { // library marker rbn.common, line 688
-                List<String> customCmds = this."${handler}"() // library marker rbn.common, line 689
-                if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 690
-            } // library marker rbn.common, line 691
-        } // library marker rbn.common, line 692
-    } // library marker rbn.common, line 693
-    return cmds // library marker rbn.common, line 694
-} // library marker rbn.common, line 695
- // library marker rbn.common, line 696
-public void refresh() { // library marker rbn.common, line 697
-    logDebug "refresh()... DEVICE_TYPE is ${DEVICE_TYPE} model=${device.getDataValue('model')} manufacturer=${device.getDataValue('manufacturer')}" // library marker rbn.common, line 698
-    checkDriverVersion(state) // library marker rbn.common, line 699
-    List<String> cmds = [], customCmds = [] // library marker rbn.common, line 700
-    if (this.respondsTo('customRefresh')) {     // if there is a customRefresh() method defined in the main driver, call it // library marker rbn.common, line 701
-        customCmds = customRefresh() // library marker rbn.common, line 702
-        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } else { logDebug 'no customRefresh method defined' } // library marker rbn.common, line 703
-    } // library marker rbn.common, line 704
-    else {  // call all known libraryRefresh methods // library marker rbn.common, line 705
-        customCmds = customHandlers(['onOffRefresh', 'groupsRefresh', 'batteryRefresh', 'levelRefresh', 'temperatureRefresh', 'humidityRefresh', 'illuminanceRefresh']) // library marker rbn.common, line 706
-        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } else { logDebug 'no libraries refresh() defined' } // library marker rbn.common, line 707
-    } // library marker rbn.common, line 708
-    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 709
-        logDebug "refresh() cmds=${cmds}" // library marker rbn.common, line 710
-        setRefreshRequest()    // 3 seconds // library marker rbn.common, line 711
-        sendZigbeeCommands(cmds) // library marker rbn.common, line 712
-    } // library marker rbn.common, line 713
-    else { // library marker rbn.common, line 714
-        logDebug "no refresh() commands defined for device type ${DEVICE_TYPE}" // library marker rbn.common, line 715
-    } // library marker rbn.common, line 716
-} // library marker rbn.common, line 717
- // library marker rbn.common, line 718
-public void setRefreshRequest()   { if (state.states == null) { state.states = [:] } ; state.states['isRefresh'] = true; runInMillis(REFRESH_TIMER, 'clearRefreshRequest', [overwrite: true]) } // library marker rbn.common, line 719
-public void clearRefreshRequest() { if (state.states == null) { state.states = [:] } ; state.states['isRefresh'] = false } // library marker rbn.common, line 720
-public void clearInfoEvent()      { sendInfoEvent('clear') } // library marker rbn.common, line 721
- // library marker rbn.common, line 722
-public void sendInfoEvent(String info=null) { // library marker rbn.common, line 723
-    if (info == null || info == 'clear') { // library marker rbn.common, line 724
-        logDebug 'clearing the Status event' // library marker rbn.common, line 725
-        sendEvent(name: '_status_', value: 'clear', type: 'digital') // library marker rbn.common, line 726
-    } // library marker rbn.common, line 727
-    else { // library marker rbn.common, line 728
-        logInfo "${info}" // library marker rbn.common, line 729
-        sendEvent(name: '_status_', value: info, type: 'digital') // library marker rbn.common, line 730
-        runIn(INFO_AUTO_CLEAR_PERIOD, 'clearInfoEvent')            // automatically clear the Info attribute after 1 minute // library marker rbn.common, line 731
-    } // library marker rbn.common, line 732
-} // library marker rbn.common, line 733
- // library marker rbn.common, line 734
-public void ping() { // library marker rbn.common, line 735
-    if (state.lastTx == null ) { state.lastTx = [:] } ; state.lastTx['pingTime'] = new Date().getTime() // library marker rbn.common, line 736
-    if (state.states == null ) { state.states = [:] } ; state.states['isPing'] = true // library marker rbn.common, line 737
-    scheduleCommandTimeoutCheck() // library marker rbn.common, line 738
-    int  pingAttr = (device.getDataValue('manufacturer') == 'SONOFF') ? 0x05 : PING_ATTR_ID // library marker rbn.common, line 739
-    if (isVirtual()) { runInMillis(10, 'virtualPong') } // library marker rbn.common, line 740
-    else if (device.getDataValue('manufacturer') == 'Aqara') { // library marker rbn.common, line 741
-        logDebug 'Aqara device ping...' // library marker rbn.common, line 742
-        sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, pingAttr, [destEndpoint: 0x01], 0) ) // library marker rbn.common, line 743
-    } // library marker rbn.common, line 744
-    else { sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, pingAttr, [:], 0) ) } // library marker rbn.common, line 745
-    logDebug 'ping...' // library marker rbn.common, line 746
-} // library marker rbn.common, line 747
- // library marker rbn.common, line 748
-private void virtualPong() { // library marker rbn.common, line 749
-    logDebug 'virtualPing: pong!' // library marker rbn.common, line 750
-    Long now = new Date().getTime() // library marker rbn.common, line 751
-    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: '0').toInteger() // library marker rbn.common, line 752
-    if (timeRunning > 0 && timeRunning < MAX_PING_MILISECONDS) { // library marker rbn.common, line 753
-        state.stats['pingsOK'] = (state.stats['pingsOK'] ?: 0) + 1 // library marker rbn.common, line 754
-        if (timeRunning < safeToInt((state.stats['pingsMin'] ?: '9999'))) { state.stats['pingsMin'] = timeRunning } // library marker rbn.common, line 755
-        if (timeRunning > safeToInt((state.stats['pingsMax'] ?: '0')))   { state.stats['pingsMax'] = timeRunning } // library marker rbn.common, line 756
-        state.stats['pingsAvg'] = approxRollingAverage(safeToDouble(state.stats['pingsAvg']), safeToDouble(timeRunning)) as int // library marker rbn.common, line 757
-        sendRttEvent() // library marker rbn.common, line 758
-    } // library marker rbn.common, line 759
-    else { // library marker rbn.common, line 760
-        logWarn "unexpected ping timeRunning=${timeRunning} " // library marker rbn.common, line 761
-    } // library marker rbn.common, line 762
-    state.states['isPing'] = false // library marker rbn.common, line 763
-    unscheduleCommandTimeoutCheck(state) // library marker rbn.common, line 764
-} // library marker rbn.common, line 765
- // library marker rbn.common, line 766
-public void sendRttEvent( String value=null) { // library marker rbn.common, line 767
-    Long now = new Date().getTime() // library marker rbn.common, line 768
-    if (state.lastTx == null ) { state.lastTx = [:] } // library marker rbn.common, line 769
-    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: now).toInteger() // library marker rbn.common, line 770
-    String descriptionText = "Round-trip time is ${timeRunning} ms (min=${state.stats['pingsMin']} max=${state.stats['pingsMax']} average=${state.stats['pingsAvg']})" // library marker rbn.common, line 771
-    if (value == null) { // library marker rbn.common, line 772
-        logInfo "${descriptionText}" // library marker rbn.common, line 773
-        sendEvent(name: 'rtt', value: timeRunning, descriptionText: descriptionText, unit: 'ms', type: 'physical') // library marker rbn.common, line 774
-    } // library marker rbn.common, line 775
-    else { // library marker rbn.common, line 776
-        descriptionText = "Round-trip time : ${value}" // library marker rbn.common, line 777
-        logInfo "${descriptionText}" // library marker rbn.common, line 778
-        sendEvent(name: 'rtt', value: value, descriptionText: descriptionText, type: 'physical') // library marker rbn.common, line 779
-    } // library marker rbn.common, line 780
-} // library marker rbn.common, line 781
- // library marker rbn.common, line 782
-private String clusterLookup(final Object cluster) { // library marker rbn.common, line 783
-    if (cluster != null) { // library marker rbn.common, line 784
-        return zigbee.clusterLookup(cluster.toInteger()) ?: "private cluster 0x${intToHexStr(cluster.toInteger())}" // library marker rbn.common, line 785
-    } // library marker rbn.common, line 786
-    logWarn 'cluster is NULL!' // library marker rbn.common, line 787
-    return 'NULL' // library marker rbn.common, line 788
-} // library marker rbn.common, line 789
- // library marker rbn.common, line 790
-private void scheduleCommandTimeoutCheck(int delay = COMMAND_TIMEOUT) { // library marker rbn.common, line 791
-    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 792
-    state.states['isTimeoutCheck'] = true // library marker rbn.common, line 793
-    runIn(delay, 'deviceCommandTimeout') // library marker rbn.common, line 794
-} // library marker rbn.common, line 795
- // library marker rbn.common, line 796
-// unschedule() is a very time consuming operation : ~ 5 milliseconds per call ! // library marker rbn.common, line 797
-void unscheduleCommandTimeoutCheck(final Map state) {   // can not be static :( // library marker rbn.common, line 798
-    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 799
-    if (state.states['isTimeoutCheck'] == true) { // library marker rbn.common, line 800
-        state.states['isTimeoutCheck'] = false // library marker rbn.common, line 801
-        unschedule('deviceCommandTimeout') // library marker rbn.common, line 802
-    } // library marker rbn.common, line 803
-} // library marker rbn.common, line 804
- // library marker rbn.common, line 805
-void deviceCommandTimeout() { // library marker rbn.common, line 806
-    logWarn 'no response received (sleepy device or offline?)' // library marker rbn.common, line 807
-    sendRttEvent('timeout') // library marker rbn.common, line 808
-    state.stats['pingsFail'] = (state.stats['pingsFail'] ?: 0) + 1 // library marker rbn.common, line 809
-    if (state.health?.isHealthCheck == true) { // library marker rbn.common, line 810
-        logWarn 'device health check failed!' // library marker rbn.common, line 811
-        state.health?.checkCtr3 = (state.health?.checkCtr3 ?: 0 ) + 1 // library marker rbn.common, line 812
-        if (state.health?.checkCtr3 >= PRESENCE_COUNT_THRESHOLD) { // library marker rbn.common, line 813
-            if ((device.currentValue('healthStatus') ?: 'unknown') != 'offline' ) { // library marker rbn.common, line 814
-                sendHealthStatusEvent('offline') // library marker rbn.common, line 815
-            } // library marker rbn.common, line 816
-        } // library marker rbn.common, line 817
-        state.health['isHealthCheck'] = false // library marker rbn.common, line 818
-    } // library marker rbn.common, line 819
-} // library marker rbn.common, line 820
- // library marker rbn.common, line 821
-private void scheduleDeviceHealthCheck(final int intervalMins, final int healthMethod) { // library marker rbn.common, line 822
-    if (healthMethod == 1 || healthMethod == 2)  { // library marker rbn.common, line 823
-        String cron = getCron( intervalMins * 60 ) // library marker rbn.common, line 824
-        schedule(cron, 'deviceHealthCheck') // library marker rbn.common, line 825
-        logDebug "deviceHealthCheck is scheduled every ${intervalMins} minutes" // library marker rbn.common, line 826
-    } // library marker rbn.common, line 827
-    else { // library marker rbn.common, line 828
-        logWarn 'deviceHealthCheck is not scheduled!' // library marker rbn.common, line 829
-        unschedule('deviceHealthCheck') // library marker rbn.common, line 830
-    } // library marker rbn.common, line 831
-} // library marker rbn.common, line 832
- // library marker rbn.common, line 833
-private void unScheduleDeviceHealthCheck() { // library marker rbn.common, line 834
-    unschedule('deviceHealthCheck') // library marker rbn.common, line 835
-    device.deleteCurrentState('healthStatus') // library marker rbn.common, line 836
-    logWarn 'device health check is disabled!' // library marker rbn.common, line 837
-} // library marker rbn.common, line 838
- // library marker rbn.common, line 839
-// called when any event was received from the Zigbee device in the parse() method. // library marker rbn.common, line 840
-private void setHealthStatusOnline(Map state) { // library marker rbn.common, line 841
-    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 842
-    state.health['checkCtr3']  = 0 // library marker rbn.common, line 843
-    if (!((device.currentValue('healthStatus') ?: 'unknown') in ['online'])) { // library marker rbn.common, line 844
-        sendHealthStatusEvent('online') // library marker rbn.common, line 845
-        logInfo 'is now online!' // library marker rbn.common, line 846
-    } // library marker rbn.common, line 847
-} // library marker rbn.common, line 848
- // library marker rbn.common, line 849
-private void deviceHealthCheck() { // library marker rbn.common, line 850
-    checkDriverVersion(state) // library marker rbn.common, line 851
-    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 852
-    int ctr = state.health['checkCtr3'] ?: 0 // library marker rbn.common, line 853
-    if (ctr  >= PRESENCE_COUNT_THRESHOLD) { // library marker rbn.common, line 854
-        if ((device.currentValue('healthStatus') ?: 'unknown') != 'offline' ) { // library marker rbn.common, line 855
-            logWarn 'not present!' // library marker rbn.common, line 856
-            sendHealthStatusEvent('offline') // library marker rbn.common, line 857
-        } // library marker rbn.common, line 858
-    } // library marker rbn.common, line 859
-    else { // library marker rbn.common, line 860
-        logDebug "deviceHealthCheck - online (notPresentCounter=${(ctr + 1)})" // library marker rbn.common, line 861
-    } // library marker rbn.common, line 862
-    state.health['checkCtr3'] = ctr + 1 // library marker rbn.common, line 863
-    // added 03/06/2025 // library marker rbn.common, line 864
-    if (settings?.healthCheckMethod as int == 2) { // library marker rbn.common, line 865
-        state.health['isHealthCheck'] = true // library marker rbn.common, line 866
-        ping()  // proactively ping the device... // library marker rbn.common, line 867
-    } // library marker rbn.common, line 868
-} // library marker rbn.common, line 869
- // library marker rbn.common, line 870
-private void sendHealthStatusEvent(final String value) { // library marker rbn.common, line 871
-    String descriptionText = "healthStatus changed to ${value}" // library marker rbn.common, line 872
-    sendEvent(name: 'healthStatus', value: value, descriptionText: descriptionText, isStateChange: true, type: 'digital') // library marker rbn.common, line 873
-    if (value == 'online') { // library marker rbn.common, line 874
-        logInfo "${descriptionText}" // library marker rbn.common, line 875
-    } // library marker rbn.common, line 876
-    else { // library marker rbn.common, line 877
-        if (settings?.txtEnable) { log.warn "${device.displayName} <b>${descriptionText}</b>" } // library marker rbn.common, line 878
-    } // library marker rbn.common, line 879
-} // library marker rbn.common, line 880
- // library marker rbn.common, line 881
- // Invoked by Hubitat when the driver configuration is updated // library marker rbn.common, line 882
-void updated() { // library marker rbn.common, line 883
-    logInfo 'updated()...' // library marker rbn.common, line 884
-    checkDriverVersion(state) // library marker rbn.common, line 885
-    logInfo"driver version ${driverVersionAndTimeStamp()}" // library marker rbn.common, line 886
-    unschedule() // library marker rbn.common, line 887
- // library marker rbn.common, line 888
-    if (settings.logEnable) { // library marker rbn.common, line 889
-        logTrace(settings.toString()) // library marker rbn.common, line 890
-        runIn(86400, 'logsOff') // library marker rbn.common, line 891
-    } // library marker rbn.common, line 892
-    if (settings.traceEnable) { // library marker rbn.common, line 893
-        logTrace(settings.toString()) // library marker rbn.common, line 894
-        runIn(1800, 'traceOff') // library marker rbn.common, line 895
-    } // library marker rbn.common, line 896
- // library marker rbn.common, line 897
-    final int healthMethod = (settings.healthCheckMethod as Integer) ?: 0 // library marker rbn.common, line 898
-    if (healthMethod == 1 || healthMethod == 2) {                            //    [0: 'Disabled', 1: 'Activity check', 2: 'Periodic polling'] // library marker rbn.common, line 899
-        // schedule the periodic timer // library marker rbn.common, line 900
-        final int interval = (settings.healthCheckInterval as Integer) ?: 0 // library marker rbn.common, line 901
-        if (interval > 0) { // library marker rbn.common, line 902
-            //log.trace "healthMethod=${healthMethod} interval=${interval}" // library marker rbn.common, line 903
-            log.info "scheduling health check every ${interval} minutes by ${HealthcheckMethodOpts.options[healthMethod]} method" // library marker rbn.common, line 904
-            scheduleDeviceHealthCheck(interval, healthMethod) // library marker rbn.common, line 905
-        } // library marker rbn.common, line 906
-    } // library marker rbn.common, line 907
-    else { // library marker rbn.common, line 908
-        unScheduleDeviceHealthCheck()        // unschedule the periodic job, depending on the healthMethod // library marker rbn.common, line 909
-        log.info 'Health Check is disabled!' // library marker rbn.common, line 910
-    } // library marker rbn.common, line 911
-    if (this.respondsTo('customUpdated')) { // library marker rbn.common, line 912
-        customUpdated() // library marker rbn.common, line 913
-    } // library marker rbn.common, line 914
- // library marker rbn.common, line 915
-    sendInfoEvent('updated') // library marker rbn.common, line 916
-} // library marker rbn.common, line 917
- // library marker rbn.common, line 918
-private void logsOff() { // library marker rbn.common, line 919
-    logInfo 'debug logging disabled...' // library marker rbn.common, line 920
-    device.updateSetting('logEnable', [value: 'false', type: 'bool']) // library marker rbn.common, line 921
-} // library marker rbn.common, line 922
-private void traceOff() { // library marker rbn.common, line 923
-    logInfo 'trace logging disabled...' // library marker rbn.common, line 924
-    device.updateSetting('traceEnable', [value: 'false', type: 'bool']) // library marker rbn.common, line 925
-} // library marker rbn.common, line 926
- // library marker rbn.common, line 927
-// the administrative / diagnostic commands drop-down list. Deliberately NOT named 'configure' - overloading the Configuration capability command made the dispatch depend on whether the platform happens to supply an argument // library marker rbn.common, line 928
-public void deviceUtilities(String command = null) { // library marker rbn.common, line 929
-    logInfo "deviceUtilities(${command})..." // library marker rbn.common, line 930
-    if (command == null || !(command in (ConfigureOpts.keySet() as List))) { // library marker rbn.common, line 931
-        configureHelp(command)      // nothing was selected, or the value is not one of ours - show the help and do nothing else // library marker rbn.common, line 932
-        return // library marker rbn.common, line 933
-    } // library marker rbn.common, line 934
-    // // library marker rbn.common, line 935
-    String func // library marker rbn.common, line 936
-    try { // library marker rbn.common, line 937
-        func = ConfigureOpts[command]?.function // library marker rbn.common, line 938
-        "$func"() // library marker rbn.common, line 939
-    } // library marker rbn.common, line 940
-    catch (e) { // library marker rbn.common, line 941
-        logWarn "Exception ${e} caught while processing <b>$func</b>(<b>$value</b>)" // library marker rbn.common, line 942
-        return // library marker rbn.common, line 943
-    } // library marker rbn.common, line 944
-    logInfo "executed '${func}'" // library marker rbn.common, line 945
-} // library marker rbn.common, line 946
- // library marker rbn.common, line 947
-/* groovylint-disable-next-line UnusedMethodParameter */ // library marker rbn.common, line 948
-void configureHelp(final String val = null) { // library marker rbn.common, line 949
-    logInfo "select one of the commands from the list: ${ConfigureOpts.keySet() as List}" // library marker rbn.common, line 950
-    sendInfoEvent('Please select a command from the drop-down list')      // short _status_ event, auto-cleared after INFO_AUTO_CLEAR_PERIOD // library marker rbn.common, line 951
-} // library marker rbn.common, line 952
- // library marker rbn.common, line 953
-public void loadAllDefaults() { // library marker rbn.common, line 954
-    logDebug 'loadAllDefaults() !!!' // library marker rbn.common, line 955
-    deleteAllSettings() // library marker rbn.common, line 956
-    deleteAllCurrentStates() // library marker rbn.common, line 957
-    deleteAllScheduledJobs() // library marker rbn.common, line 958
-    deleteAllStates() // library marker rbn.common, line 959
-    deleteAllChildDevices() // library marker rbn.common, line 960
- // library marker rbn.common, line 961
-    initialize() // library marker rbn.common, line 962
-    configureNow()     // calls  also   configureDevice()   // bug fixed 04/03/2024 // library marker rbn.common, line 963
-    updated() // library marker rbn.common, line 964
-    sendInfoEvent('All Defaults Loaded! F5 to refresh') // library marker rbn.common, line 965
-} // library marker rbn.common, line 966
- // library marker rbn.common, line 967
-private void configureNow() { // library marker rbn.common, line 968
-    configure() // library marker rbn.common, line 969
-} // library marker rbn.common, line 970
- // library marker rbn.common, line 971
-/** // library marker rbn.common, line 972
- * Send configuration parameters to the device // library marker rbn.common, line 973
- * Invoked when device is first installed and when the user updates the configuration  TODO // library marker rbn.common, line 974
- * @return sends zigbee commands // library marker rbn.common, line 975
- */ // library marker rbn.common, line 976
-void configure() { // library marker rbn.common, line 977
-    List<String> cmds = [] // library marker rbn.common, line 978
-    if (state.stats == null) { state.stats = [:] } ; state.stats.cfgCtr = (state.stats.cfgCtr ?: 0) + 1 // library marker rbn.common, line 979
-    logInfo "configure()... cfgCtr=${state.stats.cfgCtr}" // library marker rbn.common, line 980
-    logDebug "configure(): settings: $settings" // library marker rbn.common, line 981
-    aqaraBlackMagic()   // zigbee commands are sent here! // library marker rbn.common, line 982
-    List<String> initCmds = initializeDevice() // library marker rbn.common, line 983
-    if (initCmds != null && !initCmds.isEmpty()) { cmds += initCmds } // library marker rbn.common, line 984
-    List<String> cfgCmds = configureDevice() // library marker rbn.common, line 985
-    if (cfgCmds != null && !cfgCmds.isEmpty()) { cmds += cfgCmds } // library marker rbn.common, line 986
-    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 987
-        sendZigbeeCommands(cmds) // library marker rbn.common, line 988
-        logDebug "configure(): sent cmds = ${cmds}" // library marker rbn.common, line 989
-        sendInfoEvent('sent device configuration') // library marker rbn.common, line 990
-    } // library marker rbn.common, line 991
-    else { // library marker rbn.common, line 992
-        logDebug "configure(): no commands defined for device type ${DEVICE_TYPE}" // library marker rbn.common, line 993
-    } // library marker rbn.common, line 994
-} // library marker rbn.common, line 995
- // library marker rbn.common, line 996
- // Invoked when the device is installed with this driver automatically selected. // library marker rbn.common, line 997
-void installed() { // library marker rbn.common, line 998
-    if (state.stats == null) { state.stats = [:] } ; state.stats.instCtr = (state.stats.instCtr ?: 0) + 1 // library marker rbn.common, line 999
-    logInfo "installed()... instCtr=${state.stats.instCtr}" // library marker rbn.common, line 1000
-    // populate some default values for attributes // library marker rbn.common, line 1001
-    sendEvent(name: 'healthStatus', value: 'unknown', descriptionText: 'device was installed', type: 'digital') // library marker rbn.common, line 1002
-    sendEvent(name: 'powerSource',  value: 'unknown', descriptionText: 'device was installed', type: 'digital') // library marker rbn.common, line 1003
-    sendInfoEvent('installed') // library marker rbn.common, line 1004
-    runIn(3, 'updated') // library marker rbn.common, line 1005
-    runIn(5, 'queryPowerSource') // library marker rbn.common, line 1006
-} // library marker rbn.common, line 1007
- // library marker rbn.common, line 1008
-private void queryPowerSource() { // library marker rbn.common, line 1009
-    sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, 0x0007, [:], 0)) // library marker rbn.common, line 1010
-} // library marker rbn.common, line 1011
- // library marker rbn.common, line 1012
- // Invoked from 'LoadAllDefaults' // library marker rbn.common, line 1013
-private void initialize() { // library marker rbn.common, line 1014
-    if (state.stats == null) { state.stats = [:] } ; state.stats.initCtr = (state.stats.initCtr ?: 0) + 1 // library marker rbn.common, line 1015
-    logDebug "initialize()... initCtr=${state.stats.initCtr}" // library marker rbn.common, line 1016
-    if (device.getDataValue('powerSource') == null) { // library marker rbn.common, line 1017
-        logDebug "initializing device powerSource 'unknown'" // library marker rbn.common, line 1018
-        sendEvent(name: 'powerSource', value: 'unknown', type: 'digital') // library marker rbn.common, line 1019
-    } // library marker rbn.common, line 1020
-    if (this.respondsTo('customInitialize')) { customInitialize() }  // library marker rbn.common, line 1021
-    initializeVars(fullInit = true) // library marker rbn.common, line 1022
-    updateAqaraVersion() // library marker rbn.common, line 1023
-} // library marker rbn.common, line 1024
- // library marker rbn.common, line 1025
-/* // library marker rbn.common, line 1026
- *----------------------------------------------------------------------------- // library marker rbn.common, line 1027
- * kkossev drivers commonly used functions // library marker rbn.common, line 1028
- *----------------------------------------------------------------------------- // library marker rbn.common, line 1029
-*/ // library marker rbn.common, line 1030
- // library marker rbn.common, line 1031
-static Integer safeToInt(Object val, Integer defaultVal=0) { // library marker rbn.common, line 1032
-    return "${val}"?.isInteger() ? "${val}".toInteger() : defaultVal // library marker rbn.common, line 1033
-} // library marker rbn.common, line 1034
- // library marker rbn.common, line 1035
-static Double safeToDouble(Object val, Double defaultVal=0.0) { // library marker rbn.common, line 1036
-    return "${val}"?.isDouble() ? "${val}".toDouble() : defaultVal // library marker rbn.common, line 1037
-} // library marker rbn.common, line 1038
- // library marker rbn.common, line 1039
-static BigDecimal safeToBigDecimal(Object val, BigDecimal defaultVal=0.0) { // library marker rbn.common, line 1040
-    return "${val}"?.isBigDecimal() ? "${val}".toBigDecimal() : defaultVal // library marker rbn.common, line 1041
-} // library marker rbn.common, line 1042
- // library marker rbn.common, line 1043
-public void sendZigbeeCommands(List<String> cmd) { // library marker rbn.common, line 1044
-    if (cmd == null || cmd.isEmpty()) { // library marker rbn.common, line 1045
-        logWarn "sendZigbeeCommands: list is empty! cmd=${cmd}" // library marker rbn.common, line 1046
-        return // library marker rbn.common, line 1047
-    } // library marker rbn.common, line 1048
-    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction() // library marker rbn.common, line 1049
-    cmd.each { // library marker rbn.common, line 1050
-        if (it == null || it.isEmpty() || it == 'null') { // library marker rbn.common, line 1051
-            logWarn "sendZigbeeCommands it: no commands to send! it=${it} (cmd=${cmd})" // library marker rbn.common, line 1052
-            return // library marker rbn.common, line 1053
-        } // library marker rbn.common, line 1054
-        allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE)) // library marker rbn.common, line 1055
-        if (state.stats != null) { state.stats['txCtr'] = (state.stats['txCtr'] ?: 0) + 1 } else { state.stats = [:] } // library marker rbn.common, line 1056
-    } // library marker rbn.common, line 1057
-    if (state.lastTx != null) { state.lastTx['cmdTime'] = now() } else { state.lastTx = [:] } // library marker rbn.common, line 1058
-    sendHubCommand(allActions) // library marker rbn.common, line 1059
-    logDebug "sendZigbeeCommands: sent cmd=${cmd}" // library marker rbn.common, line 1060
-} // library marker rbn.common, line 1061
- // library marker rbn.common, line 1062
-private String driverVersionAndTimeStamp() { version() + ' ' + timeStamp() + ((_DEBUG) ? ' (debug version!) ' : ' ') + "(${device.getDataValue('model')} ${device.getDataValue('manufacturer')}) (${getModel()} ${location.hub.firmwareVersionString})" } // library marker rbn.common, line 1063
- // library marker rbn.common, line 1064
-private String getDeviceInfo() { // library marker rbn.common, line 1065
-    return "model=${device.getDataValue('model')} manufacturer=${device.getDataValue('manufacturer')} destinationEP=${state.destinationEP ?: UNKNOWN} <b>deviceProfile=${state.deviceProfile ?: UNKNOWN}</b>" // library marker rbn.common, line 1066
-} // library marker rbn.common, line 1067
- // library marker rbn.common, line 1068
-public String getDestinationEP() {    // [destEndpoint:safeToInt(getDestinationEP())] // library marker rbn.common, line 1069
-    return state.destinationEP ?: device.endpointId ?: '01' // library marker rbn.common, line 1070
-} // library marker rbn.common, line 1071
- // library marker rbn.common, line 1072
-//@CompileStatic // library marker rbn.common, line 1073
-public void checkDriverVersion(final Map stateCopy) { // library marker rbn.common, line 1074
-    if (stateCopy.driverVersion == null || driverVersionAndTimeStamp() != stateCopy.driverVersion) { // library marker rbn.common, line 1075
-        logDebug "checkDriverVersion: updating the settings from the current driver version ${stateCopy.driverVersion} to the new version ${driverVersionAndTimeStamp()}" // library marker rbn.common, line 1076
-        sendInfoEvent("Updated to version ${driverVersionAndTimeStamp()} from version ${stateCopy.driverVersion ?: 'unknown'}") // library marker rbn.common, line 1077
-        state.driverVersion = driverVersionAndTimeStamp() // library marker rbn.common, line 1078
-        initializeVars(false) // library marker rbn.common, line 1079
-        updateAqaraVersion() // library marker rbn.common, line 1080
-        if (this.respondsTo('customcheckDriverVersion')) { customcheckDriverVersion(stateCopy) } // library marker rbn.common, line 1081
-    } // library marker rbn.common, line 1082
-    if (state.states == null) { state.states = [:] } ; if (state.lastRx == null) { state.lastRx = [:] } ; if (state.lastTx == null) { state.lastTx = [:] } ; if (state.stats  == null) { state.stats =  [:] } // library marker rbn.common, line 1083
-} // library marker rbn.common, line 1084
- // library marker rbn.common, line 1085
-// credits @thebearmay // library marker rbn.common, line 1086
-String getModel() { // library marker rbn.common, line 1087
-    try { // library marker rbn.common, line 1088
-        /* groovylint-disable-next-line UnnecessaryGetter, UnusedVariable */ // library marker rbn.common, line 1089
-        String model = getHubVersion() // requires >=2.2.8.141 // library marker rbn.common, line 1090
-    } catch (ignore) { // library marker rbn.common, line 1091
-        try { // library marker rbn.common, line 1092
-            httpGet("http://${location.hub.localIP}:8080/api/hubitat.xml") { res -> // library marker rbn.common, line 1093
-                model = res.data.device.modelName // library marker rbn.common, line 1094
-                return model // library marker rbn.common, line 1095
-            } // library marker rbn.common, line 1096
-        } catch (ignore_again) { // library marker rbn.common, line 1097
-            return '' // library marker rbn.common, line 1098
-        } // library marker rbn.common, line 1099
-    } // library marker rbn.common, line 1100
-} // library marker rbn.common, line 1101
- // library marker rbn.common, line 1102
-// credits @thebearmay // library marker rbn.common, line 1103
-boolean isCompatible(Integer minLevel) { //check to see if the hub version meets the minimum requirement ( 7 or 8 ) // library marker rbn.common, line 1104
-    String model = getModel()            // <modelName>Rev C-7</modelName> // library marker rbn.common, line 1105
-    String[] tokens = model.split('-') // library marker rbn.common, line 1106
-    String revision = tokens.last() // library marker rbn.common, line 1107
-    return (Integer.parseInt(revision) >= minLevel) // library marker rbn.common, line 1108
-} // library marker rbn.common, line 1109
- // library marker rbn.common, line 1110
-void deleteAllStatesAndJobs() { // library marker rbn.common, line 1111
-    state.clear()    // clear all states // library marker rbn.common, line 1112
-    unschedule() // library marker rbn.common, line 1113
-    device.deleteCurrentState('*') // library marker rbn.common, line 1114
-    device.deleteCurrentState('') // library marker rbn.common, line 1115
- // library marker rbn.common, line 1116
-    log.info "${device.displayName} jobs and states cleared. HE hub is ${getHubVersion()}, version is ${location.hub.firmwareVersionString}" // library marker rbn.common, line 1117
-} // library marker rbn.common, line 1118
- // library marker rbn.common, line 1119
-void resetStatistics() { // library marker rbn.common, line 1120
-    runIn(1, 'resetStats') // library marker rbn.common, line 1121
-    sendInfoEvent('Statistics are reset. Refresh the web page') // library marker rbn.common, line 1122
-} // library marker rbn.common, line 1123
- // library marker rbn.common, line 1124
-// called from initializeVars(true) and resetStatistics() // library marker rbn.common, line 1125
-void resetStats() { // library marker rbn.common, line 1126
-    logDebug 'resetStats...' // library marker rbn.common, line 1127
-    state.stats = [:] ; state.states = [:] ; state.lastRx = [:] ; state.lastTx = [:] ; state.health = [:] // library marker rbn.common, line 1128
-    if (this.respondsTo('groupsLibVersion')) { state.zigbeeGroups = [:] } // library marker rbn.common, line 1129
-    state.stats.rxCtr = 0 ; state.stats.txCtr = 0 // library marker rbn.common, line 1130
-    state.states['isDigital'] = false ; state.states['isRefresh'] = false ; state.states['isPing'] = false // library marker rbn.common, line 1131
-    state.health['offlineCtr'] = 0 ; state.health['checkCtr3'] = 0 // library marker rbn.common, line 1132
-    if (this.respondsTo('customResetStats')) { customResetStats() } // library marker rbn.common, line 1133
-    logInfo 'statistics reset!' // library marker rbn.common, line 1134
-} // library marker rbn.common, line 1135
- // library marker rbn.common, line 1136
-void initializeVars( boolean fullInit = false ) { // library marker rbn.common, line 1137
-    logDebug "InitializeVars()... fullInit = ${fullInit}" // library marker rbn.common, line 1138
-    if (fullInit == true ) { // library marker rbn.common, line 1139
-        state.clear() // library marker rbn.common, line 1140
-        unschedule() // library marker rbn.common, line 1141
-        resetStats() // library marker rbn.common, line 1142
-        if (this.respondsTo('setDeviceNameAndProfile')) { setDeviceNameAndProfile() } // library marker rbn.common, line 1143
-        //state.comment = 'Works with Tuya Zigbee Devices' // library marker rbn.common, line 1144
-        logInfo 'all states and scheduled jobs cleared!' // library marker rbn.common, line 1145
-        state.driverVersion = driverVersionAndTimeStamp() // library marker rbn.common, line 1146
-        logInfo "DEVICE_TYPE = ${DEVICE_TYPE}" // library marker rbn.common, line 1147
-        state.deviceType = DEVICE_TYPE // library marker rbn.common, line 1148
-        sendInfoEvent('Initialized') // library marker rbn.common, line 1149
-    } // library marker rbn.common, line 1150
- // library marker rbn.common, line 1151
-    if (state.stats == null)  { state.stats  = [:] } // library marker rbn.common, line 1152
-    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 1153
-    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 1154
-    if (state.lastTx == null) { state.lastTx = [:] } // library marker rbn.common, line 1155
-    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 1156
- // library marker rbn.common, line 1157
-    if (fullInit || settings?.txtEnable == null) { device.updateSetting('txtEnable', true) } // library marker rbn.common, line 1158
-    if (fullInit || settings?.logEnable == null) { device.updateSetting('logEnable', DEFAULT_DEBUG_LOGGING ?: false) } // library marker rbn.common, line 1159
-    if (fullInit || settings?.traceEnable == null) { device.updateSetting('traceEnable', false) } // library marker rbn.common, line 1160
-    if (fullInit || settings?.advancedOptions == null) { device.updateSetting('advancedOptions', [value:false, type:'bool']) } // library marker rbn.common, line 1161
-    if (fullInit || settings?.healthCheckMethod == null) { device.updateSetting('healthCheckMethod', [value: HealthcheckMethodOpts.defaultValue.toString(), type: 'enum']) } // library marker rbn.common, line 1162
-    if (fullInit || settings?.healthCheckInterval == null) { device.updateSetting('healthCheckInterval', [value: HealthcheckIntervalOpts.defaultValue.toString(), type: 'enum']) } // library marker rbn.common, line 1163
-    if (fullInit || settings?.ignoreDuplicatedZigbeeMessages == null) { device.updateSetting('ignoreDuplicatedZigbeeMessages', false) } // library marker rbn.common, line 1164
-    if (fullInit || settings?.voltageToPercent == null) { device.updateSetting('voltageToPercent', false) } // library marker rbn.common, line 1165
- // library marker rbn.common, line 1166
-    if (device.currentValue('healthStatus') == null) { sendHealthStatusEvent('unknown') } // library marker rbn.common, line 1167
- // library marker rbn.common, line 1168
-    // common libraries initialization // library marker rbn.common, line 1169
-    executeCustomHandler('batteryInitializeVars', fullInit)     // added 07/06/2024 // library marker rbn.common, line 1170
-    executeCustomHandler('motionInitializeVars', fullInit)      // added 07/06/2024 // library marker rbn.common, line 1171
-    executeCustomHandler('groupsInitializeVars', fullInit) // library marker rbn.common, line 1172
-    executeCustomHandler('illuminanceInitializeVars', fullInit) // library marker rbn.common, line 1173
-    executeCustomHandler('onOfInitializeVars', fullInit) // library marker rbn.common, line 1174
-    executeCustomHandler('energyInitializeVars', fullInit) // library marker rbn.common, line 1175
-    // // library marker rbn.common, line 1176
-    executeCustomHandler('deviceProfileInitializeVars', fullInit)   // must be before the other deviceProfile initialization handlers! // library marker rbn.common, line 1177
-    executeCustomHandler('initEventsDeviceProfile', fullInit)   // added 07/06/2024 // library marker rbn.common, line 1178
-    // // library marker rbn.common, line 1179
-    // custom device driver specific initialization should be at the end // library marker rbn.common, line 1180
-    executeCustomHandler('customInitializeVars', fullInit) // library marker rbn.common, line 1181
-    executeCustomHandler('customCreateChildDevices', fullInit) // library marker rbn.common, line 1182
-    executeCustomHandler('customInitEvents', fullInit) // library marker rbn.common, line 1183
- // library marker rbn.common, line 1184
-    final String mm = device.getDataValue('model') // library marker rbn.common, line 1185
-    if (mm != null) { logTrace " model = ${mm}" } // library marker rbn.common, line 1186
-    else { logWarn ' Model not found, please re-pair the device!' } // library marker rbn.common, line 1187
-    final String ep = device.getEndpointId() // library marker rbn.common, line 1188
-    if ( ep  != null) { // library marker rbn.common, line 1189
-        //state.destinationEP = ep // library marker rbn.common, line 1190
-        logTrace " destinationEP = ${ep}" // library marker rbn.common, line 1191
-    } // library marker rbn.common, line 1192
-    else { // library marker rbn.common, line 1193
-        logWarn ' Destination End Point not found, please re-pair the device!' // library marker rbn.common, line 1194
-        //state.destinationEP = "01"    // fallback // library marker rbn.common, line 1195
-    } // library marker rbn.common, line 1196
-} // library marker rbn.common, line 1197
- // library marker rbn.common, line 1198
-// not used!? // library marker rbn.common, line 1199
-void setDestinationEP() { // library marker rbn.common, line 1200
-    String ep = device.getEndpointId() // library marker rbn.common, line 1201
-    if (ep != null && ep != 'F2') { state.destinationEP = ep ; logDebug "setDestinationEP() destinationEP = ${state.destinationEP}" } // library marker rbn.common, line 1202
-    else { logWarn "setDestinationEP() Destination End Point not found or invalid(${ep}), activating the F2 bug patch!" ; state.destinationEP = '01' }   // fallback EP // library marker rbn.common, line 1203
-} // library marker rbn.common, line 1204
- // library marker rbn.common, line 1205
-void logDebug(final String msg) { if (settings?.logEnable)   { log.debug "${device.displayName} " + msg } } // library marker rbn.common, line 1206
-void logInfo(final String msg)  { if (settings?.txtEnable)   { log.info  "${device.displayName} " + msg } } // library marker rbn.common, line 1207
-void logWarn(final String msg)  { if (settings?.logEnable)   { log.warn  "${device.displayName} " + msg } } // library marker rbn.common, line 1208
-void logTrace(final String msg) { if (settings?.traceEnable) { log.trace "${device.displayName} " + msg } } // library marker rbn.common, line 1209
-void logError(final String msg) { if (settings?.txtEnable)   { log.error "${device.displayName} " + msg } } // library marker rbn.common, line 1210
- // library marker rbn.common, line 1211
-// _DEBUG mode only // library marker rbn.common, line 1212
-void getAllProperties() { // library marker rbn.common, line 1213
-    log.trace 'Properties:' ; device.properties.each { it -> log.debug it } // library marker rbn.common, line 1214
-    log.trace 'Settings:' ;  settings.each { it -> log.debug "${it.key} =  ${it.value}" }    // https://community.hubitat.com/t/how-do-i-get-the-datatype-for-an-app-setting/104228/6?u=kkossev // library marker rbn.common, line 1215
-} // library marker rbn.common, line 1216
- // library marker rbn.common, line 1217
-// delete all Preferences // library marker rbn.common, line 1218
-void deleteAllSettings() { // library marker rbn.common, line 1219
-    String preferencesDeleted = '' // library marker rbn.common, line 1220
-    settings.each { it -> preferencesDeleted += "${it.key} (${it.value}), " ; device.removeSetting("${it.key}") } // library marker rbn.common, line 1221
-    logDebug "Deleted settings: ${preferencesDeleted}" // library marker rbn.common, line 1222
-    logInfo  'All settings (preferences) DELETED' // library marker rbn.common, line 1223
-} // library marker rbn.common, line 1224
- // library marker rbn.common, line 1225
-// delete all attributes // library marker rbn.common, line 1226
-void deleteAllCurrentStates() { // library marker rbn.common, line 1227
-    String attributesDeleted = '' // library marker rbn.common, line 1228
-    device.properties.supportedAttributes.each { it -> attributesDeleted += "${it}, " ; device.deleteCurrentState("$it") } // library marker rbn.common, line 1229
-    logDebug "Deleted attributes: ${attributesDeleted}" ; logInfo 'All current states (attributes) DELETED' // library marker rbn.common, line 1230
-} // library marker rbn.common, line 1231
- // library marker rbn.common, line 1232
-// delete all State Variables // library marker rbn.common, line 1233
-void deleteAllStates() { // library marker rbn.common, line 1234
-    String stateDeleted = '' // library marker rbn.common, line 1235
-    state.each { it -> stateDeleted += "${it.key}, " } // library marker rbn.common, line 1236
-    state.clear() // library marker rbn.common, line 1237
-    logDebug "Deleted states: ${stateDeleted}" ; logInfo 'All States DELETED' // library marker rbn.common, line 1238
-} // library marker rbn.common, line 1239
- // library marker rbn.common, line 1240
-void deleteAllScheduledJobs() { // library marker rbn.common, line 1241
-    unschedule() ; logInfo 'All scheduled jobs DELETED' // library marker rbn.common, line 1242
-} // library marker rbn.common, line 1243
- // library marker rbn.common, line 1244
-void deleteAllChildDevices() { // library marker rbn.common, line 1245
-    getChildDevices().each { child -> log.info "${device.displayName} Deleting ${child.deviceNetworkId}" ; deleteChildDevice(child.deviceNetworkId) } // library marker rbn.common, line 1246
-    sendInfoEvent 'All child devices DELETED' // library marker rbn.common, line 1247
-} // library marker rbn.common, line 1248
- // library marker rbn.common, line 1249
-void testParse(String par) { // library marker rbn.common, line 1250
-    //read attr - raw: DF8D0104020A000029280A, dni: DF8D, endpoint: 01, cluster: 0402, size: 0A, attrId: 0000, encoding: 29, command: 0A, value: 280A // library marker rbn.common, line 1251
-    log.trace '------------------------------------------------------' // library marker rbn.common, line 1252
-    log.warn "testParse - <b>START</b> (${par})" // library marker rbn.common, line 1253
-    parse(par) // library marker rbn.common, line 1254
-    log.warn "testParse -   <b>END</b> (${par})" // library marker rbn.common, line 1255
-    log.trace '------------------------------------------------------' // library marker rbn.common, line 1256
-} // library marker rbn.common, line 1257
- // library marker rbn.common, line 1258
-Object testJob() { // library marker rbn.common, line 1259
-    log.warn 'test job executed' // library marker rbn.common, line 1260
-} // library marker rbn.common, line 1261
- // library marker rbn.common, line 1262
-/** // library marker rbn.common, line 1263
- * Calculates and returns the cron expression // library marker rbn.common, line 1264
- * @param timeInSeconds interval in seconds // library marker rbn.common, line 1265
- */ // library marker rbn.common, line 1266
-String getCron(int timeInSeconds) { // library marker rbn.common, line 1267
-    //schedule("${rnd.nextInt(59)} ${rnd.nextInt(9)}/${intervalMins} * ? * * *", 'ping') // library marker rbn.common, line 1268
-    // TODO: runEvery1Minute runEvery5Minutes runEvery10Minutes runEvery15Minutes runEvery30Minutes runEvery1Hour runEvery3Hours // library marker rbn.common, line 1269
-    final Random rnd = new Random() // library marker rbn.common, line 1270
-    int minutes = (timeInSeconds / 60 ) as int // library marker rbn.common, line 1271
-    int  hours = (minutes / 60 ) as int // library marker rbn.common, line 1272
-    if (hours > 23) { hours = 23 } // library marker rbn.common, line 1273
-    String cron // library marker rbn.common, line 1274
-    if (timeInSeconds < 60) { cron = "*/$timeInSeconds * * * * ? *" } // library marker rbn.common, line 1275
-    else { // library marker rbn.common, line 1276
-        if (minutes < 60) {   cron = "${rnd.nextInt(59)} ${rnd.nextInt(9)}/$minutes * ? * *" } // library marker rbn.common, line 1277
-        else {                cron = "${rnd.nextInt(59)} ${rnd.nextInt(59)} */$hours ? * *"  } // library marker rbn.common, line 1278
-    } // library marker rbn.common, line 1279
-    return cron // library marker rbn.common, line 1280
-} // library marker rbn.common, line 1281
- // library marker rbn.common, line 1282
-// credits @thebearmay // library marker rbn.common, line 1283
-String formatUptime() { // library marker rbn.common, line 1284
-    return formatTime(location.hub.uptime) // library marker rbn.common, line 1285
-} // library marker rbn.common, line 1286
- // library marker rbn.common, line 1287
-String formatTime(int timeInSeconds) { // library marker rbn.common, line 1288
-    if (timeInSeconds == null) { return UNKNOWN } // library marker rbn.common, line 1289
-    int days = (timeInSeconds / 86400).toInteger() // library marker rbn.common, line 1290
-    int hours = ((timeInSeconds % 86400) / 3600).toInteger() // library marker rbn.common, line 1291
-    int minutes = ((timeInSeconds % 3600) / 60).toInteger() // library marker rbn.common, line 1292
-    int seconds = (timeInSeconds % 60).toInteger() // library marker rbn.common, line 1293
-    return "${days}d ${hours}h ${minutes}m ${seconds}s" // library marker rbn.common, line 1294
-} // library marker rbn.common, line 1295
- // library marker rbn.common, line 1296
-boolean isAqara() { return device.getDataValue('model')?.startsWith('lumi') ?: false } // library marker rbn.common, line 1297
- // library marker rbn.common, line 1298
-void updateAqaraVersion() { // library marker rbn.common, line 1299
-    if (!isAqara()) { logTrace 'not Aqara' ; return } // library marker rbn.common, line 1300
-    String application = device.getDataValue('application') // library marker rbn.common, line 1301
-    if (application != null) { // library marker rbn.common, line 1302
-        String str = '0.0.0_' + String.format('%04d', zigbee.convertHexToInt(application.take(2))) // library marker rbn.common, line 1303
-        if (device.getDataValue('aqaraVersion') != str) { // library marker rbn.common, line 1304
-            device.updateDataValue('aqaraVersion', str) // library marker rbn.common, line 1305
-            logInfo "aqaraVersion set to $str" // library marker rbn.common, line 1306
-        } // library marker rbn.common, line 1307
-    } // library marker rbn.common, line 1308
-} // library marker rbn.common, line 1309
- // library marker rbn.common, line 1310
-String unix2formattedDate(Long unixTime) { // library marker rbn.common, line 1311
-    try { // library marker rbn.common, line 1312
-        if (unixTime == null) { return null } // library marker rbn.common, line 1313
-        /* groovylint-disable-next-line NoJavaUtilDate */ // library marker rbn.common, line 1314
-        Date date = new Date(unixTime.toLong()) // library marker rbn.common, line 1315
-        return date.format('yyyy-MM-dd HH:mm:ss.SSS', location.timeZone) // library marker rbn.common, line 1316
-    } catch (e) { // library marker rbn.common, line 1317
-        logDebug "Error formatting date: ${e.message}. Returning current time instead." // library marker rbn.common, line 1318
-        return new Date().format('yyyy-MM-dd HH:mm:ss.SSS', location.timeZone) // library marker rbn.common, line 1319
-    } // library marker rbn.common, line 1320
-} // library marker rbn.common, line 1321
- // library marker rbn.common, line 1322
-Long formattedDate2unix(String formattedDate) { // library marker rbn.common, line 1323
-    try { // library marker rbn.common, line 1324
-        if (formattedDate == null) { return null } // library marker rbn.common, line 1325
-        Date date = Date.parse('yyyy-MM-dd HH:mm:ss.SSS', formattedDate) // library marker rbn.common, line 1326
-        return date.getTime() // library marker rbn.common, line 1327
-    } catch (e) { // library marker rbn.common, line 1328
-        logDebug "Error parsing formatted date: ${formattedDate}. Returning current time instead." // library marker rbn.common, line 1329
-        return now() // library marker rbn.common, line 1330
-    } // library marker rbn.common, line 1331
-} // library marker rbn.common, line 1332
- // library marker rbn.common, line 1333
-static String timeToHMS(final int time) { // library marker rbn.common, line 1334
-    int hours = (time / 3600) as int // library marker rbn.common, line 1335
-    int minutes = ((time % 3600) / 60) as int // library marker rbn.common, line 1336
-    int seconds = time % 60 // library marker rbn.common, line 1337
-    return "${hours}h ${minutes}m ${seconds}s" // library marker rbn.common, line 1338
-} // library marker rbn.common, line 1339
+    Map stateCopy = state            // .clone() throws java.lang.CloneNotSupportedException in HE platform version 2.4.1.155 ! // library marker rbn.common, line 152
+    checkDriverVersion(stateCopy)    // +1 ms // library marker rbn.common, line 153
+    if (state.stats != null) { state.stats?.rxCtr= (state.stats?.rxCtr ?: 0) + 1 } else { state.stats = [:] }  // updateRxStats(state) // +1 ms // library marker rbn.common, line 154
+    if (state.lastRx != null) { state.lastRx?.timeStamp = unix2formattedDate(now()) } else { state.lastRx = [:] } // library marker rbn.common, line 155
+    unscheduleCommandTimeoutCheck(state) // library marker rbn.common, line 156
+    setHealthStatusOnline(state)    // +2 ms // library marker rbn.common, line 157
+ // library marker rbn.common, line 158
+    if (description?.startsWith('zone status')  || description?.startsWith('zone report')) { // library marker rbn.common, line 159
+        logDebug "parse: zone status: $description" // library marker rbn.common, line 160
+        if (this.respondsTo('customParseIasMessage')) { customParseIasMessage(description) } // library marker rbn.common, line 161
+        else if (this.respondsTo('standardParseIasMessage')) { standardParseIasMessage(description) } // library marker rbn.common, line 162
+        else if (this.respondsTo('parseIasMessage')) { parseIasMessage(description) } // library marker rbn.common, line 163
+        else { logDebug "ignored IAS zone status (no IAS parser) description: $description" } // library marker rbn.common, line 164
+        return // library marker rbn.common, line 165
+    } // library marker rbn.common, line 166
+    else if (description?.startsWith('enroll request')) { // library marker rbn.common, line 167
+        logDebug "parse: enroll request: $description" // library marker rbn.common, line 168
+        /* The Zone Enroll Request command is generated when a device embodying the Zone server cluster wishes to be  enrolled as an active  alarm device. It  must do this immediately it has joined the network  (during commissioning). */ // library marker rbn.common, line 169
+        if (settings?.logEnable) { logInfo 'Sending IAS enroll response...' } // library marker rbn.common, line 170
+        List<String> cmds = zigbee.enrollResponse() + zigbee.readAttribute(0x0500, 0x0000) // library marker rbn.common, line 171
+        logDebug "enroll response: ${cmds}" // library marker rbn.common, line 172
+        sendZigbeeCommands(cmds) // library marker rbn.common, line 173
+        return // library marker rbn.common, line 174
+    } // library marker rbn.common, line 175
+ // library marker rbn.common, line 176
+    final Map descMap = myParseDescriptionAsMap(description)    // +5 ms // library marker rbn.common, line 177
+ // library marker rbn.common, line 178
+    if (!isChattyDeviceReport(descMap)) { logDebug "parse: descMap = ${descMap} description=${description }" } // library marker rbn.common, line 179
+    if (isSpammyDeviceReport(descMap)) { return }  // +20 mS (both) // library marker rbn.common, line 180
+ // library marker rbn.common, line 181
+    if (descMap.profileId == '0000') { // library marker rbn.common, line 182
+        parseZdoClusters(descMap) // library marker rbn.common, line 183
+        return // library marker rbn.common, line 184
+    } // library marker rbn.common, line 185
+    if (descMap.isClusterSpecific == false) { // library marker rbn.common, line 186
+        parseGeneralCommandResponse(descMap) // library marker rbn.common, line 187
+        return // library marker rbn.common, line 188
+    } // library marker rbn.common, line 189
+    // // library marker rbn.common, line 190
+    if (standardAndCustomParseCluster(descMap, description)) { return } // library marker rbn.common, line 191
+    // // library marker rbn.common, line 192
+    switch (descMap.clusterInt as Integer) { // library marker rbn.common, line 193
+        case 0x000C :  // special case : ZigUSB                                     // Aqara TVOC Air Monitor; Aqara Cube T1 Pro; // library marker rbn.common, line 194
+            if (this.respondsTo('customParseAnalogInputClusterDescription')) { // library marker rbn.common, line 195
+                customParseAnalogInputClusterDescription(descMap, description)                 // ZigUSB // library marker rbn.common, line 196
+                descMap.remove('additionalAttrs')?.each { final Map map -> customParseAnalogInputClusterDescription(descMap + map, description) } // library marker rbn.common, line 197
+            } // library marker rbn.common, line 198
+            break // library marker rbn.common, line 199
+        case 0x0300 :  // Patch - need refactoring of the standardParseColorControlCluster ! // library marker rbn.common, line 200
+            if (this.respondsTo('standardParseColorControlCluster')) { // library marker rbn.common, line 201
+                standardParseColorControlCluster(descMap, description) // library marker rbn.common, line 202
+                descMap.remove('additionalAttrs')?.each { final Map map -> standardParseColorControlCluster(descMap + map, description) } // library marker rbn.common, line 203
+            } // library marker rbn.common, line 204
+            break // library marker rbn.common, line 205
+        default: // library marker rbn.common, line 206
+            if (settings.logEnable) { // library marker rbn.common, line 207
+                // descMap.cluster is null for catchall messages - fall back to clusterId, or format clusterInt // library marker rbn.common, line 208
+                String clusterHex = descMap.cluster ?: descMap.clusterId ?: zigbee.convertToHexString(descMap.clusterInt as Integer, 4) // library marker rbn.common, line 209
+                logWarn "parse: zigbee received <b>unknown cluster:0x${clusterHex} (${descMap.clusterInt})</b> message (${descMap})" // library marker rbn.common, line 210
+            } // library marker rbn.common, line 211
+            break // library marker rbn.common, line 212
+    } // library marker rbn.common, line 213
+} // library marker rbn.common, line 214
+ // library marker rbn.common, line 215
+@Field static final Map<Integer, String> ClustersMap = [ // library marker rbn.common, line 216
+    0x0000: 'Basic',             0x0001: 'Power',            0x0003: 'Identify',         0x0004: 'Groups',           0x0005: 'Scenes',       0x0006: 'OnOff',           0x0007:'onOffConfiguration',      0x0008: 'LevelControl', // library marker rbn.common, line 217
+    0x000C: 'AnalogInput',       0x0012: 'MultistateInput',  0x0020: 'PollControl',      0x0102: 'WindowCovering',   0x0201: 'Thermostat',  0x0204: 'ThermostatConfig',/*0x0300: 'ColorControl',*/ // library marker rbn.common, line 218
+    0x0400: 'Illuminance',       0x0402: 'Temperature',      0x0405: 'Humidity',         0x0406: 'Occupancy',        0x042A: 'Pm25',         0x0500: 'IAS',             0x0702: 'Metering', // library marker rbn.common, line 219
+    0x0B04: 'ElectricalMeasure', 0xE001: 'E0001',            0xE002: 'E002',             0xEC03: 'EC03',             0xFC03: 'FC03',            0xFC11: 'FC11',            0xFC7E: 'AirQualityIndex', // Sensirion VOC index // library marker rbn.common, line 220
+    0xFC80: 'FC80',              0xFC81: 'FC81',             0xFCC0: 'XiaomiFCC0',       0xED00: 'ED00' // library marker rbn.common, line 221
+] // library marker rbn.common, line 222
+ // library marker rbn.common, line 223
+// first try calling the custom parser, if not found, call the standard parser // library marker rbn.common, line 224
+/* groovylint-disable-next-line UnusedMethodParameter */ // library marker rbn.common, line 225
+boolean standardAndCustomParseCluster(Map descMap, final String description) { // library marker rbn.common, line 226
+    Integer clusterInt = descMap.clusterInt as Integer // library marker rbn.common, line 227
+    String  clusterName = ClustersMap[clusterInt] ?: UNKNOWN // library marker rbn.common, line 228
+    // descMap.cluster is null for catchall messages - fall back to clusterId, or format clusterInt, so that the logs never show 'cluster:0xnull' // library marker rbn.common, line 229
+    String  clusterHex = descMap.cluster ?: descMap.clusterId ?: zigbee.convertToHexString(clusterInt, 4) // library marker rbn.common, line 230
+    if (clusterName == null || clusterName == UNKNOWN) { // library marker rbn.common, line 231
+        logWarn "standardAndCustomParseCluster: zigbee received <b>unknown cluster:0x${clusterHex} (${clusterInt})</b> message (${descMap})" // library marker rbn.common, line 232
+        return false // library marker rbn.common, line 233
+    } // library marker rbn.common, line 234
+    String customParser = "customParse${clusterName}Cluster" // library marker rbn.common, line 235
+    // check if a custom parser is defined in the custom driver. If found there, the standard parser should  be called within that custom parser, if needed // library marker rbn.common, line 236
+    if (this.respondsTo(customParser)) { // library marker rbn.common, line 237
+        this."${customParser}"(descMap) // library marker rbn.common, line 238
+        descMap.remove('additionalAttrs')?.each { final Map map -> this."${customParser}"(descMap + map) } // library marker rbn.common, line 239
+        return true // library marker rbn.common, line 240
+    } // library marker rbn.common, line 241
+    String standardParser = "standardParse${clusterName}Cluster" // library marker rbn.common, line 242
+    // if no custom parser is defined, try the standard parser (if exists), eventually defined in the included library file // library marker rbn.common, line 243
+    if (this.respondsTo(standardParser)) { // library marker rbn.common, line 244
+        this."${standardParser}"(descMap) // library marker rbn.common, line 245
+        descMap.remove('additionalAttrs')?.each { final Map map -> this."${standardParser}"(descMap + map) } // library marker rbn.common, line 246
+        return true // library marker rbn.common, line 247
+    } // library marker rbn.common, line 248
+    if (device?.getDataValue('model') != 'ZigUSB' && descMap.cluster != '0300') {    // patch! // library marker rbn.common, line 249
+        logWarn "standardAndCustomParseCluster: <b>Missing</b> ${standardParser} or ${customParser} handler for <b>cluster:0x${clusterHex} (${clusterInt})</b> message (${descMap})" // library marker rbn.common, line 250
+    } // library marker rbn.common, line 251
+    return false // library marker rbn.common, line 252
+} // library marker rbn.common, line 253
+ // library marker rbn.common, line 254
+// not used - throws exception :  error groovy.lang.MissingPropertyException: No such property: rxCtr for class: java.lang.String on line 1568 (method parse) // library marker rbn.common, line 255
+private static void updateRxStats(final Map state) { // library marker rbn.common, line 256
+    if (state.stats != null) { state.stats['rxCtr'] = (state.stats['rxCtr'] ?: 0) + 1 } else { state.stats = [:] }  // +5ms // library marker rbn.common, line 257
+} // library marker rbn.common, line 258
+ // library marker rbn.common, line 259
+public boolean isChattyDeviceReport(final Map descMap)  {  // when @CompileStatis is slower? // library marker rbn.common, line 260
+    if (_TRACE_ALL == true) { return false } // library marker rbn.common, line 261
+    if (this.respondsTo('isSpammyDPsToNotTrace')) {  // defined in deviceProfileLib // library marker rbn.common, line 262
+        return isSpammyDPsToNotTrace(descMap) // library marker rbn.common, line 263
+    } // library marker rbn.common, line 264
+    return false // library marker rbn.common, line 265
+} // library marker rbn.common, line 266
+ // library marker rbn.common, line 267
+public boolean isSpammyDeviceReport(final Map descMap) { // library marker rbn.common, line 268
+    if (_TRACE_ALL == true) { return false } // library marker rbn.common, line 269
+    if (this.respondsTo('isSpammyDPsToIgnore')) {   // defined in deviceProfileLib // library marker rbn.common, line 270
+        return isSpammyDPsToIgnore(descMap) // library marker rbn.common, line 271
+    } // library marker rbn.common, line 272
+    return false // library marker rbn.common, line 273
+} // library marker rbn.common, line 274
+ // library marker rbn.common, line 275
+@Field static final Map<Integer, String> ZdoClusterEnum = [ // library marker rbn.common, line 276
+    0x0002: 'Node Descriptor Request',  0x0005: 'Active Endpoints Request',   0x0006: 'Match Descriptor Request',  0x0022: 'Unbind Request',  0x0013: 'Device announce', 0x0034: 'Management Leave Request', // library marker rbn.common, line 277
+    0x8002: 'Node Descriptor Response', 0x8004: 'Simple Descriptor Response', 0x8005: 'Active Endpoints Response', 0x801D: 'Extended Simple Descriptor Response', 0x801E: 'Extended Active Endpoint Response', // library marker rbn.common, line 278
+    0x8021: 'Bind Response',            0x8022: 'Unbind Response',            0x8023: 'Bind Register Response',    0x8034: 'Management Leave Response' // library marker rbn.common, line 279
+] // library marker rbn.common, line 280
+ // library marker rbn.common, line 281
+// ZDO (Zigbee Data Object) Clusters Parsing // library marker rbn.common, line 282
+private void parseZdoClusters(final Map descMap) { // library marker rbn.common, line 283
+    if (state.stats == null) { state.stats = [:] } // library marker rbn.common, line 284
+    final Integer clusterId = descMap.clusterInt as Integer // library marker rbn.common, line 285
+    final String clusterName = ZdoClusterEnum[clusterId] ?: "UNKNOWN_CLUSTER (0x${descMap.clusterId})" // library marker rbn.common, line 286
+    final String statusHex = ((List)descMap.data)[1] // library marker rbn.common, line 287
+    final Integer statusCode = hexStrToUnsignedInt(statusHex) // library marker rbn.common, line 288
+    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${statusHex}" // library marker rbn.common, line 289
+    final String clusterInfo = "${device.displayName} Received ZDO ${clusterName} (0x${descMap.clusterId}) status ${statusName}" // library marker rbn.common, line 290
+    List<String> cmds = [] // library marker rbn.common, line 291
+    switch (clusterId) { // library marker rbn.common, line 292
+        case 0x0005 : // library marker rbn.common, line 293
+            state.stats['activeEpRqCtr'] = (state.stats['activeEpRqCtr'] ?: 0) + 1 // library marker rbn.common, line 294
+            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, data:${descMap.data})" } // library marker rbn.common, line 295
+            // send the active endpoint response // library marker rbn.common, line 296
+            cmds += ["he raw ${device.deviceNetworkId} 0 0 0x8005 {00 00 00 00 01 01} {0x0000}"] // library marker rbn.common, line 297
+            sendZigbeeCommands(cmds) // library marker rbn.common, line 298
+            break // library marker rbn.common, line 299
+        case 0x0006 : // library marker rbn.common, line 300
+            state.stats['matchDescCtr'] = (state.stats['matchDescCtr'] ?: 0) + 1 // library marker rbn.common, line 301
+            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Input cluster count:${descMap.data[5]} Input cluster: 0x${descMap.data[7] + descMap.data[6]})" } // library marker rbn.common, line 302
+            cmds += ["he raw ${device.deviceNetworkId} 0 0 0x8006 {00 00 00 00 00} {0x0000}"] // library marker rbn.common, line 303
+            sendZigbeeCommands(cmds) // library marker rbn.common, line 304
+            break // library marker rbn.common, line 305
+        case 0x0013 : // device announcement // library marker rbn.common, line 306
+            state.stats['rejoinCtr'] = (state.stats['rejoinCtr'] ?: 0) + 1 // library marker rbn.common, line 307
+            if (settings?.logEnable) { log.debug "${clusterInfo}, rejoinCtr= ${state.stats['rejoinCtr']}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Device network ID: ${descMap.data[2] + descMap.data[1]}, Capability Information: ${descMap.data[11]})" } // library marker rbn.common, line 308
+            break // library marker rbn.common, line 309
+        case 0x8004 : // simple descriptor response // library marker rbn.common, line 310
+            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, status:${descMap.data[1]}, lenght:${hubitat.helper.HexUtils.hexStringToInt(descMap.data[4])}" } // library marker rbn.common, line 311
+            if (this.respondsTo('parseSimpleDescriptorResponse')) { parseSimpleDescriptorResponse(descMap) } // library marker rbn.common, line 312
+            break // library marker rbn.common, line 313
+        case 0x8005 : // endpoint response // library marker rbn.common, line 314
+            String endpointCount = descMap.data[4] // library marker rbn.common, line 315
+            String endpointList = descMap.data[5] // library marker rbn.common, line 316
+            if (settings?.logEnable) { log.debug "${clusterInfo}, (endpoint response) endpointCount = ${endpointCount}  endpointList = ${endpointList}" } // library marker rbn.common, line 317
+            break // library marker rbn.common, line 318
+        case 0x8021 : // bind response // library marker rbn.common, line 319
+            if (settings?.logEnable) { log.debug "${clusterInfo}, data=${descMap.data} (Sequence Number:${descMap.data[0]}, Status: ${descMap.data[1] == '00' ? 'Success' : '<b>Failure</b>'})" } // library marker rbn.common, line 320
+            break // library marker rbn.common, line 321
+        case 0x0002 : // Node Descriptor Request // library marker rbn.common, line 322
+        case 0x0036 : // Permit Joining Request // library marker rbn.common, line 323
+        case 0x8022 : // unbind request // library marker rbn.common, line 324
+        case 0x8034 : // leave response // library marker rbn.common, line 325
+            if (settings?.logEnable) { log.debug "${device.displayName} Unprocessed ZDO command: cluster=${descMap.clusterId} command=${descMap.command} attrId=${descMap.attrId} value=${descMap.value} data=${descMap.data}" } // library marker rbn.common, line 326
+            break // library marker rbn.common, line 327
+        default : // library marker rbn.common, line 328
+            if (settings?.logEnable) { log.warn "${device.displayName} Unprocessed ZDO command: cluster=${descMap.clusterId} command=${descMap.command} attrId=${descMap.attrId} value=${descMap.value} data=${descMap.data}" } // library marker rbn.common, line 329
+            break // library marker rbn.common, line 330
+    } // library marker rbn.common, line 331
+    if (this.respondsTo('customParseZdoClusters')) { customParseZdoClusters(descMap) } // library marker rbn.common, line 332
+} // library marker rbn.common, line 333
+ // library marker rbn.common, line 334
+// Zigbee General Command Parsing // library marker rbn.common, line 335
+private void parseGeneralCommandResponse(final Map descMap) { // library marker rbn.common, line 336
+    final int commandId = hexStrToUnsignedInt(descMap.command) // library marker rbn.common, line 337
+    switch (commandId) { // library marker rbn.common, line 338
+        case 0x01: parseReadAttributeResponse(descMap); break // library marker rbn.common, line 339
+        case 0x04: parseWriteAttributeResponse(descMap); break // library marker rbn.common, line 340
+        case 0x07: parseConfigureResponse(descMap); break // library marker rbn.common, line 341
+        case 0x09: parseReadReportingConfigResponse(descMap); break // library marker rbn.common, line 342
+        case 0x0B: parseDefaultCommandResponse(descMap); break // library marker rbn.common, line 343
+        default: // library marker rbn.common, line 344
+            final String commandName = ZigbeeGeneralCommandEnum[commandId] ?: "UNKNOWN_COMMAND (0x${descMap.command})" // library marker rbn.common, line 345
+            final String clusterName = clusterLookup(descMap.clusterInt) // library marker rbn.common, line 346
+            final String status = descMap.data in List ? ((List)descMap.data).last() : descMap.data // library marker rbn.common, line 347
+            final int statusCode = hexStrToUnsignedInt(status) // library marker rbn.common, line 348
+            final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${status}" // library marker rbn.common, line 349
+            if (statusCode > 0x00) { // library marker rbn.common, line 350
+                log.warn "zigbee ${commandName} ${clusterName} error: ${statusName}" // library marker rbn.common, line 351
+            } else if (settings.logEnable) { // library marker rbn.common, line 352
+                log.trace "zigbee ${commandName} ${clusterName}: ${descMap.data}" // library marker rbn.common, line 353
+            } // library marker rbn.common, line 354
+            break // library marker rbn.common, line 355
+    } // library marker rbn.common, line 356
+} // library marker rbn.common, line 357
+ // library marker rbn.common, line 358
+// Zigbee Read Attribute Response Parsing // library marker rbn.common, line 359
+private void parseReadAttributeResponse(final Map descMap) { // library marker rbn.common, line 360
+    final List<String> data = descMap.data as List<String> // library marker rbn.common, line 361
+    final String attribute = data[1] + data[0] // library marker rbn.common, line 362
+    final int statusCode = hexStrToUnsignedInt(data[2]) // library marker rbn.common, line 363
+    final String status = ZigbeeStatusEnum[statusCode] ?: "0x${data}" // library marker rbn.common, line 364
+    if (statusCode > 0x00) { // library marker rbn.common, line 365
+        logWarn "zigbee read ${clusterLookup(descMap.clusterInt)} attribute 0x${attribute} error: ${status}" // library marker rbn.common, line 366
+    } // library marker rbn.common, line 367
+    else { // library marker rbn.common, line 368
+        logDebug "zigbee read ${clusterLookup(descMap.clusterInt)} attribute 0x${attribute} response: ${status} ${data}" // library marker rbn.common, line 369
+    } // library marker rbn.common, line 370
+} // library marker rbn.common, line 371
+ // library marker rbn.common, line 372
+// Zigbee Write Attribute Response Parsing // library marker rbn.common, line 373
+private void parseWriteAttributeResponse(final Map descMap) { // library marker rbn.common, line 374
+    final String data = descMap.data in List ? ((List)descMap.data).first() : descMap.data // library marker rbn.common, line 375
+    final int statusCode = hexStrToUnsignedInt(data) // library marker rbn.common, line 376
+    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${data}" // library marker rbn.common, line 377
+    if (statusCode > 0x00) { // library marker rbn.common, line 378
+        logWarn "zigbee response write ${clusterLookup(descMap.clusterInt)} attribute error: ${statusName}" // library marker rbn.common, line 379
+    } // library marker rbn.common, line 380
+    else { // library marker rbn.common, line 381
+        logDebug "zigbee response write ${clusterLookup(descMap.clusterInt)} attribute response: ${statusName}" // library marker rbn.common, line 382
+    } // library marker rbn.common, line 383
+} // library marker rbn.common, line 384
+ // library marker rbn.common, line 385
+// Zigbee Configure Reporting Response Parsing  - command 0x07 // library marker rbn.common, line 386
+private void parseConfigureResponse(final Map descMap) { // library marker rbn.common, line 387
+    // TODO - parse the details of the configuration respose - cluster, min, max, delta ... // library marker rbn.common, line 388
+    final String status = ((List)descMap.data).first() // library marker rbn.common, line 389
+    final int statusCode = hexStrToUnsignedInt(status) // library marker rbn.common, line 390
+    if (statusCode == 0x00 && settings.enableReporting != false) { // library marker rbn.common, line 391
+        state.reportingEnabled = true // library marker rbn.common, line 392
+    } // library marker rbn.common, line 393
+    final String statusName = ZigbeeStatusEnum[statusCode] ?: "0x${status}" // library marker rbn.common, line 394
+    if (statusCode > 0x00) { // library marker rbn.common, line 395
+        log.warn "zigbee configure reporting error: ${statusName} ${descMap.data}" // library marker rbn.common, line 396
+    } else { // library marker rbn.common, line 397
+        logDebug "zigbee configure reporting response: ${statusName} ${descMap.data}" // library marker rbn.common, line 398
+    } // library marker rbn.common, line 399
+} // library marker rbn.common, line 400
+ // library marker rbn.common, line 401
+// Parses the response of reading reporting configuration - command 0x09 // library marker rbn.common, line 402
+private void parseReadReportingConfigResponse(final Map descMap) { // library marker rbn.common, line 403
+    int status = zigbee.convertHexToInt(descMap.data[0])    // Status: Success (0x00) // library marker rbn.common, line 404
+    //def attr = zigbee.convertHexToInt(descMap.data[3])*256 + zigbee.convertHexToInt(descMap.data[2])    // Attribute: OnOff (0x0000) // library marker rbn.common, line 405
+    if (status == 0) { // library marker rbn.common, line 406
+        //def dataType = zigbee.convertHexToInt(descMap.data[4])    // Data Type: Boolean (0x10) // library marker rbn.common, line 407
+        int min = zigbee.convertHexToInt(descMap.data[6]) * 256 + zigbee.convertHexToInt(descMap.data[5]) // library marker rbn.common, line 408
+        int max = zigbee.convertHexToInt(descMap.data[8] + descMap.data[7]) // library marker rbn.common, line 409
+        int delta = 0 // library marker rbn.common, line 410
+        if (descMap.data.size() >= 11) { // library marker rbn.common, line 411
+            delta = zigbee.convertHexToInt(descMap.data[10] + descMap.data[9]) // library marker rbn.common, line 412
+        } // library marker rbn.common, line 413
+        else if (descMap.data.size() == 10) { // library marker rbn.common, line 414
+            delta = zigbee.convertHexToInt(descMap.data[9])      // 1-byte reportable change (uint8/int8) // library marker rbn.common, line 415
+        } // library marker rbn.common, line 416
+        else { // library marker rbn.common, line 417
+            logTrace "descMap.data.size = ${descMap.data.size()}" // library marker rbn.common, line 418
+        } // library marker rbn.common, line 419
+        logDebug "Received Read Reporting Configuration Response (0x09) for cluster:${descMap.clusterId} attribute:${descMap.data[3] + descMap.data[2]}, data=${descMap.data} (Status: ${descMap.data[0] == '00' ? 'Success' : '<b>Failure</b>'}) min=${min} max=${max} delta=${delta}" // library marker rbn.common, line 420
+    } // library marker rbn.common, line 421
+    else { // library marker rbn.common, line 422
+        logWarn "<b>Not Found (0x8b)</b> Read Reporting Configuration Response for cluster:${descMap.clusterId} attribute:${descMap.data[3] + descMap.data[2]}, data=${descMap.data} (Status: ${descMap.data[0] == '00' ? 'Success' : '<b>Failure</b>'})" // library marker rbn.common, line 423
+    } // library marker rbn.common, line 424
+} // library marker rbn.common, line 425
+ // library marker rbn.common, line 426
+private Boolean executeCustomHandler(String handlerName, Object handlerArgs) { // library marker rbn.common, line 427
+    if (!this.respondsTo(handlerName)) { // library marker rbn.common, line 428
+        logTrace "executeCustomHandler: function <b>${handlerName}</b> not found" // library marker rbn.common, line 429
+        return false // library marker rbn.common, line 430
+    } // library marker rbn.common, line 431
+    // execute the customHandler function // library marker rbn.common, line 432
+    Boolean result = false // library marker rbn.common, line 433
+    try { // library marker rbn.common, line 434
+        result = "$handlerName"(handlerArgs) // library marker rbn.common, line 435
+    } // library marker rbn.common, line 436
+    catch (e) { // library marker rbn.common, line 437
+        logWarn "executeCustomHandler: Exception '${e}'caught while processing <b>$handlerName</b>(<b>$handlerArgs</b>) (val=${fncmd}))" // library marker rbn.common, line 438
+        return false // library marker rbn.common, line 439
+    } // library marker rbn.common, line 440
+    //logDebug "customSetFunction result is ${fncmd}" // library marker rbn.common, line 441
+    return result // library marker rbn.common, line 442
+} // library marker rbn.common, line 443
+ // library marker rbn.common, line 444
+// Zigbee Default Command Response Parsing // library marker rbn.common, line 445
+private void parseDefaultCommandResponse(final Map descMap) { // library marker rbn.common, line 446
+    final List<String> data = descMap.data as List<String> // library marker rbn.common, line 447
+    final String commandId = data[0] // library marker rbn.common, line 448
+    final int statusCode = hexStrToUnsignedInt(data[1]) // library marker rbn.common, line 449
+    final String status = ZigbeeStatusEnum[statusCode] ?: "0x${data[1]}" // library marker rbn.common, line 450
+    if (statusCode > 0x00) { // library marker rbn.common, line 451
+        logWarn "zigbee ${clusterLookup(descMap.clusterInt)} command 0x${commandId} error: ${status}" // library marker rbn.common, line 452
+    } else { // library marker rbn.common, line 453
+        logDebug "zigbee ${clusterLookup(descMap.clusterInt)} command 0x${commandId} response: ${status}" // library marker rbn.common, line 454
+        // ZigUSB has its own interpretation of the Zigbee standards ... :( // library marker rbn.common, line 455
+        if (this.respondsTo('customParseDefaultCommandResponse')) { // library marker rbn.common, line 456
+            customParseDefaultCommandResponse(descMap) // library marker rbn.common, line 457
+        } // library marker rbn.common, line 458
+    } // library marker rbn.common, line 459
+} // library marker rbn.common, line 460
+ // library marker rbn.common, line 461
+// Zigbee Attribute IDs // library marker rbn.common, line 462
+@Field static final int ATTRIBUTE_READING_INFO_SET = 0x0000 // library marker rbn.common, line 463
+@Field static final int FIRMWARE_VERSION_ID = 0x4000 // library marker rbn.common, line 464
+@Field static final int PING_ATTR_ID = 0x01 // library marker rbn.common, line 465
+ // library marker rbn.common, line 466
+@Field static final Map<Integer, String> ZigbeeStatusEnum = [ // library marker rbn.common, line 467
+    0x00: 'Success', 0x01: 'Failure', 0x02: 'Not Authorized', 0x80: 'Malformed Command', 0x81: 'Unsupported COMMAND', 0x85: 'Invalid Field', 0x86: 'Unsupported Attribute', 0x87: 'Invalid Value', 0x88: 'Read Only', // library marker rbn.common, line 468
+    0x89: 'Insufficient Space', 0x8A: 'Duplicate Exists', 0x8B: 'Not Found', 0x8C: 'Unreportable Attribute', 0x8D: 'Invalid Data Type', 0x8E: 'Invalid Selector', 0x94: 'Time out', 0x9A: 'Notification Pending', 0xC3: 'Unsupported Cluster' // library marker rbn.common, line 469
+] // library marker rbn.common, line 470
+ // library marker rbn.common, line 471
+@Field static final Map<Integer, String> ZigbeeGeneralCommandEnum = [ // library marker rbn.common, line 472
+    0x00: 'Read Attributes', 0x01: 'Read Attributes Response', 0x02: 'Write Attributes', 0x03: 'Write Attributes Undivided', 0x04: 'Write Attributes Response', 0x05: 'Write Attributes No Response', 0x06: 'Configure Reporting', // library marker rbn.common, line 473
+    0x07: 'Configure Reporting Response', 0x08: 'Read Reporting Configuration', 0x09: 'Read Reporting Configuration Response', 0x0A: 'Report Attributes', 0x0B: 'Default Response', 0x0C: 'Discover Attributes', 0x0D: 'Discover Attributes Response', // library marker rbn.common, line 474
+    0x0E: 'Read Attributes Structured', 0x0F: 'Write Attributes Structured', 0x10: 'Write Attributes Structured Response', 0x11: 'Discover Commands Received', 0x12: 'Discover Commands Received Response', 0x13: 'Discover Commands Generated', // library marker rbn.common, line 475
+    0x14: 'Discover Commands Generated Response', 0x15: 'Discover Attributes Extended', 0x16: 'Discover Attributes Extended Response' // library marker rbn.common, line 476
+] // library marker rbn.common, line 477
+ // library marker rbn.common, line 478
+@Field static final int ROLLING_AVERAGE_N = 10 // library marker rbn.common, line 479
+private BigDecimal approxRollingAverage(BigDecimal avgPar, BigDecimal newSample) { // library marker rbn.common, line 480
+    BigDecimal avg = avgPar // library marker rbn.common, line 481
+    if (avg == null || avg == 0) { avg = newSample } // library marker rbn.common, line 482
+    avg -= avg / ROLLING_AVERAGE_N // library marker rbn.common, line 483
+    avg += newSample / ROLLING_AVERAGE_N // library marker rbn.common, line 484
+    return avg // library marker rbn.common, line 485
+} // library marker rbn.common, line 486
+ // library marker rbn.common, line 487
+private void handlePingResponse() { // library marker rbn.common, line 488
+    Long now = new Date().getTime() // library marker rbn.common, line 489
+    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 490
+    state.lastRx['checkInTime'] = now // library marker rbn.common, line 491
+ // library marker rbn.common, line 492
+    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: '0').toInteger() // library marker rbn.common, line 493
+    if (timeRunning > 0 && timeRunning < MAX_PING_MILISECONDS) { // library marker rbn.common, line 494
+        state.stats['pingsOK'] = (state.stats['pingsOK'] ?: 0) + 1 // library marker rbn.common, line 495
+        if (timeRunning < safeToInt((state.stats['pingsMin'] ?: '9999'))) { state.stats['pingsMin'] = timeRunning } // library marker rbn.common, line 496
+        if (timeRunning > safeToInt((state.stats['pingsMax'] ?: '0')))   { state.stats['pingsMax'] = timeRunning } // library marker rbn.common, line 497
+        state.stats['pingsAvg'] = approxRollingAverage(safeToDouble(state.stats['pingsAvg']), safeToDouble(timeRunning)) as int // library marker rbn.common, line 498
+        sendRttEvent() // library marker rbn.common, line 499
+    } // library marker rbn.common, line 500
+    else { // library marker rbn.common, line 501
+        logWarn "unexpected ping timeRunning=${timeRunning} " // library marker rbn.common, line 502
+    } // library marker rbn.common, line 503
+    state.states['isPing'] = false // library marker rbn.common, line 504
+} // library marker rbn.common, line 505
+ // library marker rbn.common, line 506
+/* // library marker rbn.common, line 507
+ * ----------------------------------------------------------------------------- // library marker rbn.common, line 508
+ * Standard clusters reporting handlers // library marker rbn.common, line 509
+ * ----------------------------------------------------------------------------- // library marker rbn.common, line 510
+*/ // library marker rbn.common, line 511
+@Field static final Map powerSourceOpts =  [ defaultValue: 0, options: [0: 'unknown', 1: 'mains', 2: 'mains', 3: 'battery', 4: 'dc', 5: 'emergency mains', 6: 'emergency mains']] // library marker rbn.common, line 512
+ // library marker rbn.common, line 513
+// Zigbee Basic Cluster Parsing  0x0000 - called from the main parse method // library marker rbn.common, line 514
+private void standardParseBasicCluster(final Map descMap) { // library marker rbn.common, line 515
+    Long now = new Date().getTime() // library marker rbn.common, line 516
+    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 517
+    state.lastRx['checkInTime'] = now // library marker rbn.common, line 518
+    boolean isPing = state.states?.isPing ?: false // library marker rbn.common, line 519
+    switch (descMap.attrInt as Integer) { // library marker rbn.common, line 520
+        case 0x0000: // library marker rbn.common, line 521
+            logDebug "Basic cluster: ZCLVersion = ${descMap?.value}" // library marker rbn.common, line 522
+            break // library marker rbn.common, line 523
+        case PING_ATTR_ID: // 0x01 - Using 0x01 read as a simple ping/pong mechanism // library marker rbn.common, line 524
+            if (isPing) { // library marker rbn.common, line 525
+                handlePingResponse() // library marker rbn.common, line 526
+            } // library marker rbn.common, line 527
+            else { // library marker rbn.common, line 528
+                logTrace "Tuya check-in message (attribute ${descMap.attrId} reported: ${descMap.value})" // library marker rbn.common, line 529
+            } // library marker rbn.common, line 530
+            break // library marker rbn.common, line 531
+        case 0x0004: // library marker rbn.common, line 532
+            logDebug "received device manufacturer ${descMap?.value}" // library marker rbn.common, line 533
+            // received device manufacturer IKEA of Sweden // library marker rbn.common, line 534
+            String manufacturer = device.getDataValue('manufacturer') // library marker rbn.common, line 535
+            if ((manufacturer == null || manufacturer == 'unknown') && (descMap?.value != null)) { // library marker rbn.common, line 536
+                logWarn "updating device manufacturer from ${manufacturer} to ${descMap?.value}" // library marker rbn.common, line 537
+                device.updateDataValue('manufacturer', descMap?.value) // library marker rbn.common, line 538
+            } // library marker rbn.common, line 539
+            break // library marker rbn.common, line 540
+        case 0x0005: // library marker rbn.common, line 541
+            if (isPing) { // library marker rbn.common, line 542
+                handlePingResponse() // library marker rbn.common, line 543
+            } // library marker rbn.common, line 544
+            else { // library marker rbn.common, line 545
+                logDebug "received device model ${descMap?.value}" // library marker rbn.common, line 546
+                // received device model Remote Control N2 // library marker rbn.common, line 547
+                String model = device.getDataValue('model') // library marker rbn.common, line 548
+                if ((model == null || model == 'unknown') && (descMap?.value != null)) { // library marker rbn.common, line 549
+                    logWarn "updating device model from ${model} to ${descMap?.value}" // library marker rbn.common, line 550
+                    device.updateDataValue('model', descMap?.value) // library marker rbn.common, line 551
+                } // library marker rbn.common, line 552
+            } // library marker rbn.common, line 553
+            break // library marker rbn.common, line 554
+        case 0x0007: // library marker rbn.common, line 555
+            String powerSourceReported = powerSourceOpts.options[descMap?.value as int] // library marker rbn.common, line 556
+            logDebug "received Power source <b>${powerSourceReported}</b> (${descMap?.value})" // library marker rbn.common, line 557
+            String currentPowerSource = device.getDataValue('powerSource') // library marker rbn.common, line 558
+            if (currentPowerSource == null || currentPowerSource == 'unknown') { // library marker rbn.common, line 559
+                logInfo "updating device powerSource from ${currentPowerSource} to ${powerSourceReported}" // library marker rbn.common, line 560
+                sendEvent(name: 'powerSource', value: powerSourceReported, type: 'physical') // library marker rbn.common, line 561
+            } // library marker rbn.common, line 562
+            break // library marker rbn.common, line 563
+        case 0xFFDF: // library marker rbn.common, line 564
+            logDebug "Tuya check-in (Cluster Revision=${descMap?.value})" // library marker rbn.common, line 565
+            break // library marker rbn.common, line 566
+        case 0xFFE2: // library marker rbn.common, line 567
+            logDebug "Tuya check-in (AppVersion=${descMap?.value})" // library marker rbn.common, line 568
+            break // library marker rbn.common, line 569
+        case [0xFFE0, 0xFFE1, 0xFFE3, 0xFFE4] : // library marker rbn.common, line 570
+            logTrace "Tuya attribute ${descMap?.attrId} value=${descMap?.value}" // library marker rbn.common, line 571
+            break // library marker rbn.common, line 572
+        case 0xFFFE: // library marker rbn.common, line 573
+            logTrace "Tuya attributeReportingStatus (attribute FFFE) value=${descMap?.value}" // library marker rbn.common, line 574
+            break // library marker rbn.common, line 575
+        case FIRMWARE_VERSION_ID:    // 0x4000 // library marker rbn.common, line 576
+            final String version = descMap.value ?: 'unknown' // library marker rbn.common, line 577
+            logInfo "device firmware version is ${version}" // library marker rbn.common, line 578
+            updateDataValue('softwareBuild', version) // library marker rbn.common, line 579
+            break // library marker rbn.common, line 580
+        default: // library marker rbn.common, line 581
+            logDebug "zigbee received unknown Basic cluster attribute 0x${descMap.attrId} (value ${descMap.value})" // library marker rbn.common, line 582
+            break // library marker rbn.common, line 583
+    } // library marker rbn.common, line 584
+} // library marker rbn.common, line 585
+ // library marker rbn.common, line 586
+private void standardParsePollControlCluster(final Map descMap) { // library marker rbn.common, line 587
+    switch (descMap.attrInt as Integer) { // library marker rbn.common, line 588
+        case 0x0000: logDebug "PollControl cluster: CheckInInterval = ${descMap?.value}" ; break // library marker rbn.common, line 589
+        case 0x0001: logDebug "PollControl cluster: LongPollInterval = ${descMap?.value}" ; break // library marker rbn.common, line 590
+        case 0x0002: logDebug "PollControl cluster: ShortPollInterval = ${descMap?.value}" ; break // library marker rbn.common, line 591
+        case 0x0003: logDebug "PollControl cluster: FastPollTimeout = ${descMap?.value}" ; break // library marker rbn.common, line 592
+        case 0x0004: logDebug "PollControl cluster: CheckInIntervalMin = ${descMap?.value}" ; break // library marker rbn.common, line 593
+        case 0x0005: logDebug "PollControl cluster: LongPollIntervalMin = ${descMap?.value}" ; break // library marker rbn.common, line 594
+        case 0x0006: logDebug "PollControl cluster: FastPollTimeoutMax = ${descMap?.value}" ; break // library marker rbn.common, line 595
+        default: logDebug "zigbee received unknown PollControl cluster attribute 0x${descMap.attrId} (value ${descMap.value})" ; break // library marker rbn.common, line 596
+    } // library marker rbn.common, line 597
+} // library marker rbn.common, line 598
+ // library marker rbn.common, line 599
+public void clearIsDigital()        { state.states['isDigital'] = false } // library marker rbn.common, line 600
+void switchDebouncingClear() { state.states['debounce']  = false } // library marker rbn.common, line 601
+void isRefreshRequestClear() { state.states['isRefresh'] = false } // library marker rbn.common, line 602
+ // library marker rbn.common, line 603
+Map myParseDescriptionAsMap(String description) { // library marker rbn.common, line 604
+    Map descMap = [:] // library marker rbn.common, line 605
+    try { // library marker rbn.common, line 606
+        descMap = zigbee.parseDescriptionAsMap(description) // library marker rbn.common, line 607
+    } // library marker rbn.common, line 608
+    catch (e1) { // library marker rbn.common, line 609
+        logWarn "exception ${e1} caught while parseDescriptionAsMap <b>myParseDescriptionAsMap</b> description:  ${description}" // library marker rbn.common, line 610
+        // try alternative custom parsing // library marker rbn.common, line 611
+        descMap = [:] // library marker rbn.common, line 612
+        try { // library marker rbn.common, line 613
+            descMap += description.replaceAll('\\[|\\]', '').split(',').collectEntries { entry -> // library marker rbn.common, line 614
+                List<String> pair = entry.split(':') // library marker rbn.common, line 615
+                [(pair.first().trim()): pair.last().trim()] // library marker rbn.common, line 616
+            } // library marker rbn.common, line 617
+        } // library marker rbn.common, line 618
+        catch (e2) { // library marker rbn.common, line 619
+            logWarn "exception ${e2} caught while parsing using an alternative method <b>myParseDescriptionAsMap</b> description:  ${description}" // library marker rbn.common, line 620
+            return [:] // library marker rbn.common, line 621
+        } // library marker rbn.common, line 622
+        logDebug "alternative method parsing success: descMap=${descMap}" // library marker rbn.common, line 623
+    } // library marker rbn.common, line 624
+    return descMap // library marker rbn.common, line 625
+} // library marker rbn.common, line 626
+ // library marker rbn.common, line 627
+public String intTo16bitUnsignedHex(int value) { // library marker rbn.common, line 628
+    String hexStr = zigbee.convertToHexString(value.toInteger(), 4) // library marker rbn.common, line 629
+    return new String(hexStr.substring(2, 4) + hexStr.substring(0, 2)) // library marker rbn.common, line 630
+} // library marker rbn.common, line 631
+ // library marker rbn.common, line 632
+public String intTo8bitUnsignedHex(int value) { // library marker rbn.common, line 633
+    return zigbee.convertToHexString(value.toInteger(), 2) // library marker rbn.common, line 634
+} // library marker rbn.common, line 635
+ // library marker rbn.common, line 636
+public void aqaraBlackMagic() { // library marker rbn.common, line 637
+    List<String> cmds = [] // library marker rbn.common, line 638
+    if (this.respondsTo('customAqaraBlackMagic')) { // library marker rbn.common, line 639
+        cmds = customAqaraBlackMagic() // library marker rbn.common, line 640
+    } // library marker rbn.common, line 641
+    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 642
+        logDebug 'sending aqaraBlackMagic()' // library marker rbn.common, line 643
+        sendZigbeeCommands(cmds) // library marker rbn.common, line 644
+        return // library marker rbn.common, line 645
+    } // library marker rbn.common, line 646
+    logDebug 'aqaraBlackMagic() was SKIPPED' // library marker rbn.common, line 647
+} // library marker rbn.common, line 648
+ // library marker rbn.common, line 649
+// Invoked from configure() // library marker rbn.common, line 650
+public List<String> initializeDevice() { // library marker rbn.common, line 651
+    List<String> cmds = [] // library marker rbn.common, line 652
+    logInfo 'initializeDevice...' // library marker rbn.common, line 653
+    if (this.respondsTo('customInitializeDevice')) { // library marker rbn.common, line 654
+        List<String> customCmds = customInitializeDevice() // library marker rbn.common, line 655
+        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 656
+    } // library marker rbn.common, line 657
+    else { logDebug 'no customInitializeDevice method defined' } // library marker rbn.common, line 658
+    logDebug "initializeDevice(): cmds=${cmds}" // library marker rbn.common, line 659
+    return cmds // library marker rbn.common, line 660
+} // library marker rbn.common, line 661
+ // library marker rbn.common, line 662
+// Invoked from configure() // library marker rbn.common, line 663
+public List<String> configureDevice() { // library marker rbn.common, line 664
+    List<String> cmds = [] // library marker rbn.common, line 665
+    logInfo 'configureDevice...' // library marker rbn.common, line 666
+    if (this.respondsTo('customConfigureDevice')) { // library marker rbn.common, line 667
+        List<String> customCmds = customConfigureDevice() // library marker rbn.common, line 668
+        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 669
+    } // library marker rbn.common, line 670
+    else { logDebug 'no customConfigureDevice method defined' } // library marker rbn.common, line 671
+    // sendZigbeeCommands(cmds) changed 03/04/2024 // library marker rbn.common, line 672
+    logDebug "configureDevice(): cmds=${cmds}" // library marker rbn.common, line 673
+    return cmds // library marker rbn.common, line 674
+} // library marker rbn.common, line 675
+ // library marker rbn.common, line 676
+/* // library marker rbn.common, line 677
+ * ----------------------------------------------------------------------------- // library marker rbn.common, line 678
+ * Hubitat default handlers methods // library marker rbn.common, line 679
+ * ----------------------------------------------------------------------------- // library marker rbn.common, line 680
+*/ // library marker rbn.common, line 681
+ // library marker rbn.common, line 682
+List<String> customHandlers(final List customHandlersList) { // library marker rbn.common, line 683
+    List<String> cmds = [] // library marker rbn.common, line 684
+    if (customHandlersList != null && !customHandlersList.isEmpty()) { // library marker rbn.common, line 685
+        customHandlersList.each { handler -> // library marker rbn.common, line 686
+            if (this.respondsTo(handler)) { // library marker rbn.common, line 687
+                List<String> customCmds = this."${handler}"() // library marker rbn.common, line 688
+                if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } // library marker rbn.common, line 689
+            } // library marker rbn.common, line 690
+        } // library marker rbn.common, line 691
+    } // library marker rbn.common, line 692
+    return cmds // library marker rbn.common, line 693
+} // library marker rbn.common, line 694
+ // library marker rbn.common, line 695
+public void refresh() { // library marker rbn.common, line 696
+    logDebug "refresh()... DEVICE_TYPE is ${DEVICE_TYPE} model=${device.getDataValue('model')} manufacturer=${device.getDataValue('manufacturer')}" // library marker rbn.common, line 697
+    checkDriverVersion(state) // library marker rbn.common, line 698
+    List<String> cmds = [], customCmds = [] // library marker rbn.common, line 699
+    if (this.respondsTo('customRefresh')) {     // if there is a customRefresh() method defined in the main driver, call it // library marker rbn.common, line 700
+        customCmds = customRefresh() // library marker rbn.common, line 701
+        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } else { logDebug 'no customRefresh method defined' } // library marker rbn.common, line 702
+    } // library marker rbn.common, line 703
+    else {  // call all known libraryRefresh methods // library marker rbn.common, line 704
+        customCmds = customHandlers(['onOffRefresh', 'groupsRefresh', 'batteryRefresh', 'levelRefresh', 'temperatureRefresh', 'humidityRefresh', 'illuminanceRefresh']) // library marker rbn.common, line 705
+        if (customCmds != null && !customCmds.isEmpty()) { cmds +=  customCmds } else { logDebug 'no libraries refresh() defined' } // library marker rbn.common, line 706
+    } // library marker rbn.common, line 707
+    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 708
+        logDebug "refresh() cmds=${cmds}" // library marker rbn.common, line 709
+        setRefreshRequest()    // 3 seconds // library marker rbn.common, line 710
+        sendZigbeeCommands(cmds) // library marker rbn.common, line 711
+    } // library marker rbn.common, line 712
+    else { // library marker rbn.common, line 713
+        logDebug "no refresh() commands defined for device type ${DEVICE_TYPE}" // library marker rbn.common, line 714
+    } // library marker rbn.common, line 715
+} // library marker rbn.common, line 716
+ // library marker rbn.common, line 717
+public void setRefreshRequest()   { if (state.states == null) { state.states = [:] } ; state.states['isRefresh'] = true; runInMillis(REFRESH_TIMER, 'clearRefreshRequest', [overwrite: true]) } // library marker rbn.common, line 718
+public void clearRefreshRequest() { if (state.states == null) { state.states = [:] } ; state.states['isRefresh'] = false } // library marker rbn.common, line 719
+public void clearInfoEvent()      { sendInfoEvent('clear') } // library marker rbn.common, line 720
+ // library marker rbn.common, line 721
+public void sendInfoEvent(String info=null) { // library marker rbn.common, line 722
+    if (info == null || info == 'clear') { // library marker rbn.common, line 723
+        logDebug 'clearing the Status event' // library marker rbn.common, line 724
+        sendEvent(name: '_status_', value: 'clear', type: 'digital') // library marker rbn.common, line 725
+    } // library marker rbn.common, line 726
+    else { // library marker rbn.common, line 727
+        logInfo "${info}" // library marker rbn.common, line 728
+        sendEvent(name: '_status_', value: info, type: 'digital') // library marker rbn.common, line 729
+        runIn(INFO_AUTO_CLEAR_PERIOD, 'clearInfoEvent')            // automatically clear the Info attribute after 1 minute // library marker rbn.common, line 730
+    } // library marker rbn.common, line 731
+} // library marker rbn.common, line 732
+ // library marker rbn.common, line 733
+public void ping() { // library marker rbn.common, line 734
+    if (state.lastTx == null ) { state.lastTx = [:] } ; state.lastTx['pingTime'] = new Date().getTime() // library marker rbn.common, line 735
+    if (state.states == null ) { state.states = [:] } ; state.states['isPing'] = true // library marker rbn.common, line 736
+    scheduleCommandTimeoutCheck() // library marker rbn.common, line 737
+    int  pingAttr = (device.getDataValue('manufacturer') == 'SONOFF') ? 0x05 : PING_ATTR_ID // library marker rbn.common, line 738
+    if (isVirtual()) { runInMillis(10, 'virtualPong') } // library marker rbn.common, line 739
+    else if (device.getDataValue('manufacturer') == 'Aqara') { // library marker rbn.common, line 740
+        logDebug 'Aqara device ping...' // library marker rbn.common, line 741
+        sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, pingAttr, [destEndpoint: 0x01], 0) ) // library marker rbn.common, line 742
+    } // library marker rbn.common, line 743
+    else { sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, pingAttr, [:], 0) ) } // library marker rbn.common, line 744
+    logDebug 'ping...' // library marker rbn.common, line 745
+} // library marker rbn.common, line 746
+ // library marker rbn.common, line 747
+private void virtualPong() { // library marker rbn.common, line 748
+    logDebug 'virtualPing: pong!' // library marker rbn.common, line 749
+    Long now = new Date().getTime() // library marker rbn.common, line 750
+    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: '0').toInteger() // library marker rbn.common, line 751
+    if (timeRunning > 0 && timeRunning < MAX_PING_MILISECONDS) { // library marker rbn.common, line 752
+        state.stats['pingsOK'] = (state.stats['pingsOK'] ?: 0) + 1 // library marker rbn.common, line 753
+        if (timeRunning < safeToInt((state.stats['pingsMin'] ?: '9999'))) { state.stats['pingsMin'] = timeRunning } // library marker rbn.common, line 754
+        if (timeRunning > safeToInt((state.stats['pingsMax'] ?: '0')))   { state.stats['pingsMax'] = timeRunning } // library marker rbn.common, line 755
+        state.stats['pingsAvg'] = approxRollingAverage(safeToDouble(state.stats['pingsAvg']), safeToDouble(timeRunning)) as int // library marker rbn.common, line 756
+        sendRttEvent() // library marker rbn.common, line 757
+    } // library marker rbn.common, line 758
+    else { // library marker rbn.common, line 759
+        logWarn "unexpected ping timeRunning=${timeRunning} " // library marker rbn.common, line 760
+    } // library marker rbn.common, line 761
+    state.states['isPing'] = false // library marker rbn.common, line 762
+    unscheduleCommandTimeoutCheck(state) // library marker rbn.common, line 763
+} // library marker rbn.common, line 764
+ // library marker rbn.common, line 765
+public void sendRttEvent( String value=null) { // library marker rbn.common, line 766
+    Long now = new Date().getTime() // library marker rbn.common, line 767
+    if (state.lastTx == null ) { state.lastTx = [:] } // library marker rbn.common, line 768
+    int timeRunning = now.toInteger() - (state.lastTx['pingTime'] ?: now).toInteger() // library marker rbn.common, line 769
+    String descriptionText = "Round-trip time is ${timeRunning} ms (min=${state.stats['pingsMin']} max=${state.stats['pingsMax']} average=${state.stats['pingsAvg']})" // library marker rbn.common, line 770
+    if (value == null) { // library marker rbn.common, line 771
+        logInfo "${descriptionText}" // library marker rbn.common, line 772
+        sendEvent(name: 'rtt', value: timeRunning, descriptionText: descriptionText, unit: 'ms', type: 'physical') // library marker rbn.common, line 773
+    } // library marker rbn.common, line 774
+    else { // library marker rbn.common, line 775
+        descriptionText = "Round-trip time : ${value}" // library marker rbn.common, line 776
+        logInfo "${descriptionText}" // library marker rbn.common, line 777
+        sendEvent(name: 'rtt', value: value, descriptionText: descriptionText, type: 'physical') // library marker rbn.common, line 778
+    } // library marker rbn.common, line 779
+} // library marker rbn.common, line 780
+ // library marker rbn.common, line 781
+private String clusterLookup(final Object cluster) { // library marker rbn.common, line 782
+    if (cluster != null) { // library marker rbn.common, line 783
+        return zigbee.clusterLookup(cluster.toInteger()) ?: "private cluster 0x${intToHexStr(cluster.toInteger())}" // library marker rbn.common, line 784
+    } // library marker rbn.common, line 785
+    logWarn 'cluster is NULL!' // library marker rbn.common, line 786
+    return 'NULL' // library marker rbn.common, line 787
+} // library marker rbn.common, line 788
+ // library marker rbn.common, line 789
+private void scheduleCommandTimeoutCheck(int delay = COMMAND_TIMEOUT) { // library marker rbn.common, line 790
+    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 791
+    state.states['isTimeoutCheck'] = true // library marker rbn.common, line 792
+    runIn(delay, 'deviceCommandTimeout') // library marker rbn.common, line 793
+} // library marker rbn.common, line 794
+ // library marker rbn.common, line 795
+// unschedule() is a very time consuming operation : ~ 5 milliseconds per call ! // library marker rbn.common, line 796
+void unscheduleCommandTimeoutCheck(final Map state) {   // can not be static :( // library marker rbn.common, line 797
+    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 798
+    if (state.states['isTimeoutCheck'] == true) { // library marker rbn.common, line 799
+        state.states['isTimeoutCheck'] = false // library marker rbn.common, line 800
+        unschedule('deviceCommandTimeout') // library marker rbn.common, line 801
+    } // library marker rbn.common, line 802
+} // library marker rbn.common, line 803
+ // library marker rbn.common, line 804
+void deviceCommandTimeout() { // library marker rbn.common, line 805
+    logWarn 'no response received (sleepy device or offline?)' // library marker rbn.common, line 806
+    sendRttEvent('timeout') // library marker rbn.common, line 807
+    state.stats['pingsFail'] = (state.stats['pingsFail'] ?: 0) + 1 // library marker rbn.common, line 808
+    if (state.health?.isHealthCheck == true) { // library marker rbn.common, line 809
+        logWarn 'device health check failed!' // library marker rbn.common, line 810
+        state.health?.checkCtr3 = (state.health?.checkCtr3 ?: 0 ) + 1 // library marker rbn.common, line 811
+        if (state.health?.checkCtr3 >= PRESENCE_COUNT_THRESHOLD) { // library marker rbn.common, line 812
+            if ((device.currentValue('healthStatus') ?: 'unknown') != 'offline' ) { // library marker rbn.common, line 813
+                sendHealthStatusEvent('offline') // library marker rbn.common, line 814
+            } // library marker rbn.common, line 815
+        } // library marker rbn.common, line 816
+        state.health['isHealthCheck'] = false // library marker rbn.common, line 817
+    } // library marker rbn.common, line 818
+} // library marker rbn.common, line 819
+ // library marker rbn.common, line 820
+private void scheduleDeviceHealthCheck(final int intervalMins, final int healthMethod) { // library marker rbn.common, line 821
+    if (healthMethod == 1 || healthMethod == 2)  { // library marker rbn.common, line 822
+        String cron = getCron( intervalMins * 60 ) // library marker rbn.common, line 823
+        schedule(cron, 'deviceHealthCheck') // library marker rbn.common, line 824
+        logDebug "deviceHealthCheck is scheduled every ${intervalMins} minutes" // library marker rbn.common, line 825
+    } // library marker rbn.common, line 826
+    else { // library marker rbn.common, line 827
+        logWarn 'deviceHealthCheck is not scheduled!' // library marker rbn.common, line 828
+        unschedule('deviceHealthCheck') // library marker rbn.common, line 829
+    } // library marker rbn.common, line 830
+} // library marker rbn.common, line 831
+ // library marker rbn.common, line 832
+private void unScheduleDeviceHealthCheck() { // library marker rbn.common, line 833
+    unschedule('deviceHealthCheck') // library marker rbn.common, line 834
+    device.deleteCurrentState('healthStatus') // library marker rbn.common, line 835
+    logWarn 'device health check is disabled!' // library marker rbn.common, line 836
+} // library marker rbn.common, line 837
+ // library marker rbn.common, line 838
+// called when any event was received from the Zigbee device in the parse() method. // library marker rbn.common, line 839
+private void setHealthStatusOnline(Map state) { // library marker rbn.common, line 840
+    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 841
+    state.health['checkCtr3']  = 0 // library marker rbn.common, line 842
+    if (!((device.currentValue('healthStatus') ?: 'unknown') in ['online'])) { // library marker rbn.common, line 843
+        sendHealthStatusEvent('online') // library marker rbn.common, line 844
+        logInfo 'is now online!' // library marker rbn.common, line 845
+    } // library marker rbn.common, line 846
+} // library marker rbn.common, line 847
+ // library marker rbn.common, line 848
+private void deviceHealthCheck() { // library marker rbn.common, line 849
+    checkDriverVersion(state) // library marker rbn.common, line 850
+    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 851
+    int ctr = state.health['checkCtr3'] ?: 0 // library marker rbn.common, line 852
+    if (ctr  >= PRESENCE_COUNT_THRESHOLD) { // library marker rbn.common, line 853
+        if ((device.currentValue('healthStatus') ?: 'unknown') != 'offline' ) { // library marker rbn.common, line 854
+            logWarn 'not present!' // library marker rbn.common, line 855
+            sendHealthStatusEvent('offline') // library marker rbn.common, line 856
+        } // library marker rbn.common, line 857
+    } // library marker rbn.common, line 858
+    else { // library marker rbn.common, line 859
+        logDebug "deviceHealthCheck - online (notPresentCounter=${(ctr + 1)})" // library marker rbn.common, line 860
+    } // library marker rbn.common, line 861
+    state.health['checkCtr3'] = ctr + 1 // library marker rbn.common, line 862
+    // added 03/06/2025 // library marker rbn.common, line 863
+    if (settings?.healthCheckMethod as int == 2) { // library marker rbn.common, line 864
+        state.health['isHealthCheck'] = true // library marker rbn.common, line 865
+        ping()  // proactively ping the device... // library marker rbn.common, line 866
+    } // library marker rbn.common, line 867
+} // library marker rbn.common, line 868
+ // library marker rbn.common, line 869
+private void sendHealthStatusEvent(final String value) { // library marker rbn.common, line 870
+    String descriptionText = "healthStatus changed to ${value}" // library marker rbn.common, line 871
+    sendEvent(name: 'healthStatus', value: value, descriptionText: descriptionText, isStateChange: true, type: 'digital') // library marker rbn.common, line 872
+    if (value == 'online') { // library marker rbn.common, line 873
+        logInfo "${descriptionText}" // library marker rbn.common, line 874
+    } // library marker rbn.common, line 875
+    else { // library marker rbn.common, line 876
+        if (settings?.txtEnable) { log.warn "${device.displayName} <b>${descriptionText}</b>" } // library marker rbn.common, line 877
+    } // library marker rbn.common, line 878
+} // library marker rbn.common, line 879
+ // library marker rbn.common, line 880
+// Invoked by Hubitat when the driver configuration is updated // library marker rbn.common, line 881
+void updated() { // library marker rbn.common, line 882
+    logInfo 'updated()...' // library marker rbn.common, line 883
+    checkDriverVersion(state) // library marker rbn.common, line 884
+    logInfo"driver version ${driverVersionAndTimeStamp()}" // library marker rbn.common, line 885
+    unschedule() // library marker rbn.common, line 886
+ // library marker rbn.common, line 887
+    if (settings.logEnable) { // library marker rbn.common, line 888
+        logTrace(settings.toString()) // library marker rbn.common, line 889
+        runIn(86400, 'logsOff') // library marker rbn.common, line 890
+    } // library marker rbn.common, line 891
+    if (settings.traceEnable) { // library marker rbn.common, line 892
+        logTrace(settings.toString()) // library marker rbn.common, line 893
+        runIn(1800, 'traceOff') // library marker rbn.common, line 894
+    } // library marker rbn.common, line 895
+ // library marker rbn.common, line 896
+    final int healthMethod = (settings.healthCheckMethod as Integer) ?: 0 // library marker rbn.common, line 897
+    if (healthMethod == 1 || healthMethod == 2) {                            //    [0: 'Disabled', 1: 'Activity check', 2: 'Periodic polling'] // library marker rbn.common, line 898
+        // schedule the periodic timer // library marker rbn.common, line 899
+        final int interval = (settings.healthCheckInterval as Integer) ?: 0 // library marker rbn.common, line 900
+        if (interval > 0) { // library marker rbn.common, line 901
+            //log.trace "healthMethod=${healthMethod} interval=${interval}" // library marker rbn.common, line 902
+            log.info "scheduling health check every ${interval} minutes by ${HealthcheckMethodOpts.options[healthMethod]} method" // library marker rbn.common, line 903
+            scheduleDeviceHealthCheck(interval, healthMethod) // library marker rbn.common, line 904
+        } // library marker rbn.common, line 905
+    } // library marker rbn.common, line 906
+    else { // library marker rbn.common, line 907
+        unScheduleDeviceHealthCheck()        // unschedule the periodic job, depending on the healthMethod // library marker rbn.common, line 908
+        log.info 'Health Check is disabled!' // library marker rbn.common, line 909
+    } // library marker rbn.common, line 910
+    if (this.respondsTo('customUpdated')) { // library marker rbn.common, line 911
+        customUpdated() // library marker rbn.common, line 912
+    } // library marker rbn.common, line 913
+ // library marker rbn.common, line 914
+    sendInfoEvent('updated') // library marker rbn.common, line 915
+} // library marker rbn.common, line 916
+ // library marker rbn.common, line 917
+private void logsOff() { // library marker rbn.common, line 918
+    logInfo 'debug logging disabled...' // library marker rbn.common, line 919
+    device.updateSetting('logEnable', [value: 'false', type: 'bool']) // library marker rbn.common, line 920
+} // library marker rbn.common, line 921
+private void traceOff() { // library marker rbn.common, line 922
+    logInfo 'trace logging disabled...' // library marker rbn.common, line 923
+    device.updateSetting('traceEnable', [value: 'false', type: 'bool']) // library marker rbn.common, line 924
+} // library marker rbn.common, line 925
+ // library marker rbn.common, line 926
+// the administrative / diagnostic commands drop-down list. Deliberately NOT named 'configure' - overloading the Configuration capability command made the dispatch depend on whether the platform happens to supply an argument // library marker rbn.common, line 927
+public void deviceUtilities(String command = null) { // library marker rbn.common, line 928
+    logInfo "deviceUtilities(${command})..." // library marker rbn.common, line 929
+    if (command == null || !(command in (ConfigureOpts.keySet() as List))) { // library marker rbn.common, line 930
+        configureHelp(command)      // nothing was selected, or the value is not one of ours - show the help and do nothing else // library marker rbn.common, line 931
+        return // library marker rbn.common, line 932
+    } // library marker rbn.common, line 933
+    // // library marker rbn.common, line 934
+    String func // library marker rbn.common, line 935
+    try { // library marker rbn.common, line 936
+        func = ConfigureOpts[command]?.function // library marker rbn.common, line 937
+        "$func"() // library marker rbn.common, line 938
+    } // library marker rbn.common, line 939
+    catch (e) { // library marker rbn.common, line 940
+        logWarn "Exception ${e} caught while processing <b>$func</b>(<b>$value</b>)" // library marker rbn.common, line 941
+        return // library marker rbn.common, line 942
+    } // library marker rbn.common, line 943
+    logInfo "executed '${func}'" // library marker rbn.common, line 944
+} // library marker rbn.common, line 945
+ // library marker rbn.common, line 946
+/* groovylint-disable-next-line UnusedMethodParameter */ // library marker rbn.common, line 947
+void configureHelp(final String val = null) { // library marker rbn.common, line 948
+    logInfo "select one of the commands from the list: ${ConfigureOpts.keySet() as List}" // library marker rbn.common, line 949
+    sendInfoEvent('Please select a command from the drop-down list')      // short _status_ event, auto-cleared after INFO_AUTO_CLEAR_PERIOD // library marker rbn.common, line 950
+} // library marker rbn.common, line 951
+ // library marker rbn.common, line 952
+public void loadAllDefaults() { // library marker rbn.common, line 953
+    logDebug 'loadAllDefaults() !!!' // library marker rbn.common, line 954
+    deleteAllSettings() // library marker rbn.common, line 955
+    deleteAllCurrentStates() // library marker rbn.common, line 956
+    deleteAllScheduledJobs() // library marker rbn.common, line 957
+    deleteAllStates() // library marker rbn.common, line 958
+    deleteAllChildDevices() // library marker rbn.common, line 959
+ // library marker rbn.common, line 960
+    initialize() // library marker rbn.common, line 961
+    configureNow()     // calls  also   configureDevice()   // bug fixed 04/03/2024 // library marker rbn.common, line 962
+    updated() // library marker rbn.common, line 963
+    sendInfoEvent('All Defaults Loaded! F5 to refresh') // library marker rbn.common, line 964
+} // library marker rbn.common, line 965
+ // library marker rbn.common, line 966
+private void configureNow() { // library marker rbn.common, line 967
+    configure() // library marker rbn.common, line 968
+} // library marker rbn.common, line 969
+ // library marker rbn.common, line 970
+/** // library marker rbn.common, line 971
+ * Send configuration parameters to the device // library marker rbn.common, line 972
+ * Invoked when device is first installed and when the user updates the configuration  TODO // library marker rbn.common, line 973
+ * @return sends zigbee commands // library marker rbn.common, line 974
+ */ // library marker rbn.common, line 975
+void configure() { // library marker rbn.common, line 976
+    List<String> cmds = [] // library marker rbn.common, line 977
+    if (state.stats == null) { state.stats = [:] } ; state.stats.cfgCtr = (state.stats.cfgCtr ?: 0) + 1 // library marker rbn.common, line 978
+    logInfo "configure()... cfgCtr=${state.stats.cfgCtr}" // library marker rbn.common, line 979
+    logDebug "configure(): settings: $settings" // library marker rbn.common, line 980
+    aqaraBlackMagic()   // zigbee commands are sent here! // library marker rbn.common, line 981
+    List<String> initCmds = initializeDevice() // library marker rbn.common, line 982
+    if (initCmds != null && !initCmds.isEmpty()) { cmds += initCmds } // library marker rbn.common, line 983
+    List<String> cfgCmds = configureDevice() // library marker rbn.common, line 984
+    if (cfgCmds != null && !cfgCmds.isEmpty()) { cmds += cfgCmds } // library marker rbn.common, line 985
+    if (cmds != null && !cmds.isEmpty()) { // library marker rbn.common, line 986
+        sendZigbeeCommands(cmds) // library marker rbn.common, line 987
+        logDebug "configure(): sent cmds = ${cmds}" // library marker rbn.common, line 988
+        sendInfoEvent('sent device configuration') // library marker rbn.common, line 989
+    } // library marker rbn.common, line 990
+    else { // library marker rbn.common, line 991
+        logDebug "configure(): no commands defined for device type ${DEVICE_TYPE}" // library marker rbn.common, line 992
+    } // library marker rbn.common, line 993
+} // library marker rbn.common, line 994
+ // library marker rbn.common, line 995
+// Invoked when the device is installed with this driver automatically selected. // library marker rbn.common, line 996
+void installed() { // library marker rbn.common, line 997
+    if (state.stats == null) { state.stats = [:] } ; state.stats.instCtr = (state.stats.instCtr ?: 0) + 1 // library marker rbn.common, line 998
+    logInfo "installed()... instCtr=${state.stats.instCtr}" // library marker rbn.common, line 999
+    // populate some default values for attributes // library marker rbn.common, line 1000
+    sendEvent(name: 'healthStatus', value: 'unknown', descriptionText: 'device was installed', type: 'digital') // library marker rbn.common, line 1001
+    sendEvent(name: 'powerSource',  value: 'unknown', descriptionText: 'device was installed', type: 'digital') // library marker rbn.common, line 1002
+    sendInfoEvent('installed') // library marker rbn.common, line 1003
+    runIn(3, 'updated') // library marker rbn.common, line 1004
+    runIn(5, 'queryPowerSource') // library marker rbn.common, line 1005
+} // library marker rbn.common, line 1006
+ // library marker rbn.common, line 1007
+private void queryPowerSource() { // library marker rbn.common, line 1008
+    sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, 0x0007, [:], 0)) // library marker rbn.common, line 1009
+} // library marker rbn.common, line 1010
+ // library marker rbn.common, line 1011
+// Invoked from 'LoadAllDefaults' // library marker rbn.common, line 1012
+private void initialize() { // library marker rbn.common, line 1013
+    if (state.stats == null) { state.stats = [:] } ; state.stats.initCtr = (state.stats.initCtr ?: 0) + 1 // library marker rbn.common, line 1014
+    logDebug "initialize()... initCtr=${state.stats.initCtr}" // library marker rbn.common, line 1015
+    if (device.getDataValue('powerSource') == null) { // library marker rbn.common, line 1016
+        logDebug "initializing device powerSource 'unknown'" // library marker rbn.common, line 1017
+        sendEvent(name: 'powerSource', value: 'unknown', type: 'digital') // library marker rbn.common, line 1018
+    } // library marker rbn.common, line 1019
+    if (this.respondsTo('customInitialize')) { customInitialize() } // library marker rbn.common, line 1020
+    initializeVars(fullInit = true) // library marker rbn.common, line 1021
+    updateAqaraVersion() // library marker rbn.common, line 1022
+} // library marker rbn.common, line 1023
+ // library marker rbn.common, line 1024
+/* // library marker rbn.common, line 1025
+ *----------------------------------------------------------------------------- // library marker rbn.common, line 1026
+ * kkossev drivers commonly used functions // library marker rbn.common, line 1027
+ *----------------------------------------------------------------------------- // library marker rbn.common, line 1028
+*/ // library marker rbn.common, line 1029
+ // library marker rbn.common, line 1030
+static Integer safeToInt(Object val, Integer defaultVal=0) { // library marker rbn.common, line 1031
+    return "${val}"?.isInteger() ? "${val}".toInteger() : defaultVal // library marker rbn.common, line 1032
+} // library marker rbn.common, line 1033
+ // library marker rbn.common, line 1034
+static Double safeToDouble(Object val, Double defaultVal=0.0) { // library marker rbn.common, line 1035
+    return "${val}"?.isDouble() ? "${val}".toDouble() : defaultVal // library marker rbn.common, line 1036
+} // library marker rbn.common, line 1037
+ // library marker rbn.common, line 1038
+static BigDecimal safeToBigDecimal(Object val, BigDecimal defaultVal=0.0) { // library marker rbn.common, line 1039
+    return "${val}"?.isBigDecimal() ? "${val}".toBigDecimal() : defaultVal // library marker rbn.common, line 1040
+} // library marker rbn.common, line 1041
+ // library marker rbn.common, line 1042
+public void sendZigbeeCommands(List<String> cmd) { // library marker rbn.common, line 1043
+    if (cmd == null || cmd.isEmpty()) { // library marker rbn.common, line 1044
+        logWarn "sendZigbeeCommands: list is empty! cmd=${cmd}" // library marker rbn.common, line 1045
+        return // library marker rbn.common, line 1046
+    } // library marker rbn.common, line 1047
+    hubitat.device.HubMultiAction allActions = new hubitat.device.HubMultiAction() // library marker rbn.common, line 1048
+    cmd.each { // library marker rbn.common, line 1049
+        if (it == null || it.isEmpty() || it == 'null') { // library marker rbn.common, line 1050
+            logWarn "sendZigbeeCommands it: no commands to send! it=${it} (cmd=${cmd})" // library marker rbn.common, line 1051
+            return // library marker rbn.common, line 1052
+        } // library marker rbn.common, line 1053
+        allActions.add(new hubitat.device.HubAction(it, hubitat.device.Protocol.ZIGBEE)) // library marker rbn.common, line 1054
+        if (state.stats != null) { state.stats['txCtr'] = (state.stats['txCtr'] ?: 0) + 1 } else { state.stats = [:] } // library marker rbn.common, line 1055
+    } // library marker rbn.common, line 1056
+    if (state.lastTx != null) { state.lastTx['cmdTime'] = now() } else { state.lastTx = [:] } // library marker rbn.common, line 1057
+    sendHubCommand(allActions) // library marker rbn.common, line 1058
+    logDebug "sendZigbeeCommands: sent cmd=${cmd}" // library marker rbn.common, line 1059
+} // library marker rbn.common, line 1060
+ // library marker rbn.common, line 1061
+private String driverVersionAndTimeStamp() { version() + ' ' + timeStamp() + ((_DEBUG) ? ' (debug version!) ' : ' ') + "(${device.getDataValue('model')} ${device.getDataValue('manufacturer')}) (${getModel()} ${location.hub.firmwareVersionString})" } // library marker rbn.common, line 1062
+ // library marker rbn.common, line 1063
+private String getDeviceInfo() { // library marker rbn.common, line 1064
+    return "model=${device.getDataValue('model')} manufacturer=${device.getDataValue('manufacturer')} destinationEP=${state.destinationEP ?: UNKNOWN} <b>deviceProfile=${state.deviceProfile ?: UNKNOWN}</b>" // library marker rbn.common, line 1065
+} // library marker rbn.common, line 1066
+ // library marker rbn.common, line 1067
+public String getDestinationEP() {    // [destEndpoint:safeToInt(getDestinationEP())] // library marker rbn.common, line 1068
+    return state.destinationEP ?: device.endpointId ?: '01' // library marker rbn.common, line 1069
+} // library marker rbn.common, line 1070
+ // library marker rbn.common, line 1071
+//@CompileStatic // library marker rbn.common, line 1072
+public void checkDriverVersion(final Map stateCopy) { // library marker rbn.common, line 1073
+    if (stateCopy.driverVersion == null || driverVersionAndTimeStamp() != stateCopy.driverVersion) { // library marker rbn.common, line 1074
+        logDebug "checkDriverVersion: updating the settings from the current driver version ${stateCopy.driverVersion} to the new version ${driverVersionAndTimeStamp()}" // library marker rbn.common, line 1075
+        sendInfoEvent("Updated to version ${driverVersionAndTimeStamp()} from version ${stateCopy.driverVersion ?: 'unknown'}") // library marker rbn.common, line 1076
+        state.driverVersion = driverVersionAndTimeStamp() // library marker rbn.common, line 1077
+        initializeVars(false) // library marker rbn.common, line 1078
+        updateAqaraVersion() // library marker rbn.common, line 1079
+        if (this.respondsTo('customcheckDriverVersion')) { customcheckDriverVersion(stateCopy) } // library marker rbn.common, line 1080
+    } // library marker rbn.common, line 1081
+    if (state.states == null) { state.states = [:] } ; if (state.lastRx == null) { state.lastRx = [:] } ; if (state.lastTx == null) { state.lastTx = [:] } ; if (state.stats  == null) { state.stats =  [:] } // library marker rbn.common, line 1082
+} // library marker rbn.common, line 1083
+ // library marker rbn.common, line 1084
+// credits @thebearmay // library marker rbn.common, line 1085
+String getModel() { // library marker rbn.common, line 1086
+    try { // library marker rbn.common, line 1087
+        /* groovylint-disable-next-line UnnecessaryGetter, UnusedVariable */ // library marker rbn.common, line 1088
+        String model = getHubVersion() // requires >=2.2.8.141 // library marker rbn.common, line 1089
+    } catch (ignore) { // library marker rbn.common, line 1090
+        try { // library marker rbn.common, line 1091
+            httpGet("http://${location.hub.localIP}:8080/api/hubitat.xml") { res -> // library marker rbn.common, line 1092
+                model = res.data.device.modelName // library marker rbn.common, line 1093
+                return model // library marker rbn.common, line 1094
+            } // library marker rbn.common, line 1095
+        } catch (ignore_again) { // library marker rbn.common, line 1096
+            return '' // library marker rbn.common, line 1097
+        } // library marker rbn.common, line 1098
+    } // library marker rbn.common, line 1099
+} // library marker rbn.common, line 1100
+ // library marker rbn.common, line 1101
+// credits @thebearmay // library marker rbn.common, line 1102
+boolean isCompatible(Integer minLevel) { //check to see if the hub version meets the minimum requirement ( 7 or 8 ) // library marker rbn.common, line 1103
+    String model = getModel()            // <modelName>Rev C-7</modelName> // library marker rbn.common, line 1104
+    String[] tokens = model.split('-') // library marker rbn.common, line 1105
+    String revision = tokens.last() // library marker rbn.common, line 1106
+    return (Integer.parseInt(revision) >= minLevel) // library marker rbn.common, line 1107
+} // library marker rbn.common, line 1108
+ // library marker rbn.common, line 1109
+void deleteAllStatesAndJobs() { // library marker rbn.common, line 1110
+    state.clear()    // clear all states // library marker rbn.common, line 1111
+    unschedule() // library marker rbn.common, line 1112
+    device.deleteCurrentState('*') // library marker rbn.common, line 1113
+    device.deleteCurrentState('') // library marker rbn.common, line 1114
+ // library marker rbn.common, line 1115
+    log.info "${device.displayName} jobs and states cleared. HE hub is ${getHubVersion()}, version is ${location.hub.firmwareVersionString}" // library marker rbn.common, line 1116
+} // library marker rbn.common, line 1117
+ // library marker rbn.common, line 1118
+void resetStatistics() { // library marker rbn.common, line 1119
+    runIn(1, 'resetStats') // library marker rbn.common, line 1120
+    sendInfoEvent('Statistics are reset. Refresh the web page') // library marker rbn.common, line 1121
+} // library marker rbn.common, line 1122
+ // library marker rbn.common, line 1123
+// called from initializeVars(true) and resetStatistics() // library marker rbn.common, line 1124
+void resetStats() { // library marker rbn.common, line 1125
+    logDebug 'resetStats...' // library marker rbn.common, line 1126
+    state.stats = [:] ; state.states = [:] ; state.lastRx = [:] ; state.lastTx = [:] ; state.health = [:] // library marker rbn.common, line 1127
+    if (this.respondsTo('groupsLibVersion')) { state.zigbeeGroups = [:] } // library marker rbn.common, line 1128
+    state.stats.rxCtr = 0 ; state.stats.txCtr = 0 // library marker rbn.common, line 1129
+    state.states['isDigital'] = false ; state.states['isRefresh'] = false ; state.states['isPing'] = false // library marker rbn.common, line 1130
+    state.health['offlineCtr'] = 0 ; state.health['checkCtr3'] = 0 // library marker rbn.common, line 1131
+    if (this.respondsTo('customResetStats')) { customResetStats() } // library marker rbn.common, line 1132
+    logInfo 'statistics reset!' // library marker rbn.common, line 1133
+} // library marker rbn.common, line 1134
+ // library marker rbn.common, line 1135
+void initializeVars( boolean fullInit = false ) { // library marker rbn.common, line 1136
+    logDebug "InitializeVars()... fullInit = ${fullInit}" // library marker rbn.common, line 1137
+    if (fullInit == true ) { // library marker rbn.common, line 1138
+        state.clear() // library marker rbn.common, line 1139
+        unschedule() // library marker rbn.common, line 1140
+        resetStats() // library marker rbn.common, line 1141
+        if (this.respondsTo('setDeviceNameAndProfile')) { setDeviceNameAndProfile() } // library marker rbn.common, line 1142
+        //state.comment = 'Works with Tuya Zigbee Devices' // library marker rbn.common, line 1143
+        logInfo 'all states and scheduled jobs cleared!' // library marker rbn.common, line 1144
+        state.driverVersion = driverVersionAndTimeStamp() // library marker rbn.common, line 1145
+        logInfo "DEVICE_TYPE = ${DEVICE_TYPE}" // library marker rbn.common, line 1146
+        state.deviceType = DEVICE_TYPE // library marker rbn.common, line 1147
+        sendInfoEvent('Initialized') // library marker rbn.common, line 1148
+    } // library marker rbn.common, line 1149
+ // library marker rbn.common, line 1150
+    if (state.stats == null)  { state.stats  = [:] } // library marker rbn.common, line 1151
+    if (state.states == null) { state.states = [:] } // library marker rbn.common, line 1152
+    if (state.lastRx == null) { state.lastRx = [:] } // library marker rbn.common, line 1153
+    if (state.lastTx == null) { state.lastTx = [:] } // library marker rbn.common, line 1154
+    if (state.health == null) { state.health = [:] } // library marker rbn.common, line 1155
+ // library marker rbn.common, line 1156
+    if (fullInit || settings?.txtEnable == null) { device.updateSetting('txtEnable', true) } // library marker rbn.common, line 1157
+    if (fullInit || settings?.logEnable == null) { device.updateSetting('logEnable', DEFAULT_DEBUG_LOGGING ?: false) } // library marker rbn.common, line 1158
+    if (fullInit || settings?.traceEnable == null) { device.updateSetting('traceEnable', false) } // library marker rbn.common, line 1159
+    if (fullInit || settings?.advancedOptions == null) { device.updateSetting('advancedOptions', [value:false, type:'bool']) } // library marker rbn.common, line 1160
+    if (fullInit || settings?.healthCheckMethod == null) { device.updateSetting('healthCheckMethod', [value: HealthcheckMethodOpts.defaultValue.toString(), type: 'enum']) } // library marker rbn.common, line 1161
+    if (fullInit || settings?.healthCheckInterval == null) { device.updateSetting('healthCheckInterval', [value: HealthcheckIntervalOpts.defaultValue.toString(), type: 'enum']) } // library marker rbn.common, line 1162
+    if (fullInit || settings?.ignoreDuplicatedZigbeeMessages == null) { device.updateSetting('ignoreDuplicatedZigbeeMessages', false) } // library marker rbn.common, line 1163
+    if (fullInit || settings?.voltageToPercent == null) { device.updateSetting('voltageToPercent', false) } // library marker rbn.common, line 1164
+ // library marker rbn.common, line 1165
+    if (device.currentValue('healthStatus') == null) { sendHealthStatusEvent('unknown') } // library marker rbn.common, line 1166
+ // library marker rbn.common, line 1167
+    // common libraries initialization // library marker rbn.common, line 1168
+    executeCustomHandler('batteryInitializeVars', fullInit)     // added 07/06/2024 // library marker rbn.common, line 1169
+    executeCustomHandler('motionInitializeVars', fullInit)      // added 07/06/2024 // library marker rbn.common, line 1170
+    executeCustomHandler('groupsInitializeVars', fullInit) // library marker rbn.common, line 1171
+    executeCustomHandler('illuminanceInitializeVars', fullInit) // library marker rbn.common, line 1172
+    executeCustomHandler('onOfInitializeVars', fullInit) // library marker rbn.common, line 1173
+    executeCustomHandler('energyInitializeVars', fullInit) // library marker rbn.common, line 1174
+    // // library marker rbn.common, line 1175
+    executeCustomHandler('deviceProfileInitializeVars', fullInit)   // must be before the other deviceProfile initialization handlers! // library marker rbn.common, line 1176
+    executeCustomHandler('initEventsDeviceProfile', fullInit)   // added 07/06/2024 // library marker rbn.common, line 1177
+    // // library marker rbn.common, line 1178
+    // custom device driver specific initialization should be at the end // library marker rbn.common, line 1179
+    executeCustomHandler('customInitializeVars', fullInit) // library marker rbn.common, line 1180
+    executeCustomHandler('customCreateChildDevices', fullInit) // library marker rbn.common, line 1181
+    executeCustomHandler('customInitEvents', fullInit) // library marker rbn.common, line 1182
+ // library marker rbn.common, line 1183
+    final String mm = device.getDataValue('model') // library marker rbn.common, line 1184
+    if (mm != null) { logTrace " model = ${mm}" } // library marker rbn.common, line 1185
+    else { logWarn ' Model not found, please re-pair the device!' } // library marker rbn.common, line 1186
+    final String ep = device.getEndpointId() // library marker rbn.common, line 1187
+    if ( ep  != null) { // library marker rbn.common, line 1188
+        //state.destinationEP = ep // library marker rbn.common, line 1189
+        logTrace " destinationEP = ${ep}" // library marker rbn.common, line 1190
+    } // library marker rbn.common, line 1191
+    else { // library marker rbn.common, line 1192
+        logWarn ' Destination End Point not found, please re-pair the device!' // library marker rbn.common, line 1193
+    //state.destinationEP = "01"    // fallback // library marker rbn.common, line 1194
+    } // library marker rbn.common, line 1195
+} // library marker rbn.common, line 1196
+ // library marker rbn.common, line 1197
+// not used!? // library marker rbn.common, line 1198
+void setDestinationEP() { // library marker rbn.common, line 1199
+    String ep = device.getEndpointId() // library marker rbn.common, line 1200
+    if (ep != null && ep != 'F2') { state.destinationEP = ep ; logDebug "setDestinationEP() destinationEP = ${state.destinationEP}" } // library marker rbn.common, line 1201
+    else { logWarn "setDestinationEP() Destination End Point not found or invalid(${ep}), activating the F2 bug patch!" ; state.destinationEP = '01' }   // fallback EP // library marker rbn.common, line 1202
+} // library marker rbn.common, line 1203
+ // library marker rbn.common, line 1204
+void logDebug(final String msg) { if (settings?.logEnable)   { log.debug "${device.displayName} " + msg } } // library marker rbn.common, line 1205
+void logInfo(final String msg)  { if (settings?.txtEnable)   { log.info  "${device.displayName} " + msg } } // library marker rbn.common, line 1206
+void logWarn(final String msg)  { if (settings?.logEnable)   { log.warn  "${device.displayName} " + msg } } // library marker rbn.common, line 1207
+void logTrace(final String msg) { if (settings?.traceEnable) { log.trace "${device.displayName} " + msg } } // library marker rbn.common, line 1208
+void logError(final String msg) { if (settings?.txtEnable)   { log.error "${device.displayName} " + msg } } // library marker rbn.common, line 1209
+ // library marker rbn.common, line 1210
+// _DEBUG mode only // library marker rbn.common, line 1211
+void getAllProperties() { // library marker rbn.common, line 1212
+    log.trace 'Properties:' ; device.properties.each { it -> log.debug it } // library marker rbn.common, line 1213
+    log.trace 'Settings:' ;  settings.each { it -> log.debug "${it.key} =  ${it.value}" }    // https://community.hubitat.com/t/how-do-i-get-the-datatype-for-an-app-setting/104228/6?u=kkossev // library marker rbn.common, line 1214
+} // library marker rbn.common, line 1215
+ // library marker rbn.common, line 1216
+// delete all Preferences // library marker rbn.common, line 1217
+void deleteAllSettings() { // library marker rbn.common, line 1218
+    String preferencesDeleted = '' // library marker rbn.common, line 1219
+    settings.each { it -> preferencesDeleted += "${it.key} (${it.value}), " ; device.removeSetting("${it.key}") } // library marker rbn.common, line 1220
+    logDebug "Deleted settings: ${preferencesDeleted}" // library marker rbn.common, line 1221
+    logInfo  'All settings (preferences) DELETED' // library marker rbn.common, line 1222
+} // library marker rbn.common, line 1223
+ // library marker rbn.common, line 1224
+// delete all attributes // library marker rbn.common, line 1225
+void deleteAllCurrentStates() { // library marker rbn.common, line 1226
+    String attributesDeleted = '' // library marker rbn.common, line 1227
+    device.properties.supportedAttributes.each { it -> attributesDeleted += "${it}, " ; device.deleteCurrentState("$it") } // library marker rbn.common, line 1228
+    logDebug "Deleted attributes: ${attributesDeleted}" ; logInfo 'All current states (attributes) DELETED' // library marker rbn.common, line 1229
+} // library marker rbn.common, line 1230
+ // library marker rbn.common, line 1231
+// delete all State Variables // library marker rbn.common, line 1232
+void deleteAllStates() { // library marker rbn.common, line 1233
+    String stateDeleted = '' // library marker rbn.common, line 1234
+    state.each { it -> stateDeleted += "${it.key}, " } // library marker rbn.common, line 1235
+    state.clear() // library marker rbn.common, line 1236
+    logDebug "Deleted states: ${stateDeleted}" ; logInfo 'All States DELETED' // library marker rbn.common, line 1237
+} // library marker rbn.common, line 1238
+ // library marker rbn.common, line 1239
+void deleteAllScheduledJobs() { // library marker rbn.common, line 1240
+    unschedule() ; logInfo 'All scheduled jobs DELETED' // library marker rbn.common, line 1241
+} // library marker rbn.common, line 1242
+ // library marker rbn.common, line 1243
+void deleteAllChildDevices() { // library marker rbn.common, line 1244
+    getChildDevices().each { child -> log.info "${device.displayName} Deleting ${child.deviceNetworkId}" ; deleteChildDevice(child.deviceNetworkId) } // library marker rbn.common, line 1245
+    sendInfoEvent 'All child devices DELETED' // library marker rbn.common, line 1246
+} // library marker rbn.common, line 1247
+ // library marker rbn.common, line 1248
+void testParse(String par) { // library marker rbn.common, line 1249
+    //read attr - raw: DF8D0104020A000029280A, dni: DF8D, endpoint: 01, cluster: 0402, size: 0A, attrId: 0000, encoding: 29, command: 0A, value: 280A // library marker rbn.common, line 1250
+    log.trace '------------------------------------------------------' // library marker rbn.common, line 1251
+    log.warn "testParse - <b>START</b> (${par})" // library marker rbn.common, line 1252
+    parse(par) // library marker rbn.common, line 1253
+    log.warn "testParse -   <b>END</b> (${par})" // library marker rbn.common, line 1254
+    log.trace '------------------------------------------------------' // library marker rbn.common, line 1255
+} // library marker rbn.common, line 1256
+ // library marker rbn.common, line 1257
+Object testJob() { // library marker rbn.common, line 1258
+    log.warn 'test job executed' // library marker rbn.common, line 1259
+} // library marker rbn.common, line 1260
+ // library marker rbn.common, line 1261
+/** // library marker rbn.common, line 1262
+ * Calculates and returns the cron expression // library marker rbn.common, line 1263
+ * @param timeInSeconds interval in seconds // library marker rbn.common, line 1264
+ */ // library marker rbn.common, line 1265
+String getCron(int timeInSeconds) { // library marker rbn.common, line 1266
+    //schedule("${rnd.nextInt(59)} ${rnd.nextInt(9)}/${intervalMins} * ? * * *", 'ping') // library marker rbn.common, line 1267
+    // TODO: runEvery1Minute runEvery5Minutes runEvery10Minutes runEvery15Minutes runEvery30Minutes runEvery1Hour runEvery3Hours // library marker rbn.common, line 1268
+    final Random rnd = new Random() // library marker rbn.common, line 1269
+    int minutes = (timeInSeconds / 60 ) as int // library marker rbn.common, line 1270
+    int  hours = (minutes / 60 ) as int // library marker rbn.common, line 1271
+    if (hours > 23) { hours = 23 } // library marker rbn.common, line 1272
+    String cron // library marker rbn.common, line 1273
+    if (timeInSeconds < 60) { cron = "*/$timeInSeconds * * * * ? *" } // library marker rbn.common, line 1274
+    else { // library marker rbn.common, line 1275
+        if (minutes < 60) {   cron = "${rnd.nextInt(59)} ${rnd.nextInt(9)}/$minutes * ? * *" } // library marker rbn.common, line 1276
+        else {                cron = "${rnd.nextInt(59)} ${rnd.nextInt(59)} */$hours ? * *"  } // library marker rbn.common, line 1277
+    } // library marker rbn.common, line 1278
+    return cron // library marker rbn.common, line 1279
+} // library marker rbn.common, line 1280
+ // library marker rbn.common, line 1281
+// credits @thebearmay // library marker rbn.common, line 1282
+String formatUptime() { // library marker rbn.common, line 1283
+    return formatTime(location.hub.uptime) // library marker rbn.common, line 1284
+} // library marker rbn.common, line 1285
+ // library marker rbn.common, line 1286
+String formatTime(int timeInSeconds) { // library marker rbn.common, line 1287
+    if (timeInSeconds == null) { return UNKNOWN } // library marker rbn.common, line 1288
+    int days = (timeInSeconds / 86400).toInteger() // library marker rbn.common, line 1289
+    int hours = ((timeInSeconds % 86400) / 3600).toInteger() // library marker rbn.common, line 1290
+    int minutes = ((timeInSeconds % 3600) / 60).toInteger() // library marker rbn.common, line 1291
+    int seconds = (timeInSeconds % 60).toInteger() // library marker rbn.common, line 1292
+    return "${days}d ${hours}h ${minutes}m ${seconds}s" // library marker rbn.common, line 1293
+} // library marker rbn.common, line 1294
+ // library marker rbn.common, line 1295
+boolean isAqara() { return device.getDataValue('model')?.startsWith('lumi') ?: false } // library marker rbn.common, line 1296
+ // library marker rbn.common, line 1297
+void updateAqaraVersion() { // library marker rbn.common, line 1298
+    if (!isAqara()) { logTrace 'not Aqara' ; return } // library marker rbn.common, line 1299
+    String application = device.getDataValue('application') // library marker rbn.common, line 1300
+    if (application != null) { // library marker rbn.common, line 1301
+        String str = '0.0.0_' + String.format('%04d', zigbee.convertHexToInt(application.take(2))) // library marker rbn.common, line 1302
+        if (device.getDataValue('aqaraVersion') != str) { // library marker rbn.common, line 1303
+            device.updateDataValue('aqaraVersion', str) // library marker rbn.common, line 1304
+            logInfo "aqaraVersion set to $str" // library marker rbn.common, line 1305
+        } // library marker rbn.common, line 1306
+    } // library marker rbn.common, line 1307
+} // library marker rbn.common, line 1308
+ // library marker rbn.common, line 1309
+String unix2formattedDate(Long unixTime) { // library marker rbn.common, line 1310
+    try { // library marker rbn.common, line 1311
+        if (unixTime == null) { return null } // library marker rbn.common, line 1312
+        /* groovylint-disable-next-line NoJavaUtilDate */ // library marker rbn.common, line 1313
+        Date date = new Date(unixTime.toLong()) // library marker rbn.common, line 1314
+        return date.format('yyyy-MM-dd HH:mm:ss.SSS', location.timeZone) // library marker rbn.common, line 1315
+    } catch (e) { // library marker rbn.common, line 1316
+        logDebug "Error formatting date: ${e.message}. Returning current time instead." // library marker rbn.common, line 1317
+        return new Date().format('yyyy-MM-dd HH:mm:ss.SSS', location.timeZone) // library marker rbn.common, line 1318
+    } // library marker rbn.common, line 1319
+} // library marker rbn.common, line 1320
+ // library marker rbn.common, line 1321
+Long formattedDate2unix(String formattedDate) { // library marker rbn.common, line 1322
+    try { // library marker rbn.common, line 1323
+        if (formattedDate == null) { return null } // library marker rbn.common, line 1324
+        Date date = Date.parse('yyyy-MM-dd HH:mm:ss.SSS', formattedDate) // library marker rbn.common, line 1325
+        return date.getTime() // library marker rbn.common, line 1326
+    } catch (e) { // library marker rbn.common, line 1327
+        logDebug "Error parsing formatted date: ${formattedDate}. Returning current time instead." // library marker rbn.common, line 1328
+        return now() // library marker rbn.common, line 1329
+    } // library marker rbn.common, line 1330
+} // library marker rbn.common, line 1331
+ // library marker rbn.common, line 1332
+static String timeToHMS(final int time) { // library marker rbn.common, line 1333
+    int hours = (time / 3600) as int // library marker rbn.common, line 1334
+    int minutes = ((time % 3600) / 60) as int // library marker rbn.common, line 1335
+    int seconds = time % 60 // library marker rbn.common, line 1336
+    return "${hours}h ${minutes}m ${seconds}s" // library marker rbn.common, line 1337
+} // library marker rbn.common, line 1338
 // ~~~~~ end include rbn.common ~~~~~
 
 // ~~~~~ start include rbn.switch ~~~~~
@@ -2384,7 +2380,7 @@ metadata { // library marker rbn.button, line 31
     // no attributes // library marker rbn.button, line 40
     // no commands // library marker rbn.button, line 41
     preferences { // library marker rbn.button, line 42
-        // no prefrences // library marker rbn.button, line 43
+    // no prefrences // library marker rbn.button, line 43
     } // library marker rbn.button, line 44
 } // library marker rbn.button, line 45
  // library marker rbn.button, line 46

@@ -4,14 +4,14 @@
  *
  *  https://community.hubitat.com/t/alpha-aqara-cube-t1-pro-mfczq12lm-c-7/121604
  *
- * 	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * 	in compliance with the License. You may obtain a copy of the License at:
+ *     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *     in compliance with the License. You may obtain a copy of the License at:
  *
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * 	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
- * 	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
- * 	for the specific language governing permissions and limitations under the License.
+ *     Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *     on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *     for the specific language governing permissions and limitations under the License.
  *
  * This driver is inspired by @w35l3y work on Tuya device driver (Edge project).
  * For a big portions of code all credits go to Jonathan Bradshaw.
@@ -26,7 +26,7 @@
  * ver. 3.3.0  2026-08-27 kkossev  - (dev. branch) commonLib 4.1.1
  * ver. 3.3.0  2026-09-30 rbn      - ported to the rbn libraries (rbn.common 4.1.1 with the Tuya path removed); no functional change
  *
- *                                   TODO: 
+ *                                   TODO:
  */
 
 static String version() { "3.3.0" }
@@ -57,7 +57,7 @@ metadata {
         importUrl: 'https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy',
         namespace: 'rbn', author: 'Krassimir Kossev', singleThreaded: true )
     {
-        // deviceType specific capabilities, commands and attributes         
+        // deviceType specific capabilities, commands and attributes
         capability "Sensor"
         capability "PushableButton"
         capability "DoubleTapableButton"
@@ -89,8 +89,7 @@ metadata {
     }
 }
 
-
-// https://github.com/Koenkk/zigbee2mqtt/issues/15652 
+// https://github.com/Koenkk/zigbee2mqtt/issues/15652
 // https://homekitnews.com/2022/02/17/aqara-cube-t1-pro-review/
 
 @Field static final Map AqaraCubeModeOpts = [
@@ -126,7 +125,7 @@ metadata {
         6: 'inactivity'
     ]
 ]
-          
+
 @Field static final Map AqaraCubeSideOpts = [
     defaultValue: 0,
     options     : [
@@ -136,13 +135,12 @@ metadata {
         3: 'side',                 // Destination side of action
         4: 'sideUp'                // Upfacing side of current scene
     ]
-]          
+]
 
 @Field static final Map SendButtonEventOpts = [
     defaultValue: 0,
     options     : [0: 'disabled', 1: 'enabled']
 ]
-
 
 def customRefresh() {
     List<String> cmds = []
@@ -158,7 +156,7 @@ def customInitializeVars(boolean fullInit=false) {
     logDebug "customInitializeVars(${fullInit})"
     if (fullInit || settings?.cubeOperationMode == null) device.updateSetting('cubeOperationMode', [value: AqaraCubeModeOpts.defaultValue.toString(), type: 'enum'])
     if (fullInit || settings?.sendButtonEvent == null) device.updateSetting('sendButtonEvent', [value: SendButtonEventOpts.defaultValue.toString(), type: 'enum'])
-    if (fullInit || settings?.voltageToPercent == null) device.updateSetting("voltageToPercent", true)        // overwrite the defailt false setting
+    if (fullInit || settings?.voltageToPercent == null) device.updateSetting("voltageToPercent", true)        // overwrite the default false setting
 }
 
 void customInitEvents(boolean fullInit=false) {
@@ -195,20 +193,19 @@ def customConfigureDevice() {
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0000 {${device.zigbeeId}} {}", "delay 251", ]
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0006 {${device.zigbeeId}} {}", "delay 251", ]
     cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0x0001 {${device.zigbeeId}} {}", "delay 251", ]
-    
+
     cmds += zigbee.readAttribute(0xFCC0, 0x0009, [mfgCode: 0x115F], delay=200)
     cmds += zigbee.readAttribute(0x0001, 0x0020, [:], delay=200)
-    cmds += zigbee.readAttribute(0xFCC0, 0x0148, [mfgCode: 0x115F], delay=200)   
-    cmds += zigbee.readAttribute(0xFCC0, 0x0149, [mfgCode: 0x115F], delay=200)   
-    
+    cmds += zigbee.readAttribute(0xFCC0, 0x0148, [mfgCode: 0x115F], delay=200)
+    cmds += zigbee.readAttribute(0xFCC0, 0x0149, [mfgCode: 0x115F], delay=200)
+
     logDebug "customConfigureDevice() : ${cmds}"
-    return cmds    
+    return cmds
 }
 
-
 /*
- # Clusters (Scene Mode): 
-  ## Endpoint 2: 
+ # Clusters (Scene Mode):
+  ## Endpoint 2:
 
   | Cluster            | Data                      | Description                   |
   | ------------------ | ------------------------- | ----------------------------- |
@@ -224,10 +221,10 @@ void customParseMultistateInputCluster(final Map descMap) {
     String action = null
     Integer side = 0
     switch (value as Integer) {
-        case 0: 
+        case 0:
             action = 'shake'
             break
-        case 1: 
+        case 1:
             action = 'throw'
             break
         case 2:
@@ -260,7 +257,7 @@ void customParseMultistateInputCluster(final Map descMap) {
         }
         eventMap.descriptionText = "${eventMap.name} is ${eventMap.value} ${sideStr} ${eventMap.unit}"
         sendEvent(eventMap)
-        logInfo "${eventMap.descriptionText}"   
+        logInfo "${eventMap.descriptionText}"
         if (action == "shake") {
             if (settings?.sendButtonEvent){
                 side = (device.currentValue('sideUp', true) ?: 0) as Integer
@@ -292,8 +289,8 @@ void parseXiaomiClusterAqaraCube(final Map descMap) {
 }
 
 /*
- # Clusters (Scene Mode): 
-  ## Endpoint 2: 
+ # Clusters (Scene Mode):
+  ## Endpoint 2:
 
   | Cluster            | Data                      | Description                   |
   | ------------------ | ------------------------- | ----------------------------- |
@@ -302,7 +299,7 @@ void parseXiaomiClusterAqaraCube(final Map descMap) {
 void processSideFacingUp(final Map descMap) {
     logDebug "processSideFacingUp: ${descMap}"
     if (descMap.value == null || descMap.value == 'FFFF') { return } // invalid or unknown value
-    Integer value = hexStrToUnsignedInt(descMap.value)    
+    Integer value = hexStrToUnsignedInt(descMap.value)
     sendAqaraCubeSideUpEvent(value)
 }
 
@@ -327,7 +324,7 @@ def sendAqaraCubeSideUpEvent(final Integer value) {
     }
     else {
         logWarn "invalid Aqara Cube side facing up value=${value}"
-    }    
+    }
 }
 
 // called from xiaomiLib - refactor !
@@ -342,11 +339,11 @@ def sendAqaraCubeOperationModeEvent(final Integer mode)
         eventMap.type = "physical"
         eventMap.descriptionText = "${eventMap.name} is ${eventMap.value} (${mode})"
         sendEvent(eventMap)
-        logInfo "${eventMap.descriptionText}"        
+        logInfo "${eventMap.descriptionText}"
     }
     else {
         logWarn "invalid Aqara Cube mode ${mode}"
-    }    
+    }
 }
 
 // 0x000C - Analog Input Cluster
@@ -355,8 +352,8 @@ void customParseAnalogInputCluster(final Map descMap) {
     if (descMap.value == null || descMap.value == 'FFFF') { logWarn "invalid or unknown value"; return } // invalid or unknown value
     if (descMap.attrId == "0055") {
         def value = hexStrToUnsignedInt(descMap.value)
-        Float floatValue = Float.intBitsToFloat(value.intValue())   
-        logDebug "value=${value} floatValue=${floatValue}" 
+        Float floatValue = Float.intBitsToFloat(value.intValue())
+        logDebug "value=${value} floatValue=${floatValue}"
         sendAqaraCubeRotateEvent(floatValue as Integer)
     }
     else {
@@ -367,7 +364,7 @@ void customParseAnalogInputCluster(final Map descMap) {
 
 void sendAqaraCubeRotateEvent(final Integer degrees) {
     String leftRight = degrees < 0 ? 'rotateLeft' : 'rotateRight'
-    
+
     def eventMap = [:]
     eventMap.name = "action"
     eventMap.value = leftRight

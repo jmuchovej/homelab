@@ -33,7 +33,7 @@ metadata {
     // no attributes
     // no commands
     preferences {
-        // no prefrences
+    // no prefrences
     }
 }
 

@@ -36,7 +36,7 @@ library(
   * ver. 4.1.0  2026-08-05 kkossev  - the administrative commands drop-down moved from configure(par) to the new deviceUtilities(par) command, so that configure() is again a plain Configuration capability button; removed the two separator entries from ConfigureOpts; configureHelp() is callable again and shows the command list and a '_status_' event when nothing was selected; do not use 'defaultValue' in a command parameter - it does not preselect the drop-down, but it IS submitted when Run is pressed without a selection!; configure() now shows a 'sleepy devices can not be configured' warning text; ping() icon changed to the antenna bars; added a one-click 'loadAllDefaults' command button
   * ver. 4.1.1  2026-08-23 kkossev  - (dev. branch) bug fix: quoted the respondsTo('processTuyaDPfromDeviceProfile') argument in standardProcessTuyaDP(); the bare identifier threw a NullPointerException in drivers without deviceProfileLib; cosmetic: parse() and standardAndCustomParseCluster() log the cluster id from clusterId/clusterInt when descMap.cluster is null (catchall messages), instead of 'cluster:0xnull'; removed a stray '}' from the healthStatus warning text
   *
-  *                                   TODO: change the offline threshold to 2 
+  *                                   TODO: change the offline threshold to 2
   *                                   TODO: add GetInfo (endpoints list) command (in the 'Tuya Device' driver?)
   *                                   TODO: make the configure() without parameter smart - analyze the State variables and call delete states.... call ActiveAndpoints() or/amd initialize() or/and configure()
   *                                   TODO: check - offlineCtr is not increasing? (ZBMicro);
@@ -149,7 +149,6 @@ public boolean isVirtual() { device.controllerType == null || device.controllerT
  * @param description Zigbee message in hex format
  */
 public void parse(final String description) {
-    
     Map stateCopy = state            // .clone() throws java.lang.CloneNotSupportedException in HE platform version 2.4.1.155 !
     checkDriverVersion(stateCopy)    // +1 ms
     if (state.stats != null) { state.stats?.rxCtr= (state.stats?.rxCtr ?: 0) + 1 } else { state.stats = [:] }  // updateRxStats(state) // +1 ms
@@ -215,7 +214,7 @@ public void parse(final String description) {
 }
 
 @Field static final Map<Integer, String> ClustersMap = [
-    0x0000: 'Basic',             0x0001: 'Power',            0x0003: 'Identify',         0x0004: 'Groups',           0x0005: 'Scenes',       0x0006: 'OnOff',           0x0007:'onOffConfiguration',      0x0008: 'LevelControl', 
+    0x0000: 'Basic',             0x0001: 'Power',            0x0003: 'Identify',         0x0004: 'Groups',           0x0005: 'Scenes',       0x0006: 'OnOff',           0x0007:'onOffConfiguration',      0x0008: 'LevelControl',
     0x000C: 'AnalogInput',       0x0012: 'MultistateInput',  0x0020: 'PollControl',      0x0102: 'WindowCovering',   0x0201: 'Thermostat',  0x0204: 'ThermostatConfig',/*0x0300: 'ColorControl',*/
     0x0400: 'Illuminance',       0x0402: 'Temperature',      0x0405: 'Humidity',         0x0406: 'Occupancy',        0x042A: 'Pm25',         0x0500: 'IAS',             0x0702: 'Metering',
     0x0B04: 'ElectricalMeasure', 0xE001: 'E0001',            0xE002: 'E002',             0xEC03: 'EC03',             0xFC03: 'FC03',            0xFC11: 'FC11',            0xFC7E: 'AirQualityIndex', // Sensirion VOC index
@@ -879,7 +878,7 @@ private void sendHealthStatusEvent(final String value) {
     }
 }
 
- // Invoked by Hubitat when the driver configuration is updated
+// Invoked by Hubitat when the driver configuration is updated
 void updated() {
     logInfo 'updated()...'
     checkDriverVersion(state)
@@ -994,7 +993,7 @@ void configure() {
     }
 }
 
- // Invoked when the device is installed with this driver automatically selected.
+// Invoked when the device is installed with this driver automatically selected.
 void installed() {
     if (state.stats == null) { state.stats = [:] } ; state.stats.instCtr = (state.stats.instCtr ?: 0) + 1
     logInfo "installed()... instCtr=${state.stats.instCtr}"
@@ -1010,7 +1009,7 @@ private void queryPowerSource() {
     sendZigbeeCommands(zigbee.readAttribute(zigbee.BASIC_CLUSTER, 0x0007, [:], 0))
 }
 
- // Invoked from 'LoadAllDefaults'
+// Invoked from 'LoadAllDefaults'
 private void initialize() {
     if (state.stats == null) { state.stats = [:] } ; state.stats.initCtr = (state.stats.initCtr ?: 0) + 1
     logDebug "initialize()... initCtr=${state.stats.initCtr}"
@@ -1018,7 +1017,7 @@ private void initialize() {
         logDebug "initializing device powerSource 'unknown'"
         sendEvent(name: 'powerSource', value: 'unknown', type: 'digital')
     }
-    if (this.respondsTo('customInitialize')) { customInitialize() } 
+    if (this.respondsTo('customInitialize')) { customInitialize() }
     initializeVars(fullInit = true)
     updateAqaraVersion()
 }
@@ -1192,7 +1191,7 @@ void initializeVars( boolean fullInit = false ) {
     }
     else {
         logWarn ' Destination End Point not found, please re-pair the device!'
-        //state.destinationEP = "01"    // fallback
+    //state.destinationEP = "01"    // fallback
     }
 }
 
