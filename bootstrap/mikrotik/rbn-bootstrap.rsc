@@ -143,7 +143,7 @@
   # No lease-script — clients (laptops, IoT) aren't meant to be name-
   # addressable on the mgmt VLAN. Backbone devices are handled via:
   #   - self-entry below (router registers itself)
-  #   - tofu's main module DNS sync (siblings — see plan #11)
+  #   - tofu's main module DNS sync (siblings)
   /ip/pool add name=pool-mgmt ranges=10.42.0.20-10.42.0.254 comment="bootstrap"
   /ip/dhcp-server add name=dhcp-mgmt interface=mgmt address-pool=pool-mgmt \
     disabled=no comment="bootstrap"
@@ -203,9 +203,6 @@
 }
 
 # ─── SSH host key (optional; PKCS#8 ed25519) ─────────────────────────────
-# TEMPORARILY DISABLED — isolating whether this block is the cause of the
-# bootstrap timeout on relay02. Re-enable once confirmed innocent.
-#
 # When `just upload` SCPs /relay-host.pem (from secrets/hosts/<dc>-<relay>
 # .sops.yaml :: .host-key), import it so the device's SSH host identity
 # stays stable across reset-configuration runs. Silently skipped if no

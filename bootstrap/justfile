@@ -1,4 +1,5 @@
 mod nix "nix/justfile"
+mod mikrotik "mikrotik/justfile"
 
 [private]
 default:

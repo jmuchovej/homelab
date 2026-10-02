@@ -1,0 +1,195 @@
+set script-interpreter := ["bash", "-euo", "pipefail"]
+
+# Repo root, derived from this file so the recipes work both through the root
+# justfile and standalone (`just -f bootstrap/mikrotik/justfile …`); no
+# symlinks into the repo are needed.
+root := parent_directory(parent_directory(source_directory()))
+secrets := root / "secrets"
+topology := root / "topology.yaml"
+template := source_directory() / "rbn-bootstrap.rsc"
+
+# Admin SSH public key installed on the device. `*.pub` is gitignored, so it
+# cannot live beside this justfile; default to the operator's own key.
+admin-pubkey := env("RBN_ADMIN_PUBKEY", home_directory() / ".ssh" / "id_ed25519.pub")
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# Each step below is independently callable; `run` chains them in order as
+# recipe dependencies. Advanced flows run individual steps — e.g. re-rendering
+# the script without re-uploading, or re-installing the admin SSH key against
+# an already-bootstrapped device.
+#
+# Conventions:
+#   - rendered script: /tmp/rbn-bootstrap.<dc>-<relay>.rsc (deterministic so
+#     `upload` picks up what `render` wrote)
+#   - factory IP defaults to 192.168.88.1, overridable per call
+#   - every password and the optional host key come from
+#     secrets/hosts/<dc>-<relay>.sops.yaml — the one file that also seeds the
+#     `terraform` user, so `wait` can never try a password the device lacks
+#
+# Operator workflow:
+#   1. Factory-reset the target device so it comes up at 192.168.88.1.
+#   2. Connect the laptop to the device's ether2 (gets a 192.168.88.x lease).
+#   3. Ensure topology.yaml has `role: router|switch` (and `trunks`) under
+#      .network.<dc>-<relay>, and secrets/hosts/<dc>-<relay>.sops.yaml has
+#      root-password and tofu-password (host-key optional).
+#   4. Run: just bootstrap mikrotik run <dc> <relay>
+#
+# Post-reset connectivity:
+#   - ROUTER: laptop auto-DHCPs from the new mgmt DHCP server (~30s)
+#   - SWITCH: the switch itself DHCPs from relay01 via the trunk uplink;
+#     relay01 must already be tofu-applied so the static lease + bridge VLAN
+#     tagging are in place.
+
+[doc('Render the first-boot script for <dc>-<relay> to /tmp/rbn-bootstrap.<dc>-<relay>.rsc (prints the path)')]
+[script]
+render dc relay:
+    rbn_sops() {
+      local v
+      v=$(sops -d --extract "$2" "$1")
+      [[ -n "$v" && "$v" != "null" ]] || { echo "ERROR: $1 :: $2 is not set" >&2; exit 1; }
+      printf '%s\n' "$v"
+    }
+
+    sops_file="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
+    [[ -f "{{ topology }}" ]] || { echo "ERROR: {{ topology }} not found" >&2; exit 1; }
+    [[ -f "$sops_file" ]] || { echo "ERROR: $sops_file not found" >&2; exit 1; }
+    command -v envsubst >/dev/null || { echo "ERROR: envsubst not in PATH" >&2; exit 1; }
+
+    role=$(yq ".network.\"{{ dc }}-{{ relay }}\".role // \"\"" "{{ topology }}")
+    [[ "$role" == "router" || "$role" == "switch" ]] || {
+      echo "ERROR: topology .network.{{ dc }}-{{ relay }}.role is '$role' (expected router|switch)" >&2
+      exit 1
+    }
+
+    counter=$(echo "{{ relay }}" | sed -E 's/^relay0?//')
+    [[ "$counter" =~ ^[0-9]+$ ]] || {
+      echo "ERROR: couldn't parse counter from '{{ relay }}'" >&2
+      exit 1
+    }
+
+    export ROLE="$role"
+    export IDENTITY="{{ dc }}-{{ relay }}"
+    export MGMT_IP="10.42.0.$counter"
+    export VLAN_ID="42"
+    export TRUNK_PORTS=$(yq -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "{{ topology }}")
+    export ROOT_PW=$(rbn_sops "$sops_file" '["root-password"]')
+    export TOFU_PW=$(rbn_sops "$sops_file" '["tofu-password"]')
+
+    rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
+    envsubst '${IDENTITY} ${MGMT_IP} ${ROLE} ${ROOT_PW} ${TOFU_PW} ${VLAN_ID} ${TRUNK_PORTS}' < "{{ template }}" > "$rendered"
+    chmod 0600 "$rendered"
+
+    echo "$rendered"
+
+# The relay host key (PKCS#8 ed25519, for /ip/ssh/import-host-key) is staged
+# whenever secrets/hosts/<dc>-<relay>.sops.yaml carries `host-key`, so the
+# currently disabled import block in rbn-bootstrap.rsc can be re-enabled
+# without a recipe change.
+[doc('Upload the rendered script, holonet cert+key, admin pubkey, and optional host key to <ip>')]
+[script]
+upload dc relay ip="192.168.88.1": (render dc relay)
+    rbn_scp() {
+      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
+        -qO "$1" "admin@{{ ip }}:$2"
+    }
+
+    rendered="/tmp/rbn-bootstrap.{{ dc }}-{{ relay }}.rsc"
+    [[ -f "$rendered" ]] || { echo "ERROR: $rendered not found (render failed?)" >&2; exit 1; }
+    [[ -f "{{ admin-pubkey }}" ]] || {
+      echo "ERROR: admin pubkey {{ admin-pubkey }} not found (set RBN_ADMIN_PUBKEY)" >&2
+      exit 1
+    }
+
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    sops -d --extract '["holonet.crt"]' "{{ secrets }}/topology.sops.yaml" > "$tmp/wildcard.crt"
+    sops -d --extract '["holonet.key"]' "{{ secrets }}/topology.sops.yaml" > "$tmp/wildcard.key"
+    chmod 0600 "$tmp"/wildcard.*
+
+    echo "==> Uploading bootstrap files to {{ ip }}..."
+    rbn_scp "$rendered" /rbn-bootstrap.rsc
+    rbn_scp "$tmp/wildcard.crt" /wildcard.crt
+    rbn_scp "$tmp/wildcard.key" /wildcard.key
+    rbn_scp "{{ admin-pubkey }}" /admin.pub
+
+    host_sops="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
+    if host_key=$(sops -d --extract '["host-key"]' "$host_sops" 2>/dev/null) && [[ -n "$host_key" && "$host_key" != "null" ]]; then
+      printf '%s\n' "$host_key" > "$tmp/relay-host.pem"
+      chmod 0600 "$tmp/relay-host.pem"
+      echo "==> Uploading SSH host key (from $host_sops)..."
+      rbn_scp "$tmp/relay-host.pem" /relay-host.pem
+    else
+      echo "==> No host-key in $host_sops; the device keeps its generated SSH host key"
+    fi
+
+# Removes any existing admin SSH keys first so re-running doesn't pile up
+# entries. Expects /admin.pub to already be on the device (from `upload`).
+[doc('Install the uploaded admin pubkey on the device at <ip> (idempotent)')]
+[script]
+install-ssh-key ip="192.168.88.1":
+    echo "==> Installing admin SSH key on {{ ip }}..."
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
+        -o ServerAliveInterval=3 -o ServerAliveCountMax=3 \
+        "admin@{{ ip }}" \
+        "/user/ssh-keys/remove [find user=admin]; \
+         /user/ssh-keys/import user=admin public-key-file=admin.pub; \
+         /file/remove [find name=admin.pub]" || true
+
+# The SSH session dies mid-command (expected; the device reboots). Aggressive
+# keepalives so the ssh client exits in ~9s instead of waiting on the default
+# TCP timeout.
+[doc('Factory-reset the device at <ip> with rbn-bootstrap.rsc as run-after-reset (reboots it)')]
+[script]
+reset ip="192.168.88.1":
+    echo "==> Triggering /system/reset-configuration on {{ ip }} (router will reboot)..."
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
+        -o ServerAliveInterval=3 -o ServerAliveCountMax=3 \
+        "admin@{{ ip }}" \
+        "/system/reset-configuration no-defaults=yes skip-backup=yes run-after-reset=rbn-bootstrap.rsc" || true
+
+# The devshell sets SSL_CERT_FILE to a bundle including the homelab root.crt,
+# so no --cacert is needed. --resolve maps hostname → counter-derived mgmt IP
+# since the laptop's DNS may not have the relay's record yet. <delay> gives
+# the device time to actually reboot before polling starts.
+[doc('Poll until <dc>-<relay> answers the REST API over validated TLS as the terraform user')]
+[script]
+wait dc relay delay="10" timeout="90":
+    sops_file="{{ secrets }}/hosts/{{ dc }}-{{ relay }}.sops.yaml"
+    tofu_pw=$(sops -d --extract '["tofu-password"]' "$sops_file")
+    [[ -n "$tofu_pw" && "$tofu_pw" != "null" ]] || { echo "ERROR: $sops_file :: tofu-password is not set" >&2; exit 1; }
+
+    counter=$(echo "{{ relay }}" | sed -E 's/^relay0?//')
+    mgmt_ip="10.42.0.$counter"
+    hostname="{{ dc }}-{{ relay }}.holonet.jm0.io"
+
+    sleep {{ delay }}
+    echo "==> Waiting up to {{ timeout }}s for $hostname ($mgmt_ip)..."
+
+    attempts=$(( {{ timeout }} / 2 ))
+    for i in $(seq 1 $attempts); do
+      if curl -fsu "terraform:$tofu_pw" --max-time 2 \
+           --resolve "$hostname:443:$mgmt_ip" \
+           "https://$hostname/rest/system/identity" >/dev/null 2>&1; then
+        echo "✓ $hostname reachable (TLS validated) after $((i * 2))s"
+        exit 0
+      fi
+      sleep 2
+    done
+    echo "✗ Timed out waiting for $hostname ($mgmt_ip) after {{ timeout }}s" >&2
+    echo "" >&2
+    echo "  Diagnose:" >&2
+    echo "  - Is the laptop on the mgmt VLAN? ('ip addr' should show 10.42.0.x)" >&2
+    echo "  - 'ssh admin@$mgmt_ip /system/identity/print' to verify the reset completed" >&2
+    echo "  - 'ip route get $mgmt_ip' should resolve via the laptop's NIC on the mgmt VLAN" >&2
+    echo "  - Check device logs: '/log/print where topics~\"system\"'" >&2
+    exit 1
+
+[doc('Full chain for <dc>-<relay> at factory <ip>: render → upload → install-ssh-key → reset → wait')]
+run dc relay ip="192.168.88.1": (render dc relay) (upload dc relay ip) (install-ssh-key ip) (reset ip) (wait dc relay)
+    @echo ""
+    @echo "Bootstrapped {{ dc }}-{{ relay }}. Next steps:"
+    @echo "  - WebFig/SSH as 'admin' with root-password from secrets/hosts/{{ dc }}-{{ relay }}.sops.yaml"
+    @echo "  - 'just tofu-plan' / 'just tofu-apply' to layer wg-holonet / wifi / the full firewall on top"
