@@ -1,4 +1,5 @@
-_: {
+{ inputs, ... }:
+{
   den.hosts.x86_64-linux.bootstrap = { };
 
   den.aspects.bootstrap = {
@@ -68,7 +69,7 @@ _: {
           │  SSH:   root@''${_rbn_ip:-<addr>}  (key: iso-key)
           │                                                      │
           │  Install a new host (from your workstation):         │
-          │    homelab bootstrap host <name> ''${_rbn_ip:-<addr>}
+          │    just bootstrap nix install <name> ''${_rbn_ip:-<addr>}
           │                                                      │
           │  Rescue an existing install:                         │
           │    rbn-rescue-mount [mnt]   # mount @,@nix,@persist  │
@@ -96,14 +97,20 @@ _: {
           extraGroups = [ "wheel" ];
           shell = pkgs.zsh;
           openssh.authorizedKeys.keys = [
-            (lib.fileContents ../../../secrets/keys/iso-key.pub)
+            (lib.fileContents "${inputs.self}/secrets/keys/iso-key.pub")
           ];
         };
 
         users.users.root = {
-          shell = pkgs.zsh;
+          # MUST stay a POSIX/bash-compatible shell. nixos-anywhere copies the
+          # system closure by running `nix copy` with the store URI
+          # `local?root=/mnt` over SSH as root — zsh/fish glob the `?` and abort
+          # ("zsh:1: no matches found: local?root=/mnt"), failing the upload.
+          # The `lab` user keeps zsh for interactive rescue; only root matters
+          # here because that's the account nixos-anywhere logs into.
+          shell = pkgs.bashInteractive;
           openssh.authorizedKeys.keys = [
-            (lib.fileContents ../../../secrets/keys/iso-key.pub)
+            (lib.fileContents "${inputs.self}/secrets/keys/iso-key.pub")
           ];
         };
 
@@ -120,6 +127,8 @@ _: {
           autosuggestions.enable = true;
           syntaxHighlighting.enable = true;
 
+          # Only one ${pkgs.X} reference per init — multiple here blow past
+          # Nix's 211-char derivation NAME_MAX.
           interactiveShellInit = ''
             source ${pkgs.fzf}/share/fzf/key-bindings.zsh
             source ${pkgs.fzf}/share/fzf/completion.zsh
@@ -150,6 +159,8 @@ _: {
           └────────────────────────────────────────────────┘
         '';
 
+        # Print the rich banner (with rescue commands) on every interactive
+        # shell startup, regardless of shell. Bash/zsh/fish all honor this.
         environment.interactiveShellInit = ''
           if [ -z "''${RBN_BANNER_SHOWN:-}" ]; then
             export RBN_BANNER_SHOWN=1

@@ -64,9 +64,11 @@ Alternative: keep the relative path with two hops.
 Rejected: the repo already uses `inputs.self` for every cross-tree reference from Nix, and the repo-layout spec's "relative paths" scenario was only ever about this one file.
 
 **D3. Install is a nushell recipe; the Python command is deleted.**
-`just bootstrap nix install host addr key=<default> *flags` reproduces `_bootstrap.py`:
+`just bootstrap nix install host addr *flags` reproduces `_bootstrap.py`:
 
-- Preconditions: `modules/hosts/<host>/<host>.nix` exists (no `mkdir`; a host that is not in the flake cannot be installed); confirmation via `gum confirm` unless `--yes`; the iso-key private path exists (parameter, default `secrets/keys/iso-key`, which is where the operator keeps it today; the Python read `$RBN_ISO_KEY` only).
+- Preconditions: `modules/hosts/<host>/<host>.nix` exists (no `mkdir`; a host that is not in the flake cannot be installed); confirmation via `gum confirm` unless `--yes`; the iso-key private path exists.
+  That path is the justfile variable `iso-key := env("RBN_ISO_KEY", root / "secrets" / "keys" / "iso-key")`, not a recipe parameter: just passes arguments positionally, so a `key=` parameter ahead of `*flags` would swallow `--yes`.
+  The default is where the operator keeps the key today; the Python read `$RBN_ISO_KEY` only.
 - Staging: `mktemp -d`; copy `modules/hosts/<host>/root/` into it if present; `sops -d --extract '["host-key"]' secrets/hosts/<host>.sops.yaml` → `etc/ssh/ssh_host_ed25519_key` (0600); if the first line is a PKCS#8 header (`-----BEGIN PRIVATE KEY-----`), `ssh-keygen -p -N '' -f <that file>` rewrites it in place as OpenSSH format; `ssh-keygen -y -f` writes the `.pub` and doubles as the format check.
   This removes both `sopsy` and the `cryptography` use.
   Two facts found during apply: the Python called `load_ssh_private_key`, which accepts only OpenSSH-format keys, so the NixOS host keys in sops are already OpenSSH format and the PKCS#8 branch is a safety net (the RouterOS relay keys are the PKCS#8 ones); and Apple's `ssh-keygen` rejects PKCS#8 with "invalid format" while nixpkgs' OpenSSH 10.5 (OpenSSL-linked) converts it, so `openssh` joins `nixos-anywhere` in the devshell and the recipe relies on the devshell `PATH`.

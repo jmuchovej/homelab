@@ -51,10 +51,12 @@ in
     ];
   };
 
-  # Custom outputs template: same shape as "dendritic" but reads the module
-  # tree from ./modules, a root-level tree alongside the repo's other
-  # tool-specific trees (kubernetes/, tofu/, mikrotik/, src/homelab).
+  # Custom outputs template: same shape as "dendritic" but with two
+  # import-tree roots. ./modules is the den tree; ./bootstrap/nix holds the
+  # installer-image host so everything bootstrap-related lives under
+  # bootstrap/ (see bootstrap/AGENTS.md). The rest of bootstrap/ is inert data
+  # that aspects read by path.
   flake-file.outputs = ''
-    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules)
+    inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree [ ./modules ./bootstrap/nix ])
   '';
 }
