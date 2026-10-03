@@ -1,4 +1,4 @@
-# $schema: ../../../vendor/schemas/talos-config.json
+# $schema: ../../vendor/schemas/talos-config.json
 ---
 # Non-secret half of a Talos control-plane config. The PKI half comes from sops
 # and is merged in at activation with `talosctl machineconfig patch` — the

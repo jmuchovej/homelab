@@ -9,7 +9,7 @@
 # kubernetes/ tree is committed to a different branch, change `ref` (the repo's
 # GitHub default is `main`).
 ---
-# $schema: ../../../vendor/schemas/fluxinstance_v1.json
+# $schema: ../../vendor/schemas/fluxinstance_v1.json
 apiVersion: fluxcd.controlplane.io/v1
 kind: FluxInstance
 metadata:

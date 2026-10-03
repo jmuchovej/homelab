@@ -1,4 +1,4 @@
-# $schema: ../../../vendor/schemas/cilium-values.json
+# $schema: ../../vendor/schemas/cilium-values.json
 #
 # Cilium chart values — rendered into cilium.yaml's valuesContent by
 # kubernetes.nix. The schema is vendored from the chart itself and stamped

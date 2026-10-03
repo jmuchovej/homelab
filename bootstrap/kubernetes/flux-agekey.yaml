@@ -1,4 +1,4 @@
-# $schema: ../../../vendor/schemas/secret-v1.json
+# $schema: ../../vendor/schemas/secret-v1.json
 #
 # Flux sops decryption key. Seeded by the k3s aspect from the per-cluster
 # `flux/agekey` sops value (secrets/<dc>.sops.yaml) so kustomize-controller can

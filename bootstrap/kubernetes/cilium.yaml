@@ -6,7 +6,7 @@
 # Chart values live in cilium-values.yaml (schema-validated standalone);
 # kubernetes.nix renders them into valuesContent.
 ---
-# $schema: ../../../vendor/schemas/helmchart_v1.json
+# $schema: ../../vendor/schemas/helmchart_v1.json
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:

@@ -11,5 +11,5 @@ paths:
 The seed manifests and `checks.nix` live in `bootstrap/kubernetes/`, read by path through `inputs.self`; their layout, the k3s/Talos seam, and what may be auto-imported from `bootstrap/` are in `bootstrap/AGENTS.md`.
 `render-yaml` comes from `lib.rbn` (`_lib/yaml.nix`).
 
-Schemas are VENDORED at repo-root `vendor/schemas/` (refreshed by `just k8s update-schemas`) — the sandbox has no network, and the same files back the manifests' relative `# $schema: ../../../vendor/schemas/…` comments, so editor and build always validate against identical schemas.
+Schemas are VENDORED at repo-root `vendor/schemas/` (refreshed by `just k8s update-schemas`) — the sandbox has no network, and the same files back the manifests' relative `# $schema: ../../vendor/schemas/…` comments, so editor and build always validate against identical schemas.
 The `linkFarm` layout must match the two-schema-location templates in `checks.nix`; a new kind in the bootstrap manifests fails the check until its schema is vendored.
