@@ -19,7 +19,8 @@ library(
   *  Forked from https://github.com/kkossev/Hubitat (Libraries/commonLib.groovy) at commit 0bf47407.
   *  Modified for the rbn namespace: Tuya code path removed (0xEF00 cluster handling, E00x pre-parsers in parse(),
   *  Tuya command builders and constants, tuyaTest/tuyaBlackMagic/queryAllTuyaDP, isTuya/updateTuyaVersion); identity;
-  *  ClustersMap gains 0xFC31 'InovelliPrivate' so the Inovelli VZM31-SN driver's customParseInovelliPrivateCluster() is dispatched.
+  *  ClustersMap gains 0xFC31 'InovelliPrivate' so the Inovelli VZM31-SN driver's customParseInovelliPrivateCluster() is dispatched;
+  *  parseZdoClusters() logs the binding-table response 0x8033 at debug instead of warning, since customParseZdoClusters() consumes it.
   *
   * This library is inspired by @w35l3y work on Tuya device driver (Edge project).
   * For a big portions of code all credits go to Jonathan Bradshaw.
@@ -323,6 +324,7 @@ private void parseZdoClusters(final Map descMap) {
         case 0x0002 : // Node Descriptor Request
         case 0x0036 : // Permit Joining Request
         case 0x8022 : // unbind request
+        case 0x8033 : // binding table response (parsed by customParseZdoClusters where a driver wants it)
         case 0x8034 : // leave response
             if (settings?.logEnable) { log.debug "${device.displayName} Unprocessed ZDO command: cluster=${descMap.clusterId} command=${descMap.command} attrId=${descMap.attrId} value=${descMap.value} data=${descMap.data}" }
             break

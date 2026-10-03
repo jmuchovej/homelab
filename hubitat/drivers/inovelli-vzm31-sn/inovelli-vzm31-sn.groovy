@@ -18,7 +18,8 @@
  *  Parameters: the device is the source of truth. `refresh` reads every parameter in the table into the
  *  matching `parameter<N>` preference and into state.parameters; Save Preferences writes only the parameters
  *  whose preference differs from the value the device last reported, then reads them back; `configure`
- *  writes nothing on 0xFC31. A parameter never read from the device is never written.
+ *  writes no parameter at all — it only (re)creates the reporting bindings to the hub, which `bindGroup`
+ *  reapplies as well. A parameter never read from the device is never written.
  *
  *  `voltage` and `amperage` capabilities come from rbn.meter; this device does not report them.
  *  The device reports energy (0x0702:0x0000) in hundredths of a kWh and power (0x0B04:0x050B) in tenths of a
@@ -98,8 +99,7 @@ static Map<String, String> onOff() { return ['0': 'Disabled', '1': 'Enabled'] }
     19:  [name: 'Periodic Power & Energy Reports',  size: 16, default: 3600, range: '0..32767', unit: 's; 0 = disabled'],
     20:  [name: 'Energy Reports',                   size: 16, default: 10,   range: '0..32767', unit: 'x 0.01 kWh change; 0 = disabled'],
     21:  [name: 'Power Source',                     size: 1,  readOnly: true, attribute: 'powerSource', options: ['0': 'non-neutral', '1': 'neutral']],
-    30:  [name: 'Aux Medium Gear Learn Value',      size: 8,  readOnly: true, attribute: 'auxMediumGear'],
-    31:  [name: 'Aux Low Gear Learn Value',         size: 8,  readOnly: true, attribute: 'auxLowGear'],
+    // 30/31 (aux gear learn values) are omitted: firmware 2.18 answers their reads with Unsupported Attribute.
     32:  [name: 'Internal Temperature',             size: 8,  readOnly: true, attribute: 'internalTemp', unit: '°C'],
     33:  [name: 'Overheat',                         size: 1,  readOnly: true, attribute: 'overHeat', options: ['0': 'no', '1': 'yes']],
     50:  [name: 'Button Press Delay',               size: 8,  default: 5,    options: ['0': '0 ms', '3': '300 ms', '4': '400 ms', '5': '500 ms', '6': '600 ms', '7': '700 ms', '8': '800 ms', '9': '900 ms']],
@@ -127,8 +127,6 @@ metadata {
         attribute 'internalTemp', 'number'
         attribute 'overHeat', 'string'
         attribute 'remoteProtection', 'string'
-        attribute 'auxMediumGear', 'number'
-        attribute 'auxLowGear', 'number'
         attribute 'bindings', 'string'
 
         command 'bindGroup', [[name: 'Group id*', type: 'NUMBER', description: 'Zigbee group id (decimal). For a Hubitat group with Zigbee group messaging on, it is the number in the group device\'s DNI Group_<n>']]
@@ -297,11 +295,26 @@ void customUpdated() {
     sendZigbeeCommands(cmds)
 }
 
-// ----- bindings: endpoint 2 -> Zigbee group, and the binding table -----
+// On/off and level reports from endpoint 1 (so switch/level reflect the paddle), and the private cluster from both
+// endpoints (parameters on EP1; scene buttons arrive from EP2). An empty destination binds to the hub. Idempotent on
+// the device, so bindGroup reapplies them too: a unit is never left without reporting.
+private List<String> hubReportingCommands() {
+    List<String> cmds = []
+    cmds += zigbee.configureReporting(0x0006, 0x0000, DataType.BOOLEAN, 0, 3600, null, [:], 200)
+    cmds += zigbee.configureReporting(0x0008, 0x0000, DataType.UINT8, 0, 3600, 1, [:], 200)
+    cmds += ["zdo bind 0x${device.deviceNetworkId} 0x01 0x01 0xFC31 {${device.zigbeeId}} {}", 'delay 200']
+    cmds += ["zdo bind 0x${device.deviceNetworkId} 0x02 0x01 0xFC31 {${device.zigbeeId}} {}", 'delay 200']
+    return cmds
+}
+
+List<String> customConfigureDevice() {
+    logInfo 'customConfigureDevice: hub reporting bindings for on/off, level, and the private cluster (no parameter writes)'
+    return hubReportingCommands() + bindingTableRequest(0)
+}
 
 void bindGroup(final BigDecimal groupId) {
     logInfo "bindGroup(${groupId})"
-    sendZigbeeCommands(groupBindingCommands('bind', groupId.intValue()) + bindingTableRequest(0))
+    sendZigbeeCommands(groupBindingCommands('bind', groupId.intValue()) + hubReportingCommands() + bindingTableRequest(0))
 }
 
 void unbindGroup(final BigDecimal groupId) {
