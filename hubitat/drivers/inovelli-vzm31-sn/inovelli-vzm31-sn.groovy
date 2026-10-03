@@ -108,7 +108,7 @@ static Map<String, String> onOff() { return ['0': 'Disabled', '1': 'Enabled'] }
     96:  [name: 'LED Bar Color (when Off)',         size: 8,  default: 170,  options: ledColors()],
     97:  [name: 'LED Bar Intensity (when On)',      size: 8,  default: 33,   range: '0..100'],
     98:  [name: 'LED Bar Intensity (when Off)',     size: 8,  default: 3,    range: '0..100'],
-    99:  [name: 'All LED Notification',             size: 32, default: 0,    range: '0..4294967295'],
+    // 99 (All LED Notification) is omitted: firmware 2.18 answers its read with Unsupported Attribute; it returns with LED effects.
     100: [name: 'LED Bar Scaling',                  size: 1,  default: 0,    options: ['0': 'Gen3 (VZM)', '1': 'Gen2 (LZW)']],
     256: [name: 'Local Protection',                 size: 1,  default: 0,    options: ['0': 'local control enabled', '1': 'local control disabled']],
     257: [name: 'Remote Protection',                size: 1,  readOnly: true, attribute: 'remoteProtection', options: ['0': 'remote control enabled', '1': 'remote control disabled']],
@@ -215,9 +215,10 @@ void customParseInovelliPrivateCluster(final Map descMap) {
         String name = "parameter${number}".toString()
         String before = settings."${name}"?.toString()
         device.updateSetting(name, [value: value.toString(), type: p.options ? 'enum' : 'number'])
-        String after = settings."${name}"?.toString()
+        // updateSetting can only update a settings row that already exists; the hub creates the rows on the first
+        // Save Preferences after a driver change, so until then the device's values show here but not on the page.
         if (before != value.toString()) {
-            logInfo "P${number} ${p.name}: preference ${before ?: 'unset'} -> ${value} from the device (stored now: ${after ?: 'unset'})"
+            logInfo "P${number} ${p.name}: preference ${before ?: 'unset'} -> ${value} from the device"
         } else {
             logDebug "P${number} ${p.name} = ${value} (preference already matches the device)"
         }
