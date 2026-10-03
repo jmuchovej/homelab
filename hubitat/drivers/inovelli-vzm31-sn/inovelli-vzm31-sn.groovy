@@ -87,12 +87,13 @@ static Map<String, String> onOff() { return ['0': 'Disabled', '1': 'Enabled'] }
     6:   [name: 'Dimming Speed - Down (Local)',     size: 8,  default: 127,  options: rateOptions(true), sync: 2],
     7:   [name: 'Ramp Rate - On to Off (Remote)',   size: 8,  default: 127,  options: rateOptions(true), sync: 3],
     8:   [name: 'Ramp Rate - On to Off (Local)',    size: 8,  default: 127,  options: rateOptions(true), sync: 4],
-    9:   [name: 'Minimum Level',                    size: 8,  default: 1,    range: '1..99'],
-    10:  [name: 'Maximum Level',                    size: 8,  default: 100,  range: '2..100'],
+    // scale: 'level' rows are stored on the device as 0..254 (254 = 100 %) with 255 meaning "previous level" (shown as 101).
+    9:   [name: 'Minimum Level',                    size: 8,  default: 1,    range: '1..99',  scale: 'level', unit: '%'],
+    10:  [name: 'Maximum Level',                    size: 8,  default: 100,  range: '2..100', scale: 'level', unit: '%'],
     12:  [name: 'Auto Off Timer',                   size: 16, default: 0,    range: '0..32767', unit: 's; 0 = disabled'],
-    13:  [name: 'Default Level (Local)',            size: 8,  default: 101,  range: '1..101', unit: '101 = previous level'],
-    14:  [name: 'Default Level (Remote)',           size: 8,  default: 101,  range: '1..101', unit: '101 = previous level'],
-    15:  [name: 'Level After Power Restored',       size: 8,  default: 101,  range: '0..101', unit: '0 = off, 101 = previous level'],
+    13:  [name: 'Default Level (Local)',            size: 8,  default: 101,  range: '1..101', scale: 'level', unit: '%; 101 = previous level'],
+    14:  [name: 'Default Level (Remote)',           size: 8,  default: 101,  range: '1..101', scale: 'level', unit: '%; 101 = previous level'],
+    15:  [name: 'Level After Power Restored',       size: 8,  default: 101,  range: '0..101', scale: 'level', unit: '%; 0 = off, 101 = previous level'],
     18:  [name: 'Active Power Reports',             size: 8,  default: 10,   range: '0..100', unit: '% change; 0 = disabled'],
     19:  [name: 'Periodic Power & Energy Reports',  size: 16, default: 3600, range: '0..32767', unit: 's; 0 = disabled'],
     20:  [name: 'Energy Reports',                   size: 16, default: 10,   range: '0..32767', unit: 'x 0.01 kWh change; 0 = disabled'],
@@ -204,19 +205,42 @@ void customParseInovelliPrivateCluster(final Map descMap) {
         logDebug "customParseInovelliPrivateCluster: parameter ${number} = ${value} (not in the table)"
         return
     }
+    if (p.scale == 'level') { value = byteToPercent(value) }
     rememberParameter(number, value)
     if (p.readOnly) {
         String shown = p.options ? (p.options["${value}"] ?: "${value}") : "${value}"
         sendEvent(name: p.attribute, value: shown, unit: p.unit, descriptionText: "${p.name} is ${shown}")
         logInfo "${p.name} is ${shown}${p.unit ? ' ' + p.unit : ''} (P${number})"
     } else {
-        device.updateSetting("parameter${number}", [value: "${value}", type: p.options ? 'enum' : 'number'])
-        logDebug "P${number} ${p.name} = ${value} (preference updated from the device)"
+        String name = "parameter${number}".toString()
+        String before = settings."${name}"?.toString()
+        device.updateSetting(name, [value: value.toString(), type: p.options ? 'enum' : 'number'])
+        String after = settings."${name}"?.toString()
+        if (before != value.toString()) {
+            logInfo "P${number} ${p.name}: preference ${before ?: 'unset'} -> ${value} from the device (stored now: ${after ?: 'unset'})"
+        } else {
+            logDebug "P${number} ${p.name} = ${value} (preference already matches the device)"
+        }
     }
 }
 
+// Inovelli stores level parameters as 0..254 (254 = 100 %) and uses 255 for "previous level", shown as 101.
+private static Integer byteToPercent(final Integer value) {
+    Integer clamped = Math.min(Math.max(value, 0), 255)
+    if (clamped >= 255) { return 101 }
+    return Math.ceil(clamped / 255 * 100) as Integer
+}
+
+private static Integer percentToByte(final Integer value) {
+    Integer clamped = Math.min(Math.max(value, 0), 101)
+    if (clamped >= 101) { return 255 }
+    Integer raw = Math.floor(clamped / 100 * 255) as Integer
+    return raw >= 255 ? 254 : raw
+}
+
 // Signed types report two's complement; everything else is unsigned.
-private static Integer decodeParameter(final String hex, final String encoding) {
+// Not static: hexStrToUnsignedInt is an instance method the hub injects.
+private Integer decodeParameter(final String hex, final String encoding) {
     Integer raw = hexStrToUnsignedInt(hex)
     if (encoding == '28' && raw > 0x7F) { return raw - 0x100 }        // int8
     if (encoding == '29' && raw > 0x7FFF) { return raw - 0x10000 }    // int16
@@ -261,7 +285,8 @@ void customUpdated() {
         if (current == null) { unread << number; return }
         if (current == wanted) { return }
         Integer delay = number in MODE_PARAMETERS ? LONG_DELAY : SHORT_DELAY
-        cmds += zigbee.writeAttribute(PRIVATE_CLUSTER, number, zclTypeForSize(p.size as Integer), wanted, INOVELLI, delay)
+        Integer raw = p.scale == 'level' ? percentToByte(wanted) : wanted
+        cmds += zigbee.writeAttribute(PRIVATE_CLUSTER, number, zclTypeForSize(p.size as Integer), raw, INOVELLI, delay)
         written << number
     }
     if (unread) { logWarn "customUpdated: parameters ${unread} have not been read from the device yet; press refresh before changing them (nothing written)" }
