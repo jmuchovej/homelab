@@ -1,0 +1,85 @@
+set script-interpreter := ["bash", "-euo", "pipefail"]
+
+just := "just --justfile " + source_file()
+
+# `rbn` is a shared bucket, so every key here stays under the `tofu/` prefix.
+# SNAPSHOT_PREFIX must never contain STATE_KEY: the bucket-lock rule scoped to
+# the prefix forbids overwrites, and tofu overwrites the live key on every write.
+BUCKET := "rbn"
+STATE_KEY := "tofu/terraform.tfstate"
+SNAPSHOT_PREFIX := "tofu/snapshots"
+
+_default:
+    @{{ just }} --list
+
+# Set TOFU_STATE_FALLBACK=1 to allow reading *unencrypted* state for one
+# invocation — needed only when migrating plaintext state in, or re-encrypting
+# under a rotated passphrase. Unset, `enforced = true` makes a wrong or missing
+# passphrase fail instead of silently writing plaintext.
+[private]
+[script]
+_tofu +ARGS:
+    export AWS_ACCESS_KEY_ID="${TOFU_R2_ACCESS_KEY_ID}"
+    export AWS_SECRET_ACCESS_KEY="${TOFU_R2_SECRET_ACCESS_KEY}"
+    export AWS_ENDPOINT_URL_S3="${TOFU_R2_ENDPOINT}"
+
+    if [ -n "${TOFU_STATE_FALLBACK:-}" ]; then
+      state_block='method "unencrypted" "migrate" {}
+    state {
+      method = method.aes_gcm.state
+      fallback { method = method.unencrypted.migrate }
+    }'
+    else
+      state_block='state {
+      method   = method.aes_gcm.state
+      enforced = true
+    }'
+    fi
+
+    export TF_ENCRYPTION="key_provider \"pbkdf2\" \"state\" {
+      passphrase = \"${TOFU_STATE_PASSPHRASE}\"
+    }
+    method \"aes_gcm\" \"state\" {
+      keys = key_provider.pbkdf2.state
+    }
+    ${state_block}"
+
+    exec tofu {{ ARGS }}
+
+[private]
+[script]
+_rclone +ARGS:
+    export RCLONE_CONFIG_R2_TYPE=s3
+    export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
+    export RCLONE_CONFIG_R2_ACCESS_KEY_ID="${TOFU_R2_ACCESS_KEY_ID}"
+    export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="${TOFU_R2_SECRET_ACCESS_KEY}"
+    export RCLONE_CONFIG_R2_ENDPOINT="${TOFU_R2_ENDPOINT}"
+    exec rclone {{ ARGS }}
+
+[doc("tofu init — pass -migrate-state when changing backends")]
+init *ARGS:
+    @secretspec run --scope tofu --reason "initialise the OpenTofu R2 backend" -- \
+      {{ just }} _tofu init {{ ARGS }}
+
+[doc("tofu plan")]
+plan *ARGS:
+    @secretspec run --scope tofu --reason "plan homelab infrastructure changes" -- \
+      {{ just }} _tofu plan -parallelism=1 -compact-warnings {{ ARGS }}
+
+[doc("tofu apply, then snapshot the resulting state")]
+apply *ARGS:
+    @secretspec run --scope tofu --reason "apply homelab infrastructure changes" -- \
+      {{ just }} _tofu apply -parallelism=1 -compact-warnings {{ ARGS }}
+    @{{ just }} state-snapshot
+
+[doc("copy the live state object to a dated key under the snapshot prefix")]
+state-snapshot:
+    @secretspec run --scope tofu --reason "snapshot OpenTofu state within R2" -- \
+      {{ just }} _rclone copyto \
+        "r2:{{ BUCKET }}/{{ STATE_KEY }}" \
+        "r2:{{ BUCKET }}/{{ SNAPSHOT_PREFIX }}/$(date -u +%Y%m%dT%H%M%SZ).tfstate"
+
+[doc("list the state objects in the bucket — live, lock, and snapshots")]
+state-ls:
+    @secretspec run --scope tofu --reason "list OpenTofu state objects in R2" -- \
+      {{ just }} _rclone lsl "r2:{{ BUCKET }}/tofu"
