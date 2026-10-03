@@ -125,6 +125,9 @@ Attribute reports on it are parameters (attribute id == parameter number); clust
 - **The device is the source of truth for parameters.**
   `refresh` reads every row of the driver's `Parameters` table into `settings.parameter<N>` and `state.parameters`; `customUpdated()` writes only parameters whose preference differs from the last value the device reported, then reads them back; there is no `customConfigureDevice()`, so `configure` writes nothing on `0xFC31`.
   A parameter that was never read is never written (it is warned about instead) — do not "fix" that by writing table defaults; a working unit's smart-bulb mode and bindings would be reset.
+- `device.updateSetting()` only updates a settings row that already exists, and the hub creates rows for a driver's inputs on the first Save Preferences after the driver is selected; until then the driver's writes are silently dropped (verified 2026-10-03: `settings.parameterN` read back `null` immediately after the call, then held the value once the user had saved).
+  Hence the README's "Save Preferences once, then refresh" step.
+  `/device/fullJson/<id>` does not reflect driver-written settings either; the page does, after a reload.
 - The table is keyed by parameter number and generated (rate options from one method), carries only the parameters that are verified, and keeps Inovelli's `parameter<N>` setting names so a device moved between drivers shows the same stored preferences.
 - `@Field static` initialisers in a Hubitat script cannot reference other `@Field` constants — shared option maps are static methods (`rateOptions()`, `ledColors()`), which the hub compiles.
 - **Units are group bindings**: `bindGroup <id>` binds endpoint 2 to a Zigbee group for `0x0006`/`0x0008`, `unbindGroup <id>` removes them, `readBindings` requests the ZDO binding table (`0x0033`) and `customParseZdoClusters()` parses the `0x8033` reply into the `bindings` attribute, paging by start index.
