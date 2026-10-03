@@ -40,8 +40,8 @@ It SHALL recognise Inovelli's private cluster `0xFC31`: attribute reports on it 
 
 ### Requirement: VZM31-SN parameters are preferences whose source of truth is the device
 
-The driver SHALL expose a defined set of Inovelli parameters as device preferences: smart-bulb mode (52), switch mode (258), dimming and ramp speeds (1–8), minimum and maximum level (9–10), auto-off timer (12), default and power-restore levels (13–15), power and energy reporting (18–20), button press delay (50), local protection (257), and LED-bar colour, intensity, and notification for the bar as a whole (96–100).
-Read-only parameters (power source 21, aux learn values 30–31, internal temperature 32, overheat 33) SHALL be reported as attributes or state, never offered for editing.
+The driver SHALL expose a defined set of Inovelli parameters as device preferences: smart-bulb mode (52), switch mode (258), dimming and ramp speeds (1–8), minimum and maximum level (9–10), auto-off timer (12), default and power-restore levels (13–15), power and energy reporting (18–20), button press delay (50), local protection (256), and LED-bar colour, intensity, notification, and scaling for the bar as a whole (95–100).
+Read-only parameters (power source 21, aux learn values 30–31, internal temperature 32, overheat 33, remote protection 257) SHALL be reported as attributes or state, never offered for editing.
 The driver SHALL read every exposed parameter from the device when the driver is first selected and on `refresh`, and SHALL set each preference to the value the device reports.
 Saving preferences SHALL write only parameters whose preference value differs from the value last read from the device, and SHALL read each written parameter back.
 Neither `configure` nor saving preferences SHALL write a parameter the user has not changed, so defaults are never applied over a device's existing configuration.
@@ -71,6 +71,12 @@ Neither `configure` nor saving preferences SHALL write a parameter the user has 
 The driver SHALL offer commands to bind and to unbind the switch's remote endpoint (endpoint 2) to a 16-bit Zigbee group for the on/off (`0x0006`) and level (`0x0008`) clusters, and a command to read the switch's binding table back, reporting each entry's source endpoint, cluster, and destination (group id or device address and endpoint) as a device attribute and in the log.
 Binding and unbinding SHALL be issued as one dispatch each.
 The driver SHALL also accept raw binding commands through a `bind(cmds)` relay for tools that construct them.
+`configure` SHALL create the switch's reporting bindings to the hub — on/off and level from endpoint 1 with reporting configuration, and the private cluster from endpoints 1 and 2 — and nothing else; the bind-to-group command SHALL reapply the same bindings, so a switch that has been configured or bound reports paddle actions to the hub.
+
+#### Scenario: Configure installs hub reporting and nothing else
+
+- **WHEN** `configure` is pressed on a switch whose binding table lacks on/off and level bindings to the hub
+- **THEN** the table read back afterwards contains endpoint 1 on/off, level, and private-cluster bindings and an endpoint 2 private-cluster binding to the hub, no parameter write appears in the log, and a following paddle press produces `switch`/`level` events with `type: physical`
 
 #### Scenario: Binding to a group is recorded on the switch
 

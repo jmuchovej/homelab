@@ -8,7 +8,7 @@ Now that the libraries, the driver, and the HPM path are all ours, the unit can 
 
 - The `Inovelli Dimmer (Blue, VZM31-SN)` driver learns Inovelli's private cluster `0xFC31` for **parameters**: a generated parameter table (number, size, type, range, default, read-only) rendered as preferences, read from the device on install and refresh, written only when a preference actually changed.
   The device is the source of truth; neither Configure nor Save Preferences ever writes a default the user did not set, so a configured unit is never silently reset.
-  In scope now: smart-bulb mode (52), switch mode (258), dimming and ramp speeds (1–8), min/max level (9–10), default levels and power-restore level (13–15), auto-off timer (12), button press delay (50), power and energy reporting (18–20), the read-only diagnostics (21, 30–33), local protection (257), and the LED bar as a whole (96–100).
+  In scope now: smart-bulb mode (52), switch mode (258), dimming and ramp speeds (1–8), min/max level (9–10), default levels and power-restore level (13–15), auto-off timer (12), button press delay (50), power and energy reporting (18–20), the read-only diagnostics (21, 30–33, 257), local protection (256), and the LED bar as a whole (95–100).
   Not now: per-LED colours and notifications (60–95), fan and aux parameters (121–134, 256), the long tail.
 - The driver gains **binding commands**: bind and unbind its remote endpoint (EP2, clusters `0x0006` and `0x0008`) to a Zigbee **group**, and read the switch's binding table back so the state of a unit is a fact, not a hope.
   A `bind(cmds)` relay stays for compatibility with raw-command tools.
