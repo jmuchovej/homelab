@@ -34,9 +34,8 @@
  * ver. 0.2.0  2026-10-03 rbn  - parameters as preferences (device is the source of truth); bindGroup/unbindGroup/readBindings for switch-plus-bulbs units
  */
 
-static String version() { '0.1.1' }
-static String timeStamp() { '2026/10/02 04:36 PM' }
-
+static String version() { '0.2.0' }
+static String timeStamp() { '2026/10/03 01:46 PM' }
 @Field static final Boolean _DEBUG = false
 
 import groovy.transform.Field
@@ -50,11 +49,11 @@ import groovy.json.JsonOutput
 deviceType = 'Dimmer'
 @Field static final String DEVICE_TYPE = 'Dimmer'
 
-// #include rbn.common  -- included at line 390
-// #include rbn.switch  -- included at line 1634
-// #include rbn.level  -- included at line 1877
-// #include rbn.meter  -- included at line 2105
-// #include rbn.reporting  -- included at line 2343
+// #include rbn.common  -- included at line 389
+// #include rbn.switch  -- included at line 1633
+// #include rbn.level  -- included at line 1876
+// #include rbn.meter  -- included at line 2104
+// #include rbn.reporting  -- included at line 2342
 
 @Field static final Integer PRIVATE_CLUSTER = 0xFC31
 @Field static final Map INOVELLI = [mfgCode: '0x122F']

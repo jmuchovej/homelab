@@ -34,9 +34,8 @@
  * ver. 0.2.0  2026-10-03 rbn  - parameters as preferences (device is the source of truth); bindGroup/unbindGroup/readBindings for switch-plus-bulbs units
  */
 
-static String version() { '0.1.1' }
-static String timeStamp() { '2026/10/02 04:36 PM' }
-
+static String version() { '0.2.0' }
+static String timeStamp() { '2026/10/03 01:46 PM' }
 @Field static final Boolean _DEBUG = false
 
 import groovy.transform.Field
