@@ -28,6 +28,20 @@ Code that reached the hub by hand (Drivers Code → Import, or `just hubitat pus
 HPM installs the bundle and nothing else; it has no notion of libraries.
 It detects updates by comparing the manifest's `version` string with the one it installed, so a release is always `just hubitat bump <driver> <version>`, which moves `version()`, the manifest, and the bundle together, and `just hubitat check` refuses any drift between them.
 
+## Switch-plus-bulbs units (Inovelli VZM31-SN)
+
+A dimmer in front of one or more smart bulbs (Hue, Trådfri) is run as one unit: the paddle drives the bulbs over a Zigbee group binding, which lives on the switch and the bulbs and keeps working while the hub is rebooting or offline.
+
+1. **Select the driver and press `refresh`.** `Inovelli Dimmer (Blue, VZM31-SN)` reads every parameter it knows from the device into the matching preference. The device is the source of truth: Save Preferences writes only parameters you changed, and `configure` writes none. A preference that was never read is never written, so refresh first.
+2. **Smart Bulb Mode on** (parameter 52), and Switch Mode `dimmer` (258) unless the load is on/off only. In smart-bulb mode the relay stays closed, so the paddle never cuts power to the bulbs and the switch's own `switch`/`level` reflect the paddle, not the load.
+3. **Put the bulbs in a Hubitat group with Zigbee group messaging on** (Groups and Scenes). The group device's DNI is `Group_<n>`; `n` is the Zigbee group id. That setting is the one thing that must stay on: turning it off dissolves the bulbs' membership and the unit stops following the paddle while the switch half still looks bound.
+4. **`bindGroup <n>`** on the switch. It binds endpoint 2 (the paddle) to the group for on/off and level and then reads the binding table back; the `bindings` attribute and the log list every entry, e.g. `EP2 0x0006 -> group 0x0021`. `readBindings` repeats the read at any time; `unbindGroup <n>` removes exactly those two entries.
+5. **Paddle test, then reboot the hub and paddle again.** The bulbs follow both times, and after the hub returns the switch reports the resulting state.
+
+From Home Assistant, control the light through the group device (one multicast moves every bulb together) and read the switch for paddle state, power, and energy. HA-side changes to the bulbs are not mirrored onto the switch; an HA automation can do that if wanted.
+
+**Replacing a bulb:** add the new bulb to the same Hubitat group (the app re-sends membership), then `readBindings` on the switch to confirm the two group entries are still present, and paddle test. The switch side needs nothing else.
+
 ## Commands
 
 All of these are `uv run --package hubitat -m hubitat <command>` at the repository root; the `just` recipes just save the typing.

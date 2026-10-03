@@ -117,6 +117,22 @@ A driver therefore implements only the clusters where its device is non-standard
 Never call `sendHubCommand` per command — one dispatch per attribute is exactly the pattern that made the upstream Inovelli driver overload the hub.
 Build the list, return or pass it, send once.
 
+## Inovelli VZM31-SN: parameters and units
+
+`0xFC31` is Inovelli's private cluster; `ClustersMap` routes it to the driver's `customParseInovelliPrivateCluster()` (the one `rbn` addition to `common`'s map).
+Attribute reports on it are parameters (attribute id == parameter number); cluster-specific commands on it are scene buttons and LED events and are logged at debug and dropped until a driver implements them.
+
+- **The device is the source of truth for parameters.**
+  `refresh` reads every row of the driver's `Parameters` table into `settings.parameter<N>` and `state.parameters`; `customUpdated()` writes only parameters whose preference differs from the last value the device reported, then reads them back; there is no `customConfigureDevice()`, so `configure` writes nothing on `0xFC31`.
+  A parameter that was never read is never written (it is warned about instead) — do not "fix" that by writing table defaults; a working unit's smart-bulb mode and bindings would be reset.
+- The table is keyed by parameter number and generated (rate options from one method), carries only the parameters that are verified, and keeps Inovelli's `parameter<N>` setting names so a device moved between drivers shows the same stored preferences.
+- `@Field static` initialisers in a Hubitat script cannot reference other `@Field` constants — shared option maps are static methods (`rateOptions()`, `ledColors()`), which the hub compiles.
+- **Units are group bindings**: `bindGroup <id>` binds endpoint 2 to a Zigbee group for `0x0006`/`0x0008`, `unbindGroup <id>` removes them, `readBindings` requests the ZDO binding table (`0x0033`) and `customParseZdoClusters()` parses the `0x8033` reply into the `bindings` attribute, paging by start index.
+  Bulb membership comes from Hubitat's Groups and Scenes app with Zigbee group messaging on; its Zigbee group id is the `n` in the group device's DNI `Group_<n>` (verified on the hub with a Get Group Membership query).
+  The device acknowledges bind/unbind within a second; the commands wait 3 s and then read the table back, which is the proof — not the acknowledgement.
+- Before diagnosing a unit, read the facts: `bindings` (switch half), the Hubitat group's Zigbee messaging toggle (bulb half), `state.parameters` and the `powerSource`/`internalTemp`/`overHeat` attributes.
+- Raw commands relayed through `bind(<string>)` reach this device; the same relay addressed at another device's DNI did not produce replies on the hub — do not use one device's relay to talk to another.
+
 ## Platform limits
 
 - A method larger than ~64 KB fails to compile ("Method too large").
