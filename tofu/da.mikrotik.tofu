@@ -124,9 +124,9 @@ module "da-relay01" {
         width             = "20mhz"
       }
       security = {
-        authentication_types = null
-        ft                   = null
-        ft_over_ds           = null
+        authentication_types = ""
+        ft                   = true
+        ft_over_ds           = true
         passphrase           = null
       }
     }

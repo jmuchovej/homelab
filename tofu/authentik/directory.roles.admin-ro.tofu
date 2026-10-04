@@ -215,12 +215,14 @@ resource "authentik_rbac_permission_role" "admin-ro-stages-other" {
 resource "authentik_group" "admin-ro" {
   name         = "Admin Read-only"
   is_superuser = false
+  # must be ordered by creation date/ordering; check against:
+  # https://<authentik-url>/api/v3/core/groups/<this-uuid>/
   roles = [
-    authentik_rbac_role.admin-ro-core.id,
+    authentik_rbac_role.admin-ro-stages-auth.id,
     authentik_rbac_role.admin-ro-flows-policies.id,
+    authentik_rbac_role.admin-ro-stages-other.id,
+    authentik_rbac_role.admin-ro-core.id,
     authentik_rbac_role.admin-ro-providers.id,
     authentik_rbac_role.admin-ro-events-infra.id,
-    authentik_rbac_role.admin-ro-stages-auth.id,
-    authentik_rbac_role.admin-ro-stages-other.id,
   ]
 }

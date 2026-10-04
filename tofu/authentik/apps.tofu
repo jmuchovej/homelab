@@ -88,7 +88,7 @@ locals {
       type       = "proxy"
       icon       = "di:syncthing"
       access     = ["syncthing"]
-      skip_paths = null
+      skip_paths = "/rest/*"
       basic_auth = {
         enabled  = false
         username = "username"
