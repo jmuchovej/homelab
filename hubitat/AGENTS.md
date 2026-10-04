@@ -134,7 +134,11 @@ Attribute reports on it are parameters (attribute id == parameter number); clust
   Bulb membership comes from Hubitat's Groups and Scenes app with Zigbee group messaging on; its Zigbee group id is the `n` in the group device's DNI `Group_<n>` (verified on the hub with a Get Group Membership query).
   The device acknowledges bind/unbind within a second; the commands wait 3 s and then read the table back, which is the proof — not the acknowledgement.
 - Before diagnosing a unit, read the facts: `bindings` (switch half), the Hubitat group's Zigbee messaging toggle (bulb half), `state.parameters` and the `powerSource`/`internalTemp`/`overHeat` attributes.
-- Raw commands relayed through `bind(<string>)` reach this device; the same relay addressed at another device's DNI did not produce replies on the hub — do not use one device's relay to talk to another.
+- Raw commands relayed through `bind(<string>)` go wherever their DNI says, this device or another (a ZDO address request relayed to a Hue bulb was answered); use it for ZDO reads such as neighbour tables (`0x0031`) and binding tables (`0x0033`).
+  The hub's Zigbee log socket only shows frames from devices that have a record, so a reply from an unrecorded node is invisible even when it arrives.
+- **Orphaned Zigbee device** (joined to the hub's network, no device record — shows as `[Unknown, <nwk>]` in `/hub/zigbee/getChildAndRouteInfo`, never searches for a network, ignores discovery and resets): learn its IEEE by paging a nearby router's neighbour table (ZDO `0x0031`, three entries per `0x8031` page), send it an addressed ZDO management leave (`he raw 0x<nwk> 0 0 0x0034 {00 <ieee LE> 00} {0x0000}`), hold discovery open by polling `GET /hub/searchZigbeeDevices/REGULAR` every 5 s (each call opens a 90 s window), then power-cycle the device.
+  It does not leave, but its next power-up announce is accepted and the hub creates the record (generic `Device` driver; set the right one by hand).
+  Verified twice on Hue LCB002 bulbs, 2026-10-04; a power cycle without the preceding leave did nothing.
 
 ## Platform limits
 
