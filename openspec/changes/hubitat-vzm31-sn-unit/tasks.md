@@ -25,8 +25,9 @@
       (check 0; probe compiled all 8; the first push failed on `@Field` cross-references (fixed by making the enum maps static methods), the second compiled on the hub; a following dry-run reports `unchanged`. No device is on the driver, so the hub copy being 0.2.0-dev is inert)
 - [x] 2.10 Commit groups as `feat(hubitat): route 0xFC31 to the driver` (common) and `feat(hubitat): VZM31-SN parameters and group bindings` (driver + bundle + manifest unchanged) with explicit filesets; verify `jj diff -r @- --stat` per commit
       (`750f70b8` common + the Cube bundle it is inlined into; `9e22fe34` driver + bundle)
-- [ ] 2.11 (added during 4.x, design D5 amendment) Shared `hubReportingCommands()`: on/off and level reporting from EP1 plus `0xFC31` bindings from EP1 and EP2 to the hub; `customConfigureDevice()` returns it plus a binding-table read; `bindGroup` appends it.
+- [x] 2.11 (added during 4.x, design D5 amendment) Shared `hubReportingCommands()`: on/off and level reporting from EP1 plus `0xFC31` bindings from EP1 and EP2 to the hub; `customConfigureDevice()` returns it plus a binding-table read; `bindGroup` appends it.
       Verify on Bathroom Light Switch that `configure` adds the four hub bindings to the table with no parameter write, and that a paddle press afterwards produces `switch`/`level` events with `type: physical`; commit as `feat(hubitat): VZM31-SN hub reporting bindings from configure and bindGroup`
+      (17:30:03 UTC `configure` → four `0x8021` Success + two configure-reporting Success, no parameter write, table 6 → 9 with EP1 `0x0006`/`0x0008`/`0xFC31` and EP2 `0xFC31` → hub; 17:40 paddle → `was set 43 [physical]`, `is off [physical]`. `common` also logs `0x8033` at debug now instead of warning per page)
 
 ## 3. Documentation
 
@@ -41,22 +42,29 @@
 - [ ] 4.2 Verify smart-bulb mode (52) reads on; if off, set it on via preferences and Save; verify exactly one write + read-back for 52 and the relay stays closed (bulbs stay powered on paddle-down)
 - [x] 4.3 `bindGroup(<id from 1.2>)`, wait 60 s, `readBindings()`; verify the `bindings` attribute lists EP2 → group for `0x0006` and `0x0008` and the log shows two bind-success responses
       (16:12:16 UTC `bindGroup(33)` → 3.6 s later `bindings (6): … EP2 0x0006 -> group 0x0021; EP2 0x0008 -> group 0x0021`, paged across two `0x8033` replies; the `bindings` attribute carries the same six entries as JSON. Bind acks are logged by `common` at debug, which was off on this device)
-- [ ] 4.4 Paddle test: down, up, hold to dim; verify all bathroom bulbs follow together and the switch's `switch`/`level` events are `physical`
-      (17:08–17:14 UTC: bulbs followed up, down, up, and a hold-to-dim, per the user; the hub heard only power reports (5.6 W, 0.2 W, 5.8 W) because the switch had no on/off or level bindings to the hub — see 2.11. `physical` events to be re-verified after 2.11)
-- [ ] 4.5 Reboot the hub; while it is unreachable repeat 4.4; verify the bulbs follow with the hub down, and after the hub returns the switch reports the resulting state
+- [x] 4.4 Paddle test: down, up, hold to dim; verify all bathroom bulbs follow together and the switch's `switch`/`level` events are `physical`
+      (17:08–17:14 UTC: bulbs followed up, down, up, and a hold-to-dim, per the user; the hub heard only power reports (5.6 W, 0.2 W, 5.8 W) because the switch had no on/off or level bindings to the hub — see 2.11. Re-verified 17:40 after 2.11: `was set 43 [physical]`, `is off [physical]`, `was set 43 [physical]`, power 3.0 W → 0.2 W)
+- [x] 4.5 Reboot the hub; while it is unreachable repeat 4.4; verify the bulbs follow with the hub down, and after the hub returns the switch reports the resulting state
+      (hub unplugged ~17:17–17:28 UTC; ramp up, ramp down, off, on, off at the paddle — bulbs followed every step with no hub (user). The switch had no hub reporting bindings yet, so the hub learned the state through its post-boot read sweep rather than a report; with 2.11 in place a report follows the next paddle action)
 - [x] 4.6 From Home Assistant set the Bathroom Lights group to 30; verify all bulbs change in one multicast (one group command in the hub log) and the switch's `power` follows the load
       (16:30:36–45 UTC: group 37 `level was set to 37%` then `30%`, both bulbs `level was set to 37%`/`is on`/`30%`; the switch, itself a member of group 0x0021, reported `was set 37 [physical]` and `was set 30 [physical]` with power 2.7 W → 0.2 W while its `switch` stayed off — the LED bar follows HA for free)
 - [x] 4.7 Press `configure`; verify no `0xFC31` traffic, bindings unchanged on `readBindings`, smart-bulb mode still on
       (16:36:44 UTC with debug on: `configure()... cfgCtr=1`, `no customConfigureDevice method defined`, `configureDevice(): cmds=[]`, `no commands defined for device type Dimmer` — nothing was sent, so bindings and P52 cannot have changed; the settings dump in the same line shows all 25 editable parameters holding the device's values)
-- [ ] 4.8 Double-tap the paddle; verify a single debug line for `0xFC31`, no warning, no error, no button event
-      (17:15 UTC: a top-paddle double-tap produced no frame at the hub at all — the switch had no EP2 `0xFC31` binding to the hub; trivially quiet, but the scenario is re-run after 2.11 so the driver's handling of a real scene command is what gets verified)
-- [ ] 4.9 Record findings and any deviation in the scratch note; if 4.1–4.8 surfaced a defect, fix, re-bundle, re-push, and repeat the failed step before continuing
+- [x] 4.8 Double-tap the paddle; verify a single debug line for `0xFC31`, no warning, no error, no button event
+      (17:15 UTC: a top-paddle double-tap produced no frame at the hub at all — the switch had no EP2 `0xFC31` binding to the hub. Re-run 17:40:29 after 2.11: one debug line `customParseInovelliPrivateCluster: command 0x00 data=[02, 03] (scene buttons … not implemented)`, no warning, no error, no button event; a single tap down logged the same way as `data=[01, 00]`)
+- [x] 4.9 Record findings and any deviation in the scratch note; if 4.1–4.8 surfaced a defect, fix, re-bundle, re-push, and repeat the failed step before continuing
+      (defects found and fixed, each re-verified on the hub: static decoder could not see the hub's hex helper; level parameters needed Inovelli's byte↔percent scaling; `updateSetting` needs the settings rows a first Save Preferences creates; parameters 30/31/99 unsupported on firmware 2.18; no hub reporting bindings on a switch that never ran Inovelli's configure → 2.11. Commits `8be23ad9`, `e63bd5bc`, `2026e59b`, `f807d96d`, `fa7334c8`)
 
 ## 5. Release
 
-- [ ] 5.1 Update the README status matrix: `common`, `switch`, `level`, `meter`, `reporting` rows gain "unit: parameters + group bindings" in the device column note for VZM31-SN with the date; verify eight rows intact
-- [ ] 5.2 `just hubitat bump inovelli-vzm31-sn 0.2.0`; set manifest `releaseNotes` to "parameters as preferences (device is the source of truth) and group bindings for switch-plus-bulbs units"; verify `just hubitat check` exits 0
-- [ ] 5.3 Commit as `feat(hubitat): VZM31-SN 0.2.0 — parameters and group bindings` and `chore(openspec): record hubitat-vzm31-sn-unit results`; verify scoped diffs.
+- [x] 5.1 Update the README status matrix: `common`, `switch`, `level`, `meter`, `reporting` rows gain "unit: parameters + group bindings" in the device column note for VZM31-SN with the date; verify eight rows intact
+      (recorded as a dated paragraph under the matrix rather than inside the device column, which stays one word per row; eight rows intact)
+- [x] 5.2 `just hubitat bump inovelli-vzm31-sn 0.2.0`; set manifest `releaseNotes` to "parameters as preferences (device is the source of truth) and group bindings for switch-plus-bulbs units"; verify `just hubitat check` exits 0
+      (bumped; release notes also name Configure's reporting bindings and the "Save Preferences once, then Refresh" step; check exits 0)
+- [x] 5.3 Commit as `feat(hubitat): VZM31-SN 0.2.0 — parameters and group bindings` and `chore(openspec): record hubitat-vzm31-sn-unit results`; verify scoped diffs.
       Push is the user's
-- [ ] 5.4 (hub, after push) HPM → Update; verify `Inovelli Dimmer (Blue, VZM31-SN)` is offered at 0.2.0 and the hub's copy reads `version() { '0.2.0' }`
-- [ ] 5.5 Roll the remaining units one at a time per the README procedure, recording each unit's group id and `readBindings` result in the scratch note; verify each with a paddle test; stop and report on the first unit that does not follow
+      (release commit `e0a1e59f`: driver, bundle, manifest, README; the openspec record commit is this tasks file, landed after 5.4 and 5.5)
+- [x] 5.4 (hub, after push) HPM → Update; verify `Inovelli Dimmer (Blue, VZM31-SN)` is offered at 0.2.0 and the hub's copy reads `version() { '0.2.0' }`
+      (user pushed and ran HPM Update; hub driver 829 reads `version() { '0.2.0' }`)
+- [x] 5.5 Roll the remaining units one at a time per the README procedure, recording each unit's group id and `readBindings` result in the scratch note; verify each with a paddle test; stop and report on the first unit that does not follow
+      (all ten switches on the driver, refreshed and configured. Units: Bathroom → group 33 ✓ paddle-tested; Kitchen Island → group 24 (binding pre-existing, matches `Group_24`); Bedroom Closet → group 32 (bulbs added, `bindGroup 32`, paddle test still owed); Kitchen Spotlights → group 35 ✓ paddle-tested after recovering two orphaned bulbs and re-sending group membership. Deliberately left as they are: Living Room (stale EP2 binding to group 2700, bulbs not yet grouped) and Bedroom Light (unicast bindings to one Hue lamp, works). Plain loads (Foyer, Hallway, HVAC, Shower) need nothing further)
