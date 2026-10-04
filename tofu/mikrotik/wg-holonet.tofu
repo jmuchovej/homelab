@@ -1,4 +1,4 @@
-resource "routers_interface_wireguard" "holonet" {
+resource "routeros_interface_wireguard" "holonet" {
   name        = "wg-holonet"
   listen_port = local.wg-holonet.listen-port
   mtu         = "1420"
@@ -7,23 +7,23 @@ resource "routers_interface_wireguard" "holonet" {
   comment     = "wg-holonet"
 }
 
-resource "routers_ip_address" "holonet" {
+resource "routeros_ip_address" "holonet" {
   address   = local.wg-holonet.address
-  interface = routers_interface_wireguard.holonet.name
+  interface = routeros_interface_wireguard.holonet.name
   network   = cidrhost(local.wg-holonet.address, 0)
   comment   = "wg: wg-holonet"
 }
 
-resource "routers_interface_list_member" "holonet_in_lan" {
-  list      = routers_interface_list.lan.name
-  interface = routers_interface_wireguard.holonet.name
+resource "routeros_interface_list_member" "holonet_in_lan" {
+  list      = routeros_interface_list.lan.name
+  interface = routeros_interface_wireguard.holonet.name
   comment   = "wg: wg-holonet"
 }
 
-resource "routers_interface_wireguard_peer" "holonet" {
+resource "routeros_interface_wireguard_peer" "holonet" {
   for_each = nonsensitive(local.wg-holonet.peers)
 
-  interface            = routers_interface_wireguard.holonet.name
+  interface            = routeros_interface_wireguard.holonet.name
   name                 = each.key
   public_key           = each.value.public-key
   allowed_address      = split(",", each.value.allowed-address)
@@ -33,15 +33,15 @@ resource "routers_interface_wireguard_peer" "holonet" {
   comment              = each.value.comment
 }
 
-resource "routers_ip_route" "holonet" {
+resource "routeros_ip_route" "holonet" {
   for_each = nonsensitive(local.wg-holonet.routes)
 
   dst_address = each.value
-  gateway     = routers_interface_wireguard.holonet.name
+  gateway     = routeros_interface_wireguard.holonet.name
   comment     = "wg-holonet"
 }
 
-resource "routers_ip_firewall_filter" "input_accept_holonet" {
+resource "routeros_ip_firewall_filter" "input_accept_holonet" {
   count = var.role == "router" ? 1 : 0
 
   chain        = "input"

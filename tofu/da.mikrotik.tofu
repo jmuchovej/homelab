@@ -6,14 +6,14 @@ data "sops_file" "da-relay02" {
   source_file = "${path.root}/secrets/hosts/da-relay02.sops.yaml"
 }
 
-provider "routers" {
+provider "routeros" {
   alias    = "da-relay01"
   hosturl  = "https://da-relay01.${local.domain.holo}"
   username = "terraform"
   password = data.sops_file.da-relay01.data["tofu-password"]
 }
 
-provider "routers" {
+provider "routeros" {
   alias    = "da-relay02"
   hosturl  = "https://da-relay02.${local.domain.holo}"
   username = "terraform"
@@ -59,7 +59,7 @@ module "da-relay01" {
   source = "./mikrotik"
 
   providers = {
-    routers = routers.da-relay01
+    routeros = routeros.da-relay01
   }
 
   relay   = "da-relay01"
@@ -164,7 +164,7 @@ module "da-relay02" {
   source = "./mikrotik"
 
   providers = {
-    routers = routers.da-relay02
+    routeros = routeros.da-relay02
   }
 
   relay   = "da-relay02"

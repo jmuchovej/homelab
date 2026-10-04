@@ -1,5 +1,5 @@
 # RouterOS 7.13+ wifi stack, not the legacy /interface wireless.
-resource "routers_wifi" "this" {
+resource "routeros_wifi" "this" {
   for_each = var.wifi
 
   name     = each.value.name

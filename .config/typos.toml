@@ -43,9 +43,10 @@
 
   [default.extend-words]
     writeable = "writeable"
-    # nixos-facter
-    facter    = "facter"
-    # Clojure EDN, the Mesa zink driver, snd_hda_intel
-    edn       = "edn"
-    zink      = "zink"
-    hda       = "hda"
+    facter    = "facter"     # nixos-facter
+    edn       = "edn"        # clojure edn
+    zink      = "zink"       # mesa zink
+    hda       = "hda"        # snd_hda_intel
+    routeros  = "routeros"
+    exportfs  = "exportfs"
+    hass      = "hass"       # home-assistant
