@@ -1,4 +1,25 @@
 terraform {
+  # Credentials, the endpoint, and the state-encryption key are NOT here: backend
+  # config is evaluated before any provider or data source, so sops cannot supply
+  # it. They arrive as environment variables from `just tofu::*` — see rules/tofu.md.
+  backend "s3" {
+    bucket = "rbn"
+    key    = "tofu/terraform.tfstate"
+    region = "auto"
+
+    # R2 is S3-compatible, not S3: no STS, no EC2 metadata, no AWS region names,
+    # and FULL_OBJECT checksums only for CRC-64/NVME while the SDK sends CRC-32.
+    use_path_style              = true
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_metadata_api_check     = true
+    skip_requesting_account_id  = true
+    skip_s3_checksum            = true
+
+    # Conditional writes, which R2 implements; no DynamoDB equivalent exists.
+    use_lockfile = true
+  }
+
   required_providers {
     sops = {
       source  = "carlpett/sops"

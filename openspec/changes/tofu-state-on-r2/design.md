@@ -109,7 +109,8 @@ When OpenBao lands, switching the key provider is a re-encrypt, not a redesign �
 
 Order matters and there is exactly one safe order: configure the backend **and** encryption together, then `tofu init -migrate-state`.
 The migration write goes through the encryption method, so the first object ever created in R2 is ciphertext.
-The local `tofu/terraform.tfstate` is never rewritten, so it stays plaintext on an encrypted-disk laptop as the rollback.
+
+**The local state file does not survive the migration.** OpenTofu zeroes `tofu/terraform.tfstate` to nothing once the remote backend holds the state, so it cannot be used by accident; the pre-migration content is written to `tofu/terraform.tfstate.backup` as compact JSON. Both that and the explicit dated snapshot taken beforehand are plaintext on an encrypted-disk laptop, and they — not the live local file — are the rollback. Taking the snapshot is therefore load-bearing rather than belt-and-braces: without it the only plaintext copy would be a file OpenTofu overwrites on the next backend change.
 
 Alternative rejected — **encrypt locally first, then migrate**: appealing in that it proves encryption works before involving R2, but forcing a local state rewrite needs a state-writing operation, and the only ones available either refresh every resource (hundreds of flaky RouterOS REST calls, and the AGENTS.md warning about partial failures applies) or push state with a hand-managed serial. Not worth it when the single-step order already guarantees no plaintext reaches R2.
 

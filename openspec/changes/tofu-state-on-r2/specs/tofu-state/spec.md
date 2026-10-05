@@ -36,8 +36,13 @@ Plaintext state SHALL NOT be written to the object store at any point, including
 
 #### Scenario: A run without the key fails closed
 
-- **WHEN** `tofu plan` is run with the encryption key absent from the environment
-- **THEN** the run fails with an encryption error, and the state object in R2 is left unmodified
+- **WHEN** an operation is attempted with the encryption key absent from the environment
+- **THEN** it fails before reaching the object store, and the state object is left unmodified
+
+#### Scenario: A run with the wrong key fails closed
+
+- **WHEN** an operation is attempted with an encryption key that does not match the stored state
+- **THEN** it fails with a decryption error rather than reading the state or writing an unencrypted replacement, and the state object is left unmodified
 
 #### Scenario: Secrets in state are not readable from the bucket
 
