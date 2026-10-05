@@ -54,6 +54,9 @@ _rclone +ARGS:
     export RCLONE_CONFIG_R2_ACCESS_KEY_ID="${TOFU_R2_ACCESS_KEY_ID}"
     export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="${TOFU_R2_SECRET_ACCESS_KEY}"
     export RCLONE_CONFIG_R2_ENDPOINT="${TOFU_R2_ENDPOINT}"
+    # Without this rclone tries CreateBucket before any write, which a
+    # bucket-scoped R2 token cannot do — every copy fails 403 AccessDenied.
+    export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
     exec rclone {{ ARGS }}
 
 [doc("tofu init — pass -migrate-state when changing backends")]
