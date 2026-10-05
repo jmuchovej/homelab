@@ -52,10 +52,9 @@ spec:
   hostnames:
     - hubitat.${DC_DOMAIN}
   rules:
-    # The hub answers device-page commands (POST /device/runmethod) with a 302
-    # to http://<host>/… and ignores X-Forwarded-Proto, which the browser blocks
-    # as mixed content and reports as "Command execution failed". HSTS makes it
-    # upgrade that hop itself; remove this and every command shows the toast.
+    # HSTS is belt-and-braces for the hub's http:// redirects: Chromium upgrades
+    # the hop on this header alone, Safari does not (its mixed-content check
+    # runs first), so extension-policy.yaml rewrites Location as well. Keep both.
     - filters:
         - type: ResponseHeaderModifier
           responseHeaderModifier:

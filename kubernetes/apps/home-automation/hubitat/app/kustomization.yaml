@@ -6,3 +6,4 @@ resources:
   - ./endpoint-slice.yaml
   - ./http-route.yaml
   - ./security-policy.yaml
+  - ./extension-policy.yaml

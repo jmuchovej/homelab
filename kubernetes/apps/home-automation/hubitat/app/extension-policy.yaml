@@ -1,0 +1,23 @@
+---
+# The hub builds every redirect it issues as an absolute http:// URL of its own
+# host and ignores X-Forwarded-Proto. Browsers refuse that hop from an https
+# page (Safari even before HSTS can upgrade it), which surfaces as "Command
+# execution failed" on every device-page action. Rewrite the scheme here.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: hubitat
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: hubitat
+  lua:
+    - type: Inline
+      inline: |
+        function envoy_on_response(response_handle)
+          local location = response_handle:headers():get("location")
+          if location ~= nil and string.sub(location, 1, 7) == "http://" then
+            response_handle:headers():replace("location", "https://" .. string.sub(location, 8))
+          end
+        end
