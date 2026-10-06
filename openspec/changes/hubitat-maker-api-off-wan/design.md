@@ -12,13 +12,19 @@ See proposal.md for motivation. What was verified before planning:
   Calls run HA → hub (polling and commands, with `access_token`) and hub → HA (events POSTed to the URL the integration registered on install); only the first direction uses a route.
 - **authentik discovery.** `tofu/kubernetes/main.tofu` reads `authentik.rbn/skip-paths` off HTTPRoutes into the provider's `skip_paths`; removing the annotation makes that `null`.
 - **ClientTrafficPolicy** `envoy-external` sets `escapedSlashesAction: KeepUnchanged` and `disableMergeSlashes: true` gateway-wide; its comment attributes this to Maker API `postURL` paths crossing the gateway.
+- **Hub → HA today.** The Maker API's event URL is `http://10.32.11.1:39501`: the node's lab-VLAN address (HA is `hostNetwork`) and the integration's event-server port, which it writes into the Maker API itself from its `server_url` / `server_port` settings (`H_CONF_SERVER_URL`, `H_CONF_SERVER_PORT` in `jason0x43/hacs-hubitat`).
+  The hub cannot resolve cluster DNS or route to ClusterIPs, so the Service-name trick does not work in this direction.
+- **Name-giving options on the LAN.** The router's `*.<dc-domain>` CNAME points at the external VIP, so an internal-only name needs its own `routeros_ip_dns_record` (tofu, `routeros.da-relay01` provider; the apex and wildcard records in `tofu/cloudflare/da.tofu` are the pattern).
+  `envoy-internal` listens on 80 and 443, but an `https-redirect` HTTPRoute is attached to its `http` section, so plain-http posts to the internal gateway would be answered with a 301 the hub's Maker API does not follow; only an https route would work there.
+  Cilium LB-IPAM addresses in use: `.1`/`.2` gateways, `.32` plex, `.40` minecraft, `.5x` databases, `.61` valkey, the syncthing octet; app-template declares a LoadBalancer Service as `service.<name>.type: LoadBalancer` with `lbipam.cilium.io/ips` and `externalTrafficPolicy: Local` (plex).
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - No public route to the Maker API; Home Assistant unaffected in function and entity identity.
-- Verified from both sides: the public path answers with authentik, the cluster path answers with devices.
+- Both directions address the other side by a stable name: HA uses the hub's cluster Service, the hub uses a LAN name for HA's event receiver; no raw IP in either configuration.
+- Verified from both sides: the public path answers with authentik, the cluster path answers with devices, and a paddle press reaches HA through the name.
 
 **Non-Goals:**
 
@@ -44,10 +50,20 @@ HA is repointed and verified while the public path still works, so a mistake in 
 Only then is the route commit pushed.
 Rollback at any point before the push is nothing; after it, reverting the commit restores the bypass.
 
-### D4. Verification is end to end, from both network positions
+### D4. Hub → HA events go to a LoadBalancer Service with a router A record, on the existing port
+
+A second app-template Service on the Home Assistant release, `events`: `type: LoadBalancer`, `lbipam.cilium.io/ips: "${LB_PREFIX}.45"`, `externalTrafficPolicy: Local`, port 39501 to the same pod (which, being `hostNetwork`, is the node).
+A tofu `routeros_ip_dns_record` A record `ha-events.<dc-domain>` → that address, beside the da apex and wildcard records.
+The integration's `server_url` becomes `http://ha-events.<dc-domain>:39501`; it rewrites the Maker API's event URL on the next reload, so the hub's side is configured by HA, never by hand.
+The port stays 39501 and the scheme stays http, so the integration's listener and the hub's behaviour are unchanged; only the address becomes a name that follows the pod.
+Rejected: an HTTPRoute on `envoy-internal` (the http listener 301s to https, which would force an https event URL and make event delivery depend on the gateway and its certificate for a LAN-internal hop); keeping the raw node IP (works, but it is the thing the user asked to stop doing, and it breaks the day HA moves); a LAN DNS name for the node itself (`<host>.<dc-domain>` already points at Envoy by convention, and it would still tie the hub to a node rather than to HA).
+`.45` is a free address in the pool; the existing octets are 1, 2, 32, 40, 5x, 61 and the syncthing octet, with no block convention to follow.
+
+### D5. Verification is end to end, from both network positions
 
 Public: `curl` the Maker API URL with the real token from outside the cluster and expect authentik's redirect, not JSON.
 Cluster: the same call from a pod (or from the node, since HA shares its network) returns the device list.
+Events: the Maker API app page shows the event URL as the name; a paddle press on a hub switch updates its entity in HA; `dig ha-events.<dc-domain>` from the LAN returns the LoadBalancer address.
 Function: one command from HA to a hub device and one physical event observed in HA.
 Entity identity: an entity id noted before the move is unchanged after it.
 
@@ -57,11 +73,16 @@ Entity identity: an entity id noted before the move is unchanged after it.
 - [The token is pasted into a terminal for the curl checks] → Use `secretspec run` with the token held as a secret, or run the check from HA's own log; never commit or log the token. The app id is not sensitive.
 - [tofu plan shows more than the one skip-path diff] → Stop and read it; unrelated drift is not this change's to apply.
 - [Something else was using the public Maker API path] → The route comment and HA are the only known consumers; the public-path check after removal doubles as the detector, and the revert is one commit.
+- [The LoadBalancer Service does not reach a `hostNetwork` pod] → The pod's address is the node's, so the endpoint is `10.32.11.1:39501`, the same place the hub posts today; `kubectl get endpointslice` for the Service shows it before the hub is repointed, and the old URL keeps working until the integration rewrites it.
+- [`externalTrafficPolicy: Local` plus a single node] → Fine today; if HA ever lands on another node the address moves with the pod through BGP, which is the point. On a multi-node cluster the policy keeps the hub's source address visible to HA, as it does for plex.
+- [The integration does not rewrite the Maker API event URL on `server_url` change] → The Maker API app page shows the event URL; if it still reads the IP after a reload, set it there by hand once to the same value. Either way the hub ends up with the name.
+- [Router DNS record and LB address drift apart] → Both live in this repo (tofu record, release annotation) with the octet written in both places; the AGENTS note added in 5.x says they are a pair.
 
 ## Migration Plan
 
-1. Record an HA entity id and the current host in the integration.
-2. Change the integration host to the Service name; verify HA still polls and controls a device.
-3. Commit the route edits; user pushes; Flux applies.
-4. Verify the public path answers with authentik and the cluster path answers with devices; `just tofu-plan` shows the skip-path removal; apply it.
-5. Rollback: revert the route commit (public path returns); point HA back at the public hostname if ever needed.
+1. Record an HA entity id, the integration's current host, and the Maker API's current event URL.
+2. Repo: add the `events` Service to the Home Assistant release and the `ha-events` A record in tofu; commit; user pushes; Flux applies the Service; `just tofu-apply` lands the record. Verify the name resolves to the address and the port answers, while the hub still posts to the old URL.
+3. Change the integration's host to the Service name and its `server_url` to the new name; reload the integration; verify it polls, controls a device, and that the Maker API's event URL now reads the name; press a paddle and see the entity update.
+4. Commit the route edits; user pushes; Flux applies.
+5. Verify the public path answers with authentik and the cluster path answers with devices; `just tofu-plan` shows only the skip-path removal (the record already applied); apply it.
+6. Rollback: revert the route commit (public path returns); set the integration's host and `server_url` back to the previous values if ever needed. The Service and record are inert if unused.
