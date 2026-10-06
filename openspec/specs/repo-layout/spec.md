@@ -54,12 +54,13 @@ The repository SHALL keep the `homelab` Python package at `src/homelab/` and SHA
 
 The repository SHALL keep all OpenTofu root modules, child modules, justfile modules, and their `secrets` and `topology.yaml` symlinks under `tofu/`.
 The symlinks SHALL resolve to the repo-root `secrets/` directory and `topology.yaml` file.
-Local state and provider caches SHALL live alongside the root module in `tofu/`.
+Provider caches SHALL live alongside the root module in `tofu/`.
+State SHALL NOT, and is governed by the `tofu-state` capability instead; the local state files that remain in `tofu/` are retained rollback copies, not the authoritative state.
 
 #### Scenario: Plan is a no-op after the move
 
-- **WHEN** `tofu plan` is run inside `tofu/` immediately after the move, with state and `.terraform/` relocated
-- **THEN** it reports no changes, no re-initialization is required, and every `sops_file` data source resolves its `${path.root}/secrets/...` and `${path.root}/topology.yaml` input
+- **WHEN** `tofu plan` is run inside `tofu/` immediately after the move
+- **THEN** it reports no changes, and every `sops_file` data source resolves its `${path.root}/secrets/...` and `${path.root}/topology.yaml` input
 
 #### Scenario: Justfile recipes reach secrets
 
