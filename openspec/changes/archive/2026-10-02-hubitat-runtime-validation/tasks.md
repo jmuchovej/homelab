@@ -4,7 +4,7 @@
       If not, stop; this change depends on them
 - [x] 1.2 Confirm the previous change is pushed and the raw URL is live: `curl -sS -o /dev/null -w '%{http_code}' https://raw.githubusercontent.com/jmuchovej/homelab/main/hubitat/drivers/aqara-cube-t1-pro/aqara-cube-t1-pro.bundled.groovy` prints `200`
 - [x] 1.3 (hub, by hand) Pick the one dimmer for validation and record in a scratch note: its device name, current driver (`Inovelli Dimmer 2-in-1 Blue Series VZM31-SN`), firmware, and the power/energy reporting parameters shown on its page, so 5.9 can confirm nothing changed
-      (Hallway Switch, device 50, read from the hub's device JSON; note in the session scratchpad)
+      (device 50, read from the hub's device JSON; note in the session scratchpad)
 
 ## 2. Minimal VZM31-SN driver
 
@@ -47,7 +47,7 @@
 - [x] 5.4 On the chosen dimmer's page select driver `Inovelli Dimmer (Blue, VZM31-SN)` (namespace `rbn`), Save Device.
       Do **not** press Configure.
       Verify the log shows `checkDriverVersion` updating to `0.1.0` and no `error` lines
-      (Hallway Switch, 20:09:42 UTC: `Updated to version 0.1.0 … from version unknown`; the only ERROR near it, 20:02:10 `clearInfoEvent()`, is the InovelliUSA driver's own scheduled job from before the swap)
+      (device 50, 20:09:42 UTC: `Updated to version 0.1.0 … from version unknown`; the only ERROR near it, 20:02:10 `clearInfoEvent()`, is the InovelliUSA driver's own scheduled job from before the swap)
 - [x] 5.5 Press `refresh`.
       Verify exactly one `sendZigbeeCommands: sent cmd=` line whose list contains reads of `0x0006`, `0x0008`, `0x0702:0x0000`, and `0x0B04:0x050B`, followed by `switch`, `level`, `energy`, and `power` events
       (20:25:07: one line, `he rattr … 6 0`, `he rattr … 8 0`, `he raw … 0x0702 {10 00 00 00 00}`, `he raw … 0x0B04 {10 00 00 0B 05}`; then `is on [Refresh]`, `is 100 [Refresh]`, `energy is 0.07 kWh`, `power is 34.400 W`)
@@ -55,7 +55,7 @@
       Verify the load follows and `switch`/`level` events match.
       At the wall: paddle down, paddle up, hold up to dim.
       Verify `switch`/`level` events with `type: physical`
-      (`on()`/`off()` acknowledged with `[digital]` events; paddle `is on/off [physical]`; hold-to-dim `was set 99 [physical]`, `was set 73 [physical]`. **Deviation:** `setLevel` from the hub was not exercised — the Hallway Switch load is not dimmable; the three `setLevel()` MethodSelectionException errors at 20:31–20:32 are no-argument calls from the runmethod endpoint, not from the page or the driver)
+      (`on()`/`off()` acknowledged with `[digital]` events; paddle `is on/off [physical]`; hold-to-dim `was set 99 [physical]`, `was set 73 [physical]`. **Deviation:** `setLevel` from the hub was not exercised — device 50's load is not dimmable; the three `setLevel()` MethodSelectionException errors at 20:31–20:32 are no-argument calls from the runmethod endpoint, not from the page or the driver)
 - [x] 5.7 Compare one `power` and one `energy` event against the raw hex in the same log line.
       Verify power = raw ÷ 10 W and energy = raw ÷ 100 kWh (spec scenario values: raw 150 → 15.0 W, raw 2600 → 26.00 kWh)
       (raw `0x012D` = 301 → 30.100 W; raw `0x000000000007` → 0.07 kWh)
@@ -86,13 +86,13 @@
 
 - [x] 7.1 Pair a Cube: keep pressing the link button (or keep shaking it) through Hubitat's initialising step.
       Verify the device appears with driver `Aqara Cube T1 Pro` in namespace `rbn` by fingerprint; if the join still fails, mark 7.x blocked with the symptom and continue to 7.5
-      (2026-10-02: two cubes paired, devices 54 "Bedroom Cube" and 55 "Desktop Cube", both on the `rbn` driver by fingerprint and both direct children of the hub once the Hue bulbs were out of the join path; a third cube joins but never completes the interview — flat battery suspected, swap pending)
+      (2026-10-02: two cubes paired, devices 54 and 55, both on the `rbn` driver by fingerprint and both direct children of the hub once the Hue bulbs were out of the join path; a third cube joins but never completes the interview — flat battery suspected, swap pending)
 - [x] 7.2 Press Configure once (this driver's `customConfigureDevice` is the intended Aqara setup).
       Verify one `sendZigbeeCommands: sent cmd=` line and no `error`
       (device 55 at 17:52:35 UTC: `configure()... cfgCtr=4`, one `sendZigbeeCommands: sent cmd=` line, no error lines for either cube in the log)
 - [x] 7.3 Flip, shake, rotate left, rotate right.
       Verify `pushed`, `doubleTapped`, `held`, `released` with `cubeSide`/`angle`/`sideUp` updating
-      (Desktop Cube, 2026-10-02 UTC: flip → `sideUp is 2`, `button 2 was pushed`; shake 20:42:27 and 20:42:41 → `action is shake`, `button 6 was doubleTapped`; rotateLeft ×9 → `button 1 was held`; rotateRight ×15 → `button 1 was released`; `throw` and pick-up `hold` also recognised)
+      (device 55, 2026-10-02 UTC: flip → `sideUp is 2`, `button 2 was pushed`; shake 20:42:27 and 20:42:41 → `action is shake`, `button 6 was doubleTapped`; rotateLeft ×9 → `button 1 was held`; rotateRight ×15 → `button 1 was released`; `throw` and pick-up `hold` also recognised)
 - [x] 7.4 Wait for a battery report.
       Verify `battery` and `batteryVoltage` events and that `0xFCC0` reports parse without an unknown-cluster warning
       (both cubes report `battery` and `batteryVoltage` repeatedly, e.g. device 54 2.9 V / 70 % at 19:02 UTC; `0xFCC0` parses — the only warning is `unknown xiaomi cluster 0xFCC0 attribute 0x00FF`, Aqara's pairing-key attribute, an unknown-attribute notice that upstream emits too, not an unknown-cluster one)

@@ -5,7 +5,7 @@ See proposal.md for motivation. Facts that shape the approach, read from the lib
 - **How Inovelli's driver talks to `0xFC31`.** Parameters are attributes on the private cluster whose attribute id is the parameter number; reads and writes carry `mfgCode 0x122F`; sizes map to ZCL types (1 → boolean, 8 → uint8, 16 → uint16, 32 → uint32; internal temperature 32 is a signed int8). Mode changes (52, 258) are given a longer delay because the device reconfigures itself. Received reports are written straight into `settings` (`parameter<N>`, unpadded) and, for read-only parameters, emitted as attributes (`internalTemp`, `overHeat`, `powerSource`). Its `refresh` reads the primary, read-only, and user-set parameters; its `updated()` writes only parameters whose setting changed.
 - **Group binding syntax already exists in that driver** (`bindGroup`): `zdo bind 0x<dni> 0x02 0x01 0x0006 {<switch ieee>} {<group id, 4 hex>}` and the same for `0x0008`, followed by a 60 s delay because the device acknowledges slowly. Unbind is the same with `zdo unbind`. This is the syntax to verify in the spike, not invent.
 - **What `common` already does.** `ClustersMap` is the dispatch registry (a cluster absent from it is logged as unknown and never routed). `parseZdoClusters` logs ZDO bind responses (`0x8021`) and hands every ZDO frame to `customParseZdoClusters` if the driver defines it, which is where a binding-table response (`0x8033`) can be parsed. `updated()` calls `customUpdated()`; `configure()` calls `customConfigureDevice()` only if defined; `refresh()` uses `customRefresh()` as the whole command list.
-- **The hub today.** `0xFC31` attribute reports for `0x0020`/`0x0021` (internal temperature, overheat) already arrive every minute from Hallway Switch because Inovelli's driver configured that reporting; on the 0.1.1 driver they surface as unknown-cluster warnings. Five Hubitat Group devices exist; three are `Group Bulb Dimmer-2.1`, the type the built-in Groups and Scenes app uses when Zigbee group messaging is on. A group device's data map is empty and its DNI is `Group_<n>`.
+- **The hub today.** `0xFC31` attribute reports for `0x0020`/`0x0021` (internal temperature, overheat) already arrive every minute from device 50 because Inovelli's driver configured that reporting; on the 0.1.1 driver they surface as unknown-cluster warnings. Five Hubitat Group devices exist; three are `Group Bulb Dimmer-2.1`, the type the built-in Groups and Scenes app uses when Zigbee group messaging is on. A group device's data map is empty and its DNI is `Group_<n>`.
 - **Home Assistant** reaches the hub through Maker API (app 28), which exposes capabilities and attributes and lets HA call any command.
 - **No Groovy test runner exists**; `probe` and `push` are the compile checks and the specs' scenarios are the behavioural checks.
 
@@ -48,7 +48,7 @@ The in-scope set is the proposal's list; the table carries only those rows, not 
 
 ### D5. Device is the source of truth: read on refresh, write deltas on save, Configure writes no parameter
 
-**Amended during validation (2026-10-03).** The validation switch had no on/off or level reporting bindings to the hub (its table held only metering and the private cluster on endpoint 1), so the paddle never updated `switch`/`level` and scene commands never arrived; Inovelli's `configure` is what normally creates those bindings (Hallway Switch, configured by it, carries fifteen).
+**Amended during validation (2026-10-03).** The validation switch had no on/off or level reporting bindings to the hub (its table held only metering and the private cluster on endpoint 1), so the paddle never updated `switch`/`level` and scene commands never arrived; Inovelli's `configure` is what normally creates those bindings (device 50, configured by it, carries fifteen).
 `configure` therefore does exactly one thing: it (re)creates the hub reporting bindings — on/off and level on endpoint 1 with reporting configuration, and the private cluster on endpoints 1 and 2 — through one shared `hubReportingCommands()`, and `bindGroup` appends the same commands, so a unit is never left without reporting and a plain dimmer gets it from Configure alone.
 No `0xFC31` attribute is ever written by either path, and the group bindings are untouched; the "Configure does not reset a unit" scenario holds as written.
 Also found on firmware 2.18: parameters 30, 31, and 99 answer `Unsupported Attribute`, so they are out of the table; and `device.updateSetting` only updates an existing settings row, which the hub creates on the first Save Preferences after the driver is selected — the README's first step.
@@ -64,7 +64,7 @@ Rejected: handling `0xFC31` through `customParseDefaultCommandResponse` or an un
 
 ### D7. Validation is one unit, rebooted mid-test
 
-Candidate: Bathroom Light Switch (device 5) with the existing Zigbee-messaging group Bathroom Lights (device 37), both Hue bulbs. Protocol: record the switch's parameters and binding table on Inovelli's driver; select ours; `refresh`; confirm preferences match the recording; set smart-bulb mode on if it is not; `bindGroup` with the group id from the spike; `readBindings`; paddle test; reboot the hub; paddle test during the outage; after the hub returns, HA sets the group to 30 and the switch's power follows. Rollback at any point is `unbindGroup` plus reselecting Inovelli's driver.
+Candidate: device 5 with the existing Zigbee-messaging group device 37, both Hue bulbs. Protocol: record the switch's parameters and binding table on Inovelli's driver; select ours; `refresh`; confirm preferences match the recording; set smart-bulb mode on if it is not; `bindGroup` with the group id from the spike; `readBindings`; paddle test; reboot the hub; paddle test during the outage; after the hub returns, HA sets the group to 30 and the switch's power follows. Rollback at any point is `unbindGroup` plus reselecting Inovelli's driver.
 
 ### D8. Release as 0.2.0 through HPM
 
@@ -83,9 +83,9 @@ The parameter surface is new behaviour, so the minor version moves. HPM's update
 
 ## Migration Plan
 
-1. Spikes on the hub, no repo change: group-bind syntax and read-back on one switch (on Inovelli's driver, which has `bindGroup`), and the Groups app's group id for Bathroom Lights.
+1. Spikes on the hub, no repo change: group-bind syntax and read-back on one switch (on Inovelli's driver, which has `bindGroup`), and the Groups app's group id for group device 37.
 2. Repo: `common` map entry, driver table, parsers, commands; `probe` and `push` compile checks; README and AGENTS; commit per group.
-3. Hub: move Bathroom Light Switch onto the driver, run D7 end to end, record results.
+3. Hub: move device 5 onto the driver, run D7 end to end, record results.
 4. Repo: bump to 0.2.0, release notes, commit; user pushes; HPM update.
 5. Hub: roll the remaining units one at a time using the README procedure.
 6. Rollback: `unbindGroup`, reselect Inovelli's driver; parameters are untouched unless deliberately saved.
