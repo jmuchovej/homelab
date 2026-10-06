@@ -20,7 +20,7 @@ This file holds only repo-wide identity, policy, and the index — domain knowle
 nix fmt              # format everything (treefmt)
 nix flake check      # validate the flake
 just --list          # task runner — check here before improvising commands
-just tofu-plan       # OpenTofu (wrapped: -parallelism=1 -compact-warnings)
+just tofu::plan      # OpenTofu (wraps secretspec; -parallelism=1 -compact-warnings)
 nh os switch / nh darwin switch   # rebuild helper
 ```
 
