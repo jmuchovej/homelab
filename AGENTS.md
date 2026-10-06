@@ -76,6 +76,25 @@ The sweep's criterion is load-bearing-ness, not zero comments — a comment that
 Never create a rule _just_ to have somewhere to lift a comment — widen an existing rule's glob, or lift into the rule that already governs the area.
 A sweep that keeps surfacing context for a path no rule covers is the signal to deliberately architect one.
 
+## Markdown style — one sentence per line
+
+Every `.md` in this tree uses **semantic line breaks**: each sentence starts on its own line, and no line is wrapped to a column.
+Rendering is unaffected — CommonMark treats a single newline as a space — but a diff becomes one line per changed sentence instead of a whole reflowed paragraph.
+
+- **Never wrap to a column.**
+  There is no line-length limit; a 300-character sentence stays on one line.
+  Do not re-wrap a file you are editing.
+- **Split only at a sentence-final `.`, `?`, or `!`.**
+  A semicolon, colon, comma, em-dash, or parenthesis does not end a sentence, and neither do abbreviations (`e.g.`, `etc.`, `vs.`), version numbers, CIDRs, or filenames.
+  When a period is genuinely ambiguous, leave the line alone.
+- **A list item's later sentences align with its text column** — 2 spaces under a `- ` bullet, 3 under `1. `.
+  Never promote a continuation sentence into a new bullet.
+- **Leave non-prose alone**: frontmatter, fenced and indented code, tables, headings, link reference definitions, HTML blocks, and the MDC `::component` delimiters and `---` prop blocks in `docs/content/**`.
+
+`hubitat/AGENTS.md` is the reference example.
+Nothing enforces any of this: treefmt deliberately enables no Markdown formatter.
+That is what makes the convention stable — no formatter will fix a file for you, and none will undo it either.
+
 ## Quality gates
 
 - `nix fmt` before committing; hooks enforce sops encryption, nix syntax, and formatting.
