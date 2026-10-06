@@ -28,14 +28,14 @@ Both directions should address the other side by a stable name, and neither shou
 
 ## Impact
 
-- **Home Assistant**: one host change in the Hubitat integration, done in HA's UI (the integration's configuration lives in HA's storage, not in this repo).
-  If the installed integration version cannot change the host in place, the entry is removed and re-added; its entities keep their ids because the integration derives unique ids from the hub and device ids, which do not change.
-  Automations keep working either way.
+- **Home Assistant**: three fields in the Hubitat integration's Configure dialog (host, `server_url`, `server_port`), done in HA's UI.
+  The integration is config-flow only, with no YAML import, so these values live in HA's storage and cannot be put in this repo; the spec records what they must be.
+  Entities keep their ids because the integration derives unique ids from the hub id and device ids, which do not change, so automations keep working.
 - **Network**: after the change, `https://hubitat.da.jm0.io/apps/api/...` is answered by authentik like every other hub path; from inside the cluster the Maker API answers at the Service name.
   HA runs with `hostNetwork: true` and `ClusterFirstWithHostNet` DNS, so it resolves the Service name and reaches the ClusterIP from the node; no network-policy grant is involved.
 - **authentik / tofu**: the hubitat provider loses its `/apps/api/*` skip path, and the da router gains one A record (`ha-events.<dc-domain>` → the new LoadBalancer address); `just tofu-plan` shows exactly those two diffs and `tofu apply` lands them.
 - **Home Assistant, event side**: a second Service on the app-template release (`type: LoadBalancer`, one pool address, port 39501) pointing at the same pod; HA runs `hostNetwork`, so the endpoint is the node and the integration's listener needs nothing changed.
-  Setting `server_url` in the integration makes it rewrite the Maker API's event URL on the hub; the old raw-address URL is replaced, not duplicated.
+  The integration sends its event URL to the Maker API every time its listener starts, so setting `server_url` replaces the raw-address URL on the next reload and re-asserts it on every HA start; the hub's value is HA's to own.
   If the integration ever moves to another node, the LoadBalancer address and the name follow it; the hub's configuration does not change again.
 - **Repo**: two HTTPRoute edits, one comment, one Service block in the Home Assistant release, one DNS record in tofu.
 - **Found while surveying, not touched here**: `kubernetes/apps/home/mikrotik/app/http-route.yaml` (uncommitted work in progress) contains a second HTTPRoute named `hubitat` with hostname `hubitat.${DC_DOMAIN}` and a `/apps/api` rule, apparently copied from the hubitat app.

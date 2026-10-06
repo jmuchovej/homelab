@@ -1,6 +1,6 @@
 ## 1. Baseline (hub and Home Assistant, by hand)
 
-- [ ] 1.1 In Home Assistant, note the Hubitat integration's current host and `server_url`, one Hubitat-backed entity id (for example a dimmer's light entity), and the Maker API's current event URL from the app's page on the hub (`http://10.32.11.1:39501`) in a scratch note; verify the note holds all four before continuing
+- [ ] 1.1 In Home Assistant, note the Hubitat integration's current host, `server_url`, and `server_port` (Configure dialog), one Hubitat-backed entity id (for example a dimmer's light entity), and the Maker API's current event URL from the app's page on the hub (`http://10.32.11.1:39501`) in a scratch note; verify the note holds all five before continuing
 - [ ] 1.2 Confirm the Maker API answers from inside the cluster before anything changes: from the node (HA shares its network) `curl -s 'http://hubitat.home-automation.svc.cluster.local/apps/api/28/devices?access_token=…'` with the token supplied through `secretspec run` or pasted only into the shell; verify it returns the device list JSON
 
 ## 2. A name for Home Assistant's event receiver (repo)
@@ -13,8 +13,8 @@
 
 ## 3. Repoint Home Assistant (by hand)
 
-- [ ] 3.1 In the Hubitat integration's configuration, set the host to `http://hubitat.home-automation.svc.cluster.local` (same app id and token) and `server_url` to `http://ha-events.<dc-domain>:39501`; if the installed version offers no host field, remove the integration and add it again with both values; verify the integration loads without error
-- [ ] 3.2 Open the Maker API app on the hub; verify its event URL now reads `http://ha-events.<dc-domain>:39501` (set it by hand to that value if the integration did not rewrite it)
+- [ ] 3.1 In the Hubitat integration's Configure dialog, set host to `http://hubitat.home-automation.svc.cluster.local`, `server_url` to `http://ha-events.<dc-domain>:39501`, and `server_port` to 39501, leaving app id and token blank to keep them; Submit reloads the entry; verify it loads without error and that `nc -z ha-events.<dc-domain> 39501` from the LAN still connects, since the listener restarted and re-chose its bind address
+- [ ] 3.2 Open the Maker API app on the hub; verify its event URL now reads `http://ha-events.<dc-domain>:39501` (if it still shows the IP, the option did not save or the reload failed: fix it in HA, not on the hub, where a hand edit is overwritten at the next HA start)
 - [ ] 3.3 Verify function while the public path still exists: toggle one hub device from HA and see it respond; press a paddle on one switch and see the entity update in HA within a second; verify the entity id from 1.1 is unchanged
 
 ## 4. Close the public path (repo)

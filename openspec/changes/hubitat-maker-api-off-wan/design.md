@@ -12,8 +12,14 @@ See proposal.md for motivation. What was verified before planning:
   Calls run HA → hub (polling and commands, with `access_token`) and hub → HA (events POSTed to the URL the integration registered on install); only the first direction uses a route.
 - **authentik discovery.** `tofu/kubernetes/main.tofu` reads `authentik.rbn/skip-paths` off HTTPRoutes into the provider's `skip_paths`; removing the annotation makes that `null`.
 - **ClientTrafficPolicy** `envoy-external` sets `escapedSlashesAction: KeepUnchanged` and `disableMergeSlashes: true` gateway-wide; its comment attributes this to Maker API `postURL` paths crossing the gateway.
-- **Hub → HA today.** The Maker API's event URL is `http://10.32.11.1:39501`: the node's lab-VLAN address (HA is `hostNetwork`) and the integration's event-server port, which it writes into the Maker API itself from its `server_url` / `server_port` settings (`H_CONF_SERVER_URL`, `H_CONF_SERVER_PORT` in `jason0x43/hacs-hubitat`).
+- **Hub → HA today.** The Maker API's event URL is `http://10.32.11.1:39501`.
+  In `jason0x43/hacs-hubitat` the listener port defaults to 0, an ephemeral port chosen at each start, so 39501 is a value the integration was given, either as `server_port` or as the port inside `server_url`; with no `server_url` the event URL defaults to the listener's own address and port.
+  The listener's bind address is the source address of a UDP connect to the hub's host, and the integration sends the event URL to the Maker API (`postURL`) every time the listener starts, i.e. on every HA start and every options change, so the hub's value is owned by HA and a hand edit on the hub is overwritten at the next reload.
+  Host, `server_url`, and `server_port` are all editable in the options flow, and any change reloads the entry.
+  There is no YAML path: `async_setup` is a stub and the config flow has no import step, so these values live only in HA's `.storage`.
   The hub cannot resolve cluster DNS or route to ClusterIPs, so the Service-name trick does not work in this direction.
+- **Bind address with a Service-name host.** Cilium's socket LB is on with `hostNamespaceOnly: true`, and HA is `hostNetwork`, so the UDP connect to the Service name is translated at the socket to the hub's lab address and the node's lab-VLAN address is picked, as today.
+  This is reasoned from the Cilium config, not observed; the LAN-side port check after the repoint is what confirms it.
 - **Name-giving options on the LAN.** The router's `*.<dc-domain>` CNAME points at the external VIP, so an internal-only name needs its own `routeros_ip_dns_record` (tofu, `routeros.da-relay01` provider; the apex and wildcard records in `tofu/cloudflare/da.tofu` are the pattern).
   `envoy-internal` listens on 80 and 443, but an `https-redirect` HTTPRoute is attached to its `http` section, so plain-http posts to the internal gateway would be answered with a 301 the hub's Maker API does not follow; only an https route would work there.
   Cilium LB-IPAM addresses in use: `.1`/`.2` gateways, `.32` plex, `.40` minecraft, `.5x` databases, `.61` valkey, the syncthing octet; app-template declares a LoadBalancer Service as `service.<name>.type: LoadBalancer` with `lbipam.cilium.io/ips` and `externalTrafficPolicy: Local` (plex).
@@ -54,8 +60,9 @@ Rollback at any point before the push is nothing; after it, reverting the commit
 
 A second app-template Service on the Home Assistant release, `events`: `type: LoadBalancer`, `lbipam.cilium.io/ips: "${LB_PREFIX}.45"`, `externalTrafficPolicy: Local`, port 39501 to the same pod (which, being `hostNetwork`, is the node).
 A tofu `routeros_ip_dns_record` A record `ha-events.<dc-domain>` → that address, beside the da apex and wildcard records.
-The integration's `server_url` becomes `http://ha-events.<dc-domain>:39501`; it rewrites the Maker API's event URL on the next reload, so the hub's side is configured by HA, never by hand.
-The port stays 39501 and the scheme stays http, so the integration's listener and the hub's behaviour are unchanged; only the address becomes a name that follows the pod.
+The integration's `server_url` becomes `http://ha-events.<dc-domain>:39501` and `server_port` stays 39501; the URL's port alone would pin the listener, but the explicit port keeps the two from drifting if either is edited later.
+The reload that follows sends the new event URL to the Maker API, so the hub's side is configured by HA, never by hand.
+The scheme stays http and the port stays the one already in use, so only the address changes, to a name that follows the pod.
 Rejected: an HTTPRoute on `envoy-internal` (the http listener 301s to https, which would force an https event URL and make event delivery depend on the gateway and its certificate for a LAN-internal hop); keeping the raw node IP (works, but it is the thing the user asked to stop doing, and it breaks the day HA moves); a LAN DNS name for the node itself (`<host>.<dc-domain>` already points at Envoy by convention, and it would still tie the hub to a node rather than to HA).
 `.45` is a free address in the pool; the existing octets are 1, 2, 32, 40, 5x, 61 and the syncthing octet, with no block convention to follow.
 
@@ -69,13 +76,14 @@ Entity identity: an entity id noted before the move is unchanged after it.
 
 ## Risks / Trade-offs
 
-- [The installed integration version cannot change the host in place] → Remove and re-add the integration; unique ids are hub-derived, so entities and their automations survive. Note an entity id before starting so this is checked, not assumed.
+- [The host cannot be changed in place] → The current options flow edits host, `server_url`, and `server_port` directly and reloads the entry; remove-and-re-add is only for an old version, and unique ids are hub-derived so entities survive either way. Note an entity id before starting so this is checked, not assumed.
 - [The token is pasted into a terminal for the curl checks] → Use `secretspec run` with the token held as a secret, or run the check from HA's own log; never commit or log the token. The app id is not sensitive.
 - [tofu plan shows more than the one skip-path diff] → Stop and read it; unrelated drift is not this change's to apply.
 - [Something else was using the public Maker API path] → The route comment and HA are the only known consumers; the public-path check after removal doubles as the detector, and the revert is one commit.
 - [The LoadBalancer Service does not reach a `hostNetwork` pod] → The pod's address is the node's, so the endpoint is `10.32.11.1:39501`, the same place the hub posts today; `kubectl get endpointslice` for the Service shows it before the hub is repointed, and the old URL keeps working until the integration rewrites it.
 - [`externalTrafficPolicy: Local` plus a single node] → Fine today; if HA ever lands on another node the address moves with the pod through BGP, which is the point. On a multi-node cluster the policy keeps the hub's source address visible to HA, as it does for plex.
-- [The integration does not rewrite the Maker API event URL on `server_url` change] → The Maker API app page shows the event URL; if it still reads the IP after a reload, set it there by hand once to the same value. Either way the hub ends up with the name.
+- [The hub's event URL still shows the IP after the reload] → The integration sends `postURL` on every listener start, so a stale value means the option did not save or the reload failed; fix it in the options flow, never on the hub, where a hand edit is overwritten at the next HA start.
+- [The listener binds to an address the LoadBalancer cannot reach] → The bind address is chosen by a UDP connect to the hub host; with socket LB in the host namespace the Service name resolves to the hub's lab address and the node's lab-VLAN address is picked, as today. `nc -z ha-events.<dc-domain> 39501` from the LAN after the repoint is the check; if it fails, HA's debug log line `Listening on <address>:<port>` names the address actually bound.
 - [Router DNS record and LB address drift apart] → Both live in this repo (tofu record, release annotation) with the octet written in both places; the AGENTS note added in 5.x says they are a pair.
 
 ## Migration Plan
