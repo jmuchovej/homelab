@@ -10,8 +10,9 @@ Those trees are: Kubernetes manifests under `kubernetes/`, Nix under `modules/` 
 OpenTofu configuration SHALL appear only under `tofu/` for the configuration phase or `bootstrap/` for the bootstrap phase, and SHALL NOT appear in any other tree.
 A target that OpenTofu configures — the MikroTik relays and Authentik among them — is therefore declared under `tofu/` even where a tree named for that target exists elsewhere.
 
-This requirement governs only tooling that acts on infrastructure.
-Trees that hold no tooling — `docs/`, `assets/`, `mikrotik/` (topology diagrams and reference documents), `src/`, `secrets/`, `openspec/`, `vendor/` — are outside its scope and are governed by their own requirements or by none.
+This requirement governs only tooling that is a target's normal management path.
+Trees that hold none — `docs/`, `assets/`, `mikrotik/` (topology diagrams and reference documents), `plans/`, `scripts/` (one-off migrations and operator checks), `skills/`, `claude-project/`, `src/`, `secrets/`, `openspec/`, `vendor/` — are outside its scope and are governed by their own requirements or by none.
+A tool that becomes a target's normal management path SHALL move into that target's configuring tool tree rather than remaining an ad-hoc script.
 
 Because a purpose rule is weaker to verify than a path rule, the permitted OpenTofu root modules SHALL be enumerated rather than inferred: exactly one per phase, `tofu/` for the configuration phase and `bootstrap/` for the bootstrap phase.
 A phase SHALL NOT hold more than one root module, so that `import`, `moved` and `backend` blocks — which OpenTofu permits only in a root module — are declared once per phase.

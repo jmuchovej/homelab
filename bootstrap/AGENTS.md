@@ -7,6 +7,11 @@ paths:
 
 Everything that takes a target from bare metal or factory state to the point where its everyday tool takes over lives here, one directory per target.
 Nothing bootstrap-related lives under `modules/`, `mikrotik/`, or `src/`.
+The normative statement of that split is the `repo-layout` capability's lifecycle-phase requirement; this file keeps the narrative and the table.
+
+A directory here takes whatever form fits its target — a script, a justfile, Nix, or OpenTofu where the target has an API.
+`mikrotik/` stays imperative on purpose: first-boot authenticates as the factory admin before any API user exists, so expressing it in OpenTofu would mean `local-exec` provisioners.
+At most one OpenTofu root module exists here, shared by every target that needs one, because `import`, `moved` and `backend` are root-only constructs.
 
 | Directory     | What it holds                                                                                | Hands off to                                   |
 | ------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -14,6 +19,7 @@ Nothing bootstrap-related lives under `modules/`, `mikrotik/`, or `src/`.
 | `kubernetes/` | k3s seed manifests and their build check (`checks.nix`), read by `<rbn/services/kubernetes>` | Flux                                           |
 | `mikrotik/`   | RouterOS first-boot script (`rbn-bootstrap.rsc`) and `justfile`                              | OpenTofu                                       |
 | `talos/`      | non-secret machine-config base, read by `<rbn/system/virtualization/talos>`                  | Flux inside the guest (consumer not yet built) |
+| `cloudflare/` | placeholders only — the R2 state bucket and the scoped API token the `tofu/` root consumes   | OpenTofu (not yet built)                       |
 
 Entry point is the root justfile: `just bootstrap nix <recipe>` and `just bootstrap mikrotik <recipe>`; `just --list bootstrap <target>` shows each set.
 Every justfile here also works standalone (`just -f bootstrap/<target>/justfile …`).
