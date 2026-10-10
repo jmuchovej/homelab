@@ -1,6 +1,23 @@
 mod nix "nix/justfile"
 mod mikrotik "mikrotik/justfile"
 
+_default:
+    @just --list
+
 [private]
-default:
-    @just --justfile {{ module_file() }} --list
+[script]
+via-tofu cmd *ARGS:
+    export SECRETSPEC_REASON="tofu-bootstrap: {{ cmd }}"
+    secretspec run --profile default -- tofu {{ cmd }} {{ ARGS }}
+
+tofu *ARGS:
+    @just --justfile {{ source_file() }} via-tofu {{ ARGS }}
+
+apply *ARGS:
+    @just --justfile {{ source_file() }} via-tofu apply {{ ARGS }}
+
+plan *ARGS:
+    @just --justfile {{ source_file() }} via-tofu plan {{ ARGS }}
+
+init *ARGS:
+    @just --justfile {{ source_file() }} via-tofu init {{ ARGS }}
