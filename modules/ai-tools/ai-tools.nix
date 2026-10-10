@@ -10,7 +10,7 @@ let
   local-skills = ai-tools-lib.load-skills ./skills;
 
   # Upstream Anthropic skills (subset; rev pinned via the flake input).
-  upstream-skills = lib.genAttrs [
+  anthropic-skills = ai-tools-lib.pluck-skills inputs.anthropic-skills [
     "docx"
     "frontend-design"
     "mcp-builder"
@@ -19,7 +19,18 @@ let
     "skill-creator"
     "webapp-testing"
     "xlsx"
-  ] (name: inputs.anthropic-skills + "/skills/${name}");
+  ];
+  # Upstream `marimo` skills (subset; rev pinned via the flake input).
+  marimo-skills = ai-tools-lib.pluck-skills inputs.marimo-skills [
+    "auto-paper-demo"
+    "implement-paper-auto"
+    "implement-paper"
+    "jupyter-to-marimo"
+    "marimo-batch"
+    "marimo-notebook"
+    "streamlit-to-marimo"
+  ];
+  upstream-skills = anthropic-skills // marimo-skills;
 
   skills = local-skills // upstream-skills;
   skills-tree = ".agents/skills";
@@ -30,6 +41,10 @@ in
     anthropic-skills = {
       flake = false;
       url = "github:anthropics/skills/1ed29a03dc852d30fa6ef2ca53a67dc2c2c2c563";
+    };
+    marimo-skills = {
+      flake = false;
+      url = "github:marimo-team/skills/6454470960d3cd57151aaeffb1176dd55f598b18";
     };
     mcp-servers.url = "github:natsukium/mcp-servers-nix";
   };

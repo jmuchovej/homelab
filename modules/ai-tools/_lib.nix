@@ -124,6 +124,8 @@ in
   #@ Path -> Attrs
   load-tools = base-path: listToAttrs (walk-md (i: i.to-keys) (i: i.leaves base-path));
 
+  pluck-skills = input: skills: lib.genAttrs skills (name: input + "/skills/${name}");
+
   ## Load skills from a directory: each `<name>/SKILL.md` yields `<name>` ->
   ## its directory path, so the whole skill directory is what gets linked.
   #@ Path -> Attrs

@@ -612,6 +612,23 @@
         "url": "https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes"
       }
     },
+    "marimo-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787162150,
+        "narHash": "sha256-GK4Qdc6tv4e0qjEfE7ISBPXZ4xfkMnDsUUy02KIOemg=",
+        "owner": "marimo-team",
+        "repo": "skills",
+        "rev": "6454470960d3cd57151aaeffb1176dd55f598b18",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marimo-team",
+        "repo": "skills",
+        "rev": "6454470960d3cd57151aaeffb1176dd55f598b18",
+        "type": "github"
+      }
+    },
     "mcp-servers": {
       "inputs": {
         "nixpkgs": "nixpkgs_8"
@@ -1207,6 +1224,7 @@
         "lanzaboote": "lanzaboote",
         "llm-agents": "llm-agents",
         "mac-keycodes": "mac-keycodes",
+        "marimo-skills": "marimo-skills",
         "mcp-servers": "mcp-servers",
         "nh": "nh",
         "nix-darwin": "nix-darwin",

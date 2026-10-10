@@ -49,6 +49,10 @@
       url = "file+https://gist.githubusercontent.com/eegrok/949034/raw/af13a5ec66ff5eb6fd15f28eea560554e31416a3/mac-keycodes";
       flake = false;
     };
+    marimo-skills = {
+      url = "github:marimo-team/skills/6454470960d3cd57151aaeffb1176dd55f598b18";
+      flake = false;
+    };
     mcp-servers.url = "github:natsukium/mcp-servers-nix";
     nh.url = "github:nix-community/nh";
     nix-darwin = {
