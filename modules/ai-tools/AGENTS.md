@@ -78,6 +78,15 @@ Deliberate exception: `prune-comments` gets `claude` from the session `PATH` rat
 
 `status-line` is built by the same table but is not a hook — it is wired to `settings.statusLine`.
 
+### Worktrees
+
+`worktree-create` puts every worktree the harness asks for at `~/Documents/dev/worktrees/_<harness name>/<repo>--<name>` (`harness worktrees-dir` in `hooks/lib/harness.nu`), never at the in-repo `.claude/worktrees/<name>` Claude proposes.
+Outside the checkout is mandatory for colocated jj repos: a jj workspace has no `.git`, so inside a git checkout Claude's git discovery resolves to the main checkout and it refuses the path as an isolation worktree.
+`<repo>` is the checkout's basename with no disambiguating hash: every repo has exactly one canonical tree (a fork is checked out once, with the fork as `origin` and the source as `upstream`).
+`<name>` is the slug Claude keeps unique per worktree — user-given, generated, or `bridge-cse_<cloud session>`.
+`session_id` would not do: every `isolation: worktree` subagent of one session shares it, and a fresh `--worktree <name>` launch must reopen the same directory.
+`worktree-rename` reads the slug back from the segment after `--`.
+
 `mk-notifier` bakes one harness's identity into `hooks/notify.nu` as flags, so callers pass just a message.
 Icons come from `assets/<harness>{,-dark,-light}.png`, picked by system appearance at runtime; `sender` is a macOS bundle id that makes Notification Center show that app's icon.
 

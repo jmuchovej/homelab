@@ -67,7 +67,8 @@ cd $cwd
 let root_probe = tools run-quiet [jj --ignore-working-copy workspace root]
 if $root_probe.exit_code != 0 { exit 0 }
 let root = $root_probe.stdout | str trim
-let opaque = $root | path basename
+# The directory is `<repo>--<name>` (worktree-create); the name is the opaque id.
+let opaque = $root | path basename | split row "--" | last
 if not ($opaque =~ '^bridge-') { exit 0 }
 let suffix = $opaque | split chars | last 4 | str join
 
