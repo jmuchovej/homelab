@@ -23,27 +23,9 @@ _tofu +ARGS:
     export AWS_SECRET_ACCESS_KEY="${TOFU_R2_SECRET_ACCESS_KEY}"
     export AWS_ENDPOINT_URL_S3="${TOFU_R2_ENDPOINT}"
 
-    if [ -n "${TOFU_STATE_FALLBACK:-}" ]; then
-      state_block='method "unencrypted" "migrate" {}
-    state {
-      method = method.aes_gcm.state
-      fallback { method = method.unencrypted.migrate }
-    }'
-    else
-      state_block='state {
-      method   = method.aes_gcm.state
-      enforced = true
-    }'
-    fi
-
     export TF_ENCRYPTION="key_provider \"pbkdf2\" \"state\" {
       passphrase = \"${TOFU_STATE_PASSPHRASE}\"
-    }
-    method \"aes_gcm\" \"state\" {
-      keys = key_provider.pbkdf2.state
-    }
-    ${state_block}"
-
+    }"
     exec tofu {{ ARGS }}
 
 [private]
@@ -59,21 +41,29 @@ _rclone +ARGS:
     export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
     exec rclone {{ ARGS }}
 
+[private]
+via-secretspec reason *ARGS:
+  @secretspec run --scope tofu --reason "{{ reason }}" -- {{ ARGS }}
+
+
 [doc("tofu init — pass -migrate-state when changing backends")]
 init *ARGS:
-    @secretspec run --scope tofu --reason "initialise the OpenTofu R2 backend" -- \
-      {{ just }} _tofu init {{ ARGS }}
+    @just via-secretspec "initialise the OpenTofu R2 backend" "{{ just }} _tofu init {{ ARGS }}"
 
 [doc("tofu plan")]
 plan *ARGS:
-    @secretspec run --scope tofu --reason "plan homelab infrastructure changes" -- \
-      {{ just }} _tofu plan -parallelism=1 -compact-warnings {{ ARGS }}
+    @just via-secretspec "plan homelab infrastructure changes" "{{ just }} _tofu plan -parallelism=1 -compact-warnings {{ ARGS }}"
 
 [doc("tofu apply, then snapshot the resulting state")]
 apply *ARGS:
-    @secretspec run --scope tofu --reason "apply homelab infrastructure changes" -- \
-      {{ just }} _tofu apply -parallelism=1 -compact-warnings {{ ARGS }}
+    @just via-secretspec "apply homelab infrastructure changes" \
+      "{{ just }} _tofu apply -parallelism=1 -compact-warnings {{ ARGS }}"
     @{{ just }} state-snapshot
+
+[doc("interact with tofu state")]
+state *ARGS:
+    @just via-secretspec "interact with homelab infrastructure state" \
+      "{{ just }} _tofu state {{ ARGS }}"
 
 [doc("copy the live state object to a dated key under the snapshot prefix")]
 state-snapshot:

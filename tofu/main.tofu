@@ -1,4 +1,19 @@
 terraform {
+  encryption {
+    key_provider "pbkdf2" "state" { }
+    method "aes_gcm" "state" {
+      keys = key_provider.pbkdf2.state
+    }
+    state {
+      method = method.aes_gcm.state
+      enforced = true
+    }
+    plan {
+      method = method.aes_gcm.state
+      enforced = true
+    }
+  }
+
   # Credentials, the endpoint, and the state-encryption key are NOT here: backend
   # config is evaluated before any provider or data source, so sops cannot supply
   # it. They arrive as environment variables from `just tofu::*` — see rules/tofu.md.
