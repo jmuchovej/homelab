@@ -2,6 +2,7 @@ set script-interpreter := ["bash", "-euo", "pipefail"]
 mod bootstrap "bootstrap/justfile"
 mod mikrotik "tofu/mikrotik.just"
 mod authentik "tofu/authentik.just"
+mod tofu "tofu/justfile"
 
 [private]
 default:
