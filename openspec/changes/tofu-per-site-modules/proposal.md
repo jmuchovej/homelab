@@ -1,6 +1,6 @@
 ## Why
 
-The OpenTofu root module in `tofu/` is 18 top-level files and 1,600 lines, and most of that is the same thing written twice: da and en each carry their own relay wiring, their own apex and wildcard DNS records, their own HTTPRoute-discovery data sources, and their own 60-block import file, differing only in the site name.
+The OpenTofu root module in `tofu/` is 19 top-level files and about 1,565 lines, and most of that is the same thing written twice: da and en each carry their own relay wiring, their own apex and wildcard DNS records, their own HTTPRoute-discovery data sources, and their own 60-block import file, differing only in the site name.
 Every third site would copy all of it again, 112 `import` and `moved` blocks that already landed in state are still evaluated on every plan, and the public DNS for both sites still points at relay DDNS names through WAN port-forwards when a Cloudflare tunnel per site would retire both.
 This change supersedes `tofu-root-at-repo-root`, whose premise (move the root module to the repository root) is dropped; its state-stability gate, its kubernetes discovery module, and its one-shot block retirement are carried forward.
 

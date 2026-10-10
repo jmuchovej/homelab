@@ -6,7 +6,7 @@ The facts that shape the approach:
 - `provider` blocks, `module` instances, `import` blocks, and `moved` blocks are root-only constructs, and a `module` block cannot `for_each` over instances that need different provider aliases.
   The three relay instances, the two per-site discovery instances, and the three tunnel instances are therefore spelled out in the root; the lower bound on root content is those eight blocks plus providers.
 - Today's root module in `tofu/` is 18 files and 1,606 lines.
-  By job: provider setup (`main.tofu`, `sops.tofu`, `op.tofu`, `cloudflare.tofu`, and provider blocks inside `ak.tofu`, `ak.discovery.tofu`, `da.mikrotik.tofu`, `en.mikrotik.tofu`), network definition (`holonet.tofu`, `zerotier.tofu`), per-site instances and records (`da.mikrotik.tofu`, `en.mikrotik.tofu`, `da.cloudflare.tofu`, `en.cloudflare.tofu`, `da.openbao.tofu`), authentik wiring (`ak.tofu`, `ak.discovery.tofu`, `ak.service-connections.tofu`, `ak.variables.tofu`), Cloudflare one-offs (`cf.idp-tunnel.tofu`, `cf.r2-state.tofu`), and one-shot blocks (107 `import` across five files, 5 `moved` in `ak.moved.tofu`).
+  By job: provider setup (`main.tofu`, `sops.tofu`, `op.tofu`, `cloudflare.tofu`, and provider blocks inside `ak.tofu`, `ak.discovery.tofu`, `da.mikrotik.tofu`, `en.mikrotik.tofu`), network definition (`holonet.tofu`, `zerotier.tofu`), per-site instances and records (`da.mikrotik.tofu`, `en.mikrotik.tofu`, `da.cloudflare.tofu`, `en.cloudflare.tofu`, `da.openbao.tofu`), authentik wiring (`ak.tofu`, `ak.discovery.tofu`, `ak.service-connections.tofu`, `ak.variables.tofu`), Cloudflare one-offs (`cf.idp-tunnel.tofu`), and one-shot blocks (107 `import` across five files, 5 `moved` in `ak.moved.tofu`).
 - The per-site duplication is exact modulo the site name: `da.cloudflare.tofu` and `en.cloudflare.tofu` are the same four records; `ak.discovery.tofu` carries a namespace and an HTTPRoute data source per site because a data source cannot pick its provider by key; `ak.service-connections.tofu` is en-only today and would be copied for every further remote site.
 - Public ingress today: Cloudflare `<site>.<root>` and `*.<site>.<root>` are unproxied CNAMEs to the relay01 IP Cloud DDNS name; the relay forwards WAN 80 and 443 to the site VIP (`n03`, `n04` in `tofu/mikrotik/firewall.nat.tofu`) and hairpins LAN traffic to its own WAN address (`n09` to `n12`), all behind `enable-hairpin`.
   LAN clients already resolve the site domain to the VIP through the mikrotik module's `routeros_ip_dns_record.dc-vip-split-horizon` (`match_subdomain = true`), which makes the four root-level `routeros_ip_dns_record.<site>-apex` and `-wildcard` CNAMEs redundant.
@@ -50,7 +50,8 @@ Moving the root would cost a lock-file move, a provider re-init, and a rewrite o
 
 The six files and their jobs are in the `tofu-root-module` spec.
 `main.tofu` absorbs `sops.tofu`, `op.tofu`, `cloudflare.tofu`, and every provider block now scattered across `ak.tofu`, `ak.discovery.tofu`, and the two `*.mikrotik.tofu` files, so "where are credentials configured" has one answer.
-`cloudflare.tofu` absorbs `cf.r2-state.tofu` and `cf.idp-tunnel.tofu`; `authentik.tofu` is `ak.tofu` minus its 46 imports; `holonet.tofu` absorbs `zerotier.tofu` (D3 of the superseded change, kept).
+`cloudflare.tofu` absorbs `cf.idp-tunnel.tofu` and takes the zone from the old `cloudflare.tofu`; `authentik.tofu` is `ak.tofu` minus its 46 imports; `holonet.tofu` absorbs `zerotier.tofu` (D3 of the superseded change, kept).
+It does **not** absorb `cf.r2-state.tofu`: R2 provisioning moved to the bootstrap-phase root module, because editing bucket configuration needs account-level `Workers R2 Storage Write` and the configuration-phase token should not carry it. That file is already gone from `tofu/`.
 Alternative: one `main.tofu` holding everything, about 600 lines mixing credentials with relay port maps.
 Rejected for the same reason as before: every change to a relay would edit the file that holds every provider.
 
@@ -120,7 +121,8 @@ Rejected: cloudflared runs one tunnel per process, and the spec requires one ite
 
 ### D8. Applied one-shot blocks are deleted after a per-address check against state.
 
-Carried from the superseded change's D6, widened to the R2 bucket import in `cf.r2-state.tofu`.
+Carried from the superseded change's D6.
+It no longer covers the R2 bucket import, which left with `cf.r2-state.tofu` when provisioning moved to the bootstrap root; that import is the bootstrap module's concern and is already applied there.
 The check: extract every `to =` address from the six files, expand the three `for_each` imports from `local.da-ports.relay01` (ether keys only), `local.da-ports.relay02`, and `local.en-ports.relay01`, and require each to appear in `tofu state list`.
 Any miss keeps that block and stops the change.
 The `moved` blocks this change introduces (the IdP config, record, and item; the four site records) are retired in a follow-up commit once the cutover plan is clean, per the `tofu-root-module` spec.

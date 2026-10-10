@@ -1,14 +1,16 @@
 ## Purpose
 
-Defines the shape of the OpenTofu root module under `tofu/` — which top-level files exist and what each owns, where provider configuration lives, how a datacenter site is added, and when one-shot blocks are retired — so that adding a site is a bounded edit and a plan never carries blocks that no longer do anything.
+Defines the shape of the configuration-phase OpenTofu root module under `tofu/` — which top-level files exist and what each owns, where provider configuration lives, how a datacenter site is added, and when one-shot blocks are retired — so that adding a site is a bounded edit and a plan never carries blocks that no longer do anything.
+The bootstrap-phase root module under `bootstrap/` is a separate root governed by the `repo-layout` lifecycle-phase requirement and is outside this capability.
 
 ## ADDED Requirements
 
 ### Requirement: The root module has a bounded top-level file set
 
-The OpenTofu root module SHALL consist of exactly these top-level files in `tofu/`: `main.tofu`, `holonet.tofu`, `cloudflare.tofu`, `authentik.tofu`, and one `<site>.tofu` per datacenter site.
-Every other OpenTofu source file SHALL live under `tofu/` inside a child module directory.
-Each top-level file SHALL own one job: `main.tofu` the backend, provider requirements, provider blocks, sops reads, and the domain locals; `holonet.tofu` the overlay catalog, the overlay DNS records, and the ZeroTier network; `cloudflare.tofu` the zone, the state bucket, and site-agnostic tunnels; `authentik.tofu` the authentik module instance; `<site>.tofu` that site's module instances only.
+The configuration-phase OpenTofu root module SHALL consist of exactly these top-level files in `tofu/`: `main.tofu`, `holonet.tofu`, `cloudflare.tofu`, `authentik.tofu`, and one `<site>.tofu` per datacenter site.
+Every other configuration-phase OpenTofu source file SHALL live under `tofu/` inside a child module directory.
+Each top-level file SHALL own one job: `main.tofu` the backend, provider requirements, provider blocks, sops reads, and the domain locals; `holonet.tofu` the overlay catalog, the overlay DNS records, and the ZeroTier network; `cloudflare.tofu` the zone and site-agnostic tunnels; `authentik.tofu` the authentik module instance; `<site>.tofu` that site's module instances only.
+The R2 state bucket and its lifecycle and lock rules are NOT owned here: they are provisioned by the bootstrap-phase root module, which holds the account-level credential that editing bucket configuration requires.
 
 #### Scenario: Top-level listing is bounded
 
