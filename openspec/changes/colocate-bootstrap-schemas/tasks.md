@@ -55,7 +55,12 @@
 
 ## 5. Deliberately break the ratchet to prove it
 
-- [ ] 5.1 Temporarily edit the `version` in `bootstrap/kubernetes/schemas/SOURCES.json`, rebuild, and verify the host build fails naming `just bootstrap k8s update-schemas`; restore the correct value afterwards
+- [x] 5.1 Temporarily edit the `version` in `bootstrap/kubernetes/schemas/SOURCES.json`, rebuild, and verify the host build fails naming `just bootstrap k8s update-schemas`; restore the correct value afterwards
+
+  Set back to `1.33.1`; the build failed with exit code 1 and
+  `k3s ships kubernetes 1.35.8 but vendored API schemas are for 1.33.1 — run 'just bootstrap k8s update-schemas'`.
+  Note the ordering: kubeconform still reports all 3 resources valid, because the old core-v1 schema is a valid schema — the ratchet is what catches the staleness, not the validation.
+  Restored and rebuilt green; `jj diff` confirms the file is identical to what was committed.
 
 ## 6. Move kubeconfig into the GitOps tree
 
