@@ -1,6 +1,7 @@
 mod nix "nix/justfile"
 mod mikrotik "mikrotik/justfile"
 mod k8s "kubernetes/justfile"
+mod talos "talos/justfile"
 
 _default:
     @just --list

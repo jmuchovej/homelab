@@ -23,9 +23,16 @@
 
 ## 3. Create the Talos bootstrap justfile
 
-- [ ] 3.1 Write `bootstrap/talos/justfile` with the same conventions and an `update-schemas` recipe deriving the Talos minor from `machine.install.image` in its own `machineconfig.yaml`, and verify `just --list bootstrap talos` lists it and the standalone invocation succeeds
-- [ ] 3.2 Run `just bootstrap talos update-schemas` and verify `bootstrap/talos/schemas/talos-config.json` is byte-identical to the committed copy and a `bootstrap/talos/schemas/SOURCES.json` is written carrying only the Talos entry
-- [ ] 3.3 Remove the `talos-config.json` entry from `bootstrap/kubernetes/schemas/SOURCES.json` and verify no `bootstrap/kubernetes/` file mentions Talos
+- [x] 3.1 Write `bootstrap/talos/justfile` with the same conventions and an `update-schemas` recipe deriving the Talos minor from `machine.install.image` in its own `machineconfig.yaml`, and verify `just --list bootstrap talos` lists it and the standalone invocation succeeds
+- [x] 3.2 Run `just bootstrap talos update-schemas` and verify `bootstrap/talos/schemas/talos-config.json` is byte-identical to the committed copy and a `bootstrap/talos/schemas/SOURCES.json` is written carrying only the Talos entry
+
+  Identical after `jj fix`, as in 2.5; the fetched bytes need formatting before the comparison means anything.
+  `SOURCES.json` records the full image pin (`1.13.7`) against the minor-versioned URL (`v1.13`), since Siderolabs publishes the schema per minor.
+
+- [x] 3.3 Remove the `talos-config.json` entry from `bootstrap/kubernetes/schemas/SOURCES.json` and verify no `bootstrap/kubernetes/` file mentions Talos
+
+  Already satisfied by 2.5: the regenerated `SOURCES.json` dropped the entry because the recipe no longer lists it.
+  The surviving `talos` strings under `bootstrap/kubernetes/` are a comment explaining the absence and an unrelated note about Talos KubePrism in `cilium-values.yaml`.
 
 ## 4. Repoint the build check and the last modeline
 

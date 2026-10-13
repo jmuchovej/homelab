@@ -1,0 +1,44 @@
+# Repo root, derived from this file so the recipes work both through the root
+# justfile and standalone (`just -f bootstrap/talos/justfile …`); no symlinks
+# into the repo are needed.
+root := parent_directory(parent_directory(source_directory()))
+schemas := source_directory() / "schemas"
+machineconfig := source_directory() / "machineconfig.yaml"
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# Vendored for the same reason as the Kubernetes schemas next door: the build
+# sandbox has no network, and the manifest's relative `$schema` modeline reads
+# the same file the build does.
+#
+# The pin follows machine.install.image rather than the Kubernetes version,
+# because Siderolabs versions the machine-config schema by Talos release.
+# Schemas are published per minor, not per patch.
+[doc('Refresh the vendored Talos machine-config schema for the pinned installer image')]
+[script("nu")]
+update-schemas:
+    let schemas = "{{ schemas }}"
+    mkdir $schemas
+
+    let image = (open "{{ machineconfig }}" | get -o machine.install.image)
+    if ($image | is-empty) {
+      print -e "could not read machine.install.image from the talos machineconfig"
+      exit 1
+    }
+
+    let talos_v = ($image | split row ":v" | last)
+    let talos_m = ($talos_v | split row "." | first 2 | str join ".")
+
+    let url = $"https://docs.siderolabs.com/talos/v($talos_m)/schemas/config.schema.json"
+
+    print $"fetching talos-config.json"
+    http get --raw $url | save -f ($schemas | path join "talos-config.json")
+
+    { "talos-config.json": { version: $talos_v, url: $url } }
+    | to json
+    | $"($in)\n"
+    | save -f ($schemas | path join "SOURCES.json")
+
+    print $"vendored the talos ($talos_m) schema into ($schemas) \(image pin v($talos_v)\)"

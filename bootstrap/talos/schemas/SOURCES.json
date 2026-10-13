@@ -1,0 +1,6 @@
+{
+  "talos-config.json": {
+    "version": "1.13.7",
+    "url": "https://docs.siderolabs.com/talos/v1.13/schemas/config.schema.json"
+  }
+}
