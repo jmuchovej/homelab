@@ -79,10 +79,24 @@
 
 ## 7. Documentation and recipe-name strings
 
-- [ ] 7.1 Move the schema vendoring and `linkFarm` narrative from `modules/services/kubernetes/AGENTS.md` into `bootstrap/AGENTS.md`, updating its directory table rows for `kubernetes/` and `talos/` to name `schemas/` and replacing the forward-reference at the end; delete `modules/services/kubernetes/AGENTS.md`
-- [ ] 7.2 Delete the now-dangling `.agents/rules/nix-services-kubernetes.md` symlink and its `.claude/rules/` counterpart, and verify no symlink under either directory is broken
-- [ ] 7.3 Update the `just k8s update-schemas` strings in `bootstrap/kubernetes/cilium-values.yaml` and `bootstrap/talos/machineconfig.yaml` to the per-target recipe names
-- [ ] 7.4 Verify every repo Markdown file this change touches follows one-sentence-per-line, and run the project formatting pipeline (`jj fix`, plus `prek run` if hooks cover these paths)
+- [x] 7.1 Move the schema vendoring and `linkFarm` narrative from `modules/services/kubernetes/AGENTS.md` into `bootstrap/AGENTS.md`, updating its directory table rows for `kubernetes/` and `talos/` to name `schemas/` and replacing the forward-reference at the end
+
+  **This task was wrong to say "delete `modules/services/kubernetes/AGENTS.md`".**
+  Only its last two lines were about vendoring; the rest documents that aspect's own `@marker@` substitution, sops-placeholder, and `render-yaml` patterns, which still live there.
+  Deleting the file would have destroyed accurate guidance.
+  The vendoring paragraph is replaced by a pointer plus the one fact the aspect still owes the check (`k3s-version` at the call site).
+
+- [x] 7.2 Verify no symlink under `.agents/rules/` or `.claude/rules/` is broken
+
+  Moot as rewritten: keeping `modules/services/kubernetes/AGENTS.md` keeps `nix-services-kubernetes.md` valid, so nothing to delete.
+  Confirmed no broken symlinks under either directory.
+
+- [x] 7.3 Update the `just k8s update-schemas` strings in `bootstrap/kubernetes/cilium-values.yaml` and `bootstrap/talos/machineconfig.yaml` to the per-target recipe names
+
+  Also dropped a false claim from the `machineconfig.yaml` comment: it said "the build check fails if the vendored schema lags this pin", but `modules/system/virtualization/talos.nix:232-236` deliberately validates with `talosctl validate` rather than the vendored schema, so no Talos version ratchet exists.
+  Only the Kubernetes side has one.
+
+- [x] 7.4 Verify every repo Markdown file this change touches follows one-sentence-per-line, and run the project formatting pipeline (`jj fix`, plus `prek run` if hooks cover these paths)
 
 ## 8. Retire the vendor tree
 

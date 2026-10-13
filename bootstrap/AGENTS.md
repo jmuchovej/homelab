@@ -13,13 +13,13 @@ A directory here takes whatever form fits its target — a script, a justfile, N
 `mikrotik/` stays imperative on purpose: first-boot authenticates as the factory admin before any API user exists, so expressing it in OpenTofu would mean `local-exec` provisioners.
 At most one OpenTofu root module exists here, shared by every target that needs one, because `import`, `moved` and `backend` are root-only constructs.
 
-| Directory     | What it holds                                                                                | Hands off to                                   |
-| ------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `nix/`        | installer-ISO host (`iso.nix`) and `justfile` (ISO build/sync, `facter`, `install`)          | `deploy` / `nh`                                |
-| `kubernetes/` | k3s seed manifests and their build check (`checks.nix`), read by `<rbn/services/kubernetes>` | Flux                                           |
-| `mikrotik/`   | RouterOS first-boot script (`rbn-bootstrap.rsc`) and `justfile`                              | OpenTofu                                       |
-| `talos/`      | non-secret machine-config base, read by `<rbn/system/virtualization/talos>`                  | Flux inside the guest (consumer not yet built) |
-| `cloudflare/` | placeholders only — the R2 state bucket and the scoped API token the `tofu/` root consumes   | OpenTofu (not yet built)                       |
+| Directory     | What it holds                                                                                                   | Hands off to                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `nix/`        | installer-ISO host (`iso.nix`) and `justfile` (ISO build/sync, `facter`, `install`)                             | `deploy` / `nh`                                |
+| `kubernetes/` | k3s seed manifests, their `schemas/`, and their build check (`checks.nix`), read by `<rbn/services/kubernetes>` | Flux                                           |
+| `mikrotik/`   | RouterOS first-boot script (`rbn-bootstrap.rsc`) and `justfile`                                                 | OpenTofu                                       |
+| `talos/`      | non-secret machine-config base and its `schemas/`, read by `<rbn/system/virtualization/talos>`                  | Flux inside the guest (consumer not yet built) |
+| `cloudflare/` | placeholders only — the R2 state bucket and the scoped API token the `tofu/` root consumes                      | OpenTofu (not yet built)                       |
 
 Entry point is the root justfile: `just bootstrap nix <recipe>` and `just bootstrap mikrotik <recipe>`; `just --list bootstrap <target>` shows each set.
 Every justfile here also works standalone (`just -f bootstrap/<target>/justfile …`).
@@ -68,5 +68,20 @@ Nothing else under `bootstrap/` is auto-imported; aspects read `kubernetes/` and
   That is the point at which a `k3s/` vs `talos/` split under `kubernetes/` earns its cost; do not split speculatively before a consumer exists.
 - `flux-instance.yaml` carries the sync path `kubernetes/clusters/<dc-domain>/flux`; k3s re-applies it from the node's generation, so it must be edited here, never patched live.
 - `talos/machineconfig.yaml` is the non-secret half; the cluster PKI merges from sops at activation and never enters the store.
-  Its `machine.install.image` pin is what `just k8s update-schemas` reads to choose the vendored Talos schema.
-- Schema validation and vendoring for both trees are described in `modules/services/kubernetes/AGENTS.md`.
+  Its `machine.install.image` pin is what `just bootstrap talos update-schemas` reads to choose the vendored Talos schema.
+
+## Schema vendoring
+
+Each target vendors its own schemas in `bootstrap/<target>/schemas/`, refreshed by that target's own `update-schemas` recipe.
+Vendored rather than fetched at build time because the build sandbox has no network — and because the same files back the manifests' relative `# $schema: ./schemas/…` modelines, so editor and build always validate against identical schemas.
+`schemas/SOURCES.json` records each file's upstream URL, and its upstream version where the schema is versioned.
+
+Neither target reads the other's files.
+The two pins answer to different upstreams: the Kubernetes API schemas follow the k3s that nixpkgs ships (`nix eval --raw .#k3s-version`, see `modules/k3s-version.nix`), while the Talos config schema follows `machine.install.image` because Siderolabs versions it by Talos release, publishing per minor rather than per patch.
+
+`bootstrap/kubernetes/checks.nix` ratchets two pins at build time — the Cilium chart against its values schema, and the deployed k3s against the API schemas — so a nixpkgs bump that moves k3s fails the host build until the schemas are refreshed.
+Note what the ratchet is for: kubeconform happily validates against a stale-but-valid schema, so nothing but the version comparison catches drift.
+The `linkFarm` layout in that file must match its two `-schema-location` templates; a new kind in the bootstrap manifests fails the check until its schema is vendored.
+
+**There is no equivalent ratchet on the Talos side**, and the Talos check does not read the vendored schema at all — `modules/system/virtualization/talos.nix` validates with `talosctl validate` because `check-jsonschema` against that schema reports nonsense (the comment there says why).
+A stale Talos schema therefore degrades the editor silently and nothing fails; re-run the recipe after bumping the image pin.

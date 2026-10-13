@@ -3,8 +3,8 @@
 # Cilium chart values — rendered into cilium.yaml's valuesContent by
 # kubernetes.nix. The schema is vendored from the chart itself and stamped
 # with the chart version in schemas/SOURCES.json; after bumping spec.version
-# in cilium.yaml, run `just k8s update-schemas` (the build check enforces
-# this).
+# in cilium.yaml, run `just bootstrap k8s update-schemas` (the build check
+# enforces this).
 #
 # Replace flannel + kube-proxy. With kube-proxy gone, the in-cluster
 # `kubernetes` Service isn't routable until Cilium is up, so Cilium reaches
