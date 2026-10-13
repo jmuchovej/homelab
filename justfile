@@ -1,4 +1,6 @@
 set script-interpreter := ["bash", "-euo", "pipefail"]
+
+mod k8s "kubernetes/justfile"
 mod bootstrap "bootstrap/justfile"
 mod mikrotik "tofu/mikrotik.just"
 mod authentik "tofu/authentik.just"

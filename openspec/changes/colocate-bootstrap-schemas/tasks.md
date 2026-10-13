@@ -64,9 +64,18 @@
 
 ## 6. Move kubeconfig into the GitOps tree
 
-- [ ] 6.1 Move the `kubeconfig` recipe into `kubernetes/justfile` with an explicit `[script("nu")]`, its repo root as `parent_directory(source_directory())`, and `topology := root / "topology.yaml"`; verify `just pvc kubeconfig --help`-equivalent listing shows it and that it still resolves `topology.yaml` correctly
-- [ ] 6.2 Delete `modules/services/kubernetes/justfile` and the root justfile's `mod k8s`, rename `mod pvc` to `mod k8s`, and verify `just --list k8s` lists `kubeconfig`, `protect`, `classes`, and `migrate-class` and that `just --list` no longer offers `pvc`
-- [ ] 6.3 Run `just k8s kubeconfig` against one reachable cluster and verify `~/.kube/config.d/<dc>.yaml` is written with the same content as before the move
+- [x] 6.1 Move the `kubeconfig` recipe into `kubernetes/justfile` with an explicit `[script("nu")]`, its repo root as `parent_directory(source_directory())`, and `topology := root / "topology.yaml"`; verify the listing shows it and that it still resolves `topology.yaml` correctly
+- [x] 6.2 Delete `modules/services/kubernetes/justfile` and the root justfile's `mod k8s`, rename `mod pvc` to `mod k8s`, and verify `just --list k8s` lists `kubeconfig`, `protect`, `classes`, and `migrate-class` and that `just --list` no longer offers `pvc`
+- [x] 6.3 Run `just k8s kubeconfig` against one reachable cluster and verify `~/.kube/config.d/<dc>.yaml` is written with the same content as before the move
+
+  Run with `HOME` pointed at a scratch directory (nushell's `$nu.home-dir` follows `$env.HOME`) and the real `~/.ssh` symlinked in, rather than against live state.
+  The produced `da.yaml` is byte-identical to the committed live one, and `~/.kube/` timestamps are unchanged.
+
+  **Why it was not run against live state — a pre-existing hazard this surfaced, NOT introduced by this change:**
+  the recipe treats any `~/.kube/config` with a non-empty `.clusters` as a pre-multicluster leftover and `mv`s it to `~/.kube/config.pre-multicluster`.
+  That assumption held when the recipe was written, but `~/.kube/config` now holds `kind-outpost` and `orbstack` — local dev clusters that write themselves there.
+  Running it today would destroy those two cluster definitions and overwrite the existing July backup in one step.
+  Out of scope here; raised separately.
 
 ## 7. Documentation and recipe-name strings
 
