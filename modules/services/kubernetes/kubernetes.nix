@@ -154,11 +154,14 @@ in
           system.checks = [
             (import "${bootstrap}/checks.nix" {
               inherit
-                inputs
                 pkgs
                 cilium-manifest
                 flux-instance-manifest
                 ;
+              # the check ratchets the vendored API schemas against the k3s
+              # THIS host deploys, so a per-host package pin can't drift past
+              # the schemas unnoticed
+              k3s-version = config.services.k3s.package.version;
             })
           ];
 

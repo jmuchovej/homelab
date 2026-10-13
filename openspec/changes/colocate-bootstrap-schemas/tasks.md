@@ -36,11 +36,22 @@
 
 ## 4. Repoint the build check and the last modeline
 
-- [ ] 4.1 Replace the six `${inputs.self}/vendor/schemas/…` paths in `bootstrap/kubernetes/checks.nix` with tree-relative `./schemas/…`, and verify by grep that no `vendor` string remains in the file
-- [ ] 4.2 Add a `k3s-version` parameter to `checks.nix` and an assertion comparing it against `."namespace-v1.json".version` in `SOURCES.json`, failing with a message naming `just bootstrap k8s update-schemas`, modelled on the existing Cilium chart-version block
-- [ ] 4.3 Pass `k3s-version = config.services.k3s.package.version;` at the `checks.nix` call site in `modules/services/kubernetes/kubernetes.nix`
-- [ ] 4.4 Change `bootstrap/talos/machineconfig.yaml:1` to `# $schema: ./schemas/talos-config.json` and verify no `$schema` modeline anywhere under `bootstrap/` resolves outside its own target directory
-- [ ] 4.5 Build a server host (`nix build .#nixosConfigurations.da-vcx-1.config.system.build.toplevel`) and verify the bootstrap-manifest check passes; if `kubeconform -strict` reports a `Namespace` finding from the schema bump, fix the manifest and record what changed
+- [x] 4.1 Replace the six `${inputs.self}/vendor/schemas/…` paths in `bootstrap/kubernetes/checks.nix` with tree-relative `./schemas/…`, and verify by grep that no `vendor` string remains in the file
+
+  The surviving `vendor` matches are all the word "vendored" in prose; no path references remain.
+  `inputs` became an unused argument once the last one went, so it is dropped from the signature and the call site.
+
+- [x] 4.2 Add a `k3s-version` parameter to `checks.nix` and an assertion comparing it against `."namespace-v1.json".version` in `SOURCES.json`, failing with a message naming `just bootstrap k8s update-schemas`, modelled on the existing Cilium chart-version block
+- [x] 4.3 Pass `k3s-version = config.services.k3s.package.version;` at the `checks.nix` call site in `modules/services/kubernetes/kubernetes.nix`
+- [x] 4.4 Change `bootstrap/talos/machineconfig.yaml:1` to `# $schema: ./schemas/talos-config.json` and verify no `$schema` modeline anywhere under `bootstrap/` resolves outside its own target directory
+- [x] 4.5 Build the check derivation on an x86_64-linux remote builder and verify it passes
+
+  `nix build` cannot address `system.checks` directly because it is a list, and `--impure --expr getFlake` on a local path copies the whole repo as a `path:` input.
+  Resolve the drvPath instead: `nix eval --raw '.#nixosConfigurations.da-vcx-1.config.system.checks' --apply 'cs: (builtins.head (builtins.filter (c: c.name == "check-k8s-bootstrap-manifests") cs)).drvPath'`, then build `"$drv^*"`.
+
+  Result: `Summary: 3 resources found in 3 files - Valid: 3, Invalid: 0, Errors: 0, Skipped: 0`, `ok -- validation done`, and both version ratchets clear.
+  No `kubeconform -strict` finding from the schema bump, as 2.5 predicted.
+  Also silenced the `yq -p json` deprecation warning on both ratchet reads (`-o yaml`); one of the two was pre-existing, the other I had just added.
 
 ## 5. Deliberately break the ratchet to prove it
 
