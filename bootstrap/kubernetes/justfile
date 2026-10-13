@@ -1,0 +1,82 @@
+# Repo root, derived from this file so the recipes work both through the root
+# justfile and standalone (`just -f bootstrap/kubernetes/justfile …`); no
+# symlinks into the repo are needed.
+root := parent_directory(parent_directory(source_directory()))
+schemas := source_directory() / "schemas"
+cilium := source_directory() / "cilium.yaml"
+
+[private]
+default:
+    @just --justfile {{ module_file() }} --list
+
+# Vendored rather than fetched at build time because the build sandbox has no
+# network, and because the same files back the manifests' relative `$schema`
+# modelines — editor and build then validate against identical schemas.
+#
+# Nothing here reads bootstrap/talos/: the Talos config schema is versioned by
+# Talos release, not by Kubernetes version, and `just bootstrap talos
+# update-schemas` owns it.
+[doc('Refresh the vendored Kubernetes schemas (bump cilium spec.version first; the build check enforces sync)')]
+[script("nu")]
+update-schemas:
+    let schemas = "{{ schemas }}"
+    mkdir $schemas
+
+    # `open` yields a record for a single-document YAML and a list otherwise.
+    let cilium_v = (
+      []
+      | append (open "{{ cilium }}")
+      | where kind == "HelmChart"
+      | get -o 0.spec.version
+    )
+    if ($cilium_v | is-empty) {
+      print -e "could not read spec.version from the cilium HelmChart"
+      exit 1
+    }
+
+    # The API schemas must match the Kubernetes the clusters actually run,
+    # which is whatever k3s the locked nixpkgs ships. Addressed as '.#' from
+    # the repo root so the working tree answers, not the last commit; an
+    # absolute path flake ref would re-fetch the repo as a git input instead.
+    cd "{{ root }}"
+    let kube_v = (
+      ^nix eval --raw '.#k3s-version'
+      | str trim
+      | str replace --regex '\+k3s\d+$' ''
+    )
+    if ($kube_v | is-empty) {
+      print -e "could not read the k3s-version flake output"
+      exit 1
+    }
+
+    let raw = "https://raw.githubusercontent.com"
+    let cilium = $"($raw)/cilium/cilium/v($cilium_v)/install/kubernetes/cilium"
+    let crds = $"($raw)/datreeio/CRDs-catalog/main"
+    let k8s = $"($raw)/yannh/kubernetes-json-schema/master/v($kube_v)-standalone-strict"
+
+    # The CRDs-catalog files track `main` and carry no version, so they get a
+    # null and SOURCES.json records their URL alone.
+    let sources = [
+      [file, version, url];
+      ["cilium-values.json", $cilium_v, $"($cilium)/values.schema.json"]
+      ["fluxinstance_v1.json", null, $"($crds)/fluxcd.controlplane.io/fluxinstance_v1.json"]
+      ["helmchart_v1.json", null, $"($crds)/helm.cattle.io/helmchart_v1.json"]
+      ["namespace-v1.json", $kube_v, $"($k8s)/namespace-v1.json"]
+      ["secret-v1.json", $kube_v, $"($k8s)/secret-v1.json"]
+    ]
+
+    for s in $sources {
+      print $"fetching ($s.file)"
+      http get --raw $s.url | save -f ($schemas | path join $s.file)
+    }
+
+    $sources
+    | reduce -f {} {|s, acc|
+        let entry = if ($s.version | is-empty) { { url: $s.url } } else { { version: $s.version, url: $s.url } }
+        $acc | insert $s.file $entry
+      }
+    | to json
+    | $"($in)\n"
+    | save -f ($schemas | path join "SOURCES.json")
+
+    print $"vendored (ls $schemas | length) files into ($schemas) \(cilium chart ($cilium_v), kubernetes ($kube_v)\)"

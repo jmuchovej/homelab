@@ -5,11 +5,21 @@
 
 ## 2. Finish the Kubernetes bootstrap justfile
 
-- [ ] 2.1 Rewrite `bootstrap/kubernetes/justfile` to the tree's convention — `root := parent_directory(parent_directory(source_directory()))`, a `[private] default` listing recipe, `[doc(...)]` on `update-schemas` — and verify `just --list bootstrap k8s` lists `update-schemas` and `just -f bootstrap/kubernetes/justfile --list` succeeds standalone
-- [ ] 2.2 Fix the five defects in `update-schemas`: `$"…"` interpolation on the URL bases, `$kube_v` read from `nix eval --raw .#k3s-version` with the `+k3sN` suffix stripped, a nu-scope `let schemas = "{{ schemas_dir }}"`, the renamed `$cilium_v`/`$talos_v` in the final `print`, and removal of the unused `topology :=`
-- [ ] 2.3 Drop the Talos source entry and the `bootstrap_talos` cross-tree variable, and verify by grep that the file names no path outside `bootstrap/kubernetes/` except the repo root
-- [ ] 2.4 Record a `version` field on the Kubernetes API entries in `SOURCES.json` holding the stripped k3s version, matching the `{version, url}` shape `cilium-values.json` already uses
-- [ ] 2.5 Run `just bootstrap k8s update-schemas` and verify the only files whose content changes are `namespace-v1.json` and `secret-v1.json` (now `v1.35.8-standalone-strict`), with `cilium-values.json`, `fluxinstance_v1.json`, and `helmchart_v1.json` byte-identical to what is committed
+- [x] 2.1 Rewrite `bootstrap/kubernetes/justfile` to the tree's convention — `root := parent_directory(parent_directory(source_directory()))`, a `[private] default` listing recipe, `[doc(...)]` on `update-schemas` — and verify `just --list bootstrap k8s` lists `update-schemas` and `just -f bootstrap/kubernetes/justfile --list` succeeds standalone
+- [x] 2.2 Fix the five defects in `update-schemas`: `$"…"` interpolation on the URL bases, `$kube_v` read from `nix eval --raw .#k3s-version` with the `+k3sN` suffix stripped, a nu-scope `let schemas = "{{ schemas_dir }}"`, the renamed `$cilium_v`/`$talos_v` in the final `print`, and removal of the unused `topology :=`
+- [x] 2.3 Drop the Talos source entry and the `bootstrap_talos` cross-tree variable, and verify by grep that the file names no path outside `bootstrap/kubernetes/` except the repo root
+- [x] 2.4 Record a `version` field on the Kubernetes API entries in `SOURCES.json` holding the stripped k3s version, matching the `{version, url}` shape `cilium-values.json` already uses
+- [x] 2.5 Run `just bootstrap k8s update-schemas`, then `jj fix` the schema directory, and diff every file against the committed copy
+
+  The acceptance signal in this task as first written was wrong in two ways, both benign:
+
+  - A raw fetch can never be byte-identical to what is committed, because treefmt prettifies the vendored JSON.
+    The comparison is only meaningful after `jj fix`.
+  - The CRDs-catalog files track `main` and carry no version, so they drift whenever upstream does.
+    `helmchart_v1.json` gained two additive optional properties (`forceConflicts`, `serverSide`); additive and optional cannot break `kubeconform -strict` on existing manifests.
+
+  Observed after formatting: `cilium-values.json`, `fluxinstance_v1.json`, `namespace-v1.json`, and `secret-v1.json` are all byte-identical to the committed copies, and `helmchart_v1.json` differs only by those two properties.
+  The core-v1 `Namespace` and `Secret` schemas are unchanged between `v1.33.1` and `v1.35.8`, so the two-minor catch-up is a content no-op — the headline risk recorded in design.md does not materialise.
 
 ## 3. Create the Talos bootstrap justfile
 
