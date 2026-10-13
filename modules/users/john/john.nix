@@ -212,6 +212,7 @@ in
         <rbn/programs/desktop/utils/raycast>
 
         <rbn/programs/terminal/k9s>
+        <rbn/programs/development/containers/orbstack>
 
         <rbn/programs/creative/3d-modeling>
         <rbn/programs/creative/design>
