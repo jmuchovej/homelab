@@ -56,6 +56,7 @@ in
   };
   den.aspects.en-t65-1 = {
     includes = [
+      <rbn/suite/common>
       <rbn/suite/server>
 
       # Hardware

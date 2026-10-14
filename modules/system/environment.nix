@@ -54,7 +54,6 @@
       in
       {
         environment.systemPackages = with pkgs; [
-          openntpd
           nix-zsh-completions
 
           bat
@@ -70,23 +69,6 @@
           yq-go
           zoxide
         ];
-
-        networking.timeServers = [
-          "0.nixos.pool.ntp.org"
-          "1.nixos.pool.ntp.org"
-          "2.nixos.pool.ntp.org"
-          "3.nixos.pool.ntp.org"
-        ];
-
-        services.openntpd = {
-          enable = true;
-          extraConfig = ''
-            listen on 127.0.0.1
-            listen on ::1
-          '';
-        };
-
-        time.timeZone = "America/New_York";
 
         environment.variables.LOCALE_ARCHIVE = "/run/current-system/sw/lib/locale/locale-archive";
         i18n.defaultLocale = "en_US.UTF-8";

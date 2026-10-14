@@ -15,6 +15,7 @@
 
       # NixOS (no-ops on darwin)
       <rbn/system/boot>
+      <rbn/system/time>
       <rbn/system/hardware/storage/ssd>
 
       # Security (GPG, age, sops — cross-platform)

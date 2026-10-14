@@ -65,6 +65,7 @@ in
   den.aspects.da-gr75 = {
     includes = [
       # Suites
+      <rbn/suite/common>
       <rbn/suite/server>
       <rbn/system/boot/graphical>
 
