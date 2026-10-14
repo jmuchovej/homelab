@@ -126,7 +126,7 @@
             };
             aliases = with lib.rbn; {
               clone = argv "util exec -- ${getExe jj-clone}";
-              sq = "squash";
+              sq = argv "squash";
 
               rebase-trunk = argv "rebase -b @ -d trunk()";
               rebase-all-trunk = argv "rebase -b (visible_heads() ~ immutable_heads()) & working_set() -d trunk()";
