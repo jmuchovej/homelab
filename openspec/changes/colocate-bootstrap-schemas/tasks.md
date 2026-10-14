@@ -111,4 +111,8 @@
 
 ## 9. Sync the specs
 
-- [ ] 9.1 Fold the `bootstrap` and `repo-layout` deltas into `openspec/specs/`, confirming the `repo-layout` edit does not collide with the in-flight `docs-site-multi-domain` delta (which modifies a different requirement), and verify `openspec validate --strict` passes
+- [x] 9.1 Fold the `bootstrap` and `repo-layout` deltas into `openspec/specs/`, confirming the `repo-layout` edit does not collide with the in-flight `docs-site-multi-domain` delta (which modifies a different requirement), and verify `openspec validate --strict` passes
+
+  No collision: `docs-site-multi-domain` modifies _Tool trees live at the repository root_, this change modifies _Infra-acting tooling is placed by lifecycle phase_.
+  Merged preserving each main spec's existing scenario order rather than adopting the delta's ordering, so the diff is additive where possible.
+  `openspec validate --specs` reports 5 passed, 0 failed; no delta operation headers leaked into the main specs; `bootstrap` keeps a single `## Requirements` section.

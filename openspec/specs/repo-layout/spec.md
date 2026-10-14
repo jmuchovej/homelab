@@ -46,8 +46,11 @@ Those trees are: Kubernetes manifests under `kubernetes/`, Nix under `modules/` 
 OpenTofu configuration SHALL appear only under `tofu/` for the configuration phase or `bootstrap/` for the bootstrap phase, and SHALL NOT appear in any other tree.
 A target that OpenTofu configures — the MikroTik relays and Authentik among them — is therefore declared under `tofu/` even where a tree named for that target exists elsewhere.
 
+Data a tool reads SHALL be placed by the same rule as the tool: it SHALL live in the tree of the phase that consumes it rather than in a tree of its own.
+No repository-root tree SHALL exist solely to hold material vendored for one phase's use.
+
 This requirement governs only tooling that is a target's normal management path.
-Trees that hold none — `docs/`, `assets/`, `mikrotik/` (topology diagrams and reference documents), `plans/`, `scripts/` (one-off migrations and operator checks), `skills/`, `claude-project/`, `src/`, `secrets/`, `openspec/`, `vendor/` — are outside its scope and are governed by their own requirements or by none.
+Trees that hold none — `docs/`, `assets/`, `mikrotik/` (topology diagrams and reference documents), `plans/`, `scripts/` (one-off migrations and operator checks), `skills/`, `claude-project/`, `src/`, `secrets/`, `openspec/` — are outside its scope and are governed by their own requirements or by none.
 A tool that becomes a target's normal management path SHALL move into that target's configuring tool tree rather than remaining an ad-hoc script.
 
 Because a purpose rule is weaker to verify than a path rule, the permitted OpenTofu root modules SHALL be enumerated rather than inferred: exactly one per phase, `tofu/` for the configuration phase and `bootstrap/` for the bootstrap phase.
@@ -62,6 +65,16 @@ A phase SHALL NOT hold more than one root module, so that `import`, `moved` and 
 
 - **WHEN** tooling that configures an already-reachable target is placed
 - **THEN** it lives in that tool's own tree, and `bootstrap/` contains no configuration-phase tooling for that target
+
+#### Scenario: Bootstrap-phase work is not placed in a configuring tree
+
+- **WHEN** a tree that exists to configure already-reachable targets is inspected for bootstrap-phase tooling
+- **THEN** it contains none, and `modules/services/kubernetes/justfile` does not exist
+
+#### Scenario: Vendored data sits with the phase that reads it
+
+- **WHEN** the repository root is listed
+- **THEN** no tree exists whose only purpose is holding material vendored for one phase, and `vendor/` is absent
 
 #### Scenario: Each phase has at most one OpenTofu root module
 
