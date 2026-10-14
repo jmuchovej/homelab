@@ -100,8 +100,14 @@
 
 ## 8. Retire the vendor tree
 
-- [ ] 8.1 Verify by grep that no file outside `openspec/changes/archive/` references `vendor/schemas` or a repo-root `vendor/`, then delete `vendor/`
-- [ ] 8.2 Rebuild the server host and run both `update-schemas` recipes once more from a clean checkout state, verifying the build is green and the schemas are unchanged
+- [x] 8.1 Verify by grep that no file outside `openspec/changes/archive/` references `vendor/schemas` or a repo-root `vendor/`, then delete `vendor/`
+
+  Before deleting, diffed every file against its new home: all identical except `helmchart_v1.json` (the two additive upstream properties from 2.5), and the union of the two new `SOURCES.json` files has the same key set as the old one.
+  Nothing was lost in the split.
+
+- [x] 8.2 Rebuild the server host and run both `update-schemas` recipes once more from a clean checkout state, verifying the build is green and the schemas are unchanged
+
+  Both recipes re-run with `vendor/` gone produce schemas byte-identical to what is committed, and the check rebuilds green (`Valid: 3, Invalid: 0`).
 
 ## 9. Sync the specs
 
