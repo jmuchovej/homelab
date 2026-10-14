@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &name ${GH_REPO}-runner
+  name: &name ${RUNNER_NAME}-runner
 spec:
   chartRef:
     kind: OCIRepository
@@ -18,11 +18,10 @@ spec:
     # this is what workflows put in `runs-on:` — scale sets match by name, not
     # by the label list a classic self-hosted runner would carry.
     #
-    # It must stay parameterized: the chart derives EVERY resource name from
-    # this value (not from the release name), so a constant here would make
-    # two scale sets collide on their ServiceAccount/Role/RoleBinding in this
-    # shared namespace.
-    runnerScaleSetName: ${GH_REPO}
+    # It must stay unique per scale set: the chart derives EVERY resource name
+    # from this value (not from the release name), so two scale sets sharing it
+    # collide on their ServiceAccount/Role/RoleBinding in this shared namespace.
+    runnerScaleSetName: ${RUNNER_NAME}
 
     # scale to zero when idle — the cluster also carries media and inference
     # workloads. Cold start costs ~30s on the first queued job.
@@ -44,7 +43,7 @@ spec:
         storageClassName: zfs
         resources:
           requests:
-            storage: 10Gi
+            storage: ${RUNNER_DISK:=30Gi}
 
     controllerServiceAccount:
       # matches `fullnameOverride` on the controller HelmRelease
@@ -77,12 +76,26 @@ spec:
               # a `container:` — most of ours don't
               - name: ACTIONS_RUNNER_REQUIRE_JOB_CONTAINER
                 value: "false"
+              - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
+                value: /home/runner/hook-template/content
+            volumeMounts:
+              - name: hook-template
+                mountPath: /home/runner/hook-template
+                readOnly: true
+            # requests stay small on purpose: a `container:` job runs in a
+            # separate pod that carries the size's requests itself, so sizing
+            # these too would reserve every job twice
             resources:
               requests:
                 cpu: 100m
                 memory: 512Mi
               limits:
-                memory: 4Gi
+                memory: ${JOB_MEMORY:=8Gi}
+                ephemeral-storage: ${JOB_SCRATCH:=20Gi}
+        volumes:
+          - name: hook-template
+            configMap:
+              name: ${RUNNER_NAME}-hook-template
         securityContext:
           fsGroup: 1001
           fsGroupChangePolicy: OnRootMismatch

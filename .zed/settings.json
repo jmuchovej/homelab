@@ -31,6 +31,7 @@
             "https://k8s-schemas.home-operations.com/postgresql.cnpg.io/databaserole_v1.json": "./kubernetes/**/database-role.yaml",
             "https://k8s-schemas.home-operations.com/storage.k8s.io/storageclass_v1.json": "./kubernetes/**/storage-class.yaml",
             "https://k8s-schemas.home-operations.com/core/namespace_v1.json": "./kubernetes/**/namespace.yaml",
+            "https://k8s-schemas.home-operations.com/core/configmap_v1.json": "./kubernetes/**/hook-template.yaml",
             "https://k8s-schemas.home-operations.com/core/persistentvolumeclaim_v1.json": "./kubernetes/**/pvc.yaml",
             "https://k8s-schemas.home-operations.com/batch/cronjob_v1.json": "./kubernetes/**/cron-job.yaml",
             "https://k8s-schemas.home-operations.com/resource.k8s.io/resourceclaimtemplate_v1.json": "./kubernetes/**/resource-claim-template.yaml",

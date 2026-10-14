@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${RUNNER_NAME}-hook-template
+data:
+  content: |
+    spec:
+      containers:
+        # the hook's job-container placeholder — no braces, or Flux substitutes it
+        - name: "$job"
+          resources:
+            requests:
+              cpu: "${JOB_CPU:=2}"
+              memory: ${JOB_MEMORY:=8Gi}
+            limits:
+              memory: ${JOB_MEMORY:=8Gi}
+              ephemeral-storage: ${JOB_SCRATCH:=20Gi}

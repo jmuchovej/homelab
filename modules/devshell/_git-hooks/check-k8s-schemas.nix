@@ -24,6 +24,7 @@ pkgs.writeShellApplication {
     export GH_OWNER=owner
     export GH_REPO=repo
     export RUNNER_MAX=1
+    export RUNNER_NAME=runner
     export ST_KEY=aaaa-bbbb
     export ST_NODE=node
     export ST_DB_SIZE=1Gi

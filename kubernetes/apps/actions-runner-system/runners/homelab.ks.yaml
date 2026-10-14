@@ -12,6 +12,7 @@ spec:
     substitute:
       GH_OWNER: jmuchovej
       GH_REPO: homelab
+      RUNNER_NAME: homelab
       RUNNER_MAX: "2"
   prune: true
   sourceRef:
@@ -19,6 +20,4 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: actions-runner-system
-  # a scale set only reports Ready once GitHub accepts the registration; a wait
-  # here would stall the whole wave on a credential typo
-  wait: false
+  wait: true
