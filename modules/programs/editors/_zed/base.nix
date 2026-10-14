@@ -1,8 +1,7 @@
-{ lib, ... }:
-{
+{ lib, ... }: {
   settings = lib.mkMerge [
     # https://zed.dev/docs/configuring-zed#auto-indent
-    { auto_indent = true; }
+    { auto_indent = "syntax_aware"; }
     # https://zed.dev/docs/configuring-zed#code-lens
     { code_lens = "on"; }
     # https://zed.dev/docs/configuring-zed#auto-indent-on-paste
@@ -34,8 +33,6 @@
     { ensure_final_newline_on_save = true; }
     # https://zed.dev/docs/configuring-zed#extend-comment-on-newline
     { extend_comment_on_newline = true; }
-    # https://zed.dev/docs/configuring-zed#edit-prediction-provider
-    { features.edit_prediction_provider = "zed"; }
     # https://zed.dev/docs/configuring-zed#format-on-save
     { format_on_save = "on"; }
     {

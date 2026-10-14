@@ -2,17 +2,15 @@
 {
   settings = lib.mkMerge [
     {
-      file_types = {
-        "JSONC" = [
-          "**/.zed/**/*.json"
-          "**/zed/**/*.json"
-          "**/Zed/**/*.json"
-          "**/.vscode/**/*.json"
-        ];
-        "Shell Script" = [
-          ".env*"
-        ];
-      };
+      file_types."JSONC" = [
+        "**/.zed/**/*.json"
+        "**/zed/**/*.json"
+        "**/Zed/**/*.json"
+        "**/.vscode/**/*.json"
+      ];
+      file_types."Shell Script" = [
+        ".env*"
+      ];
 
       # https://zed.dev/docs/configuring-zed#edit-predictions
       edit_predictions.disabled_globs = [

@@ -72,8 +72,8 @@
               tab_size = 4;
               formatter = "language_server";
             };
-            lsp.julia = julia-lsp.zed;
-            # lsp.jetls = julia-lsp.zed;
+            # lsp.julia = julia-lsp.zed;
+            lsp.jetls = julia-lsp.zed;
           };
         };
 

@@ -10,10 +10,8 @@
       let
         inherit (inputs) import-tree;
         inherit (lib)
-          foldl'
           unique
           concatMap
-          recursiveUpdate
           ;
 
         # One walk over the whole `_zed` tree instead of two `import-dir` calls.
@@ -28,7 +26,7 @@
         # `{ pkgs, ... }`, and both tolerate the other.
         parts = import-tree (i: i.map (p: import p { inherit lib pkgs; })) (i: i.leaves ./_zed);
 
-        settings = foldl' recursiveUpdate { } (map (p: p.settings or { }) parts);
+        settings = map (p: p.settings or { }) parts;
         packages = unique (concatMap (p: p.packages or [ ]) parts);
         extensions = unique (concatMap (p: p.extensions or [ ]) parts);
         keybinds = unique (concatMap (p: p.keybinds or [ ]) parts);
@@ -53,10 +51,12 @@
             "comment"
             "pkl"
           ];
-          userSettings = recursiveUpdate settings {
-            prettier.allowed = false;
-          };
+          mutableUserSettings = true;
+          userSettings = lib.mkMerge (settings ++ [ { prettier.allowed = false; } ]);
+          mutableUserKeymaps = true;
           userKeymaps = keybinds;
+          mutableUserTasks = true;
+          mutableUserDebug = true;
         };
       };
   };

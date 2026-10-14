@@ -105,7 +105,7 @@ in
     {
       title_bar = {
         # Show/hide branch icon beside branch switcher
-        show_branch_icon = false;
+        show_branch_status_icon = true;
         # Show/hide branch name
         show_branch_name = true;
         # Show/hide project host and name

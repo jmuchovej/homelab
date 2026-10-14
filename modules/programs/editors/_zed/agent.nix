@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{ lib, ... }: {
   settings = lib.mkMerge [
     # Agent Panel
     # https://zed.dev/docs/visual-customization#agent-panel

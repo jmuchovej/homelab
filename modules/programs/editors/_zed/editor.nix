@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{ lib, ... }: {
   settings = lib.mkMerge [
     # Editor Settings
     # https://zed.dev/docs/visual-customization#editor
@@ -14,7 +13,7 @@
       current_line_highlight = "all";
 
       # When does the mouse cursor hide: never; on_typing; on_typing_and_movement
-      hide_mouse = "on_typing_and_movement";
+      hide_mouse = "on_typing_and_action";
 
       # Whether to highlight all occurrences of the selected text in an editor.
       selection_highlight = true;
