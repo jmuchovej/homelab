@@ -75,8 +75,8 @@
         datasets = host.zfs.datasets;
 
         # sops-nix addresses nested keys with `/`; users.sops.yaml nests as
-        # <key>.attributes.uidNumber.
-        uid-key = key: "${key}/attributes/uidNumber";
+        # users.<key>.attributes.uidNumber.
+        uid-key = key: "users/${key}/attributes/uidNumber";
         acl-keys = unique (concatMap (d: d.acl-users) (builtins.attrValues datasets));
 
         props = d: d.properties // (if d.quota == null then { } else { inherit (d) quota; });
