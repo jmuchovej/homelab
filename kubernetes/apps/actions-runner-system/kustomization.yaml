@@ -7,3 +7,4 @@ resources:
   - ./actions-runner-controller/actions-runner-controller.ks.yaml
   # one entry per repo — see components/github-runner/AGENTS.md
   - ./runners/homelab.ks.yaml
+  - ./runners/waypoints.ks.yaml
