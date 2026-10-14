@@ -41,8 +41,25 @@ kubeconfig cluster="":
     # ~/.kube/config holds only current-context; k9s.nix puts it first in
     # KUBECONFIG so `use-context` writes there and never into a synced file.
     let state = ($nu.home-dir | path join ".kube" "config")
-    if ($state | path exists) and (open --raw $state | from yaml | get -o clusters | is-not-empty) {
-      let backup = $"($state).pre-multicluster"
+
+    # One-time migration off a legacy single-cluster setup. The signal is a
+    # cluster literally named `default` — what k3s writes — NOT merely "this
+    # file has clusters": orbstack and kind register themselves here, and
+    # moving the file out from under them destroys their definitions.
+    let legacy = (
+      ($state | path exists) and (
+        open --raw $state | from yaml | get -o clusters.name | default []
+        | any {|n| $n == "default" }
+      )
+    )
+    if $legacy {
+      # Never clobber an earlier backup; an overwritten one is unrecoverable.
+      let plain = $"($state).pre-multicluster"
+      let backup = if ($plain | path exists) {
+        $"($plain).(date now | format date '%Y%m%dT%H%M%S')"
+      } else {
+        $plain
+      }
       mv $state $backup
       print $"legacy single-cluster kubeconfig backed up -> ($backup)"
     }
