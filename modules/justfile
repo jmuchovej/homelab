@@ -1,0 +1,37 @@
+set script-interpreter := ["bash", "-euo", "pipefail"]
+set default-list
+
+root := parent_directory(source_directory())
+
+setup:
+    nix profile install nixpkgs#cachix
+
+[private]
+[script]
+nh-switch os *ARGS:
+    cd {{ root }}
+    nh {{ os }} switch . --max-jobs $(nproc) --cores $(nproc) {{ ARGS }}
+
+[linux]
+switch *ARGS:
+    @just nh-switch os {{ ARGS }}
+
+[macos]
+switch *ARGS:
+    @just nh-switch darwin {{ ARGS }}
+
+[script]
+regen:
+    cd {{ root }}
+    nix run .#write-flake
+
+[script]
+update *ARGS: regen
+    cd {{ root }}
+    nix flake update . {{ ARGS }}
+
+[script]
+deploy host="all" *ARGS:
+    cd {{ root }}
+    deploy {{ root }}{{ if host != "all" { "#" + host } else { '' } }} {{ ARGS }}
+
