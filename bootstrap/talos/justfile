@@ -1,13 +1,10 @@
+set default-list
 # Repo root, derived from this file so the recipes work both through the root
 # justfile and standalone (`just -f bootstrap/talos/justfile …`); no symlinks
 # into the repo are needed.
 root := parent_directory(parent_directory(source_directory()))
 schemas := source_directory() / "schemas"
 machineconfig := source_directory() / "machineconfig.yaml"
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
 
 # Vendored for the same reason as the Kubernetes schemas next door: the build
 # sandbox has no network, and the manifest's relative `$schema` modeline reads

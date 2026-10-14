@@ -1,4 +1,5 @@
 set script-interpreter := ["bash", "-euo", "pipefail"]
+set default-list
 
 # Repo root, derived from this file so the recipes work both through the root
 # justfile and standalone (`just -f bootstrap/nix/justfile …`).
@@ -7,10 +8,6 @@ root := parent_directory(parent_directory(source_directory()))
 # Private half of the key the installer ISO trusts; `install` authenticates
 # with it. Override with RBN_ISO_KEY when it lives elsewhere.
 iso-key := env("RBN_ISO_KEY", root / "secrets" / "keys" / "iso-key")
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
 
 [doc('Evaluate the installer ISO derivation without building it')]
 [no-cd]

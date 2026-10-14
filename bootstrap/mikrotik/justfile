@@ -1,4 +1,5 @@
 set script-interpreter := ["bash", "-euo", "pipefail"]
+set default-list
 
 # Repo root, derived from this file so the recipes work both through the root
 # justfile and standalone (`just -f bootstrap/mikrotik/justfile …`); no
@@ -11,10 +12,6 @@ template := source_directory() / "rbn-bootstrap.rsc"
 # Admin SSH public key installed on the device. `*.pub` is gitignored, so it
 # cannot live beside this justfile; default to the operator's own key.
 admin-pubkey := env("RBN_ADMIN_PUBKEY", home_directory() / ".ssh" / "id_ed25519.pub")
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
 
 # Each step below is independently callable; `run` chains them in order as
 # recipe dependencies. Advanced flows run individual steps — e.g. re-rendering

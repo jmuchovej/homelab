@@ -1,13 +1,10 @@
+set default-list
 # Repo root, derived from this file so the recipes work both through the root
 # justfile and standalone (`just -f bootstrap/kubernetes/justfile …`); no
 # symlinks into the repo are needed.
 root := parent_directory(parent_directory(source_directory()))
 schemas := source_directory() / "schemas"
 cilium := source_directory() / "cilium.yaml"
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
 
 # Vendored rather than fetched at build time because the build sandbox has no
 # network, and because the same files back the manifests' relative `$schema`

@@ -1,8 +1,5 @@
 set script-interpreter := ["bash", "-ueo", "pipefail"]
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
+set default-list
 
 # In a module, justfile_directory() is the ROOT justfile's directory (the repo),
 # which is where `-m hubitat` must resolve from; uv's --directory also makes it

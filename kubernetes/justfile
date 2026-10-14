@@ -1,14 +1,11 @@
 set script-interpreter := ["bash", "-ueo", "pipefail"]
+set default-list
 
 # Repo root, derived from this file so the recipes work both through the root
 # justfile and standalone (`just -f kubernetes/justfile …`). One level up, not
 # two — this tree sits directly under the root, unlike `bootstrap/<target>/`.
 root := parent_directory(source_directory())
 topology := root / "topology.yaml"
-
-[private]
-default:
-    @just --justfile {{ module_file() }} --list
 
 # Cluster access, not cluster bootstrap: these clusters are already reachable,
 # so by the lifecycle-phase rule this belongs to the configuring tool's tree

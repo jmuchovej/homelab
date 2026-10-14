@@ -1,14 +1,11 @@
 set script-interpreter := ["bash", "-euo", "pipefail"]
+set default-list
 
 mod k8s "kubernetes/justfile"
 mod bootstrap "bootstrap/justfile"
 mod mikrotik "tofu/mikrotik.just"
 mod authentik "tofu/authentik.just"
 mod tofu "tofu/justfile"
-
-[private]
-default:
-    just --list
 
 setup:
     nix profile install nixpkgs#cachix
