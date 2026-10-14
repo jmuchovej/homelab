@@ -27,8 +27,23 @@ Small always-on tweaks ride as `provides` on the base aspect (`networking.provid
 
 ## Dock
 
-The dock builder walks `rbn.*` for aspects with `dock.{group,order}` set and reads `meta.dock.app` for the bundle name.
-Group/order assignments belong to users (`users/<name>.nix`); this aspect just materializes the layout.
+`dock.nix` owns three things: `den.reservedKeys = [ "dock" ]`, the `user.dock` schema, and the darwin builder.
+Reserving the key is what makes `dock.{key,source,path}` on a program aspect plain data — den's `aspectKeyType` passes a reserved key through untouched, where any other freeform key is wrapped as class content and unreadable from the tree.
+The builder collects `dock` from every node of `user.aspects`, resolves each entry's `source` to a directory, and emits `system.defaults.dock.persistent-apps`:
+
+| `source`      | directory                                                                       |
+| ------------- | ------------------------------------------------------------------------------- |
+| `hm`          | `~/Applications/Home Manager Apps`                                              |
+| `brew`        | `~/Applications` — `homebrew.caskArgs.appdir` in `homebrew.nix` puts casks here |
+| `user-apps`   | `~/Applications`                                                                |
+| `root-apps`   | `/Applications`                                                                 |
+| `nix-apps`    | `/Applications/Nix Apps`                                                        |
+| `system-apps` | `/System/Applications`                                                          |
+
+`user.aspects` is read inside the `macos` class body, the one place den guarantees the resolved tree is frozen; deciding `includes` from it recurses.
+Linux desktops are not handled yet — `source` is the hook for that: same keys, a per-platform directory map.
+What programs declare and how users lay groups out are `programs/AGENTS.md` and `users/AGENTS.md`.
+The builder's unit test (`flake.tests.system.dock`) shares the schema and aspect through a `let` instead of importing the file, for the same reason `classes/aliases.nix` does.
 
 ## Fonts
 

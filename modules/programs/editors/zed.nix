@@ -1,7 +1,8 @@
 { inputs, ... }:
 {
   rbn.programs._.editors._.zed = {
-    dock.app = "Zed.app";
+    dock.key = "Zed";
+    dock.source = "hm";
 
     # `inputs` is a flake-parts arg, not a home-manager module arg — closing over
     # it from the file scope is the only way in (see `ai-tools/claude.nix`).

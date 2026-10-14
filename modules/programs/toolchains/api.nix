@@ -1,7 +1,8 @@
 { den, ... }: {
   rbn.programs._.toolchains._.api = {
     _.bruno = {
-      dock.app = "Bruno.app";
+      dock.key = "Bruno";
+      dock.source = "hm";
 
       hm = { pkgs, ... }: {
         home.packages = [ pkgs.bruno ];

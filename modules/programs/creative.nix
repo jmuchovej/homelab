@@ -1,7 +1,9 @@
-{ den, ... }:
-{
+{ __findFile, den, ... }: {
   rbn.programs._.creative = {
     _.figma = {
+      dock.key = "Figma";
+      dock.source = "brew";
+
       # TODO: no nixpkg named 'figma' for Linux
       hm = _: { };
 
@@ -22,17 +24,30 @@
 
     _.design = {
       includes = [
-        (den.batteries.unfree [
-          "sketch"
-          "affinity"
-        ])
+        <rbn/programs/creative/design/sketch>
+        <rbn/programs/creative/design/affinity>
       ];
 
-      hm-macos = { pkgs, ... }: {
-        home.packages = [
-          pkgs.rbn.sketch
-          pkgs.rbn.affinity
-        ];
+      _.sketch = {
+        dock.key = "Sketch";
+        dock.source = "hm";
+
+        includes = [ (den.batteries.unfree [ "sketch" ]) ];
+
+        hm-macos = { pkgs, ... }: {
+          home.packages = [ pkgs.rbn.sketch ];
+        };
+      };
+
+      _.affinity = {
+        dock.key = "Affinity";
+        dock.source = "hm";
+
+        includes = [ (den.batteries.unfree [ "affinity" ]) ];
+
+        hm-macos = { pkgs, ... }: {
+          home.packages = [ pkgs.rbn.affinity ];
+        };
       };
     };
   };

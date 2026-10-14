@@ -1,7 +1,8 @@
-{ den, ... }: {
+{ __findFile, den, ... }: {
   rbn.programs._.documents = {
     _.anytype = {
-      dock.app = "AnyType.app";
+      dock.key = "Anytype";
+      dock.source = "brew";
 
       includes = [
         (den.batteries.unfree [
@@ -25,7 +26,8 @@
     };
 
     _.appflowy = {
-      dock.app = "AppFlowy.app";
+      dock.key = "AppFlowy";
+      dock.source = "hm";
 
       includes = [ (den.batteries.unfree [ "appflowy" ]) ];
 
@@ -35,9 +37,10 @@
     };
 
     _.logseq = {
-      includes = [ (den.batteries.insecure [ "electron-39.8.10" ]) ];
+      dock.key = "Logseq";
+      dock.source = "hm";
 
-      dock.app = "Logseq.app";
+      includes = [ (den.batteries.insecure [ "electron-39.8.10" ]) ];
 
       hm = { pkgs, ... }: {
         home.packages = [ pkgs.logseq ];
@@ -45,21 +48,29 @@
     };
 
     _.notion = {
-      dock.app = "Notion.app";
+      dock.key = "Notion";
+      dock.source = "hm";
 
-      includes = [ (den.batteries.unfree [ "notion-app" ]) ];
+      includes = [
+        (den.batteries.unfree [ "notion-app" ])
+        <rbn/programs/documents/notion/calendar>
+      ];
 
       hm-macos = { pkgs, ... }: {
         home.packages = [ pkgs.notion-app ];
       };
 
-      macos.homebrew.casks = [
-        "notion-calendar"
-      ];
+      _.calendar = {
+        dock.key = "Notion Calendar";
+        dock.source = "brew";
+
+        macos.homebrew.casks = [ "notion-calendar" ];
+      };
     };
 
     _.obsidian = {
-      dock.app = "Obsidian.app";
+      dock.key = "Obsidian";
+      dock.source = "hm";
 
       includes = [ (den.batteries.unfree [ "obsidian" ]) ];
 
@@ -69,16 +80,23 @@
     };
 
     _.pdfelement = {
-      dock.app = "Wondershare PDFelement.app";
+      dock.key = "PDFelement";
+      dock.source = "brew";
+
       macos.homebrew.casks = [ "pdfelement" ];
     };
 
     _.pdfexpert = {
-      dock.app = "PDFExpert.app";
+      dock.key = "PDF Expert";
+      dock.source = "brew";
+
       macos.homebrew.casks = [ "pdfexpert" ];
     };
 
     _.waypoints = {
+      dock.key = "Waypoints";
+      dock.source = "hm";
+
       hm = { pkgs, ... }: {
         nix.settings = {
           extra-substituters = [ "https://waypoints.cachix.org" ];

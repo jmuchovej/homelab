@@ -1,13 +1,15 @@
 {
   rbn.programs._.browsers = {
     _.arc = {
-      dock.app = "Arc.app";
+      dock.key = "Arc";
+      dock.source = "brew";
 
       macos.homebrew.casks = [ "arc" ];
     };
 
     _.brave = {
-      dock.app = "Brave Browser.app";
+      dock.key = "Brave Browser";
+      dock.source = "brew";
 
       hm-linux = _: {
         programs.brave.enable = true;
@@ -17,6 +19,9 @@
     };
 
     _.firefox = {
+      dock.key = "Firefox Developer Edition";
+      dock.source = "brew";
+
       hm-linux = { pkgs, ... }: {
         programs.firefox.package = pkgs.firefox-devedition;
       };
@@ -52,6 +57,9 @@
     };
 
     _.google-chrome = {
+      dock.key = "Google Chrome";
+      dock.source = "brew";
+
       hm-linux = _: {
         programs.google-chrome.enable = true;
       };
@@ -60,6 +68,9 @@
     };
 
     _.vivaldi = {
+      dock.key = "Vivaldi";
+      dock.source = "brew";
+
       hm-linux = _: {
         programs.vivaldi.enable = true;
       };
@@ -68,6 +79,9 @@
     };
 
     _.zen = {
+      dock.key = "Zen";
+      dock.source = "brew";
+
       hm-linux = { pkgs, ... }: {
         home.packages = [ pkgs.zen-browser ];
       };

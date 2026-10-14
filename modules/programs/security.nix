@@ -57,9 +57,13 @@
       };
 
       _.desktop = {
-        includes = [ (den.batteries.unfree [ "1password" ]) ];
+        dock.key = "1Password";
+        # NOT `hm`, despite the hm install below: 1Password refuses to run
+        # outside /Applications and copies itself there on first launch, so the
+        # hm/Nix Apps copies are never the live one.
+        dock.source = "root-apps";
 
-        dock.app = "1Password.app";
+        includes = [ (den.batteries.unfree [ "1password" ]) ];
 
         hm-macos = { config, pkgs, ... }: {
           home.file.".1password/agent.sock".source =

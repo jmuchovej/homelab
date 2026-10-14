@@ -16,6 +16,9 @@
     };
 
     _.superwhisper = {
+      dock.key = "superwhisper";
+      dock.source = "hm";
+
       includes = [ (den.batteries.unfree [ "superwhisper" ]) ];
 
       hm-macos = { pkgs, ... }: {
@@ -40,6 +43,9 @@
     };
 
     _.things = {
+      dock.key = "Things3";
+      dock.source = "root-apps";
+
       macos.homebrew.masApps = {
         # "Things" = 904280696;
       };
@@ -72,6 +78,9 @@
         macos.homebrew.casks = [ "monitorcontrol" ];
       };
       _.raycast = {
+        dock.key = "Raycast";
+        dock.source = "brew";
+
         macos =
           { lib, ... }:
           let

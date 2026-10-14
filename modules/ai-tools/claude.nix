@@ -321,7 +321,9 @@
     };
 
     _.desktop = {
-      dock.app = "Claude.app";
+      dock.key = "Claude";
+      dock.source = "hm";
+
       hm = { pkgs, ... }: {
         home.packages = [ pkgs.llm-agents.claude-desktop ];
       };

@@ -51,6 +51,9 @@
     };
 
     _.desktop = {
+      dock.key = "Gemini";
+      dock.source = "brew";
+
       macos.homebrew.casks = [ "google-gemini" ];
     };
   };

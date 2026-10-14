@@ -1,7 +1,8 @@
 { den, ... }: {
   rbn.programs._.social = {
     _.beeper = {
-      dock.app = "Beeper Desktop.app";
+      dock.key = "Beeper Desktop";
+      dock.source = "hm";
 
       includes = [ (den.batteries.unfree [ "beeper" ]) ];
 
@@ -14,7 +15,8 @@
     };
 
     _.zoom = {
-      dock.app = "zoom.us.app";
+      dock.key = "zoom.us";
+      dock.source = "hm";
 
       includes = [ (den.batteries.unfree [ "zoom" ]) ];
 
@@ -26,7 +28,8 @@
     };
 
     _.zulip = {
-      dock.app = "Zulip.app";
+      dock.key = "Zulip";
+      dock.source = "brew";
 
       hm-linux = { pkgs, ... }: {
         home.packages = [ pkgs.zulip ];

@@ -1,8 +1,9 @@
 {
   rbn.programs._.emulators = {
-    dock.app = "Rio.app";
-
     _.rio = {
+      dock.key = "Rio";
+      dock.source = "hm";
+
       hm = { pkgs, ... }: {
         programs.rio = {
           enable = true;
@@ -12,7 +13,8 @@
     };
 
     _.ghostty = {
-      dock.app = "Ghostty.app";
+      dock.key = "Ghostty";
+      dock.source = "hm";
 
       nixos = { pkgs, ... }: {
         environment.systemPackages = [ pkgs.ghostty.terminfo ];
@@ -46,7 +48,8 @@
     };
 
     _.kitty = {
-      dock.app = "Kitty.app";
+      dock.key = "Kitty";
+      dock.source = "hm";
 
       nixos = { pkgs, ... }: {
         environment.systemPackages = [ pkgs.kitty.terminfo ];
@@ -61,7 +64,8 @@
     };
 
     _.alacritty = {
-      dock.app = "Alacritty.app";
+      dock.key = "Alacritty";
+      dock.source = "hm";
 
       hm = { pkgs, ... }: {
         programs.alacritty = {
@@ -72,7 +76,8 @@
     };
 
     _.wezterm = {
-      dock.app = "WezTerm.app";
+      dock.key = "WezTerm";
+      dock.source = "hm";
 
       hm = { pkgs, ... }: {
         programs.wezterm = {

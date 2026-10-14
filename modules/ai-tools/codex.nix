@@ -25,6 +25,9 @@
     };
 
     _.desktop = {
+      dock.key = "ChatGPT";
+      dock.source = "hm";
+
       includes = [
         <rbn/programs/ai-tools/skills>
       ];

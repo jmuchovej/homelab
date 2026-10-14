@@ -17,7 +17,8 @@
     };
 
     _.spotify = {
-      dock.app = "Spotify.app";
+      dock.key = "Spotify";
+      dock.source = "brew";
 
       hm-macos = { pkgs, ... }: {
         home.packages = [ pkgs.rbn.no-tunes ];

@@ -34,7 +34,10 @@ Current categories: `browsers/`, `desktop/`, `development/` (language toolchains
 
 - **One aspect owns each program and each dotfile.**
   Others extend through that aspect's options, never by writing the same file.
-- **Dock placement does not live here.**
-  Users assign `rbn.programs.…<name>.dock = { group; order; }` (or `.provides.<app>.dock`) in their own file — see `users/AGENTS.md`.
-  A program aspect at most carries `meta.dock.app` naming its .app bundle.
+- **Dock identity lives here; dock placement does not.**
+  A GUI program aspect declares `dock.key` — its bundle name without `.app`, spelled exactly as the installer writes it (`"Brave Browser"`, `"zoom.us"`, `"superwhisper"`; check the cask's `app "…"` line or the package's `Applications/` dir, not the marketing name) — and `dock.source`, how it lands on disk: `hm`, `brew`, `user-apps`, `root-apps`, `nix-apps`, or `system-apps`.
+  `dock.path` overrides both for anything off that map.
+  `dock` is a den reserved key (`system/dock` registers it), so it is plain data merged last-definition-wins: set it once, in the program's own file, and never from a user file — a second definition replaces the whole attrset, dropping `key`.
+  `dock.source` names where the app is **launched from**, which is not always where the aspect installs it: an app that relocates itself into `/Applications` on first launch (1Password does, and refuses to run anywhere else) is `root-apps` however it was installed.
+  Which group an app sits in, and in what order, is the user's call — see `users/AGENTS.md`.
 - Per-user identity (git user.name etc.) currently lives inline in program aspects — acceptable while there's effectively one human user; revisit if that changes.
