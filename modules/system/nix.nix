@@ -1,5 +1,4 @@
-{ inputs, lib, ... }:
-{
+{ inputs, lib, ... }: {
   flake-file.inputs = {
     nix-index-database.url = "github:nix-community/nix-index-database";
     nh.url = "github:nix-community/nh";
@@ -87,7 +86,7 @@
           git
           jujutsu
           nixd
-          nixfmt
+          nixfmt-rs
           nix-index
           nix-prefetch-git
           cachix
@@ -97,6 +96,8 @@
         environment.etc."nix/inputs/nixpkgs".source = inputs.nixpkgs;
 
         nixpkgs.hostPlatform = lib.mkDefault system;
+
+        system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
 
         nix = {
           enable = lib.mkDefault true;
@@ -176,7 +177,6 @@
           text = builtins.readFile ./known-good.sh;
         })
       ];
-      environment.etc."nixos".source = inputs.self;
 
       documentation.nixos = {
         enable = true;
@@ -205,8 +205,6 @@
     };
 
     macos = { pkgs, ... }: {
-      environment.etc."nix-darwin".source = inputs.self;
-
       nix = {
         settings = {
           max-jobs = "auto";
