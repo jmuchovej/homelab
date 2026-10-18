@@ -1,5 +1,11 @@
 {
   rbn.programs._.browsers = {
+    macos = _: {
+      homebrew.masApps = {
+        "Velja" = 1607635845;
+      };
+    };
+
     _.arc = {
       dock.key = "Arc";
       dock.source = "brew";

@@ -46,8 +46,10 @@
       dock.key = "Things3";
       dock.source = "root-apps";
 
-      macos.homebrew.masApps = {
-        # "Things" = 904280696;
+      macos = _: {
+        homebrew.masApps = {
+          "Things" = 904280696;
+        };
       };
     };
 
