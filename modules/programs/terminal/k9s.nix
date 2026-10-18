@@ -45,7 +45,6 @@
         kubeseal
         fluxcd
         cilium-cli
-        minio-client
       ];
 
       home.sessionVariables.KUBECONFIG = kubeconfig;
