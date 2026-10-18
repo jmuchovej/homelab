@@ -67,8 +67,6 @@
           syncthing
 
           # Service mesh
-          consul
-          nomad
           openbao
 
           # IaC / deploy
