@@ -65,6 +65,10 @@
               matcher = "Bash|Write|Edit|MultiEdit|Read";
               timeout = 5;
             };
+            launch-devenv.on.PreToolUse = {
+              matcher = "Bash";
+              timeout = 5;
+            };
             pre-tool-audit.on.PreToolUse = {
               matcher = "*";
               timeout = 10;

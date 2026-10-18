@@ -24,22 +24,6 @@ if ($input.tool_name? | default "") == "Bash" {
   if ($dangerous | any { |pat| $cmd =~ $pat }) {
     tools deny "Dangerous command pattern detected"
   }
-
-  # Enforce devenv for trees that carry one. The hook env is the session's
-  # launch env, so DEVENV_ROOT reflects whether the session started inside
-  # the right `devenv shell`; a worktree of a devenv tree has its own root
-  # and is enforced separately. Warm invocations cost ~0.3s (eval cache);
-  # the first one in a fresh tree pays a one-time eval.
-  let cwd = $input.cwd? | default $env.PWD
-  let devenv_root = devenv find-root $cwd
-  if ($devenv_root | is-not-empty) {
-    let in_shell = ($env.DEVENV_ROOT? | default "") == $devenv_root
-    let wrapped = $cmd =~ '(^|\s)devenv(\s|$)' or $cmd =~ '(^|\s)nix develop(\s|$)'
-    if (not $in_shell) and (not $wrapped) {
-      tools deny ($"This tree uses devenv \(($devenv_root)\) and the session was not "
-        + "launched inside its shell. Re-run the command as: devenv shell -q -- <cmd>")
-    }
-  }
 } else {
   # Path traversal in path-bearing fields ONLY. Scanning every value also
   # searched file CONTENT, so an edit was denied whenever the text it touched
