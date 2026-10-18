@@ -30,7 +30,7 @@
       (tab {
         name = "Project";
         focus = true;
-      } [ (pane { ommand = "nvim"; }) ])
+      } [ (pane { command = "nvim"; }) ])
       (tab { name = "Jujutsu"; } [ (pane { command = "jjui"; }) ])
     ];
 }
