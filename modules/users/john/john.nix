@@ -222,8 +222,7 @@ in
       development.order = 500;
       development.apps = [
         "Claude"
-        {
-        }
+        "Paseo"
         "Zed"
         "Delta"
         "Ghostty"

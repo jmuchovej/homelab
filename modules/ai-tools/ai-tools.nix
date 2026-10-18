@@ -1,4 +1,4 @@
-{ inputs, lib, ... }:
+{ __findFile, inputs, lib, ... }:
 let
   ai-tools-lib = import ./_lib.nix {
     inherit lib;
@@ -58,14 +58,31 @@ in
   };
 
   rbn.programs._.ai-tools = {
+    includes = [
+      <rbn/programs/ai-tools/paseo>
+    ];
+
     hm = { pkgs, ... }: {
       home.packages = with pkgs.llm-agents; [
-        happy-coder
         entire
         agent-browser
         rtk
         openskills
       ];
+    };
+  };
+
+  rbn.programs._.ai-tools._.paseo = {
+    dock.key = "Paseo";
+    dock.source = "brew";
+
+    # `llm-agents` doesn't mark it as supported on macOS 🥲
+    hm-linux = { pkgs, ... }: {
+      home.packages = [ pkgs.llm-agents.paseo-desktop ];
+    };
+
+    macos = _: {
+      homebrew.casks = [ "paseo" ];
     };
   };
 
