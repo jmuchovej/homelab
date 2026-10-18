@@ -1,7 +1,7 @@
 { inputs, ... }: {
   # Pinned because `devenv` from `nixpkgs` is broken in v2.3.1.
   #   c.f. https://github.com/cachix/devenv/issues/3183
-  flake-file.inputs.devenv.url = "github:cachix/devenv/v2.3.1";
+  # flake-file.inputs.devenv.url = "github:cachix/devenv/v2.4.0";
 
   rbn.programs._.terminal._.devenv.hm =
     {
@@ -12,7 +12,8 @@
     }:
     let
       # also provides `secretspec`
-      devenv-pkg = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
+      # devenv-pkg = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
+      devenv-pkg = pkgs.devenv;
     in
     {
       nix.settings = {
@@ -46,13 +47,14 @@
       programs.devenv = {
         enable = true;
         package = devenv-pkg;
-        # settings = {
-        #   version = 1;
-        #   shell.prompt_prefix = false;
-        #   tui.statusline.enabled = true;
-        # };
       };
-
+      xdg.configFile."devenv/config.yaml" = {
+        source = (pkgs.formats.yaml { }).generate "config.yaml" {
+          version = 1;
+          shell.prompt_prefix = false;
+          tui.statusline.enabled = true;
+        };
+      };
       mcp-servers.settings.servers = {
         devenv = {
           type = "stdio";
