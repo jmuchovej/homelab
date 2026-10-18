@@ -19,58 +19,65 @@ let
   schema =
     { lib, ... }:
     let
-      inherit (lib) mkOption types;
-      app = types.coercedTo types.str (key: { inherit key; }) (
-        types.submodule {
+      inherit (lib) mkOption;
+      app =
+        with lib.types;
+        coercedTo str (key: { inherit key; }) (submodule {
           options = {
-            key = mkOption { type = types.str; };
+            key = mkOption { type = str; };
             source = mkOption {
-              type = types.nullOr (types.enum sources);
+              type = nullOr (enum sources);
               default = null;
             };
             path = mkOption {
-              type = types.nullOr types.str;
+              type = nullOr str;
               default = null;
             };
           };
-        }
-      );
-      group = types.submodule {
-        options = {
-          order = mkOption { type = types.int; };
-          apps = mkOption {
-            type = types.listOf app;
-            default = [ ];
+        });
+      group =
+        with lib.types;
+        submodule {
+          options = {
+            order = mkOption { type = int; };
+            apps = mkOption {
+              type = listOf app;
+              default = [ ];
+            };
           };
         };
-      };
     in
     {
       options.dock = mkOption {
-        type = types.attrsOf group;
+        type = lib.types.attrsOf group;
         default = { };
         description = "Dock layout: named groups of app keys, rendered in `order`.";
       };
     };
 
   aspect.macos =
-    { user, lib, ... }:
+    {
+      config,
+      user,
+      lib,
+      ...
+    }:
     let
       inherit (lib)
+        tail
+        foldl
+        pipe
         attrValues
-        concatLists
         filter
-        imap0
         listToAttrs
         nameValuePair
-        optional
         sort
         ;
 
       home = "/Users/${user.userName}";
       app-dir = {
         hm = "${home}/Applications/Home Manager Apps";
-        brew = "${home}/Applications";
+        brew = config.homebrew.caskArgs.appdir;
         user-apps = "${home}/Applications";
         root-apps = "/Applications";
         nix-apps = "/Applications/Nix Apps";
@@ -81,11 +88,13 @@ let
         "System Settings".source = "system-apps";
         "Messages".source = "system-apps";
         "Safari".source = "root-apps";
-        "Activity Monitor".path = "/System/Applications/Utilities/Activity Monitor.app";
+        "Activity Monitor".path = "${app-dir.system-apps}/Utilities/Activity Monitor.app";
       };
-      declared = listToAttrs (
-        map (n: nameValuePair n.dock.key n.dock) (filter (n: n ? dock) user.aspects)
-      );
+      declared = pipe user.aspects [
+        (filter (n: n ? dock))
+        (map (n: nameValuePair n.dock.key n.dock))
+        listToAttrs
+      ];
       registry = macos-builtins // declared;
 
       path-of =
@@ -104,12 +113,19 @@ let
         else
           throw "dock: nothing in ${user.name}'s tree declares `dock.key = \"${entry.key}\"`; give the entry a `source` or `path`";
 
-      groups = sort (a: b: a.order < b.order) (filter (g: g.apps != [ ]) (attrValues user.dock));
-      layout = concatLists (
-        imap0 (
-          i: g: optional (i > 0) { spacer.small = true; } ++ map (e: { app = path-of e; }) g.apps
-        ) groups
-      );
+      spacer = [
+        { spacer.small = true; }
+      ];
+      layout = pipe user.dock [
+        # build groups
+        attrValues
+        (filter (g: g.apps != [ ]))
+        (sort (a: b: a.order < b.order))
+        # flatten into a with an interspersed `spacer`
+        (map (g: map (e: { app = path-of e; }) g.apps))
+        (foldl (acc: apps: acc ++ spacer ++ apps) [ ])
+        tail
+      ];
     in
     {
       system.defaults.dock.persistent-apps = layout;

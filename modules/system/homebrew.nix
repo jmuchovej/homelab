@@ -36,7 +36,7 @@
       };
 
       caskArgs = {
-        appdir = "~/Applications";
+        appdir = "/Users/${user.userName}/Applications";
         require_sha = true;
       };
 
