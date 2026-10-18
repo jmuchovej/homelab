@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rebellion network topology",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "listen-port",
+    "zerotier",
+    "macs",
+    "subnets",
+    "network",
+    "clients",
+    "vlans",
+    "networks"
+  ],
+  "properties": {
+    "listen-port": { "$ref": "#/definitions/port" },
+    "zerotier": { "$ref": "#/definitions/zerotier" },
+    "macs": { "$ref": "#/definitions/macs" },
+    "subnets": { "$ref": "#/definitions/subnets" },
+    "network": { "$ref": "#/definitions/relays" },
+    "clients": { "$ref": "#/definitions/clients" },
+    "vlans": { "$ref": "#/definitions/vlans" },
+    "networks": { "$ref": "#/definitions/sites" }
+  },
+  "definitions": {
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "ipv4": {
+      "description": "Dotted-quad IPv4 address.",
+      "type": "string",
+      "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$"
+    },
+    "cidr": {
+      "description": "IPv4 prefix in CIDR notation (syntax only; host bits are not checked).",
+      "type": "string",
+      "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/(?:3[0-2]|[12]?[0-9])$"
+    },
+    "ipv4-range": {
+      "description": "Inclusive IPv4 range `<start>-<end>`, as RouterOS IP pools take it.",
+      "type": "string",
+      "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])-(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$"
+    },
+    "mac": {
+      "description": "EUI-48 MAC address, colon-separated, either case.",
+      "type": "string",
+      "pattern": "^(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+    },
+    "hostname": {
+      "description": "Fully-qualified DNS name.",
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$"
+    },
+    "wireguard-key": {
+      "description": "WireGuard public key: 32 bytes, base64.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw480]=$"
+    },
+    "zerotier-network-id": {
+      "description": "16-hex-digit ZeroTier network id.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+    },
+    "zerotier-node-id": {
+      "description": "10-hex-digit ZeroTier node (member) id.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{10}$"
+    },
+    "site": {
+      "description": "Datacenter prefix.",
+      "type": "string",
+      "enum": ["da", "en"]
+    },
+    "ether-port": {
+      "type": "string",
+      "pattern": "^ether[0-9]+$"
+    },
+    "vlan-name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "zerotier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "overlay"],
+      "properties": {
+        "network": { "$ref": "#/definitions/zerotier-network-id" },
+        "overlay": { "$ref": "#/definitions/cidr" }
+      }
+    },
+    "macs": {
+      "description": "Device label → MAC address.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/mac" }
+    },
+    "subnets": {
+      "description": "Overlay subnet per site, plus the roaming-clients subnet.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clients": { "$ref": "#/definitions/cidr" }
+      },
+      "patternProperties": {
+        "^(?:da|en)$": { "$ref": "#/definitions/cidr" }
+      }
+    },
+    "relay": {
+      "description": "A MikroTik relay (router or switch).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "ip", "ddns"],
+      "properties": {
+        "role": { "enum": ["router", "switch"] },
+        "trunks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ether-port" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "uplink": {
+          "description": "The relay this switch's upstream link plugs into.",
+          "type": "string",
+          "pattern": "^(?:da|en)-relay[0-9]{2}$"
+        },
+        "ip": { "$ref": "#/definitions/ipv4" },
+        "ddns": { "$ref": "#/definitions/hostname" },
+        "public": { "$ref": "#/definitions/wireguard-key" }
+      },
+      "allOf": [
+        {
+          "if": { "$ref": "#/definitions/is-switch" },
+          "then": { "required": ["uplink"] }
+        },
+        {
+          "if": { "$ref": "#/definitions/is-router" },
+          "then": { "not": { "required": ["uplink"] } }
+        }
+      ]
+    },
+    "is-router": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["role"],
+      "properties": { "role": { "const": "router" } }
+    },
+    "is-switch": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["role"],
+      "properties": { "role": { "const": "switch" } }
+    },
+    "router-needs-trunks": {
+      "if": { "$ref": "#/definitions/is-router" },
+      "then": { "required": ["trunks"] }
+    },
+    "relays": {
+      "description": "Relays keyed `<site>-relayNN`. A switch's `uplink` must name a relay at its own site, and if any relay is a switch, the site's router must declare `trunks`. `nix flake check` (`checks.topology`) verifies what this cannot: uplink targets exist, each target has a trunk per downstream relay, and each site has one router.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(?:da|en)-relay[0-9]{2}$": { "$ref": "#/definitions/relay" }
+      },
+      "allOf": [
+        {
+          "additionalProperties": true,
+          "patternProperties": {
+            "^da-": {
+              "additionalProperties": true,
+              "properties": { "uplink": { "pattern": "^da-" } }
+            }
+          },
+          "if": {
+            "not": {
+              "additionalProperties": true,
+              "patternProperties": {
+                "^da-": { "not": { "$ref": "#/definitions/is-switch" } }
+              }
+            }
+          },
+          "then": {
+            "additionalProperties": true,
+            "patternProperties": {
+              "^da-": { "$ref": "#/definitions/router-needs-trunks" }
+            }
+          }
+        },
+        {
+          "additionalProperties": true,
+          "patternProperties": {
+            "^en-": {
+              "additionalProperties": true,
+              "properties": { "uplink": { "pattern": "^en-" } }
+            }
+          },
+          "if": {
+            "not": {
+              "additionalProperties": true,
+              "patternProperties": {
+                "^en-": { "not": { "$ref": "#/definitions/is-switch" } }
+              }
+            }
+          },
+          "then": {
+            "additionalProperties": true,
+            "patternProperties": {
+              "^en-": { "$ref": "#/definitions/router-needs-trunks" }
+            }
+          }
+        }
+      ]
+    },
+    "client": {
+      "description": "A host on the ZeroTier overlay.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["zerotier", "ip"],
+      "properties": {
+        "zerotier": { "$ref": "#/definitions/zerotier-node-id" },
+        "ip": { "$ref": "#/definitions/ipv4" },
+        "public": { "$ref": "#/definitions/wireguard-key" }
+      }
+    },
+    "clients": {
+      "description": "Overlay hosts keyed `<site>-<node>`.",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(?:da|en)-[a-z0-9]+(?:-[a-z0-9]+)*$": { "$ref": "#/definitions/client" }
+      }
+    },
+    "addressing": {
+      "description": "L3 addressing for a VLAN.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cidr", "gateway", "ranges"],
+      "properties": {
+        "cidr": { "$ref": "#/definitions/cidr" },
+        "gateway": { "$ref": "#/definitions/ipv4" },
+        "ranges": { "$ref": "#/definitions/dhcp-ranges" }
+      }
+    },
+    "dhcp-ranges": {
+      "description": "DHCP pool ranges.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/ipv4-range" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "vlan": {
+      "description": "A VLAN shared by every site. Addressing is all-or-none; omit it when each site supplies its own under `networks.<site>.<vlan>`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "vlan_id", "name", "comment", "dhcp", "pool"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "vlan_id": { "type": "integer", "minimum": 1, "maximum": 4094 },
+        "name": { "$ref": "#/definitions/vlan-name" },
+        "comment": { "type": "string" },
+        "dhcp": { "type": "string", "pattern": "^dhcp[0-9]+$" },
+        "pool": { "type": "string", "pattern": "^pool[0-9]+$" },
+        "cidr": { "$ref": "#/definitions/cidr" },
+        "gateway": { "$ref": "#/definitions/ipv4" },
+        "ranges": { "$ref": "#/definitions/dhcp-ranges" }
+      },
+      "dependentRequired": {
+        "cidr": ["gateway", "ranges"],
+        "gateway": ["cidr", "ranges"],
+        "ranges": ["cidr", "gateway"]
+      }
+    },
+    "vlans": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/vlan-name" },
+      "additionalProperties": { "$ref": "#/definitions/vlan" }
+    },
+    "k8s": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lb-pool", "vip"],
+      "properties": {
+        "lb-pool": { "$ref": "#/definitions/cidr" },
+        "vip": { "$ref": "#/definitions/ipv4" }
+      }
+    },
+    "site-network": {
+      "description": "Per-site overrides: `k8s`, plus addressing for any VLAN named in `vlans`.",
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/vlan-name" },
+      "properties": {
+        "k8s": { "$ref": "#/definitions/k8s" }
+      },
+      "additionalProperties": { "$ref": "#/definitions/addressing" }
+    },
+    "sites": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/site" },
+      "additionalProperties": { "$ref": "#/definitions/site-network" }
+    }
+  }
+}

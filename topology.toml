@@ -1,0 +1,132 @@
+#:tombi toml-version = "v1.0.0"
+#:schema ./topology.schema.json
+
+listen-port = 51820
+
+[zerotier]
+  network = "93afae596391633f"
+  overlay = "10.42.32.0/19"
+
+[macs]
+  "UGreen CM199" = "c8:a3:62:10:4f:76"
+
+[subnets]
+  da      = "10.42.32.0/24"
+  en      = "10.42.36.0/24"
+  clients = "10.42.48.0/24"
+
+[network.da-relay01]
+  role   = "router"
+  trunks = [ "ether5" ]
+  ip     = "10.42.32.1"
+  ddns   = "hgs0ach20gx.sn.mynetname.net"
+  public = "yzPvixlHxHdPPr3BfdgpZtAGEbQWAk/WmhSCo1DmEl0="
+
+[network.da-relay02]
+  role   = "switch"
+  uplink = "da-relay01"
+  ip     = "10.42.32.2"
+  ddns   = "hg409j7jsk1.sn.mynetname.net"
+  public = "T50zkiBdLOMRvx58wJ+iKLdJ+kuVRbeiiWj/3Tez+C8="
+
+[network.en-relay01]
+  role   = "router"
+  ip     = "10.42.36.1"
+  ddns   = "hmb0b2zpmv1.sn.mynetname.net"
+  public = "fP71NAtYMkYxc4dEbJHoUQv5pvaVbxIRxHK090hI5B0="
+
+[clients]
+  da-gr75  = { zerotier = "107f4bb12a", ip = "10.42.32.10" }
+  da-n1x   = { zerotier = "ec0c4b18cc", ip = "10.42.48.10" }
+  da-vcx-1 = { zerotier = "db2f424f26", ip = "10.42.32.11" }
+  da-vcx-2 = { zerotier = "c45b6e40d4", ip = "10.42.32.12" }
+  da-vcx-3 = { zerotier = "b4ecd23d53", ip = "10.42.32.13" }
+  en-t65-1 = { zerotier = "2ddb151813", ip = "10.42.36.11" }
+
+[vlans]
+  [vlans.mgmt]
+    id      = 1
+    vlan_id = 42
+    name    = "mgmt"
+    cidr    = "10.42.0.0/24"
+    gateway = "10.42.0.1"
+    ranges  = [ "10.42.0.20-10.42.0.254" ]
+    comment = "Management"
+    dhcp    = "dhcp1"
+    pool    = "pool1"
+
+  # Addressing is per-DC in `networks` below — lab is the VLAN k8s lives on,
+  # and it must differ between sites. Do not add a cidr/gateway/ranges here.
+  [vlans.lab]
+    id      = 2
+    vlan_id = 69
+    name    = "lab"
+    comment = "Homelab"
+    dhcp    = "dhcp2"
+    pool    = "pool2"
+
+  [vlans.trusted]
+    id      = 3
+    vlan_id = 99
+    name    = "trusted"
+    cidr    = "10.99.0.0/16"
+    gateway = "10.99.0.1"
+    ranges  = [ "10.99.0.20-10.99.255.254" ]
+    comment = "Trusted"
+    dhcp    = "dhcp3"
+    pool    = "pool3"
+
+  [vlans.guest]
+    id      = 4
+    vlan_id = 94
+    name    = "guest"
+    cidr    = "10.94.0.0/16"
+    gateway = "10.94.0.1"
+    ranges  = [ "10.94.0.20-10.94.255.254" ]
+    comment = "Guest"
+    dhcp    = "dhcp4"
+    pool    = "pool4"
+
+  [vlans.iot]
+    id      = 5
+    vlan_id = 66
+    name    = "iot"
+    cidr    = "10.66.0.0/16"
+    gateway = "10.66.0.1"
+    ranges  = [ "10.66.0.20-10.66.255.254" ]
+    comment = "IoT"
+    dhcp    = "dhcp5"
+    pool    = "pool5"
+
+# Per-DC addressing, merged over the shared `vlans` above. Only what must
+# differ between sites is here = the lab VLAN (k8s lives on it, and the node is
+# the SNAT source for pod egress) and its LoadBalancer pool. mgmt/trusted/
+# guest/iot never appear in a cross-DC flow and stay shared — do not renumber
+# them here without a reason that is actually about routing.
+#
+# Each DC takes one /16, numbered to match its holonet subnet = da 10.42.32.0/24
+# → 10.32.0.0/16, en 10.42.36.0/24 → 10.36.0.0/16. Host structure inside is
+# identical at both sites (.0.1 gateway, .1.0/24 LB pool, .1.1 ingress,
+# .1.5x per-app DB LBs, .10.1 NAS, .1x.1 k8s nodes), so only the second octet
+# distinguishes them.
+[networks.da]
+  [networks.da.lab]
+    cidr    = "10.32.0.0/16"
+    gateway = "10.32.0.1"
+    # k8s.lb-pool sits INSIDE this VLAN; the split is what keeps DHCP off it
+    ranges  = [ "10.32.0.20-10.32.0.255", "10.32.2.0-10.32.255.254" ]
+
+  [networks.da.k8s]
+    lb-pool = "10.32.1.0/24"
+    vip     = "10.32.1.1"
+
+[networks.en]
+  [networks.en.lab]
+    cidr    = "10.36.0.0/16"
+    gateway = "10.36.0.1"
+    # k8s.lb-pool sits INSIDE this VLAN; the split is what keeps DHCP off it
+    ranges  = [ "10.36.0.20-10.36.0.255", "10.36.2.0-10.36.255.254" ]
+
+  [networks.en.k8s]
+    lb-pool = "10.36.1.0/24"
+    vip     = "10.36.1.1"
