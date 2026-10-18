@@ -66,7 +66,7 @@
         nix = nix-lsp.claude;
       };
 
-      mcp-servers.programs.nixos.enable = true;
+      # mcp-servers.programs.nixos.enable = true;
 
       home.shellAliases =
         let
