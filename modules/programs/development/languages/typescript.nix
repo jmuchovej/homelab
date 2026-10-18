@@ -1,6 +1,11 @@
 {
   rbn.programs._.development._.languages._.typescript.hm =
-    { lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       ts-lsp = lib.rbn.mk-lsp {
         pkg = pkgs.vtsls;
@@ -21,6 +26,19 @@
       programs.bun = {
         enable = true;
         enableGitIntegration = true;
+        settings = {
+          telemetry = false;
+          install.globalStore = true;
+          install.cache.dir = "${config.xdg.cacheHome}/bun/install/cache";
+        };
+      };
+
+      programs.pnpm.enable = true;
+      xdg.configFile."pnpm/config.yaml" = {
+        enable = true;
+        source = (pkgs.formats.yaml { }).generate "config.yaml" {
+          virtualStoreType = "global";
+        };
       };
 
       home.packages = [ pkgs.deno ];
