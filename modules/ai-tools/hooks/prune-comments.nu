@@ -35,7 +35,7 @@ def run-claude [diff: string] {
   # swallow a positional prompt. Tool restrictions and model come from the
   # agent's frontmatter.
   $prompt
-  | claude -p --agent commit-cleaner --effort low --permission-mode acceptEdits --output-format text
+  | claude -p --no-session-persistence --agent commit-cleaner --effort low --permission-mode acceptEdits --output-format text
   | complete
 }
 
