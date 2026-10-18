@@ -67,7 +67,6 @@ in
         entire
         agent-browser
         rtk
-        openskills
       ];
     };
   };
