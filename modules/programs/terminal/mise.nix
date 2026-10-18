@@ -8,7 +8,7 @@
       enableBashIntegration = false;
       enableFishIntegration = false;
       enableNushellIntegration = false;
-      enableMutableConfig = true;
+      mutableSettings = true;
     };
 
     mcp-servers.settings.servers = {
