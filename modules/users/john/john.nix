@@ -222,11 +222,10 @@ in
       development.order = 500;
       development.apps = [
         "Claude"
-        "Zed"
         {
-          key = "Delta";
-          source = "root-apps";
         }
+        "Zed"
+        "Delta"
         "Ghostty"
       ];
     };

@@ -1,64 +1,79 @@
-{ inputs, ... }:
+{ __findFile, inputs, ... }:
 {
-  rbn.programs._.editors._.zed = {
-    dock.key = "Zed";
-    dock.source = "hm";
+  rbn.programs._.editors = {
+    _.zed = {
+      includes = [
+        <rbn/programs/editors/zed-editor>
+        <rbn/programs/editors/zed-delta>
+      ];
+    };
 
-    # `inputs` is a flake-parts arg, not a home-manager module arg — closing over
-    # it from the file scope is the only way in (see `ai-tools/claude.nix`).
-    hm =
-      { lib, pkgs, ... }:
-      let
-        inherit (inputs) import-tree;
-        inherit (lib)
-          unique
-          concatMap
-          ;
+    _.zed-editor = {
+      dock.key = "Zed";
+      dock.source = "hm";
 
-        # One walk over the whole `_zed` tree instead of two `import-dir` calls.
-        #
-        # `initFilter` is required, not cosmetic: import-tree's default filter is
-        # `andNot (hasInfix "/_") (hasSuffix ".nix")`, so every path under a
-        # `_`-prefixed directory is excluded and `leaves ./_zed` would return an
-        # empty list. Overriding it replaces that filter wholesale.
-        #
-        # One arg set covers the tree because every part takes `...`: the files
-        # at the root want `{ lib, ... }`, the ones under `languages-lsps/` want
-        # `{ pkgs, ... }`, and both tolerate the other.
-        parts = import-tree (i: i.map (p: import p { inherit lib pkgs; })) (i: i.leaves ./_zed);
+      # `inputs` is a flake-parts arg, not a home-manager module arg — closing over
+      # it from the file scope is the only way in (see `ai-tools/claude.nix`).
+      hm =
+        { lib, pkgs, ... }:
+        let
+          inherit (inputs) import-tree;
+          inherit (lib) unique concatMap;
 
-        settings = map (p: p.settings or { }) parts;
-        packages = unique (concatMap (p: p.packages or [ ]) parts);
-        extensions = unique (concatMap (p: p.extensions or [ ]) parts);
-        keybinds = unique (concatMap (p: p.keybinds or [ ]) parts);
-      in
-      {
-        home.shellAliases.zed = "zeditor";
+          # One walk over the whole `_zed` tree instead of two `import-dir` calls.
+          #
+          # `initFilter` is required, not cosmetic: import-tree's default filter is
+          # `andNot (hasInfix "/_") (hasSuffix ".nix")`, so every path under a
+          # `_`-prefixed directory is excluded and `leaves ./_zed` would return an
+          # empty list. Overriding it replaces that filter wholesale.
+          #
+          # One arg set covers the tree because every part takes `...`: the files
+          # at the root want `{ lib, ... }`, the ones under `languages-lsps/` want
+          # `{ pkgs, ... }`, and both tolerate the other.
+          parts = import-tree (i: i.map (p: import p { inherit lib pkgs; })) (i: i.leaves ./_zed);
 
-        programs.zed-editor = {
-          enable = true;
-          package = pkgs.zed-editor;
-          enableMcpIntegration = true;
-          # TODO: make this contingent on whether i'm on a server/cluster
-          # defaultEditor = true;
-          # TODO: make this contingent on whether i'm on a server/cluster
-          installRemoteServer = true;
-          # Per-language servers, extensions and settings live in
-          # `programs/development/{data,languages}`; only editor-generic
-          # extensions stay here.
-          extraPackages = packages;
-          extensions = extensions ++ [
-            "env"
-            "comment"
-            "pkl"
-          ];
-          mutableUserSettings = true;
-          userSettings = lib.mkMerge (settings ++ [ { prettier.allowed = false; } ]);
-          mutableUserKeymaps = true;
-          userKeymaps = keybinds;
-          mutableUserTasks = true;
-          mutableUserDebug = true;
+          settings = map (p: p.settings or { }) parts;
+          packages = unique (concatMap (p: p.packages or [ ]) parts);
+          extensions = unique (concatMap (p: p.extensions or [ ]) parts);
+          keybinds = unique (concatMap (p: p.keybinds or [ ]) parts);
+        in
+        {
+          home.shellAliases.zed = "zeditor";
+
+          programs.zed-editor = {
+            enable = true;
+            package = pkgs.zed-editor;
+            enableMcpIntegration = true;
+            # TODO: make this contingent on whether i'm on a server/cluster
+            # defaultEditor = true;
+            # TODO: make this contingent on whether i'm on a server/cluster
+            installRemoteServer = true;
+            # Per-language servers, extensions and settings live in
+            # `programs/development/{data,languages}`; only editor-generic
+            # extensions stay here.
+            extraPackages = packages;
+            extensions = extensions ++ [
+              "env"
+              "comment"
+              "pkl"
+            ];
+            mutableUserSettings = true;
+            userSettings = lib.mkMerge (settings ++ [ { prettier.allowed = false; } ]);
+            mutableUserKeymaps = true;
+            userKeymaps = keybinds;
+            mutableUserTasks = true;
+            mutableUserDebug = true;
+          };
         };
+    };
+
+    _.zed-delta = {
+      dock.key = "Delta";
+      dock.source = "brew";
+
+      macos = _: {
+        homebrew.casks = [ "zed-delta" ];
       };
+    };
   };
 }
