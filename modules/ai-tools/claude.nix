@@ -18,14 +18,12 @@
         <rbn/programs/ai-tools/skills>
       ];
 
-      hm-linux =
-        { pkgs, ... }:
-        {
-          home.packages = [
-            pkgs.bubblewrap
-            pkgs.socat
-          ];
-        };
+      hm-linux = { pkgs, ... }: {
+        home.packages = [
+          pkgs.bubblewrap
+          pkgs.socat
+        ];
+      };
 
       hm =
         {
@@ -179,6 +177,7 @@
             enable = true;
             enableMcpIntegration = true;
             package = pkgs.llm-agents.claude-code;
+            configDir = "${config.xdg.configHome}/claude";
 
             commands = load-tools ./commands;
             agents = load-tools ./agents;
