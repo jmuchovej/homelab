@@ -34,8 +34,8 @@
 
 ## 6. Remove the YAML copy
 
-- [ ] 6.1 Delete `topology.yaml` (`jj file untrack` is not needed — deleting a tracked file records the deletion), and verify `rg -n --hidden -g '!.direnv' -g '!.scratch' -g '!openspec/**' 'topology\.yaml' .` matches nothing
-- [ ] 6.2 Run `nix flake check` and `just tofu::plan`, and verify both succeed with `just tofu::plan` reporting no changes
+- [x] 6.1 Delete `topology.yaml` (`jj file untrack` is not needed — deleting a tracked file records the deletion), and verify `rg -n --hidden -g '!.direnv' -g '!.scratch' -g '!openspec/**' 'topology\.yaml' .` matches nothing
+- [x] 6.2 Run `nix flake check` and `just tofu::plan`, and verify both succeed with `just tofu::plan` reporting no changes
 
 ## 7. In-flight changes
 
