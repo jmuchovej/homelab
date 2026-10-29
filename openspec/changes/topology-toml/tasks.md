@@ -2,9 +2,9 @@
 
 ## 1. Baseline
 
-- [ ] 1.1 Record the toplevel `drvPath` of every `nixosConfigurations.*` and `darwinConfigurations.*` output (`nix eval --raw .#<kind>.<host>.config.system.build.toplevel.drvPath`) into a scratch file outside the repo, and verify one path is recorded per host listed by `nix eval .#<kind> --apply builtins.attrNames`
-- [ ] 1.2 Run `just tofu::plan` and verify it reports no changes before anything is edited; if it does not, stop and report the existing drift rather than continuing
-- [ ] 1.3 Record, for each relay in `network`, the output of `bootstrap/mikrotik/justfile`'s role and trunk `yq` expressions against `topology.yaml` into the same scratch file, and verify one role and one trunk line is recorded per relay
+- [x] 1.1 Record the toplevel `drvPath` of every `nixosConfigurations.*` and `darwinConfigurations.*` output (`nix eval --raw .#<kind>.<host>.config.system.build.toplevel.drvPath`) into a scratch file outside the repo, and verify one path is recorded per host listed by `nix eval .#<kind> --apply builtins.attrNames`
+- [x] 1.2 Run `just tofu::plan` and verify it reports no changes before anything is edited; if it does not, stop and report the existing drift rather than continuing
+- [x] 1.3 Record, for each relay in `network`, the output of `bootstrap/mikrotik/justfile`'s role and trunk `yq` expressions against `topology.yaml` into the same scratch file, and verify one role and one trunk line is recorded per relay
 
 ## 2. Data parity
 
