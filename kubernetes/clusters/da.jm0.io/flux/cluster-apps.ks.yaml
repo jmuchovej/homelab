@@ -35,7 +35,7 @@ spec:
               DC_DOMAIN: da.jm0.io
               DOMAIN: jm0.io
               ADMIN_CIDR: 10.99.0.0/16
-              # must track topology.yaml `networks.da` — lab.cidr,
+              # must track topology.toml `networks.da` — lab.cidr,
               # lab.gateway, k8s.lb-pool, and lb-pool's first three octets
               LAB_CIDR: "10.32.0.0/16"
               LAB_GATEWAY: "10.32.0.1"

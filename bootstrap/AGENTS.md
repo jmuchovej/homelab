@@ -54,7 +54,7 @@ Nothing else under `bootstrap/` is auto-imported; aspects read `kubernetes/` and
 
 - Every password and the optional `host-key` come from `secrets/hosts/<dc>-<relay>.sops.yaml` and nowhere else.
   That file also seeds the `terraform` user, so `wait` can never present a password the device was not given; the duplicate `terraform-password` under `secrets/<dc>.sops.yaml` is not read here.
-- Role and trunk ports come from `topology.yaml` (`.network.<dc>-<relay>`); the management IP is `10.42.0.<relay counter>`.
+- Role and trunk ports come from `topology.toml` (`[network.<dc>-<relay>]`, read with `yq -p toml -oy`); the management IP is `10.42.0.<relay counter>`.
 - The admin public key is `RBN_ADMIN_PUBKEY`, default `~/.ssh/id_ed25519.pub`.
   It cannot live beside the justfile because `*.pub` is gitignored there.
 - The SSH-host-key import block in `rbn-bootstrap.rsc` is disabled while a bootstrap timeout on relay02 is investigated; `upload` still stages `/relay-host.pem` so re-enabling it is a one-line change in the script.

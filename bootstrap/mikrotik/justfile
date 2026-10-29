@@ -6,7 +6,7 @@ set default-list
 # symlinks into the repo are needed.
 root := parent_directory(parent_directory(source_directory()))
 secrets := root / "secrets"
-topology := root / "topology.yaml"
+topology := root / "topology.toml"
 template := source_directory() / "rbn-bootstrap.rsc"
 
 # Admin SSH public key installed on the device. `*.pub` is gitignored, so it
@@ -29,8 +29,8 @@ admin-pubkey := env("RBN_ADMIN_PUBKEY", home_directory() / ".ssh" / "id_ed25519.
 # Operator workflow:
 #   1. Factory-reset the target device so it comes up at 192.168.88.1.
 #   2. Connect the laptop to the device's ether2 (gets a 192.168.88.x lease).
-#   3. Ensure topology.yaml has `role: router|switch` (and `trunks`) under
-#      .network.<dc>-<relay>, and secrets/hosts/<dc>-<relay>.sops.yaml has
+#   3. Ensure topology.toml has `role = "router"|"switch"` (and `trunks`) under
+#      [network.<dc>-<relay>], and secrets/hosts/<dc>-<relay>.sops.yaml has
 #      root-password and tofu-password (host-key optional).
 #   4. Run: just bootstrap mikrotik run <dc> <relay>
 #
@@ -55,7 +55,7 @@ render dc relay:
     [[ -f "$sops_file" ]] || { echo "ERROR: $sops_file not found" >&2; exit 1; }
     command -v envsubst >/dev/null || { echo "ERROR: envsubst not in PATH" >&2; exit 1; }
 
-    role=$(yq ".network.\"{{ dc }}-{{ relay }}\".role // \"\"" "{{ topology }}")
+    role=$(yq -p toml -oy ".network.\"{{ dc }}-{{ relay }}\".role // \"\"" "{{ topology }}")
     [[ "$role" == "router" || "$role" == "switch" ]] || {
       echo "ERROR: topology .network.{{ dc }}-{{ relay }}.role is '$role' (expected router|switch)" >&2
       exit 1
@@ -71,7 +71,7 @@ render dc relay:
     export IDENTITY="{{ dc }}-{{ relay }}"
     export MGMT_IP="10.42.0.$counter"
     export VLAN_ID="42"
-    export TRUNK_PORTS=$(yq -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "{{ topology }}")
+    export TRUNK_PORTS=$(yq -p toml -oy -r ".network.\"{{ dc }}-{{ relay }}\".trunks // [] | join(\",\")" "{{ topology }}")
     export ROOT_PW=$(rbn_sops "$sops_file" '["root-password"]')
     export TOFU_PW=$(rbn_sops "$sops_file" '["tofu-password"]')
 

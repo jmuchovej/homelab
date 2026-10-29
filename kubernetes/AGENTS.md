@@ -137,7 +137,7 @@ The one secret NixOS seeds out-of-band from sops is the Flux **sops-age** key; w
 
 ## Networking
 
-- LoadBalancer IPs come from the Cilium LB-IPAM pool `10.69.1.0/24` (excluded from the lab DHCP range in topology.yaml — keep it that way), advertised to the MikroTik router as /32s over iBGP (AS 64512).
+- LoadBalancer IPs come from the Cilium LB-IPAM pool `10.69.1.0/24` (excluded from the lab DHCP range in topology.toml — keep it that way), advertised to the MikroTik router as /32s over iBGP (AS 64512).
   Per-app DB LBs live at `10.69.1.5x`.
   The BGP CRs live in `apps/network/cilium/bgp`; Cilium itself (CNI + `bgpControlPlane`) is NixOS-managed.
 - Ingress is Envoy Gateway (namespace `network`): `envoy-external` (`10.69.1.1`) is WAN-reachable, `envoy-internal` (`10.69.1.2`) is LAN-only by construction (WAN DNATs only target .1.1).

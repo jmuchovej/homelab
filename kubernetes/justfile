@@ -5,7 +5,7 @@ set default-list
 # justfile and standalone (`just -f kubernetes/justfile …`). One level up, not
 # two — this tree sits directly under the root, unlike `bootstrap/<target>/`.
 root := parent_directory(source_directory())
-topology := root / "topology.yaml"
+topology := root / "topology.toml"
 
 # Cluster access, not cluster bootstrap: these clusters are already reachable,
 # so by the lifecycle-phase rule this belongs to the configuring tool's tree
@@ -68,7 +68,7 @@ kubeconfig cluster="":
     for t in $targets {
       let addr = ($topology.clients | get -o $t.node | get -o ip)
       if ($addr | is-empty) {
-        print -e $"($t.context): ($t.node) has no clients.($t.node).ip in topology.yaml — skipped"
+        print -e $"($t.context): ($t.node) has no clients.($t.node).ip in topology.toml — skipped"
         continue
       }
 

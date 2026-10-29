@@ -27,10 +27,10 @@
 
 ## 5. Justfiles
 
-- [ ] 5.1 In `bootstrap/mikrotik/justfile`, point `topology` at `root / "topology.toml"`, add `-p toml` to both `yq` reads, and update the operator-workflow comment; verify that for each of `da-relay01`, `da-relay02`, and `en-relay01` the two `yq` expressions print the same role and trunk string against `topology.toml` as recorded in 1.3
-- [ ] 5.2 Verify `render` still refuses a missing role by running the role `yq` expression for a nonexistent relay against `topology.toml` and confirming it prints an empty string, which the recipe's guard rejects
-- [ ] 5.3 In `kubernetes/justfile`, point `topology` at `root / "topology.toml"` and update the "has no clients.… in topology.yaml" message, and verify `nu -c 'open topology.toml | get clients.da-vcx-1.ip'` prints `10.42.32.11`
-- [ ] 5.4 Update `bootstrap/AGENTS.md`, `kubernetes/AGENTS.md`, and the four "must track topology.yaml" comments under `kubernetes/clusters/*/flux/`, and verify `rg -n 'topology\.yaml' bootstrap kubernetes` matches nothing
+- [x] 5.1 In `bootstrap/mikrotik/justfile`, point `topology` at `root / "topology.toml"`, add `-p toml` to both `yq` reads, and update the operator-workflow comment; verify that for each of `da-relay01`, `da-relay02`, and `en-relay01` the two `yq` expressions print the same role and trunk string against `topology.toml` as recorded in 1.3
+- [x] 5.2 Verify `render` still refuses a missing role by running the role `yq` expression for a nonexistent relay against `topology.toml` and confirming it prints an empty string, which the recipe's guard rejects
+- [x] 5.3 In `kubernetes/justfile`, point `topology` at `root / "topology.toml"` and update the "has no clients.… in topology.yaml" message, and verify `nu -c 'open topology.toml | get clients.da-vcx-1.ip'` prints `10.42.32.11`
+- [x] 5.4 Update `bootstrap/AGENTS.md`, `kubernetes/AGENTS.md`, and the four "must track topology.yaml" comments under `kubernetes/clusters/*/flux/`, and verify `rg -n 'topology\.yaml' bootstrap kubernetes` matches nothing
 
 ## 6. Remove the YAML copy
 
