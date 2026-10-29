@@ -2,8 +2,12 @@ data "sops_file" "topology" {
   source_file = "${path.root}/secrets/topology.sops.yaml"
 }
 
+data "toml_file" "topology" {
+  input = file("${path.root}/topology.toml")
+}
+
 locals {
-  topology = yamldecode(file("${path.root}/topology.yaml"))
+  topology = data.toml_file.topology.content
 
   vlans = local.topology.vlans
 

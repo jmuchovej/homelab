@@ -60,6 +60,10 @@ terraform {
       source  = "terraform-routeros/routeros"
       version = ">= 1.86.0"
     }
+    toml = {
+      source  = "tobotimus/toml"
+      version = "0.3.0"
+    }
     zerotier = {
       source  = "zerotier/zerotier"
       version = "~> 1.6.0"

@@ -20,10 +20,10 @@
 
 ## 4. OpenTofu
 
-- [ ] 4.1 Add `toml = { source = "tobotimus/toml", version = "0.3.0" }` to `required_providers` in `tofu/main.tofu`, run `just tofu::init`, and verify `.terraform.lock.hcl` gains a `registry.opentofu.org/tobotimus/toml` block at `0.3.0`
-- [ ] 4.2 Replace the `tofu/topology.yaml` symlink with a `tofu/topology.toml` symlink to `../topology.toml`, track it with `jj file track`, and verify `readlink tofu/topology.toml` prints `../topology.toml` and `jj diff --git tofu/topology.toml` records mode `120000`
-- [ ] 4.3 In `tofu/holonet.tofu`, add `data "toml_file" "topology"` reading `file("${path.root}/topology.toml")` and set `local.topology = data.toml_file.topology.content`, and verify `just tofu::plan` reports no changes
-- [ ] 4.4 Update `tofu/AGENTS.md` (the symlink list and the "same `topology.yaml` literal" note) to name `topology.toml` and the provider, and verify `rg -n 'topology\.yaml' tofu` matches nothing
+- [x] 4.1 Add `toml = { source = "tobotimus/toml", version = "0.3.0" }` to `required_providers` in `tofu/main.tofu`, run `just tofu::init`, and verify `.terraform.lock.hcl` gains a `registry.opentofu.org/tobotimus/toml` block at `0.3.0`
+- [x] 4.2 Replace the `tofu/topology.yaml` symlink with a `tofu/topology.toml` symlink to `../topology.toml`, track it with `jj file track`, and verify `readlink tofu/topology.toml` prints `../topology.toml` and `jj diff --git tofu/topology.toml` records mode `120000`
+- [x] 4.3 In `tofu/holonet.tofu`, add `data "toml_file" "topology"` reading `file("${path.root}/topology.toml")` and set `local.topology = data.toml_file.topology.content`, and verify `just tofu::plan` reports no changes
+- [x] 4.4 Update `tofu/AGENTS.md` (the symlink list and the "same `topology.yaml` literal" note) to name `topology.toml` and the provider, and verify `rg -n 'topology\.yaml' tofu` matches nothing
 
 ## 5. Justfiles
 
