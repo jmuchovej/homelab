@@ -35,3 +35,12 @@ resource "routeros_ip_dns_record" "da-wildcard" {
   ttl      = 60
   comment  = "da datacenter wildcard — tracks da-relay01 DDNS"
 }
+
+resource "routeros_ip_dns_record" "da-ha-events" {
+  provider = routeros.da-relay01
+  type     = "A"
+  name     = "ha-events.${local.domain.da}"
+  address  = "10.32.1.45"
+  ttl      = "1m"
+  comment  = "Home Assistant Hubitat event receiver — the `events` LoadBalancer Service"
+}

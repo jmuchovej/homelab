@@ -127,6 +127,19 @@ resource "routeros_ip_firewall_filter" "input_dns_allow" {
   depends_on = [routeros_ip_firewall_addr_list.vlan_cidrs]
 }
 
+resource "routeros_ip_firewall_filter" "input_ntp_allow" {
+  count = local.router-filter ? 1 : 0
+
+  action           = "accept"
+  chain            = "input"
+  dst_port         = "123"
+  protocol         = "udp"
+  src_address_list = "vlan-cidrs"
+  comment          = "Allow vlan-cidrs to reach NTP"
+
+  depends_on = [routeros_ip_firewall_addr_list.vlan_cidrs]
+}
+
 resource "routeros_ip_firewall_filter" "r33_fwd_mgmt_to_homelab_dns_udp" {
   count = local.router-filter ? 1 : 0
 
@@ -324,9 +337,10 @@ locals {
       routeros_ip_firewall_filter.r09_input_icmp.id,
       routeros_ip_firewall_filter.r10_input_loopback_capsman.id,
       # Must precede r11: VLAN interfaces are not in the LAN list, so its
-      # `!LAN` drop would otherwise catch their DNS queries.
+      # `!LAN` drop would otherwise catch their DNS and NTP queries.
       routeros_ip_firewall_filter.input_dns_allow["udp"].id,
       routeros_ip_firewall_filter.input_dns_allow["tcp"].id,
+      routeros_ip_firewall_filter.input_ntp_allow[0].id,
     ],
     var.role == "router" ? [routeros_ip_firewall_filter.input_accept_holonet[0].id] : [],
     local.bgp-enabled ? [routeros_ip_firewall_filter.input_accept_bgp[0].id] : [],
