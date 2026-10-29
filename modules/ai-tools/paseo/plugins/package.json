@@ -1,0 +1,28 @@
+{
+  "name": "@rbn/paseo-plugins",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "paseo-plugin.json",
+    "index.server.ts",
+    "server/"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "execa": "catalog:",
+    "fs-extra": "catalog:",
+    "pathe": "catalog:",
+    "scule": "catalog:"
+  },
+  "devDependencies": {
+    "@getpaseo/client": "catalog:",
+    "@getpaseo/plugin": "catalog:",
+    "@getpaseo/protocol": "catalog:",
+    "@types/fs-extra": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  }
+}
