@@ -37,7 +37,7 @@ listen-port = 51820
 
 [clients]
   da-gr75  = { zerotier = "107f4bb12a", ip = "10.42.32.10" }
-  da-n1x   = { zerotier = "ec0c4b18cc", ip = "10.42.48.10" }
+  da-n1x   = { zerotier = "ec0c4b18cc", ip = "10.42.48.10", public = "h6/JHmWbCs5hoWi+h5sF+/I/TGLn+JdPZDKHQQTh5Tw=" }
   da-vcx-1 = { zerotier = "db2f424f26", ip = "10.42.32.11" }
   da-vcx-2 = { zerotier = "c45b6e40d4", ip = "10.42.32.12" }
   da-vcx-3 = { zerotier = "b4ecd23d53", ip = "10.42.32.13" }

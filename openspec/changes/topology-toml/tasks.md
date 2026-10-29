@@ -8,8 +8,8 @@
 
 ## 2. Data parity
 
-- [ ] 2.1 Copy `clients.da-n1x.public` from `topology.yaml` into `topology.toml`, and verify `diff <(yq -o json -P 'sort_keys(..)' topology.yaml) <(yq -p toml -o json -P 'sort_keys(..)' topology.toml)` shows only `network.da-relay02.uplink`
-- [ ] 2.2 Verify `tombi lint topology.toml` and `nix build .#checks.<system>.topology` both pass with the restored key
+- [x] 2.1 Copy `clients.da-n1x.public` from `topology.yaml` into `topology.toml`, and verify `diff <(yq -o json -P 'sort_keys(..)' topology.yaml) <(yq -p toml -o json -P 'sort_keys(..)' topology.toml)` shows only `network.da-relay02.uplink`
+- [x] 2.2 Verify `tombi lint topology.toml` and `nix build .#checks.<system>.topology` both pass with the restored key
 
 ## 3. Nix consumers
 
