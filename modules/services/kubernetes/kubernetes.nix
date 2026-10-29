@@ -79,7 +79,7 @@ in
       let
         inherit (lib.rbn) render-yaml;
 
-        topology = lib.rbn.from-yaml (inputs.self + "/topology.yaml") { inherit pkgs; };
+        topology = lib.importTOML (inputs.self + "/topology.toml");
 
         # k3s already SANs localhost, 127.0.0.1, the node's own IPs and the
         # in-cluster service IP — which is why agents can join on the raw lab

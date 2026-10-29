@@ -3,7 +3,7 @@
 #
 # Host opt-in: just import <rbn/system/networking/wg-holonet>. Everything
 # else (this host's IP, the router's pubkey/endpoint, the private key) is
-# derived from topology.yaml + secrets/holonet.sops.yaml.
+# derived from topology.toml + secrets/holonet.sops.yaml.
 #
 #   imports = [ <rbn/system/networking/wg-holonet> ];
 #
@@ -12,16 +12,10 @@
 #
 # Both NixOS and nix-darwin use networking.wg-quick.interfaces — same shape,
 # cross-platform.
-{ inputs, ... }: {
+{ inputs, lib, ... }: {
   rbn.system._.networking._.wg-holonet =
     let
-      # YAML → JSON conversion via IFD. yq runs once per build, caches in
-      # the store. `from-yaml` is curried (file → { pkgs } → parsed) AND
-      # `lib.rbn.*` only exists inside nixos/darwin module-eval (the
-      # outermost `lib` here is the flake-parts lib, no rbn extension).
-      # So thread `lib` and `pkgs` from each aspect-arm where they're in
-      # scope and the extension is applied.
-      read-topology = lib: pkgs: lib.rbn.from-yaml "${inputs.self}/topology.yaml" { inherit pkgs; };
+      topology = lib.importTOML "${inputs.self}/topology.toml";
 
       # Build the wg-quick interface config — identical shape between NixOS
       # and nix-darwin since both expose `networking.wg-quick.interfaces`.
@@ -37,7 +31,7 @@
       # handshakes silently fail (CGNAT). When ISP delivers, the en peer
       # entry "just works" with zero edits here.
       #
-      # Subnets come from topology.yaml (`subnets` top-level map) — same
+      # Subnets come from topology.toml (`subnets` top-level map) — same
       # source the tofu catalog reads. Mgmt is intentionally absent
       # (LAN-LOCAL per DC, not part of the mesh).
       mk-interface =
@@ -92,7 +86,6 @@
           host,
           config,
           lib,
-          pkgs,
           ...
         }:
         let
@@ -110,8 +103,7 @@
             };
 
             networking.wg-quick.interfaces.wg-holonet = mk-interface {
-              inherit host lib;
-              topology = read-topology lib pkgs;
+              inherit host lib topology;
               privateKeyFile = config.sops.secrets.${sops-key}.path;
             };
           }
@@ -122,7 +114,6 @@
           host,
           config,
           lib,
-          pkgs,
           ...
         }:
         let
@@ -141,8 +132,7 @@
             };
 
             networking.wg-quick.interfaces.wg-holonet = mk-interface {
-              inherit host lib;
-              topology = read-topology lib pkgs;
+              inherit host lib topology;
               privateKeyFile = config.sops.secrets.${sops-key}.path;
             };
           }

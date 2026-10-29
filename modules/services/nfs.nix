@@ -82,7 +82,6 @@
       host,
       lib,
       config,
-      pkgs,
       inputs,
       ...
     }:
@@ -90,7 +89,7 @@
       enable-exports = host.nfs.exports != [ ];
       enable-mounts = host.nfs.mounts != [ ];
 
-      topology = lib.rbn.from-yaml "${inputs.self}/topology.yaml" { inherit pkgs; };
+      topology = lib.importTOML "${inputs.self}/topology.toml";
       lab-cidr = topology.networks.${host.datacenter}.lab.cidr;
     in
     {

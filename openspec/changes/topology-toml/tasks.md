@@ -2,7 +2,7 @@
 
 ## 1. Baseline
 
-- [x] 1.1 Record the toplevel `drvPath` of every `nixosConfigurations.*` and `darwinConfigurations.*` output (`nix eval --raw .#<kind>.<host>.config.system.build.toplevel.drvPath`) into a scratch file outside the repo, and verify one path is recorded per host listed by `nix eval .#<kind> --apply builtins.attrNames`
+- [x] 1.1 Record, for every `nixosConfigurations.*` and `darwinConfigurations.*` output, the topology-derived option values (`services.k3s.extraFlags`, `services.zerotierone.joinNetworks`, `services.nfs.server.exports`, `networking.timeServers`, `networking.wg-quick.interfaces.wg-holonet`) at the pre-change revision into a scratch file outside the repo, and verify one record is written per host listed by `nix eval .#<kind> --apply builtins.attrNames`; toplevel `drvPath`s are not comparable, since six of the seven hosts embed `inputs.self` (`configurationRevision`, the `self` registry entry, sops-file store paths) and move on any tree edit
 - [x] 1.2 Run `just tofu::plan` and verify it reports no changes before anything is edited; if it does not, stop and report the existing drift rather than continuing
 - [x] 1.3 Record, for each relay in `network`, the output of `bootstrap/mikrotik/justfile`'s role and trunk `yq` expressions against `topology.yaml` into the same scratch file, and verify one role and one trunk line is recorded per relay
 
@@ -13,10 +13,10 @@
 
 ## 3. Nix consumers
 
-- [ ] 3.1 Replace `lib.rbn.from-yaml <self>/topology.yaml { inherit pkgs; }` with `lib.importTOML <self>/topology.toml` in `modules/services/kubernetes/kubernetes.nix`, `modules/services/zerotier.nix` (both call sites), `modules/services/nfs.nix`, and `modules/system/time.nix`, and verify `rg -n 'topology\.yaml' modules` matches only comments
-- [ ] 3.2 Collapse `wg-holonet.nix`'s `read-topology lib pkgs` helper into one `lib.importTOML` value and drop its IFD comment, and verify `rg -n 'read-topology|from-yaml' modules/system/networking/wg-holonet.nix` matches nothing
-- [ ] 3.3 Update the comments in `modules/services/zerotier.nix` and `modules/system/networking/wg-holonet.nix` that name `topology.yaml`, and verify `rg -n 'topology\.yaml' modules` matches nothing
-- [ ] 3.4 Re-evaluate every toplevel `drvPath` from 1.1, and verify each is identical to its baseline
+- [x] 3.1 Replace `lib.rbn.from-yaml <self>/topology.yaml { inherit pkgs; }` with `lib.importTOML <self>/topology.toml` in `modules/services/kubernetes/kubernetes.nix`, `modules/services/zerotier.nix` (both call sites), `modules/services/nfs.nix`, and `modules/system/time.nix`, and verify `rg -n 'topology\.yaml' modules` matches only comments
+- [x] 3.2 Collapse `wg-holonet.nix`'s `read-topology lib pkgs` helper into one `lib.importTOML` value and drop its IFD comment, and verify `rg -n 'read-topology|from-yaml' modules/system/networking/wg-holonet.nix` matches nothing
+- [x] 3.3 Update the comments in `modules/services/zerotier.nix` and `modules/system/networking/wg-holonet.nix` that name `topology.yaml`, and verify `rg -n 'topology\.yaml' modules` matches nothing
+- [x] 3.4 Re-evaluate the topology-derived option values from 1.1 in the working copy, and verify each host's record is identical to its baseline and populated where the host includes the consuming aspect; `wg-holonet` is included by no host, so its rewrite is covered only by `nix-instantiate --parse` and deadnix
 
 ## 4. OpenTofu
 

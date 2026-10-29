@@ -4,11 +4,10 @@
       host,
       inputs,
       lib,
-      pkgs,
       ...
     }:
     let
-      topology = lib.rbn.from-yaml "${inputs.self}/topology.yaml" { inherit pkgs; };
+      topology = lib.importTOML "${inputs.self}/topology.toml";
     in
     {
       time.timeZone = "America/New_York";

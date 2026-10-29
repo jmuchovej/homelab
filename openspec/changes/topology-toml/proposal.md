@@ -38,4 +38,4 @@ None.
 - **Data:** `topology.toml` gains one key; `topology.yaml` and `tofu/topology.yaml` are removed.
 - **Docs:** `tofu/AGENTS.md`, `bootstrap/AGENTS.md`, `kubernetes/AGENTS.md`, and comments in `modules/services/zerotier.nix`, `modules/system/networking/wg-holonet.nix`, `bootstrap/mikrotik/justfile`, and the four `kubernetes/clusters/*/flux` files that say "must track topology.yaml".
 - **In-flight changes:** `openspec/changes/talos-guest-clusters/{proposal,design,tasks}.md`, `openspec/changes/tofu-per-site-modules/{design.md,specs/tofu-root-module/spec.md}`, and `openspec/changes/docs-site-multi-domain/specs/repo-layout/spec.md`.
-- **Systems:** no deployed behavior changes; every host build and `tofu plan` is expected to be a no-op.
+- **Systems:** no deployed behavior changes; every host's topology-derived configuration and `tofu plan` are expected to be unchanged.

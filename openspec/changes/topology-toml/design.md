@@ -20,7 +20,7 @@ Three in-flight changes name `topology.yaml` and none has a completed task: `tal
 
 **Goals:**
 
-- One topology file; every consumer reads it; every host build and `tofu plan` is unchanged.
+- One topology file; every consumer reads it; every host's topology-derived configuration and `tofu plan` are unchanged.
 - No new parsing step in Nix — no import-from-derivation for the topology.
 - Every in-flight change that names `topology.yaml` is updated to `topology.toml` in the same change, so none is applied against a file that no longer exists.
 
@@ -104,16 +104,17 @@ Its archive then replaces the requirement with a block that already holds everyt
 
 - [`tobotimus/toml` decodes a value with a different type than `yamldecode` did — e.g. a tuple where a list was, or a number where a string was] → the `tofu plan` no-op check catches any resulting diff; quoted values (`zerotier.network`) are strings in both files.
 - [The provider is abandoned or yanked] → it is pinned and hash-locked; replacing it is a two-line change in `holonet.tofu`, and the just-JSON alternative above remains available.
-- [Removing the IFD changes a derivation hash even though config is identical] → the no-op check compares each host's `system.build.toplevel` `drvPath` before and after; IFD only affects evaluation, so the paths are expected to match.
+- [A host's toplevel `drvPath` cannot show the change is a no-op] → six of the seven hosts embed `inputs.self` (`configurationRevision` in `nixos-version`, the `self` entry in `/etc/nix/registry.json`, the store paths of `secrets/*.sops.yaml` in sops manifests), so any tree edit moves their `drvPath`.
+  The no-op check instead compares the option values the topology feeds — k3s flags, ZeroTier networks, NFS exports, time servers, and the `wg-holonet` interface — at the pre-change revision and after.
 - [`docs-site-multi-domain` archives before this change] → this change's later archive would drop the `docs/` sentence and its two docs scenarios; the operator gates the order, and the archive follow-up checks the main spec after `docs-site-multi-domain` archives.
 - [An in-flight change is edited again after this change updates it and reintroduces `topology.yaml`] → task 7.4's `rg` sweep over `openspec/changes/` is rerun before archive.
 
 ## Migration Plan
 
-1. Record each host's toplevel `drvPath` (NixOS hosts, the darwin host, and `bootstrap`) and a `just tofu::plan` baseline that shows no changes.
+1. Record each host's topology-derived option values (NixOS hosts, the darwin host, and `bootstrap`) and a `just tofu::plan` baseline that shows no changes.
 2. Copy `da-n1x.public` into `topology.toml`.
 3. Switch the Nix, OpenTofu, and justfile consumers; rename `tofu/topology.yaml` → `tofu/topology.toml`; run `tofu init` to fetch and lock the provider.
-4. Re-check: identical `drvPath`s, `just tofu::plan` with no changes, `nix flake check`, and `just bootstrap mikrotik render` reading role and trunks.
+4. Re-check: identical topology-derived option values, `just tofu::plan` with no changes, `nix flake check`, and `just bootstrap mikrotik render` reading role and trunks.
 5. Update rules, `AGENTS.md` files, and comments; delete `topology.yaml`.
 6. Update the three in-flight changes' artifacts and validate each with `openspec validate --strict`.
 

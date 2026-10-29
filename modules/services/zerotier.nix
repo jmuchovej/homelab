@@ -17,13 +17,13 @@
 #      is the node's stable ZeroTier address.
 #   2. Store identity.secret in sops at key `zerotier.secret-key` in the host's
 #      own file secrets/hosts/<hostname>.sops.yaml. Record the address in
-#      topology.yaml (clients.<host>.zerotier).
+#      topology.toml (clients.<host>.zerotier).
 #   3. Authorize it in tofu via a `zerotier_member` (member_id = that address,
 #      ip_assignments = its holonet IP) so `nh os switch` joins it
 #      already-approved with a pinned IP — no manual click in ZT Central.
 #
 # Prerequisites before a host includes this: `zerotier.network` set in
-# topology.yaml (non-secret), and the sops key `zerotier.secret-key` (the
+# topology.toml (non-secret), and the sops key `zerotier.secret-key` (the
 # node identity.secret) in secrets/hosts/<hostname>.sops.yaml.
 { inputs, ... }: {
   rbn.services._.zerotier = {
@@ -36,9 +36,9 @@
         ...
       }:
       let
-        # Network id is a non-secret IDENTIFIER (topology.yaml), so it's usable
+        # Network id is a non-secret IDENTIFIER (topology.toml), so it's usable
         # at build time for joinNetworks. Only the node identity is secret.
-        topology = lib.rbn.from-yaml "${inputs.self}/topology.yaml" { inherit pkgs; };
+        topology = lib.importTOML "${inputs.self}/topology.toml";
         network = topology.zerotier.network;
 
         identity-key = "zerotier/secret-key";
@@ -101,7 +101,7 @@
         ...
       }:
       let
-        topology = lib.rbn.from-yaml (inputs.self + "/topology.yaml") { inherit pkgs; };
+        topology = lib.importTOML (inputs.self + "/topology.toml");
         network = topology.zerotier.network;
 
         identity-key = "zerotier/secret-key";
