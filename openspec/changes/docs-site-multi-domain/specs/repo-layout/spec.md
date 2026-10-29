@@ -2,7 +2,7 @@
 
 ### Requirement: Tool trees live at the repository root
 
-The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, all bootstrap material (installer image and host install, MikroTik first-boot, cluster seed manifests, Talos machine-config base) under `bootstrap/`, MikroTik topology diagrams and reference documents under `mikrotik/`, Hubitat libraries and drivers under `hubitat/`, the documentation site under `docs/`, and the shared network topology at `topology.yaml`.
+The repository SHALL place each tool-specific tree directly under the repository root: Nix modules under `modules/`, Flux manifests under `kubernetes/`, OpenTofu under `tofu/`, all bootstrap material (installer image and host install, MikroTik first-boot, cluster seed manifests, Talos machine-config base) under `bootstrap/`, MikroTik topology diagrams and reference documents under `mikrotik/`, Hubitat libraries and drivers under `hubitat/`, the documentation site under `docs/`, and the shared network topology at `topology.toml`.
 No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Flake discovers modules from the root
@@ -17,13 +17,13 @@ No tool-facing path SHALL carry a `src/` prefix.
 
 #### Scenario: Nix reads repo data files from root-relative paths
 
-- **WHEN** a module resolves `topology.yaml`, a host's `facter.json`, a `bootstrap/` seed file, or the installer image's `secrets/keys/iso-key.pub` through `inputs.self`
-- **THEN** the path is `<self>/topology.yaml`, `<self>/modules/hosts/<host>/facter.json`, `<self>/bootstrap/...`, or `<self>/secrets/keys/iso-key.pub` and the file is found
+- **WHEN** a module resolves `topology.toml`, a host's `facter.json`, a `bootstrap/` seed file, or the installer image's `secrets/keys/iso-key.pub` through `inputs.self`
+- **THEN** the path is `<self>/topology.toml`, `<self>/modules/hosts/<host>/facter.json`, `<self>/bootstrap/...`, or `<self>/secrets/keys/iso-key.pub` and the file is found
 
 #### Scenario: Relative paths into the repo root keep their target
 
-- **WHEN** a module under `modules/` reaches the repo root by a relative path or symlink (the `networking/topology.yaml` link)
-- **THEN** the path still resolves to the repo-root `topology.yaml`, with no hop into a parent of the repository
+- **WHEN** a module under `modules/` reaches the repo root by a relative path or symlink (the `networking/topology.toml` link)
+- **THEN** the path still resolves to the repo-root `topology.toml`, with no hop into a parent of the repository
 
 #### Scenario: Hubitat bundles are reachable by URL
 
@@ -34,3 +34,8 @@ No tool-facing path SHALL carry a `src/` prefix.
 
 - **WHEN** the documentation site is built or deployed
 - **THEN** its build context is `docs/` alone, it reads nothing from `modules/`, `kubernetes/`, or `tofu/` at build time, and the OpenTofu root references it only by hostname
+
+#### Scenario: No YAML copy of the topology remains
+
+- **WHEN** the repository is searched for `topology.yaml`
+- **THEN** no such file or symlink exists, and no consumer outside `openspec/changes/` names it

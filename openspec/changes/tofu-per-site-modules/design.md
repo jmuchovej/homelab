@@ -15,7 +15,7 @@ The facts that shape the approach:
 - Each cluster runs an `envoy-external` Gateway at `${LB_PREFIX}.1` with the `wildcard-tls` certificate for `${DC_DOMAIN}` and `*.${DC_DOMAIN}`, and an HTTP listener that 301s to HTTPS.
   Flux substitutes `DATACENTER`, `DC_DOMAIN`, `DOMAIN`, and `LB_PREFIX` per cluster.
   The `cloudflare-tunnel` app is selected only by `kubernetes/clusters/da.jm0.io/apps/kustomization.yaml`.
-- Each relay01's IP Cloud DDNS name is also the `ddns` endpoint for that relay in `topology.yaml`, consumed by `holonet.tofu` as the wg-holonet endpoint for public-routable peers.
+- Each relay01's IP Cloud DDNS name is also the `ddns` endpoint for that relay in `topology.toml`, consumed by `holonet.tofu` as the wg-holonet endpoint for public-routable peers.
   wg-holonet is dormant break-glass, not deleted.
 - The main checkout's working copy carries the user's sketch: a repo-root `main.tofu` inlining providers plus `module.en-relay01`, `module.kubernetes-da`, `module.kubernetes-en`, `module.en-service-connection`; `tofu/kubernetes/main.tofu` (discovery per site, with a `data.data.` typo); `tofu/cloudflare/{main,da}.tofu` (references `module.da-relay01`, `routeros.da-relay01`, and `local.catalog`, none visible to a child module); `tofu/cloudflare/tunnel/main.tofu` (a generic tunnel module with `vars.` typos and the wrong config resource name); `tofu/cloudflare/configure-r2/` (two empty files); and `tofu/authentik/kube-service-connection/main.tofu`, which creates an `authentik_service_connection_kubernetes` that `module.authentik` already creates in `apps.outposts.tofu`.
 - State is on R2, encrypted, reachable only through `just tofu::plan` and `just tofu::apply`, which resolve credentials through secretspec and so need an attended session.
@@ -33,12 +33,12 @@ The facts that shape the approach:
 
 **Non-Goals:**
 
-- Moving relay data (port maps, wifi profiles, static leases, BGP peers) into `topology.yaml`.
+- Moving relay data (port maps, wifi profiles, static leases, BGP peers) into `topology.toml`.
   That is the next lever for the site files, and it is a schema change with its own review.
 - Deleting wg-holonet or disabling IP Cloud.
 - Bringing the two tunnels that live outside this repository under tofu.
 - Touching `tofu/servarr/`, `tofu/vault/`, or any authentik resource beyond the two input changes below.
-- Changing the just recipes, the `tofu/secrets` and `tofu/topology.yaml` symlinks, or anything governed by `tofu-state`.
+- Changing the just recipes, the `tofu/secrets` and `tofu/topology.toml` symlinks, or anything governed by `tofu-state`.
 
 ## Decisions
 
@@ -139,6 +139,8 @@ The file keeps its name because `*.tfvars.json` is already gitignored and the ju
 The authentik module keeps its own four `sops_file` reads: it is a child module and must not reach into root data.
 Provider blocks for the three relays reference `data.sops_file.relay["<relay>"].data["tofu-password"]`.
 Addresses of data sources are not in state, so this is free.
+`local.topology` comes from `data "toml_file" "topology"`, a literal file read, so its keys are known at plan time and remain valid `for_each` keys.
+That data source and `local.topology` stay in `holonet.tofu`, which owns the overlay catalog; the `toml` entry in `required_providers` stays in `main.tofu`, and `tobotimus/toml` needs no `provider` block, so "provider blocks only in `main.tofu`" is unaffected.
 
 ### D11. `tofu/AGENTS.md` is rewritten in the same change.
 

@@ -35,7 +35,7 @@ Sops inputs that differ only by file name SHALL be read by a single `for_each` d
 
 #### Scenario: Adding a relay adds no data source
 
-- **WHEN** a relay is added to `topology.yaml` and its host sops file is created
+- **WHEN** a relay is added to `topology.toml` and its host sops file is created
 - **THEN** its credentials are read without adding a `sops_file` data source, and only its `provider` alias and module instance are new
 
 ### Requirement: Shared behavior lives in child modules, instanced per site
