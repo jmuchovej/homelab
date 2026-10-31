@@ -93,23 +93,25 @@ Icons come from `assets/<harness>{,-dark,-light}.png`, picked by system appearan
 ## Paseo plugin (`paseo/`)
 
 A pnpm workspace holding one Paseo plugin, `rbn-paseo-plugins` in `plugins/`, installed into the daemon by directory path (`paseo plugin install <absolute path to plugins/>`, then `paseo plugin reload rbn-paseo-plugins` after edits).
-One plugin with separately registered parts, not one plugin per feature: `plugins/server/<feature>/<hook name>.ts` holds one hook handler each, `plugins/server/index.ts` re-exports them, and `index.server.ts` registers them.
-Shared helpers live in `plugins/server/utils/` (`jj`); prefer importing them over re-declaring a local copy.
-`jj` is a function with members, not a TS `namespace`: `jj(cwd)` returns a template tag that runs the full command, and `jj.log`, `jj.bookmark`, `jj.workspace` are the same tag with a fixed argv prefix (`command(...prefix)`), so a new subcommand is one line.
-Every one of them has a `.try` that returns `null` instead of throwing (for example `` jj.bookmark.try(cwd)`rename a b` ``), and `jj.workspace.{is,name,root}` wrap the reads.
-Members are attached with `defineProperty` (the `callable` helper), not `Object.assign`: a function's own `name` and `length` are read-only, so assigning a member called `name` onto a callable throws at plugin load, which tsc does not catch.
+One plugin with separately registered parts, not one plugin per feature: `plugins/server/hooks/<feature>/<verb>-<noun>.ts` holds one hook handler each, `plugins/server/agent-tools/<tool>.ts` one agent tool each, their `index.ts` barrels re-export, and `index.server.ts` is the single record of which hook runs where.
+Shared helpers live in `plugins/server/utils/` (`jj`, `paths`, `slugify`, `getHarnessModel`); prefer importing them over re-declaring a local copy.
 `paths.ts` owns `WORKTREES_ROOT`; it must not come from a shell variable, because the daemon runs with the desktop app's environment and `workspace.isManaged()` gates every destructive step on it.
+`createJJClient(cwd, { config })` returns a `JJClient` whose only state is the directory and optional `--config` keys applied to every command (the Assisted-by trailer rides on that).
+Call sites use intent-named methods, never command strings: `commit`, `describe`, `root` (the main checkout), `log.{resolve,summary}`, `workspace.{is,isManaged,name,root,add,rename,forget,align}`, `bookmark.{create,list,rename,delete,advance}`, `git.{revParse,attach}`.
+Each namespace is also callable as a raw tag with its subcommand as prefix (`` repo.workspace`list` ``), built with the `callable` helper (`defineProperty`, because a function's own `name` is read-only and `Object.assign` throws at plugin load); `` repo.run`…` ``, `` repo.read`…` `` (adds `--ignore-working-copy`) and `` repo.try`…` `` are the unprefixed forms.
+Add a method for a new need rather than reaching for any of the tags; they exist as escape hatches and should stay rare.
+`bookmark.create` and `bookmark.rename` return `false` instead of throwing when the bookmark already exists or is missing, which is the only "try" semantics the hooks need.
 The tag follows execa's own contract because it is built on `parseCommandString`, which splits on spaces and knows no quoting: literal text splits, each `${}` stays one argument, an array spreads, so anything with spaces or quotes (a revset, a template) must be interpolated, never written inline.
 Paths go through `pathe`, names through `scule`, processes through `execa` (with `reject: false` and `result.failed`), and filesystem checks and mutations through `fs-extra/esm` (`pathExists`, `copy`, `ensureDir`, `remove`, `readJson`), never `node:path`, hand-rolled case code, `child_process`, or a local `exists`.
 `fs-extra/esm` exports only fs-extra's own methods, so a plain `readFile` stays on `node:fs/promises`.
-execa's dependency chain logs one `fs.F_OK is deprecated`warning to the plugin's stderr at load; it is noise, not a fault.
-The daemon compiles the TypeScript itself with esbuild and bundles runtime dependencies from`node_modules`, resolving pnpm's global virtual store as a linked dependency root; versions are pinned in the `catalog:`of`pnpm-workspace.yaml`.
+execa's dependency chain logs one `fs.F_OK is deprecated` warning to the plugin's stderr at load; it is noise, not a fault.
+The daemon compiles the TypeScript itself with esbuild and bundles runtime dependencies from `node_modules`, resolving pnpm's global virtual store as a linked dependency root; versions are pinned in the `catalog:` of `pnpm-workspace.yaml`.
 Paseo supplies `@getpaseo/plugin` and zod at runtime; the SDK pins must track the installed daemon (`paseo --version`).
-The `addHook`API with`workspace.create.before`/`workspace.create.after`/`workspace.archive.after`names is on paseo's main (#8081) but not in the released 0.14.0, whose SDK still has only`before`/`on`; the entry file carries a `STAGED`marker for the switch.
-pnpm 12 refuses packages younger than its minimum release age and writes a`minimumReleaseAgeExclude`list into`pnpm-workspace.yaml`when told to proceed; expect to extend it on every bump.
-No Node runtime is on PATH here (the nix`pnpm`is a standalone binary), so typecheck with bun from inside a package:`bun ./node_modules/typescript/bin/tsc --noEmit`.
+The `addHook` API with `workspace.create.before` / `workspace.create.after` / `workspace.archive.after` names is on paseo's main (#8081) but not in the released 0.14.0, whose SDK still has only `before` / `on`; the entry file carries a `STAGED` marker for the switch.
+pnpm 12 refuses packages younger than its minimum release age and writes a `minimumReleaseAgeExclude` list into `pnpm-workspace.yaml` when told to proceed; expect to extend it on every bump.
+No Node runtime is on PATH here (the nix `pnpm` is a standalone binary), so typecheck with bun from inside a package: `bun ./node_modules/typescript/bin/tsc --noEmit`.
 
-### `jj-worktrees`
+### `hooks/jj`
 
 Paseo only knows `git worktree add`, and a git worktree carved from a colocated jj checkout has no `.jj`: agents in it cannot use jj, and `jj git init` there makes an unrelated repo that never links back to the default workspace.
 The plugin intercepts `workspace.create` requests of kind `worktree`, runs `jj workspace add --colocate` itself, and returns the result as a `directory` source.
@@ -137,6 +139,19 @@ Consequences that are not visible in the code:
   Never call `os.userInfo()` there: the plugin process cannot always read the passwd database, and a throw at module load takes the whole plugin down (it did, on 2026-11-01); the username comes from `$USER` or the home directory's basename.
 - Bare-string revset patterns such as `description("x")` match the whole string, not a substring; use `description(substring:"x")` when probing in tests.
 - The CLI sends only `cwd` while the app sends a `projectId`; the plugin resolves the project by root path so CLI-created workspaces nest under the checkout's project when one is registered.
+
+### `agent-tools`
+
+Paseo knows which harness and model an agent runs, so the `Assisted-by` trailer no longer needs a per-harness shell hook: `agent.session_open` attaches two agent tools, `jj_commit` and `jj_describe`, to every interactive agent whose cwd is a jj checkout.
+Each tool runs the matching jj command with `--config rbn.assisted-by.{tool,model}` so the existing `commit_trailers` template renders the trailer; the harness label comes from the providers snapshot and the model label from the provider's model list, with the raw id as fallback.
+Early in a session the agent record may still hold the creation alias (`haiku`), which the model list does not carry, so the lookup also matches the alias against model ids, newest first.
+Enforcement is the harness's own permission rules: deny on `Bash(jj commit *)` and friends, which Claude Code honours in every mode including `bypassPermissions`, and allow the tools.
+A plugin can also deny a pending shell request by answering it from `agent.permission_requested` with `respondToPermission`, but only when the harness asks, so it adds nothing where a harness deny rule exists.
+The tools are structured inputs only: `message` plus optional `paths` (jj filesets) for `jj_commit`, `message` plus `revision` for `jj_describe`; hunk-level selection is not scriptable in jj and is out of scope.
+
+Testing plugins from inside an agent session: this Claude Code session is itself a paseo agent (`PASEO_AGENT_ID` is set), and `paseo run` then scopes to the caller's workspace and ignores `--cwd`.
+Always register the target directory as a workspace and pass `--workspace <id>`, or the test agent runs in the homelab checkout.
+Claude's bypass mode id is `bypassPermissions`, not `bypass`.
 
 ## Skills materialization is two hops
 
