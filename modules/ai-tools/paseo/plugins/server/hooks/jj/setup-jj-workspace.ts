@@ -17,12 +17,12 @@ export async function setupWorkspace(
 
   // Listeners only fire while a subscribed list is alive, so one is kept for the
   // plugin's lifetime (the API disposes it when the plugin stops).
-  void (() => {
-    started ??= (async () => {
-      await context.paseo.workspaces.list({ subscribe: {} });
-      context.paseo.workspaces.subscribe(workspaceRenameSubscriber);
-    })();
-    return started;
+  started ??= (async () => {
+    await context.paseo.workspaces.list({ subscribe: {} });
+    context.paseo.workspaces.subscribe(workspaceRenameSubscriber);
+  })();
+  void started.catch((error: unknown) => {
+    console.error(`jj-workspaces: rename sync could not start: ${String(error)}`);
   });
 
   if (!repo.workspace.isManaged() || !(await repo.workspace.is())) return;
