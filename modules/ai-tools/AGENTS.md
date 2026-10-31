@@ -98,6 +98,7 @@ Shared helpers live in `plugins/server/utils/` (`jj`); prefer importing them ove
 `jj` is a function with members, not a TS `namespace`: `jj(cwd)` returns a template tag that runs the full command, and `jj.log`, `jj.bookmark`, `jj.workspace` are the same tag with a fixed argv prefix (`command(...prefix)`), so a new subcommand is one line.
 Every one of them has a `.try` that returns `null` instead of throwing (for example `` jj.bookmark.try(cwd)`rename a b` ``), and `jj.workspace.{is,name,root}` wrap the reads.
 Members are attached with `defineProperty` (the `callable` helper), not `Object.assign`: a function's own `name` and `length` are read-only, so assigning a member called `name` onto a callable throws at plugin load, which tsc does not catch.
+`paths.ts` owns `WORKTREES_ROOT`; it must not come from a shell variable, because the daemon runs with the desktop app's environment and `workspace.isManaged()` gates every destructive step on it.
 The tag follows execa's own contract because it is built on `parseCommandString`, which splits on spaces and knows no quoting: literal text splits, each `${}` stays one argument, an array spreads, so anything with spaces or quotes (a revset, a template) must be interpolated, never written inline.
 Paths go through `pathe`, names through `scule`, processes through `execa` (with `reject: false` and `result.failed`), and filesystem checks and mutations through `fs-extra/esm` (`pathExists`, `copy`, `ensureDir`, `remove`, `readJson`), never `node:path`, hand-rolled case code, `child_process`, or a local `exists`.
 `fs-extra/esm` exports only fs-extra's own methods, so a plain `readFile` stays on `node:fs/promises`.
@@ -116,10 +117,10 @@ Paseo then classifies it as a `worktree` workspace (it has a main repo root) tha
 A colocated secondary workspace is a real git worktree, so paseo's diff-against-base review works unchanged: HEAD sits at the parent of `@`, and `@`'s content shows as uncommitted changes.
 Placement is `~/Documents/dev/worktrees/_paseo/<repo>/<slug>` (the Claude hook uses `_claude/<repo>--<name>`), and `devenv.local.nix` is copied over for the same reason it is there.
 The slug is the request `title` when one is given (only the CLI's `--title` sends one; the app names workspaces after creation, from the first prompt), then the branch name, then paseo's generated slug, kebab-cased with scule's `splitByCase` (with a space separator added) and non-alphanumerics scrubbed so the result is a valid bookmark name.
-The base is the picked `refName` when the app's full New-workspace screen or the CLI's `--base` sends one; otherwise `main@origin`, then `main`, then jj's default of the current `@-`.
 A bookmark named after the slug is created on `@` at creation, so the first `jj commit` lands on it and `jj-hooks` (`advance-bookmarks`, see `programs/terminal/jujutsu.nix`) advances it from there; native paseo creates a git branch at the same point.
 When paseo renames the workspace (first-prompt auto-naming or `paseo workspace rename`), the plugin renames the bookmark and the jj workspace to the slugified name, mirroring paseo's own branch rename; it learns about renames through `paseo.workspaces.subscribe`, which only fires while a `workspaces.list({ subscribe: {} })` is alive, so one is held for the plugin's lifetime.
-`paseo.json` `worktree.setup` is re-implemented in `workspace.create.after.ts` (same file, same `bash -c`, same `PASEO_*` variables except `PASEO_WORKTREE_PORT`), because paseo only runs its own `runWorktreeSetupInBackground` from the git-worktree flow and the `workspace.setup.run` request starts setup only when it clears an `untrustedSource` block.
+The base revision is translated from paseo's git spelling: the app's picker sends `refs/heads/<name>` (jj: `<name>@git`, then the local bookmark) or `refs/remotes/<remote>/<name>` (jj: `<name>@<remote>`), the CLI's `--base` sends what it was given (`origin/main` becomes `main@origin`, `main` stays), and no ref at all means `main@origin`, then `main`, then jj's `@-`.
+`paseo.json` `worktree.setup` is re-implemented in `setup-jj-workspace.ts` (same file, same `bash -c`, same `PASEO_*` variables except `PASEO_WORKTREE_PORT`), because paseo only runs its own `runWorktreeSetupInBackground` from the git-worktree flow and the `workspace.setup.run` request starts setup only when it clears an `untrustedSource` block.
 Output goes to `paseo plugin logs rbn-paseo-plugins`, not to the app's setup panel, and setup output that is not gitignored lands in `@`.
 On `workspace.archived` for a path under that root, the plugin deletes the bookmark if it still points at `trunk()` or an empty change, then runs `jj workspace forget` and removes the directory, because paseo never deletes a directory it does not own.
 
@@ -130,6 +131,7 @@ Consequences that are not visible in the code:
 - Agents must use jj inside the workspace.
   A `git commit` there makes jj reset `@` onto the new HEAD and leaves the old working-copy commit behind as a stray.
 - The daemon is spawned by the desktop app with a GUI PATH, so `jj` is resolved from the nix profile paths listed in `server/utils/jj.ts`.
+  Never call `os.userInfo()` there: the plugin process cannot always read the passwd database, and a throw at module load takes the whole plugin down (it did, on 2026-11-01); the username comes from `$USER` or the home directory's basename.
 - The CLI sends only `cwd` while the app sends a `projectId`; the plugin resolves the project by root path so CLI-created workspaces nest under the checkout's project when one is registered.
 
 ## Skills materialization is two hops

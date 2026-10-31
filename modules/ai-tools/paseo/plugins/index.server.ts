@@ -30,8 +30,7 @@ async function attachCommitTools(
   _context: PluginHookContext,
 ): Promise<PluginSessionOpenRequest | undefined> {
   if (request.purpose !== "interactive") return;
-  const repo = createJJClient(request.cwd);
-  if (!(await repo.root)) return;
+  if (!(await createJJClient(request.cwd).workspace.root())) return;
   return {
     ...request,
     tools: [...request.tools, jjCommit, jjDescribe],

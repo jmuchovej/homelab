@@ -1,13 +1,9 @@
-import { homedir } from "node:os";
-
 import type { AgentToolContext } from "@getpaseo/plugin/server";
 import type { AgentPermissionRequest } from "@getpaseo/protocol/agent-types";
-import { basename, join, sep } from "pathe";
 import { kebabCase, splitByCase } from "scule";
 
-import type { JJClient } from "./jj";
-
 export { type Change, createJJClient, JJClient, type JJClientOptions } from "./jj";
+export { workspacePath, WORKTREES_ROOT } from "./paths";
 
 // scule does not split on spaces by default and keeps punctuation; bookmark
 // names must be plain, so parts are scrubbed before joining.
@@ -16,16 +12,6 @@ export function slugify(value: string): string {
     .map((part) => part.replace(/[^a-z0-9]/gi, ""))
     .filter((part) => part !== "");
   return kebabCase(parts);
-}
-
-export const ROOT = join(homedir(), "Documents", "dev", "worktrees", "_paseo");
-
-export function workspacePath(root: string, slug: string): string {
-  return join(ROOT, basename(root), slug);
-}
-
-export function isManagedPath(jj: JJClient): boolean {
-  return jj.cwd !== ROOT && jj.cwd.startsWith(ROOT + sep);
 }
 
 export function unwrapShell(request: AgentPermissionRequest): string | undefined | null {

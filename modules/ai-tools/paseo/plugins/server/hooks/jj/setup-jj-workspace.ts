@@ -105,9 +105,9 @@ async function syncName(repo: JJClient, displayName: string): Promise<void> {
 }
 
 async function workspaceRenameSubscriber(update: PaseoWorkspaceUpdate): Promise<void> {
-  if (update.kind !== "upsert") return;
+  if (update.kind !== "upsert" || !update.workspace.workspaceDirectory) return;
   const repo = createJJClient(resolve(update.workspace.workspaceDirectory));
-  if (!repo.cwd || !repo.workspace.isManaged()) return;
+  if (!repo.workspace.isManaged()) return;
   if (inFlight.has(repo.cwd)) return;
   const task = repo.workspace
     .is()

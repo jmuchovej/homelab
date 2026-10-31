@@ -1,8 +1,7 @@
-import { homedir, userInfo } from "node:os";
+import { homedir } from "node:os";
 
 import { execa, parseCommandString } from "execa";
 import { pathExists } from "fs-extra/esm";
-import { join, resolve, sep } from "pathe";
 
 // Not a bare `jj`: the daemon's GUI PATH has no nix profile on it.
 const CANDIDATES = [
@@ -11,6 +10,11 @@ const CANDIDATES = [
   "/run/current-system/sw/bin/jj",
   "/opt/homebrew/bin/jj",
   "/usr/local/bin/jj",
+import { basename, join, resolve, sep } from "pathe";
+
+import { WORKTREES_ROOT } from "./paths";
+
+const USER = process.env.USER || basename(homedir());
 ];
 
 let binary: Promise<string> | undefined;
@@ -102,18 +106,18 @@ export class JJClient {
     return this.log.summary("@-");
   }
 
-  async describe(revision: string, message: string): Promise<Change> {
+  async describe(message: string, revision = "@"): Promise<Change> {
     await this.run`describe -r ${revision} -m ${message}`;
     return this.log.summary(revision);
   }
 
   readonly log = callable(this.prefixed("log", "--no-graph"), {
-    // Commit id of the single revision a revset names, or null when it names nothing.
+    // Commit id of the first revision a revset names, or null when it names nothing.
+    // The template is interpolated: inline quotes would be split into argv tokens.
     resolve: async (revset: string): Promise<string | null> => {
-      const id = await this.read`log --no-graph -r ${revset} -T 'commit_id.short() ++ " "'`
-        .then((ids) => ids.split(" ")[0])
-        .catch(() => null);
-      return id || null;
+      const template = `commit_id.short() ++ "\n"`;
+      const ids = await this.read`log --no-graph -r ${revset} -T ${template}`.catch(() => null);
+      return ids?.split("\n")[0] || null;
     },
 
     summary: async (revset: string): Promise<Change> => {
@@ -126,8 +130,10 @@ export class JJClient {
   });
 
   readonly workspace = callable(this.prefixed("workspace"), {
+    // Under the plugin's own worktree root, so forget/setup/rename never touch
+    // a checkout the plugin did not create.
     isManaged: (): boolean =>
-      this.cwd !== process.env.DEV_TREE && this.cwd.startsWith(process.env.DEV_TREE + sep),
+      this.cwd !== WORKTREES_ROOT && this.cwd.startsWith(WORKTREES_ROOT + sep),
 
     // Is this directory the root of a jj workspace?
     is: (): Promise<boolean> => pathExists(join(this.cwd, ".jj")),
@@ -165,12 +171,17 @@ export class JJClient {
       return (await this.try`bookmark create ${name} -r ${revision}`) !== null;
     },
 
-    list: async (name?: string): Promise<string[]> => {
+    // Tracked remote bookmarks as jj revsets (`main@origin`), optionally only
+    // the one matching a git-style `<remote>/<name>`; `git` is the colocated
+    // pseudo-remote, so `refs/heads/main` corresponds to `main@git`.
+    list: async (ref?: string): Promise<string[]> => {
       const template = `if(tracked, remote ++ "/" ++ name ++ "::" ++ name ++ "@" ++ remote ++ "\n", "")`;
-      let results = (await this.run`bookmark list -a -T ${template}`).split("\n");
-
-      if (name) results = results.filter((ref: string) => ref.startsWith(name));
-      return results.map((ref: string) => ref.split("::").at(-1)!);
+      const entries = (await this.read`bookmark list -a -T ${template}`)
+        .split("\n")
+        .filter(Boolean);
+      return entries
+        .filter((entry) => !ref || entry.split("::")[0] === ref)
+        .map((entry) => entry.split("::")[1] ?? "");
     },
 
     // False when there is no bookmark `from` to rename.
