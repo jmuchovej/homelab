@@ -2,7 +2,7 @@ import { homedir, userInfo } from "node:os";
 
 import { execa, parseCommandString } from "execa";
 import { pathExists } from "fs-extra/esm";
-import { join } from "pathe";
+import { join, resolve, sep } from "pathe";
 
 // Not a bare `jj`: the daemon's GUI PATH has no nix profile on it.
 const CANDIDATES = [
@@ -42,18 +42,10 @@ function argv(strings: TemplateStringsArray, values: readonly Part[]): string[] 
   return args;
 }
 
-async function exec(cwd: string, args: string[]): Promise<string> {
-  const result = await execa(await lookupBinary(), args, { cwd, reject: false });
-  if (result.failed) {
-    throw new Error(`jj ${args.join(" ")} failed in ${cwd}: ${result.stderr.trim()}`);
-  }
-  return result.stdout.trim();
-}
-
 type Tag<Result> = (strings: TemplateStringsArray, ...values: Part[]) => Promise<Result>;
 
 // Not `Object.assign`: a function's own `name` and `length` are read-only, so
-// assigning a member called `name` onto a callable throws at load time.
+// assigning a member called `name` onto a callable throws at plugin load.
 function callable<F extends object, M extends object>(fn: F, members: M): F & M {
   for (const [key, value] of Object.entries(members)) {
     Object.defineProperty(fn, key, { value, writable: true, configurable: true, enumerable: true });
@@ -61,58 +53,156 @@ function callable<F extends object, M extends object>(fn: F, members: M): F & M 
   return fn as F & M;
 }
 
-// A subcommand is a fixed argv prefix; `jj.bookmark(cwd)\`rename a b\`` runs
-// `jj bookmark rename a b`. Each one carries a `.try` that yields null instead
-// of throwing, so `jj.try` is just the prefix-less case.
-function command(...prefix: string[]) {
-  const strict =
-    (cwd: string): Tag<string> =>
-    (strings, ...values) =>
-      exec(cwd, [...prefix, ...argv(strings, values)]);
-  const lenient =
-    (cwd: string): Tag<string | null> =>
-    async (strings, ...values) => {
-      try {
-        return await strict(cwd)(strings, ...values);
-      } catch {
-        return null;
-      }
-    };
-  return callable(strict, { try: lenient });
+export interface JJClientOptions {
+  // `--config key=value` added to every command, e.g. the Assisted-by trailer keys.
+  config?: Record<string, string>;
 }
 
-export const jj = callable(command(), {
-  log: callable(command("--ignore-working-copy", "log", "--no-graph"), {
-    latestRevision(cwd: string, candidate: string): Promise<string | null> {
-      return jj.log.try(cwd)`--limit 1 --reversed -T commit_id -r ${candidate}`;
+export interface Change {
+  changeId: string;
+  commitId: string;
+  description: string;
+}
+
+// One client per working directory. State is the directory and the extra
+// `--config` flags, nothing else. Each subcommand namespace is callable as a
+// raw tag with that subcommand as prefix (`repo.workspace\`list\``) and carries
+// intent-named methods; call sites should use the methods and add one when
+// a need has no name yet.
+export class JJClient {
+  constructor(
+    readonly cwd: string,
+    private readonly options: JJClientOptions = {},
+  ) {
+    this.cwd = resolve(cwd);
+  }
+
+  with(options: JJClientOptions): JJClient {
+    return new JJClient(this.cwd, {
+      config: { ...this.options.config, ...options.config },
+    });
+  }
+
+  // Snapshots the working copy first, like any interactive `jj` invocation.
+  run: Tag<string> = (strings, ...values) => this.exec(argv(strings, values));
+
+  // Reads without snapshotting; use for anything that only inspects the repo.
+  read: Tag<string> = (strings, ...values) =>
+    this.exec(["--ignore-working-copy", ...argv(strings, values)]);
+
+  try: Tag<string | null> = (strings, ...values) => this.run(strings, ...values).catch(() => null);
+
+  // The main checkout: the `default` workspace, reachable from any workspace of the repo.
+  get root(): Promise<string> {
+    return this.read`workspace root --name default`;
+  }
+
+  async commit(message: string, paths: readonly string[] = []): Promise<Change> {
+    await this.run`commit -m ${message} ${paths}`;
+    return this.log.summary("@-");
+  }
+
+  async describe(revision: string, message: string): Promise<Change> {
+    await this.run`describe -r ${revision} -m ${message}`;
+    return this.log.summary(revision);
+  }
+
+  readonly log = callable(this.prefixed("log", "--no-graph"), {
+    // Commit id of the single revision a revset names, or null when it names nothing.
+    resolve: async (revset: string): Promise<string | null> => {
+      const id = await this.read`log --no-graph -r ${revset} -T 'commit_id.short() ++ " "'`
+        .then((ids) => ids.split(" ")[0])
+        .catch(() => null);
+      return id || null;
     },
-    revision(cwd: string, candidate: string): Promise<string | null> {
-      return jj.log.try(cwd)`-T commit_id -r ${candidate}`;
+
+    summary: async (revset: string): Promise<Change> => {
+      const SUMMARY = `change_id.short() ++ " " ++ commit_id.short() ++ "\n" ++ description`;
+      const text = await this.read`log --no-graph -r ${revset} -T ${SUMMARY}`;
+      const [ids = "", ...description] = text.split("\n");
+      const [changeId = "", commitId = ""] = ids.split(" ");
+      return { changeId, commitId, description: description.join("\n") };
     },
-  }),
+  });
 
-  bookmark: callable(command("bookmark"), {
-    rename: (cwd: string, current: string, desired: string) =>
-      jj.bookmark.try(cwd)`rename ${current} ${desired}`,
-    delete: (cwd: string, name: string) => jj.bookmark(cwd)`delete ${name}`,
-  }),
+  readonly workspace = callable(this.prefixed("workspace"), {
+    isManaged: (): boolean =>
+      this.cwd !== process.env.DEV_TREE && this.cwd.startsWith(process.env.DEV_TREE + sep),
 
-  workspace: callable(command("workspace"), {
-    is: (path: string): Promise<boolean> => pathExists(join(path, ".jj")),
+    // Is this directory the root of a jj workspace?
+    is: (): Promise<boolean> => pathExists(join(this.cwd, ".jj")),
 
-    // The jj workspace name, read from inside the workspace.
-    async name(cwd: string): Promise<string> {
-      const names = await jj.log(cwd)`-r @ -T working_copies`;
+    // The name of the workspace this directory belongs to.
+    name: async (): Promise<string> => {
+      const names = await this.read`log --no-graph -r @ -T working_copies`;
       const name = names.split(/\s+/).find((entry) => entry.endsWith("@"));
-      if (!name) throw new Error(`jj-workspaces: ${cwd} has no working-copy name`);
+      if (!name) throw new Error(`jj-workspaces: ${this.cwd} has no working-copy name`);
       return name.slice(0, -1);
     },
 
-    // The main checkout, from any workspace of the repo.
-    root: (cwd: string): Promise<string> =>
-      jj.workspace(cwd)`root --name default --ignore-working-copy`,
+    // Root of the workspace containing this directory, or null outside any jj repo.
+    root: (): Promise<string | null> => this.read`workspace root`.catch(() => null),
 
-    rename: (cwd: string, desired: string): Promise<string> => jj.workspace(cwd)`rename ${desired}`,
-    forget: (cwd: string): Promise<string> => jj.workspace(cwd)`forget`,
-  }),
-});
+    // A colocated workspace of this repo at `path`, on top of `revision` (default: `@-`).
+    add: async (input: { name: string; path: string; revision?: string }): Promise<void> => {
+      const base = input.revision ? ["-r", input.revision] : [];
+      await this.run`workspace add --colocate --name ${input.name} ${base} ${input.path}`;
+    },
+
+    rename: async (name: string): Promise<void> => {
+      await this.run`workspace rename ${name}`;
+    },
+
+    // Snapshots first, so unfinished edits survive as a commit in the main repo.
+    forget: async (): Promise<void> => {
+      await this.run`workspace forget`;
+    },
+  });
+
+  readonly bookmark = callable(this.prefixed("bookmark"), {
+    // False when a bookmark of that name already exists.
+    create: async (name: string, revision: string): Promise<boolean> => {
+      return (await this.try`bookmark create ${name} -r ${revision}`) !== null;
+    },
+
+    list: async (name?: string): Promise<string[]> => {
+      const template = `if(tracked, remote ++ "/" ++ name ++ "::" ++ name ++ "@" ++ remote ++ "\n", "")`;
+      let results = (await this.run`bookmark list -a -T ${template}`).split("\n");
+
+      if (name) results = results.filter((ref: string) => ref.startsWith(name));
+      return results.map((ref: string) => ref.split("::").at(-1)!);
+    },
+
+    // False when there is no bookmark `from` to rename.
+    rename: async (from: string, to: string): Promise<boolean> => {
+      return (await this.try`bookmark rename ${from} ${to}`) !== null;
+    },
+
+    delete: async (name: string): Promise<void> => {
+      await this.run`bookmark delete ${name}`;
+    },
+  });
+
+  private prefixed(...prefix: string[]): Tag<string> {
+    return (strings, ...values) => this.exec([...prefix, ...argv(strings, values)]);
+  }
+
+  private async exec(args: string[]): Promise<string> {
+    const config = Object.entries(this.options.config ?? {}).flatMap(([key, value]) => [
+      "--config",
+      `${key}=${value}`,
+    ]);
+    const result = await execa(await lookupBinary(), [...config, ...args], {
+      cwd: this.cwd,
+      reject: false,
+    });
+    if (result.failed) {
+      throw new Error(`jj ${args.join(" ")} failed in ${this.cwd}: ${result.stderr.trim()}`);
+    }
+    return result.stdout.trim();
+  }
+}
+
+export function createJJClient(cwd: string, options?: JJClientOptions): JJClient {
+  return new JJClient(cwd, options);
+}
