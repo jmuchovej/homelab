@@ -101,6 +101,8 @@ async function syncName(repo: JJClient, displayName: string): Promise<void> {
     console.log(`jj-workspaces: bookmark ${current} is gone; not renaming it to ${desired}`);
   }
   await repo.workspace.rename(desired);
+  // A renamed branch leaves a symbolic HEAD on a ref that no longer exists.
+  await repo.workspace.align();
   console.log(`jj-workspaces: renamed ${current} -> ${desired} in ${repo.cwd}`);
 }
 

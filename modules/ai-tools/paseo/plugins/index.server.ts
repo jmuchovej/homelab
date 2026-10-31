@@ -5,7 +5,7 @@ import type {
 } from "@getpaseo/plugin/server";
 
 import { jjCommit, jjDescribe } from "./server/agent-tools";
-import { createWorkspace, forgetWorkspace, setupWorkspace } from "./server/hooks";
+import { alignWorkspace, createWorkspace, forgetWorkspace, setupWorkspace } from "./server/hooks";
 import { createJJClient } from "./server/utils";
 
 // STAGED: the released 0.14.0 SDK still has only `before`/`on`; `addHook` with
@@ -17,6 +17,7 @@ export default function contribute(server: PluginServerContext) {
     server.on("workspace.created", setupWorkspace),
     server.on("workspace.archived", forgetWorkspace),
     server.before("agent.session_open", attachCommitTools),
+    server.on("agent.turn_ended", alignWorkspace),
   ];
   return () => {
     for (const dispose of disposers) dispose();

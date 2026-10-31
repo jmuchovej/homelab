@@ -2,31 +2,34 @@ import { homedir } from "node:os";
 
 import { execa, parseCommandString } from "execa";
 import { pathExists } from "fs-extra/esm";
-
-// Not a bare `jj`: the daemon's GUI PATH has no nix profile on it.
-const CANDIDATES = [
-  `/etc/profiles/per-user/${userInfo().username}/bin/jj`,
-  `${homedir()}/.nix-profile/bin/jj`,
-  "/run/current-system/sw/bin/jj",
-  "/opt/homebrew/bin/jj",
-  "/usr/local/bin/jj",
 import { basename, join, resolve, sep } from "pathe";
 
 import { WORKTREES_ROOT } from "./paths";
 
 const USER = process.env.USER || basename(homedir());
+
+const BIN_DIRS = [
+  `/etc/profiles/per-user/${USER}/bin`,
+  `${homedir()}/.nix-profile/bin`,
+  "/run/current-system/sw/bin",
+  "/opt/homebrew/bin",
+  "/usr/local/bin",
 ];
 
-let binary: Promise<string> | undefined;
+const binaries = new Map<string, Promise<string>>();
 
-async function lookupBinary(): Promise<string> {
-  binary ??= (async () => {
-    for (const candidate of CANDIDATES) {
-      if (await pathExists(candidate)) return candidate;
-    }
-    return "jj";
-  })();
-  return binary;
+function lookupBinary(name: "jj" | "git"): Promise<string> {
+  let found = binaries.get(name);
+  if (!found) {
+    found = (async () => {
+      for (const dir of BIN_DIRS) {
+        if (await pathExists(join(dir, name))) return join(dir, name);
+      }
+      return name;
+    })();
+    binaries.set(name, found);
+  }
+  return found;
 }
 
 type Part = string | number | readonly string[];
@@ -163,6 +166,24 @@ export class JJClient {
     forget: async (): Promise<void> => {
       await this.run`workspace forget`;
     },
+
+    // Move this workspace's bookmark (named after the workspace) up to the
+    // newest pushable commit, then put git's HEAD on that branch. jj writes a
+    // detached HEAD at `@-` whenever `@-` moves; once the branch and `@-` are
+    // the same commit, a symbolic HEAD is equivalent and survives until the
+    // next such move. Returns whether HEAD ended up attached.
+    align: async (): Promise<boolean> => {
+      const name = await this.workspace.name();
+      // mimic jj-hooks' `bookmark-advance-to`: the newest described, non-empty,
+      // mutable ancestor of `@`, i.e. the commit a workspace bookmark should be on.
+      const pushable = `heads(::@ & mutable() & ~description(exact:"") & (~empty() | merges()))`;
+      await this.bookmark.advance(name, pushable);
+      const parent = await this.read`log --no-graph -r @- -T commit_id`.catch(() => null);
+      const branch = await this.git.revParse(`refs/heads/${name}`);
+      if (!parent || parent !== branch) return false;
+      await this.git.attach(name);
+      return true;
+    },
   });
 
   readonly bookmark = callable(this.prefixed("bookmark"), {
@@ -192,7 +213,33 @@ export class JJClient {
     delete: async (name: string): Promise<void> => {
       await this.run`bookmark delete ${name}`;
     },
+
+    // Forward-only and never creates: false when the bookmark is missing, the
+    // revset names no single commit, or the move would go backwards.
+    advance: async (name: string, to: string): Promise<boolean> => {
+      return (await this.try`bookmark move ${name} --to ${to}`) !== null;
+    },
   });
+
+  // The colocated git side, for the few things jj does not manage.
+  readonly git = {
+    // Full commit id a ref points at, or null when it does not exist.
+    revParse: async (ref: string): Promise<string | null> => {
+      const result = await execa(await lookupBinary("git"), ["rev-parse", "--verify", "-q", ref], {
+        cwd: this.cwd,
+        reject: false,
+      });
+      return result.failed ? null : result.stdout.trim();
+    },
+
+    attach: async (branch: string): Promise<void> => {
+      const args = ["symbolic-ref", "HEAD", `refs/heads/${branch}`];
+      const result = await execa(await lookupBinary("git"), args, { cwd: this.cwd, reject: false });
+      if (result.failed) {
+        throw new Error(`git ${args.join(" ")} failed in ${this.cwd}: ${result.stderr.trim()}`);
+      }
+    },
+  };
 
   private prefixed(...prefix: string[]): Tag<string> {
     return (strings, ...values) => this.exec([...prefix, ...argv(strings, values)]);
@@ -203,7 +250,7 @@ export class JJClient {
       "--config",
       `${key}=${value}`,
     ]);
-    const result = await execa(await lookupBinary(), [...config, ...args], {
+    const result = await execa(await lookupBinary("jj"), [...config, ...args], {
       cwd: this.cwd,
       reject: false,
     });

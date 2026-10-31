@@ -117,7 +117,10 @@ Paseo then classifies it as a `worktree` workspace (it has a main repo root) tha
 A colocated secondary workspace is a real git worktree, so paseo's diff-against-base review works unchanged: HEAD sits at the parent of `@`, and `@`'s content shows as uncommitted changes.
 Placement is `~/Documents/dev/worktrees/_paseo/<repo>/<slug>` (the Claude hook uses `_claude/<repo>--<name>`), and `devenv.local.nix` is copied over for the same reason it is there.
 The slug is the request `title` when one is given (only the CLI's `--title` sends one; the app names workspaces after creation, from the first prompt), then the branch name, then paseo's generated slug, kebab-cased with scule's `splitByCase` (with a space separator added) and non-alphanumerics scrubbed so the result is a valid bookmark name.
-A bookmark named after the slug is created on `@` at creation, so the first `jj commit` lands on it and `jj-hooks` (`advance-bookmarks`, see `programs/terminal/jujutsu.nix`) advances it from there; native paseo creates a git branch at the same point.
+A bookmark named after the slug is created on `@` at creation, so the first `jj commit` lands on it; native paseo creates a git branch at the same point.
+The plugin does not rely on `jj-hooks` to advance it: `workspace.align()` moves the bookmark forward to jj-hooks' `bookmark-advance-to` revset (inlined in `align()`), then attaches git's HEAD to the bookmark's branch with `git symbolic-ref` when the branch and `@-` are the same commit.
+jj writes a detached HEAD at `@-` whenever `@-` moves (`commit`, `new`, `squash` into the parent, rebase) and leaves an attached HEAD alone otherwise, so alignment runs after the `jj_commit` and `jj_describe` tools, after rename sync (a renamed branch would leave HEAD on a deleted ref), and on `agent.turn_ended` as the catch-all for shell commits.
+An attached HEAD is what gives git, Zed, and paseo a branch name instead of `HEAD`; the directory name stays whatever it was created as, and the jj workspace name and bookmark are the identifiers that follow renames.
 When paseo renames the workspace (first-prompt auto-naming or `paseo workspace rename`), the plugin renames the bookmark and the jj workspace to the slugified name, mirroring paseo's own branch rename; it learns about renames through `paseo.workspaces.subscribe`, which only fires while a `workspaces.list({ subscribe: {} })` is alive, so one is held for the plugin's lifetime.
 The base revision is translated from paseo's git spelling: the app's picker sends `refs/heads/<name>` (jj: `<name>@git`, then the local bookmark) or `refs/remotes/<remote>/<name>` (jj: `<name>@<remote>`), the CLI's `--base` sends what it was given (`origin/main` becomes `main@origin`, `main` stays), and no ref at all means `main@origin`, then `main`, then jj's `@-`.
 `paseo.json` `worktree.setup` is re-implemented in `setup-jj-workspace.ts` (same file, same `bash -c`, same `PASEO_*` variables except `PASEO_WORKTREE_PORT`), because paseo only runs its own `runWorktreeSetupInBackground` from the git-worktree flow and the `workspace.setup.run` request starts setup only when it clears an `untrustedSource` block.
@@ -130,8 +133,9 @@ Consequences that are not visible in the code:
 - Change-request and PR checkouts fall through to paseo's git path untouched.
 - Agents must use jj inside the workspace.
   A `git commit` there makes jj reset `@` onto the new HEAD and leaves the old working-copy commit behind as a stray.
-- The daemon is spawned by the desktop app with a GUI PATH, so `jj` is resolved from the nix profile paths listed in `server/utils/jj.ts`.
+- The daemon is spawned by the desktop app with a GUI PATH, so `jj` and `git` are resolved from the nix profile paths listed in `server/utils/jj.ts`.
   Never call `os.userInfo()` there: the plugin process cannot always read the passwd database, and a throw at module load takes the whole plugin down (it did, on 2026-11-01); the username comes from `$USER` or the home directory's basename.
+- Bare-string revset patterns such as `description("x")` match the whole string, not a substring; use `description(substring:"x")` when probing in tests.
 - The CLI sends only `cwd` while the app sends a `projectId`; the plugin resolves the project by root path so CLI-created workspaces nest under the checkout's project when one is registered.
 
 ## Skills materialization is two hops

@@ -30,6 +30,7 @@ export default defineAgentTool({
     };
     const jj = createJJClient(context.agent.cwd, { config });
     const change = await jj.describe(message, revision);
+    if (jj.workspace.isManaged()) await jj.workspace.align();
 
     return {
       text: `${change.changeId} ${change.commitId}\n${change.description}`,
