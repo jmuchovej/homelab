@@ -8,7 +8,7 @@
 
       hm = { pkgs, ... }: {
         home.packages = [
-          pkgs.rbn.beeper
+          pkgs.beeper
           pkgs.beeper-bridge-manager
         ];
       };

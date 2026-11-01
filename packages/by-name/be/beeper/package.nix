@@ -1,59 +1,48 @@
 {
   lib,
   stdenv,
-  callPackage,
+  stdenvNoCC,
+  runCommand,
   fetchurl,
+  appimageTools,
+  makeWrapper,
+  asar,
+  unzip,
   writeShellApplication,
   curl,
   common-updater-scripts,
 }:
 let
   pname = "beeper";
-  version = "4.3.144";
+  version = "4.3.264";
 
   inherit (stdenv.hostPlatform) system;
 
-  base = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}";
-
   sources = {
     x86_64-linux = fetchurl {
-      url = "${base}-x86_64.AppImage";
-      hash = "sha512-mQnCu+bMG0HeebmFPfzovzQqSgTA0wLJ+/obJXI/k5Eu0BkXeuJb+Ay2xBH8O5Z2hi7Y9Ilku0W4SGhVGpfDFw==";
+      url = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}-x86_64.AppImage";
+      hash = "sha256-OZ7kzSteILDX2VA5RIGQqYtpmKdWSFQBScTl28zjBVE=";
     };
     aarch64-linux = fetchurl {
-      url = "${base}-arm64.AppImage";
-      hash = "sha512-LYQRZH5Sntcr/Q1p1EK4Ae4viGHXTUnv2harXMFB2O62s5h5PF0ql25MK/QkXhM1MO4n38/d65pDQi7nKnPlRg==";
-    };
-    x86_64-darwin = fetchurl {
-      url = "${base}-mac.zip";
-      hash = "sha512-yEt6DuBiFbEg1oaJ/pnJuLon1/xcQ5QO1Wu2vY2P8SPvJZVO1X29KyYlBqSGSpZp1B17V7gO9PsM4hgQYQC5fA==";
+      url = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}-arm64.AppImage";
+      hash = "sha256-/14idUucavAbRG9eTmVv/q9f7+s35Gk5pCMGX4l9NUg=";
     };
     aarch64-darwin = fetchurl {
-      url = "${base}-arm64-mac.zip";
-      hash = "sha512-xjrjpVmEA2ydOzb3ut7R9kBBLJ94HNjYTRwPV/472wC68Ve3N7hiKndN+A+X1xt23dmL5/LVlE8N/YuKPxCLHQ==";
+      # Zip unpacks cleanly with unzip; the download API redirects to a .dmg.
+      url = "https://beeper-desktop.download.beeper.com/builds/Beeper-${version}-arm64-mac.zip";
+      hash = "sha256-d+fJtEIBGVP7IRsNx3pZ/fN9qtiq1nzgELKrzFQ0Y0M=";
     };
   };
 
   src = sources.${system} or (throw "beeper is not supported on ${system}");
 
-  passthru = {
-    inherit sources;
-    updateScript = lib.getExe (writeShellApplication {
-      name = "update-beeper";
-      runtimeInputs = [
-        curl
-        common-updater-scripts
-      ];
-      text = ''
-        set -o errexit
-        latestLinux="$(curl --silent --output /dev/null --write-out "%{redirect_url}\n" https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop)"
-        version="$(echo "$latestLinux" | grep --only-matching --extended-regexp '[0-9]+\.[0-9]+\.[0-9]+')"
-        for platform in ${lib.escapeShellArgs (lib.attrNames sources)}; do
-          update-source-version beeper "$version" --ignore-same-version --source-key="passthru.sources.$platform"
-        done
-      '';
-    });
-  };
+  # Beeper 4.2.985+ ships AppImages without the type-2 magic bytes
+  # (ASCII "AI" + 0x02 at ELF offset 8) that appimageTools.extract requires.
+  linuxSrc = runCommand "Beeper-${version}-appimage" { inherit src; } ''
+    cp $src $out
+    chmod +w $out
+    printf 'AI\x02' | dd of=$out bs=1 seek=8 conv=notrunc status=none
+  '';
 
   meta = {
     description = "Universal chat app";
@@ -74,14 +63,106 @@ let
     mainProgram = "beeper";
   };
 
-  variant = if stdenv.hostPlatform.isDarwin then ./darwin.nix else ./linux.nix;
+  passthru = {
+    inherit sources;
+    updateScript = lib.getExe (writeShellApplication {
+      name = "update-beeper";
+      runtimeInputs = [
+        curl
+        common-updater-scripts
+      ];
+      text = ''
+        set -o errexit
+        latestLinux="$(curl --silent --output /dev/null --write-out "%{redirect_url}\n" https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop)"
+        version="$(echo "$latestLinux" | grep --only-matching --extended-regexp '[0-9]+\.[0-9]+\.[0-9]+')"
+        for platform in ${lib.escapeShellArgs (lib.attrNames sources)}; do
+          update-source-version beeper "$version" --ignore-same-version --source-key="passthru.sources.$platform"
+        done
+      '';
+    });
+  };
+
+  linux =
+    let
+      appimageContents = appimageTools.extract {
+        inherit pname version;
+        src = linuxSrc;
+
+        postExtract = ''
+          appRoot="$out/resources/app"
+          ${lib.getExe asar} extract "$out/resources/app.asar" "$appRoot"
+          rm "$out/resources/app.asar"
+
+          # disable creating a desktop file and icon in the home folder during runtime
+          linuxConfigFilename=$appRoot/build/main/linux-*.mjs
+          echo "export function registerLinuxConfig() {}" > $linuxConfigFilename
+
+          # Disable (no-op) updater setup and checks without removing the methods
+          updateEntryFilename=$appRoot/build/main/main-entry-*.mjs
+          for method in 'async checkForUpdates' 'async runCheck' scheduleNextAutomaticCheck; do
+            signature="$method\([^)]*\)\{"
+            [ "$(grep -oE "$signature" $updateEntryFilename | wc -l)" -eq 1 ] \
+              || (echo "Expected one $method updater method" >&2; exit 1)
+            sed -i -E "s/$signature/&return;/" $updateEntryFilename
+          done
+
+          signature='(register\([^)]*\)\{)([^{}]*\.on\("error",this\.onError\))'
+          [ "$(grep -oE "$signature" $updateEntryFilename | wc -l)" -eq 1 ] \
+            || (echo "Expected one updater register method" >&2; exit 1)
+          sed -i -E "s/$signature/\1return;\2/" $updateEntryFilename
+        '';
+      };
+    in
+    appimageTools.wrapAppImage {
+      inherit
+        pname
+        version
+        meta
+        passthru
+        ;
+
+      src = appimageContents;
+
+      extraPkgs = pkgs: [ pkgs.libsecret ];
+
+      extraInstallCommands = ''
+        install -Dm 644 ${appimageContents}/beepertexts.png $out/share/icons/hicolor/512x512/apps/beepertexts.png
+        install -Dm 644 ${appimageContents}/beepertexts.desktop -t $out/share/applications/
+        substituteInPlace $out/share/applications/beepertexts.desktop --replace-fail "AppRun" "beeper"
+
+        . ${makeWrapper}/nix-support/setup-hook
+        wrapProgram $out/bin/beeper \
+          --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
+          --set APPIMAGE beeper \
+          --run 'exec >/dev/null' # as recommended in #486164
+      '';
+    };
+
+  darwin = stdenvNoCC.mkDerivation {
+    inherit
+      pname
+      version
+      src
+      meta
+      passthru
+      ;
+
+    nativeBuildInputs = [
+      unzip
+      makeWrapper
+    ];
+
+    sourceRoot = ".";
+
+    installPhase = ''
+      runHook preInstall
+
+      mkdir -p $out/{Applications,bin}
+      cp -r "Beeper Desktop.app" $out/Applications/
+      makeWrapper "$out/Applications/Beeper Desktop.app/Contents/MacOS/Beeper Desktop" $out/bin/beeper
+
+      runHook postInstall
+    '';
+  };
 in
-callPackage variant {
-  inherit
-    pname
-    version
-    src
-    meta
-    passthru
-    ;
-}
+if stdenv.hostPlatform.isDarwin then darwin else linux
