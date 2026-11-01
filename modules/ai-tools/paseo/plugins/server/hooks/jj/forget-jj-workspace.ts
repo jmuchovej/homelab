@@ -2,7 +2,9 @@ import type { PluginHookContext, PluginHookWorkspace } from "@getpaseo/plugin/se
 import { remove } from "fs-extra/esm";
 import { resolve } from "pathe";
 
-import { createJJClient } from "../../utils";
+import { createJJClient, useLogger } from "../../utils";
+
+const log = useLogger("jj-hooks::forget");
 
 export async function forgetWorkspace(
   { workspace }: { workspace: PluginHookWorkspace },
@@ -28,10 +30,10 @@ export async function forgetWorkspace(
   const unused = await repo.log.resolve(`bookmarks(exact:"${name}") & (trunk() | empty())`);
   if (unused) {
     await repo.bookmark.delete(name);
-    console.log(`jj-workspaces: deleted unused bookmark ${name}`);
+    log.info(`deleted unused bookmark ${name}`);
   }
 
   await repo.workspace.forget();
   await remove(repo.cwd);
-  console.log(`jj-workspaces: forgot and removed ${repo.cwd}`);
+  log.info(`forgot and removed ${repo.cwd}`);
 }

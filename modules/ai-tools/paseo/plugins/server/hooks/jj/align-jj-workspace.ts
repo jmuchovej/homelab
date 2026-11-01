@@ -1,6 +1,8 @@
 import type { PluginHookContext, PluginLifecycleEvents } from "@getpaseo/plugin/server";
 
-import { createJJClient } from "../../utils";
+import { useLogger, createJJClient } from "../../utils";
+
+const log = useLogger("jj-hooks::align");
 
 // Catch-all for commits the tools did not make (shell `jj commit`, `jj new`,
 // rebases): after each turn, bring the workspace bookmark and git's HEAD back
@@ -14,6 +16,6 @@ export async function alignWorkspace(
   try {
     await repo.workspace.align();
   } catch (error) {
-    console.error(`jj-workspaces: align failed in ${repo.cwd}: ${String(error)}`);
+    log.error(`failed in ${repo.cwd}: ${String(error)}`);
   }
 }

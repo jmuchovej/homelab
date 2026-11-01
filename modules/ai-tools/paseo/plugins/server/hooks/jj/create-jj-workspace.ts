@@ -5,9 +5,11 @@ import type { PluginBeforeRequests, PluginHookContext } from "@getpaseo/plugin/s
 import { ensureDir, pathExists } from "fs-extra/esm";
 import { dirname } from "pathe";
 
-import { createJJClient, type JJClient, slugify, workspacePath } from "../../utils";
+import { createJJClient, type JJClient, slugify, useLogger, workspacePath } from "../../utils";
 
 type CreateRequest = PluginBeforeRequests["workspace.create"];
+
+const log = useLogger("jj-hooks::create");
 
 // Paseo sends git ref names: the app's picker emits `refs/heads/<name>` for a
 // local branch and `refs/remotes/<remote>/<name>` for a remote one, the CLI's
@@ -36,8 +38,11 @@ async function resolveBase(repo: JJClient, ref: string | undefined): Promise<str
   for (const candidate of candidates) {
     if (await repo.log.resolve(candidate)) return candidate;
   }
-  if (ref)
-    throw new Error(`jj-workspaces: ${ref} does not resolve to a jj revision in ${repo.cwd}`);
+  if (ref) {
+    const msg = `${ref} does not resolve to a jj revision in ${repo.cwd}`;
+    log.error(msg);
+    throw new Error(msg);
+  }
   return undefined;
 }
 
@@ -58,7 +63,7 @@ export async function createWorkspace(
   if (request.source.kind !== "worktree") return;
   const source = request.source;
   if (source.checkoutSource) {
-    console.log("jj-workspaces: change-request checkout requested; leaving it to git");
+    log.info("change-request checkout requested; leaving it to git");
     return;
   }
 
@@ -78,9 +83,11 @@ export async function createWorkspace(
 
   if (await pathExists(worktree.cwd)) {
     if (!(await worktree.workspace.is())) {
-      throw new Error(`jj-workspaces: ${worktree.cwd} exists and is not a jj workspace`);
+      const msg = `${worktree.cwd} exists and is not a jj workspace`;
+      log.error(msg);
+      throw new Error(msg);
     }
-    console.log(`jj-workspaces: reusing ${worktree.cwd}`);
+    log.info(`reusing ${worktree.cwd}`);
   } else {
     // `refName` is the base for branch-off and the branch for checkout; either
     // way it is the commit the new workspace starts on.
@@ -90,9 +97,9 @@ export async function createWorkspace(
 
     // On `@` so the first `jj commit` lands on it; jj-hooks advances it from there.
     if (!(await worktree.bookmark.create(name, "@"))) {
-      console.log(`jj-workspaces: bookmark ${name} already exists; not created`);
+      log.info(`bookmark ${name} already exists; not created`);
     }
-    console.log(`jj-workspaces: created ${worktree.cwd} from ${revision ?? "@-"}`);
+    log.info(`created ${worktree.cwd} from ${revision ?? "@-"}`);
   }
 
   const projectId =

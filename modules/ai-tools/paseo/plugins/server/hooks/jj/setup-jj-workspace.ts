@@ -4,7 +4,9 @@ import { execa } from "execa";
 import { readJson } from "fs-extra/esm";
 import { basename, join, resolve } from "pathe";
 
-import { createJJClient, type JJClient, slugify } from "../../utils";
+import { createJJClient, type JJClient, slugify, useLogger } from "../../utils";
+
+const log = useLogger("jj-hooks::forget");
 
 let started: Promise<void> | undefined;
 const inFlight = new Map<string, Promise<void>>();
@@ -22,7 +24,7 @@ export async function setupWorkspace(
     context.paseo.workspaces.subscribe(workspaceRenameSubscriber);
   })();
   void started.catch((error: unknown) => {
-    console.error(`jj-workspaces: rename sync could not start: ${String(error)}`);
+    log.error(`rename sync could not start: ${String(error)}`);
   });
 
   if (!repo.workspace.isManaged() || !(await repo.workspace.is())) return;
@@ -31,7 +33,7 @@ export async function setupWorkspace(
     const [repoRoot, name] = await Promise.all([repo.root, repo.workspace.name()]);
     await runWorkspaceSetup({ cwd: repo.cwd, repoRoot, name });
   })().catch((error: unknown) => {
-    console.error(`jj-workspaces: setup errored in ${repo.cwd}: ${String(error)}`);
+    log.error(`setup errored in ${repo.cwd}: ${String(error)}`);
   });
 }
 
@@ -72,8 +74,9 @@ async function runWorkspaceSetup(options: {
     PASEO_BRANCH_NAME: options.name,
   };
 
+  const fill = (step: number) => step.toString().padStart(commands.length.toString().length, " ");
   for (const [index, command] of commands.entries()) {
-    console.log(`jj-workspaces: setup ${index + 1}/${commands.length}: ${command}`);
+    log.info(`[${fill(index + 1)}/${commands.length}] ${command}`);
     const result = await execa("bash", ["-c", command], {
       cwd: options.cwd,
       env,
@@ -83,11 +86,11 @@ async function runWorkspaceSetup(options: {
     if (result.stdout.trim()) console.log(result.stdout.trimEnd());
     if (result.stderr.trim()) console.error(result.stderr.trimEnd());
     if (result.failed) {
-      console.error(`jj-workspaces: setup failed (exit ${result.exitCode}) in ${options.cwd}`);
+      log.error(`setup failed (exit ${result.exitCode}) in ${options.cwd}`);
       return;
     }
   }
-  console.log(`jj-workspaces: setup completed in ${options.cwd}`);
+  log.success(`setup completed in ${options.cwd}`);
 }
 
 async function syncName(repo: JJClient, displayName: string): Promise<void> {
@@ -98,12 +101,12 @@ async function syncName(repo: JJClient, displayName: string): Promise<void> {
   if (current === desired) return;
 
   if (!(await repo.bookmark.rename(current, desired))) {
-    console.log(`jj-workspaces: bookmark ${current} is gone; not renaming it to ${desired}`);
+    log.warn(`bookmark ${current} is gone; not renaming it to ${desired}`);
   }
   await repo.workspace.rename(desired);
   // A renamed branch leaves a symbolic HEAD on a ref that no longer exists.
   await repo.workspace.align();
-  console.log(`jj-workspaces: renamed ${current} -> ${desired} in ${repo.cwd}`);
+  log.success(`renamed ${current} -> ${desired} in ${repo.cwd}`);
 }
 
 async function workspaceRenameSubscriber(update: PaseoWorkspaceUpdate): Promise<void> {
@@ -115,7 +118,7 @@ async function workspaceRenameSubscriber(update: PaseoWorkspaceUpdate): Promise<
     .is()
     .then((ok) => (ok ? syncName(repo, update.workspace.name) : undefined))
     .catch((error: unknown) => {
-      console.error(`jj-workspaces: rename sync failed for ${repo.cwd}: ${String(error)}`);
+      log.error(`rename sync failed for ${repo.cwd}: ${String(error)}`);
     })
     .finally(() => inFlight.delete(repo.cwd));
   inFlight.set(repo.cwd, task);

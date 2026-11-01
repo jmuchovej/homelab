@@ -6,6 +6,7 @@ import { type Change, } from "./jj";
 
 export { type Change, createJJClient, JJClient, type JJClientOptions } from "./jj";
 export { workspacePath, WORKTREES_ROOT } from "./paths";
+export { useLogger } from "./log";
 
 // scule does not split on spaces by default and keeps punctuation; bookmark
 // names must be plain, so parts are scrubbed before joining.

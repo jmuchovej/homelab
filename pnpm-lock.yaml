@@ -21,6 +21,9 @@ catalogs:
     '@types/node':
       specifier: ^24.0.0
       version: 24.19.2
+    consola:
+      specifier: ^3.4.2
+      version: 3.4.2
     defu:
       specifier: ^6.1.7
       version: 6.1.7
@@ -49,6 +52,9 @@ importers:
 
   modules/ai-tools/paseo/plugins:
     dependencies:
+      consola:
+        specifier: 'catalog:'
+        version: 3.4.2
       defu:
         specifier: 'catalog:'
         version: 6.1.7
@@ -145,6 +151,10 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  consola@3.4.2:
+    resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
+    engines: {node: ^14.18.0 || >=16.10.0}
 
   defu@6.1.7:
     resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
@@ -353,6 +363,8 @@ snapshots:
       undici-types: 7.24.6
 
   base64-js@1.5.1: {}
+
+  consola@3.4.2: {}
 
   defu@6.1.7: {}
 
