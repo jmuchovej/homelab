@@ -12,7 +12,7 @@ locals {
   # just the map key: the slug names the authentik objects and keys this app's
   # credentials in secrets/authentik.sops.yaml, so without it the two sites
   # collide on one application and share one OAuth client.
-  slug = var.site-scoped ? "${local.base-slug}-${var.site}" : local.base-slug
+  slug = var.site-scoped && !endswith(local.base-slug, "-${var.site}") ? "${local.base-slug}-${var.site}" : local.base-slug
 }
 
 data "sops_file" "authentik" {
