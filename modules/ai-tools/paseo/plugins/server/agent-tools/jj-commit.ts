@@ -1,8 +1,9 @@
 import type { AgentToolContext, AgentToolResult } from "@getpaseo/plugin/server";
 import { defineAgentTool } from "@getpaseo/plugin/server";
+import { defu } from "defu";
 import { z } from "zod";
 
-import { createJJClient, getHarnessModel } from "../utils";
+import { getAttribution, createJJClient, formatChanges } from "../utils";
 
 const schema = z.object({
   message: z
@@ -28,18 +29,11 @@ export default defineAgentTool({
     "Use this instead of running `jj commit` in a shell.",
   input: schema,
   async execute({ message, paths }, context: AgentToolContext): Promise<AgentToolResult> {
-    const assisted_by = await getHarnessModel(context);
-    const config = {
-      "rbn.assisted-by.tool": assisted_by.provider,
-      "rbn.assisted-by.model": assisted_by.model,
-    };
-    const jj = createJJClient(context.agent.cwd, { config });
+    const attribution = await getAttribution(context);
+    const jj = createJJClient(context.agent.cwd, { config: defu({}, attribution) });
     const change = await jj.commit(message, paths);
     if (jj.workspace.isManaged()) await jj.workspace.align();
 
-    return {
-      text: `${change.changeId} ${change.commitId}\n${change.description}`,
-      structuredContent: change,
-    };
+    return { text: formatChanges(change), structuredContent: change };
   },
 });

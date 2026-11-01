@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 
+import { defu } from "defu";
 import { execa, parseCommandString } from "execa";
 import { pathExists } from "fs-extra/esm";
 import { basename, join, resolve, sep } from "pathe";
@@ -85,9 +86,7 @@ export class JJClient {
   }
 
   with(options: JJClientOptions): JJClient {
-    return new JJClient(this.cwd, {
-      config: { ...this.options.config, ...options.config },
-    });
+    return new JJClient(this.cwd, defu(this.options, options));
   }
 
   // Snapshots the working copy first, like any interactive `jj` invocation.

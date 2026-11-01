@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "defu": "catalog:",
     "execa": "catalog:",
     "fs-extra": "catalog:",
     "pathe": "catalog:",

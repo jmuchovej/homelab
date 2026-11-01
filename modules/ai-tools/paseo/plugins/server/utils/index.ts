@@ -2,6 +2,8 @@ import type { AgentToolContext } from "@getpaseo/plugin/server";
 import type { AgentPermissionRequest } from "@getpaseo/protocol/agent-types";
 import { kebabCase, splitByCase } from "scule";
 
+import { type Change, } from "./jj";
+
 export { type Change, createJJClient, JJClient, type JJClientOptions } from "./jj";
 export { workspacePath, WORKTREES_ROOT } from "./paths";
 
@@ -53,4 +55,24 @@ export async function getHarnessModel({ agent, paseo }: AgentToolContext) {
     provider: providerName,
     model: modelName,
   };
+}
+
+type Attribution = {
+  "rbn.assisted-by.tool": string;
+  "rbn.assisted-by.model": string;
+};
+// Extract the keys needed for the `Assisted-by` trailer and format for `--config ...`
+// inputs to `jj`.
+export async function getAttribution(context: AgentToolContext): Promise<Attribution> {
+  const { provider, model } = await getHarnessModel(context);
+  return {
+    "rbn.assisted-by.tool": provider,
+    "rbn.assisted-by.model": model,
+  };
+}
+
+export function formatChanges(...changes: Change[]): string {
+  return changes
+    .map((change) => `${change.changeId} ${change.commitId}\n${change.description}`)
+    .join("\n\n");
 }
