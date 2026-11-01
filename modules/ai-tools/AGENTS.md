@@ -53,7 +53,8 @@ Local skills are merged over a pinned subset of `inputs.anthropic-skills`.
 ### `hooks/<name>.nu` → `mk-nu-script`
 
 See below.
-`hooks/lib/*.nu` (`mod.nu`, `tools.nu`, `devenv.nu`) are shared nushell modules, not hooks.
+`hooks/lib/*.nu` (`mod.nu`, `tools.nu`, `toolchain.nu`, `harness.nu`, `notify.nu`) are shared nushell modules, not hooks.
+A new file there needs the `!modules/ai-tools/hooks/lib/` re-include at the end of the root `.gitignore`: the Python template's unanchored `lib/` would otherwise hide it, and `jj file track` exits 0 without tracking an ignored file.
 
 > **Loader values are paths, not file contents.**
 > `programs.claude-code.{commands,agents}` is `attrsOf (either lines path)`, so handing it paths avoids one `readFile` per file at eval time.
@@ -77,6 +78,35 @@ List only **external** commands in `bins`; nu built-ins already cover `mkdir`/`r
 Deliberate exception: `prune-comments` gets `claude` from the session `PATH` rather than `bins`, to keep the unfree package out of the wrapper closure.
 
 `status-line` is built by the same table but is not a hook — it is wired to `settings.statusLine`.
+
+### Toolchain enforcement
+
+`launch-devenv` is the single enforcement point for keeping Bash commands inside a project's own toolchain; `pre-tool-use` carries the regex security checks only.
+
+A hook is the only place this can happen.
+The Bash tool spawns a fresh non-interactive shell per call, so neither devenv's `devenv hook zsh` nor direnv's shell hook ever fires, and shell state does not persist between calls.
+What the tool does inherit is the session's launch environment, so a session started from an already-activated shell needs no wrapping at all — that is what the `active` check detects, and it is why the guard is silent far more often than it fires.
+
+`toolchain detect` (`lib/toolchain.nu`) walks ancestors for `devenv.nix` first, then `flake.nix`, stopping at the enclosing repo boundary (`.jj` or `.git`, either of which may be a file rather than a directory).
+Bounding the walk keeps a tree with no toolchain of its own from inheriting an unrelated parent project's.
+
+| tree                     | wrap                       | already-active marker                    |
+| ------------------------ | -------------------------- | ---------------------------------------- |
+| `devenv.nix`             | `devenv shell -q -- <cmd>` | `DEVENV_ROOT`                            |
+| `flake.nix` + `.envrc`   | `direnv exec . <cmd>`      | `DIRENV_DIR`, reported as `-<abs path>`  |
+| `flake.nix`, no `.envrc` | `nix develop -c <cmd>`     | `IN_NIX_SHELL`, which cannot name a tree |
+
+A flake tree without an `.envrc` falls back to `nix develop` because `direnv exec` in such a tree exits 0 and runs the command unwrapped — recommending it there would enforce nothing while costing a round trip.
+Where an `.envrc` does exist, direnv is preferred because it reuses nix-direnv's cached dev shell, while `nix develop` re-evaluates and re-fetches a dirty local git input on every call.
+Roots and markers are both canonicalised through `path expand`: a checkout is often reached through a symlink, and the activator always reports the resolved path.
+`path expand` on an empty string yields the process cwd, so an unset marker must be special-cased or it compares equal to the detected root and silently disables the guard.
+
+The hook denies rather than rewriting the command via `updatedInput`.
+The Bash tool tracks its working directory outside the shell it spawns, so wrapping a command containing `cd` would silently lose the directory change.
+A deny is self-correcting instead: Claude re-issues the command wrapped, and the real command stays visible to the user.
+
+None of this can move into the row's `condition`.
+The `if` field holds exactly one permission rule, with no negation and no cwd conditions, so the hook spawns on every Bash call and decides internally.
 
 ### Worktrees
 
