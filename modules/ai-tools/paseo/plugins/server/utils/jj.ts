@@ -1,37 +1,12 @@
-import { homedir } from "node:os";
-
 import { defu } from "defu";
 import { execa, parseCommandString } from "execa";
 import { pathExists } from "fs-extra/esm";
-import { basename, join, resolve, sep } from "pathe";
+import { join, resolve, sep } from "pathe";
 
-import { WORKTREES_ROOT } from "./paths";
+import { useLogger } from "./log";
+import { Binary, getBinaryFor, WORKTREES_ROOT } from "./paths";
 
-const USER = process.env.USER || basename(homedir());
-
-const BIN_DIRS = [
-  `/etc/profiles/per-user/${USER}/bin`,
-  `${homedir()}/.nix-profile/bin`,
-  "/run/current-system/sw/bin",
-  "/opt/homebrew/bin",
-  "/usr/local/bin",
-];
-
-const binaries = new Map<string, Promise<string>>();
-
-function lookupBinary(name: "jj" | "git"): Promise<string> {
-  let found = binaries.get(name);
-  if (!found) {
-    found = (async () => {
-      for (const dir of BIN_DIRS) {
-        if (await pathExists(join(dir, name))) return join(dir, name);
-      }
-      return name;
-    })();
-    binaries.set(name, found);
-  }
-  return found;
-}
+const log = useLogger("jj-client");
 
 type Part = string | number | readonly string[];
 
@@ -224,19 +199,11 @@ export class JJClient {
   readonly git = {
     // Full commit id a ref points at, or null when it does not exist.
     revParse: async (ref: string): Promise<string | null> => {
-      const result = await execa(await lookupBinary("git"), ["rev-parse", "--verify", "-q", ref], {
-        cwd: this.cwd,
-        reject: false,
-      });
-      return result.failed ? null : result.stdout.trim();
+      return this.execGit(["rev-parse", "--verify", "-q", ref]).catch(() => null);
     },
 
     attach: async (branch: string): Promise<void> => {
-      const args = ["symbolic-ref", "HEAD", `refs/heads/${branch}`];
-      const result = await execa(await lookupBinary("git"), args, { cwd: this.cwd, reject: false });
-      if (result.failed) {
-        throw new Error(`git ${args.join(" ")} failed in ${this.cwd}: ${result.stderr.trim()}`);
-      }
+      this.execGit(["symbolic-ref", "HEAD", `refs/heads/${branch}`]).catch(() => null);
     },
   };
 
@@ -249,12 +216,23 @@ export class JJClient {
       "--config",
       `${key}=${value}`,
     ]);
-    const result = await execa(await lookupBinary("jj"), [...config, ...args], {
+    return this.execWith("jj", [...config, ...args]);
+  }
+
+  private async execGit(args: string[]): Promise<string> {
+    return this.execWith("git", args);
+  }
+
+  private async execWith(binary: Binary, args: string[]): Promise<string> {
+    const binPath = await getBinaryFor(binary);
+    const result = await execa(binPath, [...args], {
       cwd: this.cwd,
       reject: false,
     });
     if (result.failed) {
-      throw new Error(`jj ${args.join(" ")} failed in ${this.cwd}: ${result.stderr.trim()}`);
+      const msg = `${binary} ${args.join(" ")} failed in ${this.cwd}: ${result.stderr.trim()}`;
+      log.error(msg);
+      throw new Error(msg);
     }
     return result.stdout.trim();
   }
