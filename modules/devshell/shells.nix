@@ -83,6 +83,8 @@
           # Python (homelab CLI + docs via `uv run`)
           python313
           uv
+          nodejs
+          pnpm
 
           # Diagrams / docs
           d2
