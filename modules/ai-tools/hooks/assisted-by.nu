@@ -11,10 +11,11 @@
 
 use lib *
 
-# `jj` where a shell command starts: line start, after a separator, or after a
-# `--` (the devenv wrapper). Deliberately NOT a bare `\bjj\b`, which would
-# also rewrite a `jj` inside a quoted commit message.
-const jj_at_start = '(^|[;&|(]\s*|--\s+)jj(\s)'
+# Where a `jj` invocation can start: line start, after a separator, after a
+# `--` (the devenv wrapper), or after `direnv exec <dir>`. Deliberately NOT a
+# bare `\bjj\b`, which would also match a `jj` inside a quoted commit message.
+const jj_prefix = '(^|[;&|(]\s*|--\s+|direnv\s+exec\s+\S+\s+)'
+const jj_at_start = $jj_prefix + 'jj(\s)'
 
 # `claude-fable-5-1` -> `Claude Fable 5.1`; `claude-haiku-4-5-20251001` -> `Claude Haiku 4.5`.
 def display-name [id: string]: nothing -> string {
@@ -35,6 +36,20 @@ def display-name [id: string]: nothing -> string {
 
 let input = tools read-input
 let cmd = $input.tool_input?.command? | default ''
+
+# Inside paseo the rbn-paseo-plugins agent tools are the only way to write a
+# description: they take the trailer from paseo's own record of harness and
+# model. `jj new` without a message writes none and stays allowed.
+if ($env.PASEO_AGENT_ID? | is-not-empty) {
+  let describing = $jj_prefix + 'jj\s+(commit|ci|describe|desc|split|squash)\b'
+  let new_with_message = $jj_prefix + 'jj\s+new\b[^;&|]*\s(-m|--message)\b'
+  if ($cmd =~ $describing) or ($cmd =~ $new_with_message) {
+    tools deny ('Inside paseo, write jj descriptions with the jj_commit, jj_describe, '
+      + 'jj_split and jj_squash tools; they add the Assisted-by trailer for this agent. '
+      + 'For `jj new -m`, run `jj new` and then jj_describe.')
+  }
+  exit 0
+}
 
 if $cmd =~ 'rbn\.assisted-by\.model=' { exit 0 }
 

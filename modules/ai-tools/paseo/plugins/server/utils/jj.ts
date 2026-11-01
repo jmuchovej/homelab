@@ -88,6 +88,42 @@ export class JJClient {
     return this.log.summary(revision);
   }
 
+  // Split `revision` by fileset. The selected paths keep the change id and
+  // take `message`; the rest becomes its child with the original description.
+  // Change ids survive the rewrite, commit ids do not, so results are read
+  // back by the change id pinned beforehand.
+  async split(input: {
+    revision?: string;
+    paths: readonly string[];
+    message: string;
+  }): Promise<{ selected: Change; remainder: Change }> {
+    const id = await this.read`log --no-graph -r ${input.revision ?? "@"} -T change_id`;
+    await this.run`split -r ${id} -m ${input.message} ${input.paths}`;
+    return {
+      selected: await this.log.summary(id),
+      remainder: await this.log.summary(`children(${id})`),
+    };
+  }
+
+  // Move `paths` (default: everything) from `from` into `into` (default: the
+  // parent of `from`). The combined description must be given or taken from
+  // the destination: with neither, jj opens an editor the daemon cannot drive.
+  async squash(input: {
+    from?: string;
+    into?: string;
+    paths?: readonly string[];
+    description: { message: string } | { keep: "destination" };
+  }): Promise<Change> {
+    const from = input.from ?? "@";
+    const into = await this.read`log --no-graph -r ${input.into ?? `${from}-`} -T change_id`;
+    const describe =
+      "message" in input.description
+        ? ["-m", input.description.message]
+        : ["--use-destination-message"];
+    await this.run`squash --from ${from} --into ${into} ${describe} ${input.paths ?? []}`;
+    return this.log.summary(into);
+  }
+
   readonly log = callable(this.prefixed("log", "--no-graph"), {
     // Commit id of the first revision a revset names, or null when it names nothing.
     // The template is interpolated: inline quotes would be split into argv tokens.

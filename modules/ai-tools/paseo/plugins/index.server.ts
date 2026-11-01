@@ -4,7 +4,7 @@ import type {
   PluginSessionOpenRequest,
 } from "@getpaseo/plugin/server";
 
-import { jjCommit, jjDescribe } from "./server/agent-tools";
+import { jjCommit, jjDescribe, jjSplit, jjSquash } from "./server/agent-tools";
 import { alignWorkspace, createWorkspace, forgetWorkspace, setupWorkspace } from "./server/hooks";
 import { createJJClient } from "./server/utils";
 
@@ -31,9 +31,11 @@ async function attachCommitTools(
   _context: PluginHookContext,
 ): Promise<PluginSessionOpenRequest | undefined> {
   if (request.purpose !== "interactive") return;
-  if (!(await createJJClient(request.cwd).workspace.root())) return;
+  const jj = createJJClient(request.cwd);
+  if (!(await jj.workspace.root())) return;
+
   return {
     ...request,
-    tools: [...request.tools, jjCommit, jjDescribe],
+    tools: [...request.tools, jjCommit, jjDescribe, jjSplit, jjSquash],
   };
 }
